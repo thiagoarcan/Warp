@@ -1,0 +1,33 @@
+app:
+  version: "2.0.0"
+  profiling: true
+io:
+  schema_detection:
+    timestamp_candidates: ["timestamp", "time", "datetime", "datahora"]
+    min_series_columns: 1
+    max_missing_ratio: 0.95
+  timezone: "UTC"
+processing:
+  interpolation:
+    default_method: "linear"
+    spline_cubic:
+      bc_type: "not-a-knot"
+  synchronization:
+    default_method: "common_grid_interpolate"
+  calculus:
+    derivative:
+      method: "finite_diff"
+cache:
+  memory:
+    enabled: true
+    maxsize: 128
+  disk:
+    enabled: true
+    path: ".cache/platform_base"
+    ttl_seconds: 3600
+parallelism:
+  enabled: true
+  process_pool_size: 4
+logging:
+  level: "INFO"
+  json: true
