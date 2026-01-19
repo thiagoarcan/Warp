@@ -1,0 +1,19 @@
+         14 function calls in 0.101 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.100    0.100 C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\tests\unit\test_profiling.py:50(slow_function)
+        1    0.100    0.100    0.100    0.100 {built-in method time.sleep}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 shibokensupport/signature/loader.py:59(feature_import)
+        1    0.000    0.000    0.000    0.000 shibokensupport/feature.py:88(feature_import)
+        1    0.000    0.000    0.000    0.000 shibokensupport/signature/loader.py:67(feature_imported)
+        1    0.000    0.000    0.000    0.000 shibokensupport/feature.py:134(feature_imported)
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.sum}
+        2    0.000    0.000    0.000    0.000 {built-in method time.perf_counter}
+        2    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method sys._getframe}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.hasattr}
+
+

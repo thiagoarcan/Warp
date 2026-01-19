@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dash
 import dash_bootstrap_components as dbc
-from dash.long_callback import DiskcacheLongCallbackManager
+from dash import DiskcacheManager
 import diskcache
 
 from platform_base.core.dataset_store import DatasetStore
@@ -20,7 +20,7 @@ def create_app(store: DatasetStore | None = None, config: LayoutConfig | None = 
     
     Features implementadas:
     - Layout responsivo configurável
-    - Long callbacks para operações pesadas
+    - Background callbacks para operações pesadas
     - Integração com AppState centralizado
     - Bootstrap para responsividade
     """
@@ -29,9 +29,9 @@ def create_app(store: DatasetStore | None = None, config: LayoutConfig | None = 
     if store:
         app_state.datasets = store
     
-    # Setup long callback manager for async operations
+    # Setup background callback manager for async operations (Dash 2.0+)
     cache = diskcache.Cache("./.dash_cache")
-    long_callback_manager = DiskcacheLongCallbackManager(cache)
+    background_callback_manager = DiskcacheManager(cache)
     
     # Create Dash app with responsive theme
     app = dash.Dash(
@@ -39,11 +39,12 @@ def create_app(store: DatasetStore | None = None, config: LayoutConfig | None = 
         external_stylesheets=[
             dbc.themes.BOOTSTRAP,
             dbc.icons.FONT_AWESOME,
-            # Meta tag for mobile responsiveness
+        ],
+        meta_tags=[
             {"name": "viewport", "content": "width=device-width, initial-scale=1"}
         ],
         suppress_callback_exceptions=True,
-        long_callback_manager=long_callback_manager
+        background_callback_manager=background_callback_manager
     )
     
     # Configure layout
@@ -55,7 +56,7 @@ def create_app(store: DatasetStore | None = None, config: LayoutConfig | None = 
     
     logger.info("dash_app_created", 
                responsive=layout_config.responsive,
-               long_callbacks=True,
+               background_callbacks=True,
                theme="bootstrap")
     
     return app
@@ -78,7 +79,8 @@ def run_app(host: str = "127.0.0.1", port: int = 8050, debug: bool = False):
                debug=debug)
     
     try:
-        app.run_server(
+        # Dash 3.x uses app.run() instead of app.run_server()
+        app.run(
             host=host,
             port=port,
             debug=debug,
@@ -93,3 +95,7 @@ def run_app(host: str = "127.0.0.1", port: int = 8050, debug: bool = False):
 def run():
     """Entry point for CLI command."""
     run_app()
+
+
+if __name__ == "__main__":
+    run_app(debug=True)

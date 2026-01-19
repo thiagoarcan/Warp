@@ -151,7 +151,8 @@ class TestAutoProfiler:
         
         assert summary["total_functions"] == 1
         assert summary["total_calls"] == 3
-        assert "test_function" in summary["functions"]
+        # Function is registered with full module path
+        assert "test_profiling.test_function" in summary["functions"]
         
         func_stats = summary["functions"]["test_profiling.test_function"]
         assert func_stats["call_count"] == 3

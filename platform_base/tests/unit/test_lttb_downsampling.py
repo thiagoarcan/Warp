@@ -16,14 +16,14 @@ class TestLTTBDownsampling:
         x = np.linspace(0, 10, 1000)
         y = np.sin(x) + 0.1 * np.random.randn(len(x))
         
-        # Downsample to 100 points
-        x_down, y_down = _downsample_lttb(x, y, max_points=100)
+        # Downsample to 100 points (without feature preservation to test pure LTTB)
+        x_down, y_down = _downsample_lttb(x, y, max_points=100, preserve_features=[])
         
-        # Verify output size
+        # Verify output size  
         assert len(x_down) == 100
         assert len(y_down) == 100
         
-        # Verify endpoints are preserved
+        # Verify endpoints are preserved (pure LTTB always keeps endpoints)
         assert x_down[0] == x[0]
         assert x_down[-1] == x[-1]
         assert y_down[0] == y[0]
@@ -45,8 +45,8 @@ class TestLTTBDownsampling:
         x = np.linspace(0, 10, 1000)
         y = np.sin(x)
         
-        # Downsample to only 3 points
-        x_down, y_down = _downsample_lttb(x, y, max_points=3)
+        # Downsample to only 3 points (without feature preservation)
+        x_down, y_down = _downsample_lttb(x, y, max_points=3, preserve_features=[])
         
         assert len(x_down) == 3
         assert len(y_down) == 3

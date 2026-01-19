@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Literal, Optional, Any, Iterator
+from typing import Literal, Optional, Any, Iterator, Callable, Dict, List
 from pathlib import Path
 import numpy as np
+from dataclasses import dataclass, field
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,6 +18,18 @@ class ValuePredicate(BaseModel):
     series_id: SeriesID
     operator: Literal[">", "<", ">=", "<=", "==", "!="]
     value: float
+    
+    def evaluate(self, values: np.ndarray) -> np.ndarray:
+        """Evaluate predicate on array of values"""
+        ops = {
+            ">": np.greater,
+            "<": np.less,
+            ">=": np.greater_equal,
+            "<=": np.less_equal,
+            "==": np.equal,
+            "!=": np.not_equal
+        }
+        return ops[self.operator](values, self.value)
 
 
 class SmoothConfig(BaseModel):
@@ -33,6 +46,9 @@ class ScaleConfig(BaseModel):
 class TimeInterval(BaseModel):
     start: float
     end: float
+    
+    def contains(self, t: float) -> bool:
+        return self.start <= t <= self.end
 
 
 class StreamFilters(BaseModel):
@@ -86,50 +102,295 @@ class TickUpdate(BaseModel):
     session_id: SessionID
     current_time_index: int
     current_time_seconds: float
+    window_start: float
+    window_end: float
     window_data: dict[SeriesID, np.ndarray]
+    window_time: np.ndarray = Field(default_factory=lambda: np.array([]))
     reached_end: bool = False
+    
+    
+@dataclass
+class ViewSubscription:
+    """Subscription for a view to receive streaming updates"""
+    view_id: ViewID
+    callback: Optional[Callable[[TickUpdate], None]] = None
+    series_filter: Optional[list[SeriesID]] = None
+    transform: Optional[Callable[[np.ndarray], np.ndarray]] = None
 
 
 class StreamingEngine:
-    """Engine de streaming não global, instância por sessão"""
+    """
+    Engine de streaming não global, instância por sessão.
     
-    def __init__(self, state: StreamingState):
+    Implements PRD section 11 with:
+    - Multi-view synchronization
+    - Eligibility filters for playback
+    - Window data extraction with downsampling
+    - Subscriber notification system
+    """
+    
+    def __init__(self, state: StreamingState, session_id: SessionID = ""):
         self.state = state
+        self.session_id = session_id
         self.total_points = 0
         self.time_points: np.ndarray = np.array([])
+        self.series_data: dict[SeriesID, np.ndarray] = {}
         self.eligible_indices: np.ndarray = np.array([])
+        self.interpolation_masks: dict[SeriesID, np.ndarray] = {}
         
-    def setup_data(self, time_points: np.ndarray) -> None:
-        """Configura dados temporais e aplica filtros de elegibilidade"""
+        # Multi-view subscription system
+        self._subscribers: dict[ViewID, ViewSubscription] = {}
+        self._sync_callbacks: list[Callable[[TickUpdate], None]] = []
+        
+    def setup_data(
+        self, 
+        time_points: np.ndarray,
+        series_data: Optional[dict[SeriesID, np.ndarray]] = None,
+        interpolation_masks: Optional[dict[SeriesID, np.ndarray]] = None
+    ) -> None:
+        """
+        Configura dados temporais e de séries para streaming.
+        
+        Args:
+            time_points: Array de timestamps em segundos
+            series_data: Dict de séries com valores
+            interpolation_masks: Dict de máscaras indicando pontos interpolados
+        """
         self.time_points = time_points
         self.total_points = len(time_points)
+        self.series_data = series_data or {}
+        self.interpolation_masks = interpolation_masks or {}
+        
         self.eligible_indices = self._apply_eligibility_filters()
+        
         logger.info("streaming_data_setup", 
+                   session_id=self.session_id,
                    total_points=self.total_points,
-                   eligible_points=len(self.eligible_indices))
+                   eligible_points=len(self.eligible_indices),
+                   n_series=len(self.series_data))
     
     def _apply_eligibility_filters(self) -> np.ndarray:
-        """Aplica filtros temporais para determinar índices elegíveis"""
-        indices = np.arange(len(self.time_points))
+        """
+        Aplica filtros temporais e de valor para determinar índices elegíveis.
         
-        # Filtro de inclusão temporal
-        if self.state.filters.time_include:
-            mask = np.zeros(len(self.time_points), dtype=bool)
-            for interval in self.state.filters.time_include:
-                mask |= (self.time_points >= interval.start) & (self.time_points <= interval.end)
-            indices = indices[mask]
-        
-        # Filtro de exclusão temporal  
-        if self.state.filters.time_exclude:
-            mask = np.ones(len(self.time_points), dtype=bool)
-            for interval in self.state.filters.time_exclude:
-                mask &= ~((self.time_points >= interval.start) & (self.time_points <= interval.end))
-            indices = indices[mask]
+        Returns:
+            Array de índices elegíveis para playback
+        """
+        if len(self.time_points) == 0:
+            return np.array([], dtype=int)
             
-        return indices
+        indices = np.arange(len(self.time_points))
+        mask = np.ones(len(self.time_points), dtype=bool)
+        
+        # 1) Filtro de inclusão temporal
+        if self.state.filters.time_include:
+            include_mask = np.zeros(len(self.time_points), dtype=bool)
+            for interval in self.state.filters.time_include:
+                include_mask |= (
+                    (self.time_points >= interval.start) & 
+                    (self.time_points <= interval.end)
+                )
+            mask &= include_mask
+        
+        # 2) Filtro de exclusão temporal  
+        if self.state.filters.time_exclude:
+            for interval in self.state.filters.time_exclude:
+                mask &= ~(
+                    (self.time_points >= interval.start) & 
+                    (self.time_points <= interval.end)
+                )
+        
+        # 3) Filtro de qualidade - hide interpolated
+        if self.state.filters.hide_interpolated and self.interpolation_masks:
+            for series_id, interp_mask in self.interpolation_masks.items():
+                if len(interp_mask) == len(self.time_points):
+                    mask &= ~interp_mask
+        
+        # 4) Filtro de NaN
+        if self.state.filters.hide_nan and self.series_data:
+            for series_id, values in self.series_data.items():
+                if len(values) == len(self.time_points):
+                    mask &= np.isfinite(values)
+        
+        # 5) Filtros de valor
+        if self.state.filters.value_predicates:
+            for series_id, predicate in self.state.filters.value_predicates.items():
+                if series_id in self.series_data:
+                    values = self.series_data[series_id]
+                    if len(values) == len(self.time_points):
+                        pred_mask = predicate.evaluate(values)
+                        mask &= pred_mask
+        
+        return indices[mask]
+    
+    def _get_window_indices(self) -> tuple[int, int]:
+        """Get start and end indices for current window"""
+        if len(self.eligible_indices) == 0:
+            return 0, 0
+            
+        current_idx = min(self.state.current_time_index, len(self.eligible_indices) - 1)
+        current_time = self.time_points[self.eligible_indices[current_idx]]
+        
+        window_seconds = self.state.window_size.total_seconds()
+        window_start_time = current_time - window_seconds / 2
+        window_end_time = current_time + window_seconds / 2
+        
+        # Find indices within window
+        eligible_times = self.time_points[self.eligible_indices]
+        in_window = (eligible_times >= window_start_time) & (eligible_times <= window_end_time)
+        window_indices = np.where(in_window)[0]
+        
+        if len(window_indices) == 0:
+            return current_idx, current_idx + 1
+            
+        return int(window_indices[0]), int(window_indices[-1]) + 1
+    
+    def _downsample_lttb(self, x: np.ndarray, y: np.ndarray, n_out: int) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Largest Triangle Three Buckets (LTTB) downsampling.
+        
+        Preserves visual appearance while reducing points.
+        """
+        if len(x) <= n_out:
+            return x, y
+            
+        # Bucket size
+        bucket_size = (len(x) - 2) / (n_out - 2)
+        
+        # Always include first point
+        sampled_x = [x[0]]
+        sampled_y = [y[0]]
+        
+        # Previous selected point
+        prev_idx = 0
+        
+        for i in range(n_out - 2):
+            # Current bucket bounds
+            bucket_start = int((i + 1) * bucket_size) + 1
+            bucket_end = int((i + 2) * bucket_size) + 1
+            bucket_end = min(bucket_end, len(x) - 1)
+            
+            # Next bucket average (for triangle calculation)
+            next_bucket_start = bucket_end
+            next_bucket_end = int((i + 3) * bucket_size) + 1
+            next_bucket_end = min(next_bucket_end, len(x))
+            
+            if next_bucket_start < next_bucket_end:
+                avg_x = np.mean(x[next_bucket_start:next_bucket_end])
+                avg_y = np.mean(y[next_bucket_start:next_bucket_end])
+            else:
+                avg_x = x[-1]
+                avg_y = y[-1]
+            
+            # Find point with largest triangle area in bucket
+            max_area = -1
+            max_idx = bucket_start
+            
+            for j in range(bucket_start, bucket_end):
+                # Triangle area
+                area = abs(
+                    (x[prev_idx] - avg_x) * (y[j] - y[prev_idx]) -
+                    (x[prev_idx] - x[j]) * (avg_y - y[prev_idx])
+                )
+                if area > max_area:
+                    max_area = area
+                    max_idx = j
+            
+            sampled_x.append(x[max_idx])
+            sampled_y.append(y[max_idx])
+            prev_idx = max_idx
+        
+        # Always include last point
+        sampled_x.append(x[-1])
+        sampled_y.append(y[-1])
+        
+        return np.array(sampled_x), np.array(sampled_y)
+    
+    def _get_window_data(self) -> tuple[dict[SeriesID, np.ndarray], np.ndarray]:
+        """
+        Obtém dados da janela deslizante atual com downsampling opcional.
+        
+        Returns:
+            Tuple of (series_data_dict, time_array)
+        """
+        if len(self.eligible_indices) == 0 or len(self.series_data) == 0:
+            return {}, np.array([])
+        
+        start_idx, end_idx = self._get_window_indices()
+        
+        if start_idx >= end_idx:
+            return {}, np.array([])
+        
+        window_eligible = self.eligible_indices[start_idx:end_idx]
+        window_time = self.time_points[window_eligible]
+        
+        window_data: dict[SeriesID, np.ndarray] = {}
+        
+        for series_id, values in self.series_data.items():
+            # Skip hidden series
+            if series_id in self.state.filters.hidden_series:
+                continue
+                
+            series_values = values[window_eligible]
+            
+            # Apply downsampling if needed
+            max_points = self.state.filters.max_points_per_window
+            if len(series_values) > max_points:
+                if self.state.filters.downsample_method == "lttb":
+                    window_time_ds, series_values = self._downsample_lttb(
+                        window_time, series_values, max_points
+                    )
+                elif self.state.filters.downsample_method == "minmax":
+                    # MinMax preserves peaks
+                    step = len(series_values) // max_points
+                    indices = []
+                    for i in range(0, len(series_values) - step, step):
+                        chunk = series_values[i:i+step]
+                        indices.append(i + np.argmin(chunk))
+                        indices.append(i + np.argmax(chunk))
+                    indices = sorted(set(indices))
+                    series_values = series_values[indices]
+                    window_time = window_time[indices]
+                else:  # adaptive
+                    # Simple decimation
+                    step = max(1, len(series_values) // max_points)
+                    series_values = series_values[::step]
+            
+            # Apply visual smoothing if configured
+            if self.state.filters.visual_smoothing:
+                series_values = self._apply_visual_smoothing(series_values)
+            
+            window_data[series_id] = series_values
+        
+        return window_data, window_time
+    
+    def _apply_visual_smoothing(self, values: np.ndarray) -> np.ndarray:
+        """Apply visual smoothing to values (render-only, doesn't modify source)"""
+        config = self.state.filters.visual_smoothing
+        if config is None or len(values) < config.window:
+            return values
+        
+        if config.method == "gaussian":
+            from scipy.ndimage import gaussian_filter1d
+            sigma = config.sigma or config.window / 4
+            return gaussian_filter1d(values, sigma)
+        elif config.method == "median":
+            from scipy.ndimage import median_filter
+            return median_filter(values, size=config.window)
+        elif config.method == "savitzky_golay":
+            from scipy.signal import savgol_filter
+            if len(values) > config.window:
+                return savgol_filter(values, config.window, min(3, config.window - 1))
+        
+        return values
 
     def tick(self) -> TickUpdate:
-        """Avança um tick no streaming"""
+        """
+        Avança um tick no streaming e retorna update.
+        
+        Returns:
+            TickUpdate com dados atuais da janela
+        """
         if not self.state.play_state.is_playing:
             return self._current_update()
             
@@ -140,26 +401,41 @@ class StreamingEngine:
         if self.state.current_time_index >= len(self.eligible_indices):
             if self.state.loop:
                 self.state.current_time_index = 0
+                logger.debug("streaming_loop", session_id=self.session_id)
             else:
                 self.state.play_state.is_playing = False
                 self.state.current_time_index = len(self.eligible_indices) - 1
-                return TickUpdate(
-                    session_id="",  # será preenchido pelo chamador
-                    current_time_index=self.state.current_time_index,
-                    current_time_seconds=self._current_time(),
-                    window_data={},
-                    reached_end=True
-                )
+                
+                update = self._current_update()
+                update.reached_end = True
+                
+                # Notify subscribers of end
+                self._notify_subscribers(update)
+                
+                return update
         
-        return self._current_update()
+        update = self._current_update()
+        
+        # Notify all subscribers
+        self._notify_subscribers(update)
+        
+        return update
     
     def _current_update(self) -> TickUpdate:
         """Gera update para o estado atual"""
+        window_data, window_time = self._get_window_data()
+        
+        current_time = self._current_time()
+        window_seconds = self.state.window_size.total_seconds()
+        
         return TickUpdate(
-            session_id="",  # será preenchido pelo chamador
+            session_id=self.session_id,
             current_time_index=self.state.current_time_index,
-            current_time_seconds=self._current_time(),
-            window_data=self._get_window_data(),
+            current_time_seconds=current_time,
+            window_start=current_time - window_seconds / 2,
+            window_end=current_time + window_seconds / 2,
+            window_data=window_data,
+            window_time=window_time,
             reached_end=False
         )
     
@@ -168,26 +444,120 @@ class StreamingEngine:
         if len(self.eligible_indices) == 0:
             return 0.0
         idx = min(self.state.current_time_index, len(self.eligible_indices) - 1)
-        return self.time_points[self.eligible_indices[idx]]
+        return float(self.time_points[self.eligible_indices[idx]])
     
-    def _get_window_data(self) -> dict[SeriesID, np.ndarray]:
-        """Obtém dados da janela deslizante atual"""
-        # Implementação simplificada - seria expandida com dados reais
-        return {}
+    # ========================================================================
+    # Multi-view Synchronization
+    # ========================================================================
+    
+    def subscribe(self, subscription: ViewSubscription) -> None:
+        """
+        Subscribe a view to receive streaming updates.
+        
+        Args:
+            subscription: ViewSubscription with callback and optional filters
+        """
+        self._subscribers[subscription.view_id] = subscription
+        logger.info("view_subscribed", 
+                   session_id=self.session_id,
+                   view_id=subscription.view_id)
+    
+    def unsubscribe(self, view_id: ViewID) -> None:
+        """Unsubscribe a view from streaming updates"""
+        if view_id in self._subscribers:
+            del self._subscribers[view_id]
+            logger.info("view_unsubscribed",
+                       session_id=self.session_id,
+                       view_id=view_id)
+    
+    def add_sync_callback(self, callback: Callable[[TickUpdate], None]) -> None:
+        """Add a global sync callback for all updates"""
+        self._sync_callbacks.append(callback)
+    
+    def _notify_subscribers(self, update: TickUpdate) -> None:
+        """Notify all subscribed views of update"""
+        # Call global sync callbacks
+        for callback in self._sync_callbacks:
+            try:
+                callback(update)
+            except Exception as e:
+                logger.error("sync_callback_failed", error=str(e))
+        
+        # Call individual subscriber callbacks
+        for view_id, subscription in self._subscribers.items():
+            if subscription.callback is None:
+                continue
+                
+            try:
+                # Filter series if specified
+                if subscription.series_filter:
+                    filtered_data = {
+                        k: v for k, v in update.window_data.items()
+                        if k in subscription.series_filter
+                    }
+                    filtered_update = TickUpdate(
+                        session_id=update.session_id,
+                        current_time_index=update.current_time_index,
+                        current_time_seconds=update.current_time_seconds,
+                        window_start=update.window_start,
+                        window_end=update.window_end,
+                        window_data=filtered_data,
+                        window_time=update.window_time,
+                        reached_end=update.reached_end
+                    )
+                    subscription.callback(filtered_update)
+                else:
+                    subscription.callback(update)
+                    
+            except Exception as e:
+                logger.error("subscriber_callback_failed",
+                           view_id=view_id,
+                           error=str(e))
+    
+    def sync_views(self, views: list[ViewID]) -> None:
+        """
+        Sincroniza múltiplas views com estado atual.
+        
+        Sends current update to specified views.
+        """
+        update = self._current_update()
+        
+        for view_id in views:
+            if view_id in self._subscribers:
+                subscription = self._subscribers[view_id]
+                if subscription.callback:
+                    try:
+                        subscription.callback(update)
+                    except Exception as e:
+                        logger.error("sync_view_failed",
+                                   view_id=view_id,
+                                   error=str(e))
+        
+        logger.info("streaming_sync_views", 
+                   session_id=self.session_id,
+                   view_count=len(views))
+
+    # ========================================================================
+    # Playback Controls
+    # ========================================================================
 
     def play(self) -> None:
         """Inicia playback"""
         self.state.play_state.is_playing = True
         self.state.play_state.is_paused = False
         self.state.play_state.is_stopped = False
-        logger.info("streaming_play", current_index=self.state.current_time_index)
+        logger.info("streaming_play", 
+                   session_id=self.session_id,
+                   current_index=self.state.current_time_index)
 
     def pause(self) -> None:
         """Pausa playback"""
         self.state.play_state.is_playing = False
         self.state.play_state.is_paused = True
         self.state.play_state.is_stopped = False
-        logger.info("streaming_pause", current_index=self.state.current_time_index)
+        logger.info("streaming_pause",
+                   session_id=self.session_id,
+                   current_index=self.state.current_time_index)
 
     def stop(self) -> None:
         """Para playback e reseta"""
@@ -195,7 +565,7 @@ class StreamingEngine:
         self.state.play_state.is_paused = False
         self.state.play_state.is_stopped = True
         self.state.current_time_index = 0
-        logger.info("streaming_stop")
+        logger.info("streaming_stop", session_id=self.session_id)
 
     def seek(self, time_seconds: float) -> None:
         """Pula para tempo específico"""
@@ -207,11 +577,6 @@ class StreamingEngine:
             logger.info("streaming_seek", 
                        target_time=time_seconds,
                        actual_time=eligible_times[closest_idx])
-
-    def sync_views(self, views: list[ViewID]) -> None:
-        """Sincroniza múltiplas views"""
-        logger.info("streaming_sync_views", view_count=len(views))
-
 
 class VideoExporter:
     """Exportador de vídeo conforme PRD seção 11.4"""

@@ -6,7 +6,7 @@ import pickle
 import shutil
 import time
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -111,7 +111,10 @@ class DiskCache:
             return True
         try:
             stamp = datetime.fromisoformat(self._stamp_file.read_text(encoding="utf-8"))
-            return datetime.utcnow() - stamp > timedelta(seconds=self._ttl_seconds)
+            # Make stamp timezone-aware if it isn't
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=timezone.utc)
+            return datetime.now(timezone.utc) - stamp > timedelta(seconds=self._ttl_seconds)
         except Exception as e:
             logger.warning("ttl_check_failed", error=str(e))
             return True
@@ -119,7 +122,7 @@ class DiskCache:
     def _touch(self) -> None:
         """Update TTL timestamp."""
         try:
-            self._stamp_file.write_text(datetime.utcnow().isoformat(), encoding="utf-8")
+            self._stamp_file.write_text(datetime.now(timezone.utc).isoformat(), encoding="utf-8")
         except Exception as e:
             logger.warning("ttl_touch_failed", error=str(e))
 
@@ -152,7 +155,16 @@ class DiskCache:
         # Sort by access time (oldest first)
         sorted_items = sorted(self._lru_order.items(), key=lambda x: x[1])
         
+        # Get most recently added item to protect it
+        if sorted_items:
+            most_recent_key = sorted_items[-1][0]
+        else:
+            most_recent_key = None
+        
         for cache_key, _ in sorted_items:
+            # Skip the most recently added item
+            if cache_key == most_recent_key:
+                continue
             file_path = self._get_file_path(cache_key)
             if file_path.exists():
                 try:
@@ -442,8 +454,11 @@ class DiskCache:
             if self._ttl_seconds is not None and self._stamp_file.exists():
                 try:
                     stamp = datetime.fromisoformat(self._stamp_file.read_text())
+                    # Make stamp timezone-aware if it isn't
+                    if stamp.tzinfo is None:
+                        stamp = stamp.replace(tzinfo=timezone.utc)
                     stats["last_updated"] = stamp.isoformat()
-                    stats["time_to_expiry"] = max(0, self._ttl_seconds - (datetime.utcnow() - stamp).total_seconds())
+                    stats["time_to_expiry"] = max(0, self._ttl_seconds - (datetime.now(timezone.utc) - stamp).total_seconds())
                 except Exception:
                     stats["last_updated"] = None
                     stats["time_to_expiry"] = None

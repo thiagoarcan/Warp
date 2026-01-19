@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +26,47 @@ from platform_base.utils.ids import new_id
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _parse_timestamps(data: pd.Series | pd.Index) -> pd.DatetimeIndex:
+    """
+    Parse timestamps robustly, trying common formats to avoid pandas warnings.
+    
+    Args:
+        data: Series or Index containing timestamp data
+        
+    Returns:
+        DatetimeIndex with parsed timestamps
+    """
+    # If already datetime, just convert
+    if pd.api.types.is_datetime64_any_dtype(data):
+        return pd.DatetimeIndex(data)
+    
+    # Common datetime formats to try (most specific first)
+    formats = [
+        "%Y-%m-%d %H:%M:%S",      # 2025-08-10 00:00:00
+        "%Y-%m-%d %H:%M:%S.%f",   # 2025-08-10 00:00:00.123456
+        "%Y-%m-%dT%H:%M:%S",      # ISO format
+        "%Y-%m-%dT%H:%M:%S.%f",   # ISO with microseconds
+        "%Y-%m-%d",               # Date only
+        "%d/%m/%Y %H:%M:%S",      # Brazilian format
+        "%d/%m/%Y",               # Brazilian date only
+        "%m/%d/%Y %H:%M:%S",      # US format
+        "%m/%d/%Y",               # US date only
+    ]
+    
+    # Try each format
+    for fmt in formats:
+        try:
+            result = pd.to_datetime(data, format=fmt, errors="raise")
+            logger.debug("timestamp_format_detected", format=fmt)
+            return result
+        except (ValueError, TypeError):
+            continue
+    
+    # Fallback: let pandas infer (will generate warning for mixed formats)
+    logger.debug("timestamp_format_fallback", message="Using pandas inference")
+    return pd.to_datetime(data, errors="coerce")
 
 
 class LoadConfig(BaseModel):
@@ -79,9 +120,9 @@ def load(path: str, config: dict | LoadConfig | None = None) -> Dataset:
     values_report = validate_values(df, candidate_names, max_missing_ratio=cfg.max_missing_ratio)
 
     if timestamp_column == "__index__":
-        timestamps = pd.to_datetime(df.index, errors="coerce")
+        timestamps = _parse_timestamps(df.index)
     else:
-        timestamps = pd.to_datetime(df[timestamp_column], errors="coerce")
+        timestamps = _parse_timestamps(df[timestamp_column])
 
     t_datetime = timestamps.to_numpy()
     t_seconds = to_seconds(t_datetime)
@@ -103,7 +144,7 @@ def load(path: str, config: dict | LoadConfig | None = None) -> Dataset:
             origin_series=[],
             operation="load",
             parameters={"path": str(path_obj)},
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             version="2.0.0",
         )
         series_dict[candidate.name] = Series(
@@ -127,12 +168,12 @@ def load(path: str, config: dict | LoadConfig | None = None) -> Dataset:
         dataset_id=new_id("dataset"),
         version=1,
         parent_id=None,
-        source=SourceInfo(path=str(path_obj), format=fmt, loaded_at=datetime.utcnow()),
+        source=SourceInfo(path=str(path_obj), format=fmt, loaded_at=datetime.now(timezone.utc)),
         t_seconds=t_seconds,
         t_datetime=t_datetime,
         series=series_dict,
         metadata=metadata,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
 
     logger.info(

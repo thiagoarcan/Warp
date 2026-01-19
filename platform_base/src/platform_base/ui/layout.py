@@ -198,6 +198,9 @@ def _create_config_panel() -> dbc.Card:
                     {"label": "Cubic Spline", "value": "spline_cubic"},
                     {"label": "Smoothing Spline", "value": "smoothing_spline"},
                     {"label": "Resample Grid", "value": "resample_grid"},
+                    {"label": "Moving Least Squares (MLS)", "value": "mls"},
+                    {"label": "Gaussian Process (GPR)", "value": "gpr"},
+                    {"label": "Lomb-Scargle Spectral", "value": "lomb_scargle_spectral"},
                 ],
                 value="linear",
                 className="mb-2"

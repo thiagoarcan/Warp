@@ -11,19 +11,25 @@ from platform_base.processing.synchronization import synchronize
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[4]
+    return Path(__file__).resolve().parents[3]
 
 
-def _sample_xlsx() -> Path | None:
+def _sample_scada_xlsx() -> Path | None:
+    """Find a SCADA sample file (XXX_YY-ZZZ.xlsx pattern - any 3-char prefix)."""
     root = _repo_root()
-    files = sorted(root.glob("*.xlsx"))
-    return files[0] if files else None
+    # Look for SCADA files with pattern: XXX_*-*.xlsx (any 3-char prefix)
+    # Examples: BAR_FT-OP10.xlsx, PLN_PT-001.xlsx, LOS_DT-ABC.xlsx
+    scada_pattern = "???_*-*.xlsx"
+    files = sorted(root.glob(scada_pattern))
+    if files:
+        return files[0]
+    return None
 
 
 def test_pipeline_scada_sample():
-    sample = _sample_xlsx()
+    sample = _sample_scada_xlsx()
     if sample is None:
-        pytest.skip("No SCADA sample file found")
+        pytest.skip("No SCADA sample file found (XXX_*-*.xlsx pattern)")
 
     dataset = load(str(sample), config={"max_rows": 2000})
     series_ids = list(dataset.series.keys())[:2]

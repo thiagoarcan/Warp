@@ -266,10 +266,18 @@ class AutoProfiler:
         # Gera relatório text se configurado
         if "stats" in self.config.get("formats", []):
             text_file = self.output_dir / f"{base_name}.txt"
-            with open(text_file, 'w') as f:
+            import sys
+            from io import StringIO
+            old_stdout = sys.stdout
+            sys.stdout = StringIO()
+            try:
                 stats = pstats.Stats(profiler)
                 stats.sort_stats('cumulative')
-                stats.print_stats(file=f)
+                stats.print_stats()
+                with open(text_file, 'w') as f:
+                    f.write(sys.stdout.getvalue())
+            finally:
+                sys.stdout = old_stdout
         
         logger.debug("detailed_profile_saved",
                     function=func_name,

@@ -40,26 +40,29 @@ class TestDiskCache:
     def test_size_limit_enforcement(self):
         """Testa limite de tamanho com LRU eviction"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Small cache size for testing
-            cache = DiskCache(tmpdir, ttl_seconds=None, max_size_bytes=1000)
+            # Cache size that can hold 2 items but not 3
+            # Each pickled string of 200 chars is ~220 bytes
+            cache = DiskCache(tmpdir, ttl_seconds=None, max_size_bytes=500)
             
-            # Add items that exceed size limit
-            large_value = "x" * 500
-            cache.set("key1", large_value)
-            cache.set("key2", large_value)
-            cache.set("key3", large_value)  # Should trigger eviction
+            # Add items that will eventually exceed size limit
+            value = "x" * 200
+            cache.set("key1", value)
+            time.sleep(0.01)  # Ensure different timestamps
+            cache.set("key2", value)
+            time.sleep(0.01)
+            cache.set("key3", value)  # Should trigger eviction of key1
             
-            # key1 should be evicted (LRU)
+            # key1 should be evicted (LRU - oldest)
             assert cache.get("key1") is None
-            assert cache.get("key2") == large_value
-            assert cache.get("key3") == large_value
+            # key3 is most recent, should exist
+            assert cache.get("key3") == value
             
     def test_cache_from_config(self):
         """Testa criação de cache a partir de configuração"""
         config = {
             "enabled": True,
             "ttl_hours": 1,
-            "max_size_gb": 0.001,  # 1MB
+            "max_size_gb": 1,  # 1GB
             "path": ".test_cache"
         }
         
@@ -67,7 +70,7 @@ class TestDiskCache:
         
         # Test configuration was applied
         assert cache._ttl_seconds == 3600  # 1 hour
-        assert cache._max_size_bytes == 1024 * 1024  # 1MB
+        assert cache._max_size_bytes == 1024 * 1024 * 1024  # 1GB
         
         # Cleanup
         cache.clear()

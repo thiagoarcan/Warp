@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import numpy as np
@@ -83,7 +83,7 @@ def _build_metadata(method: str, params: dict) -> ResultMetadata:
         method=method,
         params=params,
         version="2.0.0",
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
 
 

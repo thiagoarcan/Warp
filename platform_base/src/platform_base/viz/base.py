@@ -170,12 +170,14 @@ def _downsample_lttb(
         logger.debug("lttb_no_downsampling_needed", n_points=n, max_points=max_points)
         return x, y
     
-    preserve_features = preserve_features or ["peaks", "valleys", "edges"]
+    # Use default features if None, but respect empty list []
+    if preserve_features is None:
+        preserve_features = ["peaks", "valleys", "edges"]
     
     # Detecta features importantes se solicitado
     critical_indices = set()
     
-    if preserve_features:
+    if preserve_features:  # Only if non-empty list
         peaks, valleys, edges = _detect_features(x, y)
         
         if "peaks" in preserve_features:

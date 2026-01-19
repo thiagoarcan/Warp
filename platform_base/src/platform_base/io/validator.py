@@ -7,6 +7,46 @@ import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
 from platform_base.processing.timebase import to_seconds
+from platform_base.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+def _parse_timestamps_for_validation(data: pd.Series | pd.Index) -> pd.DatetimeIndex:
+    """
+    Parse timestamps robustly for validation, trying common formats.
+    
+    Args:
+        data: Series or Index containing timestamp data
+        
+    Returns:
+        DatetimeIndex with parsed timestamps
+    """
+    # If already datetime, just convert
+    if pd.api.types.is_datetime64_any_dtype(data):
+        return pd.DatetimeIndex(data)
+    
+    # Common datetime formats to try
+    formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%d",
+        "%d/%m/%Y %H:%M:%S",
+        "%d/%m/%Y",
+        "%m/%d/%Y %H:%M:%S",
+        "%m/%d/%Y",
+    ]
+    
+    for fmt in formats:
+        try:
+            return pd.to_datetime(data, format=fmt, errors="raise")
+        except (ValueError, TypeError):
+            continue
+    
+    # Fallback
+    return pd.to_datetime(data, errors="coerce")
 
 
 class ValidationWarning(BaseModel):
@@ -69,9 +109,9 @@ def validate_time(df: pd.DataFrame, timestamp_column: str) -> ValidationReport:
     errors: list[ValidationError] = []
 
     if timestamp_column == "__index__":
-        timestamps = pd.to_datetime(df.index, errors="coerce")
+        timestamps = _parse_timestamps_for_validation(df.index)
     else:
-        timestamps = pd.to_datetime(df[timestamp_column], errors="coerce")
+        timestamps = _parse_timestamps_for_validation(df[timestamp_column])
 
     if timestamps.isna().any():
         warnings.append(
