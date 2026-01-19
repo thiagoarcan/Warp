@@ -1,0 +1,36 @@
+{
+  "plugin_id": "dtw_align",
+  "version": "1.0.0",
+  "core_min_version": "2.0.0",
+  "core_max_version": null,
+  "requires": ["numpy", "scipy"],
+  "produces": ["sync_result"],
+  "entry_point": "dtw_plugin.DTWPlugin",
+  "description": "Dynamic Time Warping for advanced time series synchronization",
+  "author": "Platform Base Team",
+  "license": "MIT",
+  "tags": ["synchronization", "dtw", "advanced", "time-series"],
+  "documentation": {
+    "readme": "README.md",
+    "examples": ["examples/dtw_example.py"]
+  },
+  "configuration": {
+    "window_size": {
+      "type": "integer",
+      "default": null,
+      "description": "DTW search window size (null = unlimited)"
+    },
+    "distance_metric": {
+      "type": "string",
+      "default": "euclidean",
+      "options": ["euclidean", "manhattan", "cosine"],
+      "description": "Distance metric for DTW computation"
+    },
+    "step_pattern": {
+      "type": "string", 
+      "default": "symmetric",
+      "options": ["symmetric", "asymmetric"],
+      "description": "DTW step pattern"
+    }
+  }
+}

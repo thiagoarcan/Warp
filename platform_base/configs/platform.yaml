@@ -1,33 +1,164 @@
-app:
+platform:
   version: "2.0.0"
-  profiling: true
-io:
+  
+data:
   schema_detection:
-    timestamp_candidates: ["timestamp", "time", "datetime", "datahora"]
-    min_series_columns: 1
-    max_missing_ratio: 0.95
-  timezone: "UTC"
+    timestamp_patterns: 
+      - "timestamp"
+      - "time"
+      - "datetime"
+      - "date"
+      - "datahora"
+    heuristics:
+      - monotonic_increasing
+      - datetime_type
+      - unix_epoch_range
+  units:
+    default_system: "SI"
+    custom_definitions: {}
+  validation:
+    max_gap_seconds: 300
+    outlier_threshold: 3.0
+    min_data_points: 10
+
 processing:
   interpolation:
     default_method: "linear"
-    spline_cubic:
-      bc_type: "not-a-knot"
+    available_methods: 
+      - linear
+      - spline_cubic
+      - smoothing_spline
+      - resample_grid
+      - mls
+      - gpr
+      - lomb_scargle_spectral
+  calculus:
+    derivative_default: "finite_diff"
+    max_order: 3
+    smoothing_presets:
+      light: 
+        method: savitzky_golay
+        window: 5
+        polyorder: 2
+      heavy: 
+        method: gaussian
+        sigma: 2.0
   synchronization:
     default_method: "common_grid_interpolate"
-  calculus:
-    derivative:
-      method: "finite_diff"
-cache:
+      
+performance:
+  parallelism:
+    executor: "process"
+    max_workers: 4
+  cache:
+    disk:
+      enabled: true
+      ttl_hours: 24
+      max_size_gb: 10
+      path: ".cache"
+    memory:
+      enabled: true
+      max_items: 1000
+  profiling:
+    enabled: true
+    log_level: "INFO"
+    output_path: "profiling/"
+  numba:
+    enabled: true
+    cache: true
+    
+visualization:
+  downsampling:
+    method: "lttb"
+    max_points: 10000
+    preserve_features: 
+      - peaks
+      - valleys
+      - edges
+  defaults:
+    theme: "plotly_white"
+    height: 600
+    width: 1000
+  interactive:
+    context_menu: true
+    annotations: true
+    
+streaming:
+  default_speed: 1.0
+  window_size_seconds: 60
+  filters:
+    max_points_per_window: 5000
+    hide_interpolated_default: false
+  video_export:
+    library: "opencv"
+    default_fps: 30
+    default_resolution: [1920, 1080]
+    
+ui:
+  layout:
+    responsive: true
+    breakpoints:
+      mobile: 768
+      tablet: 1024
+      desktop: 1440
+    default_areas:
+      - name: "data"
+        position: "left"
+        width: 0.25
+      - name: "viz"
+        position: "center"
+        width: 0.50
+      - name: "config"
+        position: "right"
+        width: 0.25
+  export:
+    async_threshold_mb: 10
+    chunk_size_mb: 50
+    
+plugins:
+  discovery:
+    enabled: true
+    path: "plugins/"
+    isolation: false
+    timeout_seconds: 60
+  validation:
+    strict: true
+    
+logging:
+  format: "json"
+  level: "INFO"
+  output: "logs/platform.log"
+  rotation: "1 day"
+  retention: "30 days"
+
+profiling:
+  enabled: true
+  automatic: true
+  threshold_seconds: 1.0
+  output_dir: "profiling_reports"
+  formats: ["html", "stats"]
+  targets:
+    - name: "interpolation_1m"
+      operation: "interpolate"
+      points: 1000000
+      max_time: 2.0
+    - name: "derivative_1m" 
+      operation: "derivative"
+      points: 1000000
+      max_time: 1.0
+    - name: "integral_500k"
+      operation: "integral"
+      points: 500000
+      max_time: 0.5
   memory:
     enabled: true
-    maxsize: 128
-  disk:
+    threshold_mb: 100
+    track_allocations: true
+  
+api:
+  enabled: false
+  host: "127.0.0.1"
+  port: 8000
+  cors:
     enabled: true
-    path: ".cache/platform_base"
-    ttl_seconds: 3600
-parallelism:
-  enabled: true
-  process_pool_size: 4
-logging:
-  level: "INFO"
-  json: true
+    origins: ["*"]

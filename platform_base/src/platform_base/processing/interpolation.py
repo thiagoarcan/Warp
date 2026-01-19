@@ -6,8 +6,18 @@ from typing import Optional
 import numpy as np
 from scipy.interpolate import CubicSpline, UnivariateSpline
 
+try:
+    import numba
+    NUMBA_AVAILABLE = True
+except ImportError:
+    NUMBA_AVAILABLE = False
+
 from platform_base.core.models import InterpResult, InterpolationInfo, ResultMetadata
 from platform_base.utils.errors import InterpolationError
+from platform_base.utils.logging import get_logger
+from platform_base.profiling.decorators import profile, performance_critical
+
+logger = get_logger(__name__)
 
 SUPPORTED_METHODS = {
     "linear",
@@ -26,10 +36,62 @@ def _build_metadata(method: str, params: dict) -> ResultMetadata:
     )
 
 
+# Numba-optimized functions for critical hotspots
+def _create_numba_functions():
+    """Create numba-optimized versions of critical functions if available."""
+    if not NUMBA_AVAILABLE:
+        logger.info("numba_not_available", message="Using standard numpy implementations")
+        return None, None
+    
+    @numba.jit(nopython=True, cache=True)
+    def _linear_interp_numba(x: np.ndarray, xp: np.ndarray, fp: np.ndarray) -> np.ndarray:
+        """Numba-optimized linear interpolation."""
+        result = np.empty_like(x)
+        n = len(xp)
+        
+        for i in range(len(x)):
+            xi = x[i]
+            
+            if xi <= xp[0]:
+                result[i] = fp[0]
+            elif xi >= xp[n-1]:
+                result[i] = fp[n-1]
+            else:
+                # Find interpolation interval
+                for j in range(n-1):
+                    if xp[j] <= xi <= xp[j+1]:
+                        # Linear interpolation
+                        t = (xi - xp[j]) / (xp[j+1] - xp[j])
+                        result[i] = fp[j] + t * (fp[j+1] - fp[j])
+                        break
+        
+        return result
+    
+    @numba.jit(nopython=True, cache=True)
+    def _mask_missing_numba(values: np.ndarray) -> np.ndarray:
+        """Numba-optimized missing value detection."""
+        result = np.empty(len(values), dtype=numba.boolean)
+        for i in range(len(values)):
+            result[i] = not np.isfinite(values[i])
+        return result
+    
+    logger.info("numba_functions_compiled", message="Numba JIT functions compiled successfully")
+    return _linear_interp_numba, _mask_missing_numba
+
+
+# Initialize numba functions
+_linear_interp_numba, _mask_missing_numba = _create_numba_functions()
+
+
 def _interp_mask(values: np.ndarray) -> np.ndarray:
+    """Detect missing values with optional Numba acceleration."""
+    if NUMBA_AVAILABLE and _mask_missing_numba is not None:
+        return _mask_missing_numba(values)
     return ~np.isfinite(values)
 
 
+@profile(target_name="interpolation_1m")
+@performance_critical(max_time_seconds=2.0, operation_name="interpolation")
 def interpolate(
     values: np.ndarray,
     t_seconds: np.ndarray,
@@ -62,7 +124,13 @@ def interpolate(
     v_valid = v_valid[unique_idx]
 
     if method == "linear":
-        interp_all = np.interp(t_seconds, t_valid, v_valid)
+        # Use Numba-optimized linear interpolation if available
+        if NUMBA_AVAILABLE and _linear_interp_numba is not None and len(t_valid) > 1000:
+            logger.debug("using_numba_linear_interpolation", n_points=len(t_seconds))
+            interp_all = _linear_interp_numba(t_seconds, t_valid, v_valid)
+        else:
+            interp_all = np.interp(t_seconds, t_valid, v_valid)
+        
         interp_values = values.copy()
         interp_values[mask_missing] = interp_all[mask_missing]
         method_used = np.where(mask_missing, method, "original")

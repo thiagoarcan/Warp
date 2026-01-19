@@ -44,6 +44,10 @@ class ExportError(PlatformError):
     pass
 
 
+class CacheError(PlatformError):
+    pass
+
+
 def handle_error(error: PlatformError) -> None:
     logger.error(
         "platform_error",
