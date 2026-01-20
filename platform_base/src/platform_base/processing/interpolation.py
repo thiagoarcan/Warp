@@ -389,7 +389,7 @@ def interpolate(
         interp_values[mask_missing] = interp_all[mask_missing]
         method_used = np.where(mask_missing, method, "original")
         info = InterpolationInfo(
-            is_interpolated_mask=mask_missing,
+            is_interpolated=mask_missing,
             method_used=method_used.astype("<U32"),
         )
         return InterpResult(values=interp_values, interpolation_info=info, metadata=_build_metadata(method, params))

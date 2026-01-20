@@ -1,139 +1,362 @@
+"""
+SessionState - PyQt6 state management replacing Dash client-side store
+
+Conforme especificação seção 12.2, implementa state management unificado 
+para toda a aplicação PyQt6.
+"""
+
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime
+from typing import Optional, Any, Dict, List
+from dataclasses import dataclass, field
+from pathlib import Path
+import json
 
+from PyQt6.QtCore import QObject, pyqtSignal, QMutex, QMutexLocker
+
+from platform_base.core.models import (
+    Dataset,
+    DatasetID, 
+    SeriesID,
+    ViewID,
+    TimeWindow,
+    ViewData,
+)
 from platform_base.core.dataset_store import DatasetStore
-from platform_base.core.models import ViewID, SessionID
-from platform_base.viz.streaming import StreamingEngine
-from platform_base.caching.memory import MemoryCache
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-class Selection(BaseModel):
-    """Seleção de dados conforme PRD seção 13"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    
-    # Método 1: Temporal (range)
-    time_range: Optional[tuple[float, float]] = None
-    
-    # Método 2: Interativo (clique/arrasto no gráfico)
-    interactive_points: Optional[list[int]] = None
-    
-    # Método 3: Condicional (query-like)
-    predicates: Optional[list[Dict[str, Any]]] = None
-    
-    # Combinação (AND/OR)
-    combination: str = "and"
+@dataclass
+class SelectionState:
+    """Estado de seleção multi-view"""
+    time_range: Optional[TimeWindow] = None
+    selected_series: List[SeriesID] = field(default_factory=list)
+    brush_selections: Dict[str, Any] = field(default_factory=dict)
+    zoom_state: Dict[str, Any] = field(default_factory=dict)
 
 
-class CacheManager(BaseModel):
-    """Gerenciador de cache multi-nível"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    
-    memory_cache: MemoryCache = Field(default_factory=MemoryCache)
-    disk_enabled: bool = True
-    disk_path: str = ".cache"
+@dataclass
+class OperationState:
+    """Estado de operações em andamento"""
+    is_loading: bool = False
+    is_processing: bool = False
+    current_operation: Optional[str] = None
+    progress_percent: float = 0.0
+    status_message: str = ""
 
 
-class AppState(BaseModel):
-    """Estado centralizado da aplicação conforme PRD seção 12.3"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+@dataclass
+class ViewState:
+    """Estado de visualização"""
+    current_view_type: str = "2d"  # 2d, 3d, heatmap
+    layout_mode: str = "single"  # single, dual, quad
+    sync_views: bool = True
+    show_interpolated: bool = True
+    downsampling_enabled: bool = True
+    downsampling_threshold: int = 10000
 
-    # DatasetStore principal
-    datasets: DatasetStore = Field(default_factory=DatasetStore)
+
+class SessionState(QObject):
+    """
+    State management centralizado para aplicação PyQt6
     
-    # Sessões de streaming (não global)
-    streaming_sessions: dict[SessionID, StreamingEngine] = Field(default_factory=dict)
+    Substitui o dash.Store com funcionalidades:
+    - Thread-safe com QMutex
+    - Signals para notificação de mudanças
+    - Persistência de sessão
+    - Estado de seleção multi-view
+    - Estado de operações
+    """
+
+    # Signals para notificar mudanças de estado
+    dataset_changed = pyqtSignal(str)  # dataset_id
+    selection_changed = pyqtSignal()
+    operation_started = pyqtSignal(str)  # operation_name
+    operation_finished = pyqtSignal(str, bool)  # operation_name, success
+    view_changed = pyqtSignal()
     
-    # Subscrições de views para sincronização
-    view_subscriptions: dict[ViewID, SessionID] = Field(default_factory=dict)
-    
-    # Seleções por view
-    ui_selections: dict[ViewID, Selection] = Field(default_factory=dict)
-    
-    # Cache manager
-    cache: CacheManager = Field(default_factory=CacheManager)
-    
-    def sync_callback(self, session_id: SessionID) -> None:
-        """
-        Callback de sincronização conforme PRD seção 11.3
+    def __init__(self, dataset_store: DatasetStore):
+        super().__init__()
         
-        Chamado a cada tick:
-        1. Atualiza current_time_index no StreamingEngine
-        2. Notifica todas views subscritas via Dash callback
-        3. Views recalculam janela e re-renderizam
-        """
-        if session_id not in self.streaming_sessions:
-            logger.warning("sync_callback_unknown_session", session_id=session_id)
-            return
+        # Thread safety
+        self._mutex = QMutex()
+        
+        # Core components
+        self._dataset_store = dataset_store
+        
+        # Current state
+        self._current_dataset: Optional[DatasetID] = None
+        self._current_view: Optional[ViewID] = None
+        self._loaded_datasets: List[DatasetID] = []
+        
+        # Sub-states
+        self._selection = SelectionState()
+        self._operation = OperationState()
+        self._view = ViewState()
+        
+        # Session metadata
+        self._session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self._created_at = datetime.now()
+        
+        logger.info("session_state_initialized", session_id=self._session_id)
+
+    @property
+    def session_id(self) -> str:
+        return self._session_id
+
+    @property
+    def current_dataset(self) -> Optional[DatasetID]:
+        with QMutexLocker(self._mutex):
+            return self._current_dataset
+
+    @current_dataset.setter
+    def current_dataset(self, dataset_id: Optional[DatasetID]):
+        with QMutexLocker(self._mutex):
+            if self._current_dataset != dataset_id:
+                self._current_dataset = dataset_id
+                logger.debug("current_dataset_changed", dataset_id=dataset_id)
+                self.dataset_changed.emit(dataset_id or "")
+
+    @property
+    def current_view(self) -> Optional[ViewID]:
+        with QMutexLocker(self._mutex):
+            return self._current_view
+
+    @current_view.setter
+    def current_view(self, view_id: Optional[ViewID]):
+        with QMutexLocker(self._mutex):
+            self._current_view = view_id
+
+    @property
+    def loaded_datasets(self) -> List[DatasetID]:
+        with QMutexLocker(self._mutex):
+            return self._loaded_datasets.copy()
+
+    def add_dataset(self, dataset: Dataset) -> DatasetID:
+        """Adiciona dataset e atualiza estado"""
+        dataset_id = self._dataset_store.add_dataset(dataset)
+        
+        with QMutexLocker(self._mutex):
+            if dataset_id not in self._loaded_datasets:
+                self._loaded_datasets.append(dataset_id)
+                
+            # Se é o primeiro dataset, torna-o atual
+            if self._current_dataset is None:
+                self._current_dataset = dataset_id
+                
+        logger.info("dataset_added_to_session", 
+                   dataset_id=dataset_id,
+                   total_datasets=len(self._loaded_datasets))
+        
+        self.dataset_changed.emit(dataset_id)
+        return dataset_id
+
+    def get_dataset(self, dataset_id: DatasetID) -> Dataset:
+        """Wrapper thread-safe para dataset store"""
+        return self._dataset_store.get_dataset(dataset_id)
+
+    def get_current_dataset(self) -> Optional[Dataset]:
+        """Obtém dataset atual"""
+        with QMutexLocker(self._mutex):
+            if self._current_dataset:
+                return self._dataset_store.get_dataset(self._current_dataset)
+            return None
+
+    def create_view(self, series_ids: List[SeriesID], 
+                   time_window: Optional[TimeWindow] = None) -> Optional[ViewData]:
+        """Cria view para visualização"""
+        with QMutexLocker(self._mutex):
+            if not self._current_dataset:
+                logger.warning("no_current_dataset_for_view")
+                return None
+                
+            # Usa janela temporal da seleção se não especificado
+            if time_window is None and self._selection.time_range:
+                time_window = self._selection.time_range
+            elif time_window is None:
+                # Usa todo o dataset
+                dataset = self._dataset_store.get_dataset(self._current_dataset)
+                time_window = TimeWindow(
+                    start=float(dataset.t_seconds.min()),
+                    end=float(dataset.t_seconds.max())
+                )
             
-        engine = self.streaming_sessions[session_id]
-        update = engine.tick()
-        
-        # Encontra views subscritas a esta sessão
-        subscribed_views = [
-            view_id for view_id, sess_id in self.view_subscriptions.items()
-            if sess_id == session_id
-        ]
-        
-        logger.info("sync_callback_tick",
-                   session_id=session_id,
-                   current_time_index=update.current_time_index,
-                   subscribed_views=len(subscribed_views))
-        
-        # Notificações para views seriam implementadas aqui
-        # usando callbacks do Dash
-        
-    def add_streaming_session(self, session_id: SessionID, engine: StreamingEngine) -> None:
-        """Adiciona nova sessão de streaming"""
-        self.streaming_sessions[session_id] = engine
-        logger.info("streaming_session_added", session_id=session_id)
-        
-    def subscribe_view(self, view_id: ViewID, session_id: SessionID) -> None:
-        """Subscreve view para receber updates de sessão"""
-        self.view_subscriptions[view_id] = session_id
-        logger.info("view_subscribed", view_id=view_id, session_id=session_id)
-        
-    def unsubscribe_view(self, view_id: ViewID) -> None:
-        """Remove subscrição de view"""
-        if view_id in self.view_subscriptions:
-            session_id = self.view_subscriptions.pop(view_id)
-            logger.info("view_unsubscribed", view_id=view_id, session_id=session_id)
+            return self._dataset_store.create_view(
+                self._current_dataset, series_ids, time_window
+            )
+
+    # Selection State Management
+    def update_selection(self, **kwargs) -> None:
+        """Atualiza estado de seleção"""
+        with QMutexLocker(self._mutex):
+            for key, value in kwargs.items():
+                if hasattr(self._selection, key):
+                    setattr(self._selection, key, value)
+                    
+        logger.debug("selection_updated", **kwargs)
+        self.selection_changed.emit()
+
+    def get_selection_state(self) -> SelectionState:
+        """Obtém cópia do estado de seleção"""
+        with QMutexLocker(self._mutex):
+            return SelectionState(
+                time_range=self._selection.time_range,
+                selected_series=self._selection.selected_series.copy(),
+                brush_selections=self._selection.brush_selections.copy(),
+                zoom_state=self._selection.zoom_state.copy()
+            )
+
+    # Operation State Management  
+    def start_operation(self, operation_name: str) -> None:
+        """Inicia operação"""
+        with QMutexLocker(self._mutex):
+            self._operation.is_processing = True
+            self._operation.current_operation = operation_name
+            self._operation.progress_percent = 0.0
+            self._operation.status_message = f"Starting {operation_name}..."
             
-    def set_selection(self, view_id: ViewID, selection: Selection) -> None:
-        """Define seleção para uma view"""
-        self.ui_selections[view_id] = selection
-        logger.info("selection_updated", view_id=view_id)
-        
-    def get_selection(self, view_id: ViewID) -> Optional[Selection]:
-        """Obtém seleção de uma view"""
-        return self.ui_selections.get(view_id)
-        
-    def clear_cache(self) -> None:
-        """Limpa todos os caches"""
-        self.cache.memory_cache.clear()
-        logger.info("cache_cleared")
+        logger.info("operation_started", operation=operation_name)
+        self.operation_started.emit(operation_name)
 
+    def update_operation_progress(self, percent: float, message: str = "") -> None:
+        """Atualiza progresso da operação"""
+        with QMutexLocker(self._mutex):
+            self._operation.progress_percent = percent
+            if message:
+                self._operation.status_message = message
 
-# Singleton global para estado da aplicação
-# Sincronização: Dash Store (client) <-> AppState (server) <-> DatasetStore (persistence)
-_app_state: Optional[AppState] = None
+    def finish_operation(self, success: bool = True, message: str = "") -> None:
+        """Finaliza operação"""
+        operation_name = ""
+        with QMutexLocker(self._mutex):
+            operation_name = self._operation.current_operation or "unknown"
+            self._operation.is_processing = False
+            self._operation.current_operation = None
+            self._operation.progress_percent = 100.0 if success else 0.0
+            self._operation.status_message = message or ("Complete" if success else "Failed")
+            
+        logger.info("operation_finished", operation=operation_name, success=success)
+        self.operation_finished.emit(operation_name, success)
 
+    def get_operation_state(self) -> OperationState:
+        """Obtém cópia do estado de operação"""
+        with QMutexLocker(self._mutex):
+            return OperationState(
+                is_loading=self._operation.is_loading,
+                is_processing=self._operation.is_processing,
+                current_operation=self._operation.current_operation,
+                progress_percent=self._operation.progress_percent,
+                status_message=self._operation.status_message
+            )
 
-def get_app_state() -> AppState:
-    """Obtém instância singleton do estado da aplicação"""
-    global _app_state
-    if _app_state is None:
-        _app_state = AppState()
-        logger.info("app_state_initialized")
-    return _app_state
+    # View State Management
+    def update_view_state(self, **kwargs) -> None:
+        """Atualiza estado de visualização"""
+        with QMutexLocker(self._mutex):
+            for key, value in kwargs.items():
+                if hasattr(self._view, key):
+                    setattr(self._view, key, value)
+                    
+        logger.debug("view_state_updated", **kwargs)
+        self.view_changed.emit()
 
+    def get_view_state(self) -> ViewState:
+        """Obtém cópia do estado de visualização"""
+        with QMutexLocker(self._mutex):
+            return ViewState(
+                current_view_type=self._view.current_view_type,
+                layout_mode=self._view.layout_mode,
+                sync_views=self._view.sync_views,
+                show_interpolated=self._view.show_interpolated,
+                downsampling_enabled=self._view.downsampling_enabled,
+                downsampling_threshold=self._view.downsampling_threshold
+            )
 
-def reset_app_state() -> None:
-    """Reseta o estado da aplicação (usado em testes)"""
-    global _app_state
-    _app_state = None
-    logger.info("app_state_reset")
+    # Session Persistence
+    def save_session(self, filepath: str) -> None:
+        """Salva estado da sessão"""
+        with QMutexLocker(self._mutex):
+            session_data = {
+                "session_id": self._session_id,
+                "created_at": self._created_at.isoformat(),
+                "current_dataset": self._current_dataset,
+                "loaded_datasets": self._loaded_datasets,
+                "selection": {
+                    "selected_series": self._selection.selected_series,
+                    "time_range": {
+                        "start": self._selection.time_range.start,
+                        "end": self._selection.time_range.end
+                    } if self._selection.time_range else None,
+                },
+                "view": {
+                    "current_view_type": self._view.current_view_type,
+                    "layout_mode": self._view.layout_mode,
+                    "sync_views": self._view.sync_views,
+                    "show_interpolated": self._view.show_interpolated,
+                    "downsampling_enabled": self._view.downsampling_enabled,
+                    "downsampling_threshold": self._view.downsampling_threshold,
+                }
+            }
+            
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(session_data, f, indent=2, ensure_ascii=False)
+            
+        logger.info("session_saved", filepath=filepath)
+
+    def load_session(self, filepath: str) -> None:
+        """Carrega estado da sessão"""
+        with open(filepath, 'r', encoding='utf-8') as f:
+            session_data = json.load(f)
+            
+        with QMutexLocker(self._mutex):
+            self._loaded_datasets = session_data.get("loaded_datasets", [])
+            self._current_dataset = session_data.get("current_dataset")
+            
+            # Restaura seleção
+            selection_data = session_data.get("selection", {})
+            self._selection.selected_series = selection_data.get("selected_series", [])
+            if selection_data.get("time_range"):
+                tr = selection_data["time_range"]
+                self._selection.time_range = TimeWindow(start=tr["start"], end=tr["end"])
+                
+            # Restaura view
+            view_data = session_data.get("view", {})
+            for key, value in view_data.items():
+                if hasattr(self._view, key):
+                    setattr(self._view, key, value)
+                    
+        logger.info("session_loaded", filepath=filepath)
+        self.dataset_changed.emit(self._current_dataset or "")
+        self.view_changed.emit()
+        self.selection_changed.emit()
+
+    def clear_session(self) -> None:
+        """Limpa estado da sessão"""
+        with QMutexLocker(self._mutex):
+            self._current_dataset = None
+            self._current_view = None
+            self._loaded_datasets.clear()
+            self._selection = SelectionState()
+            self._operation = OperationState()
+            self._view = ViewState()
+            
+        logger.info("session_cleared")
+        self.dataset_changed.emit("")
+        self.view_changed.emit()
+        self.selection_changed.emit()
+
+    def get_summary(self) -> Dict[str, Any]:
+        """Obtém resumo do estado atual"""
+        with QMutexLocker(self._mutex):
+            return {
+                "session_id": self._session_id,
+                "current_dataset": self._current_dataset,
+                "loaded_datasets": len(self._loaded_datasets),
+                "is_processing": self._operation.is_processing,
+                "current_operation": self._operation.current_operation,
+                "view_type": self._view.current_view_type,
+                "selected_series": len(self._selection.selected_series),
+            }

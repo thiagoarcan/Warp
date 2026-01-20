@@ -19,12 +19,14 @@ SUPPORTED_SYNC_METHODS = {
 }
 
 
-def _build_metadata(method: str, params: dict) -> ResultMetadata:
+def _build_metadata(method: str, params: dict, duration_ms: float = 0.0) -> ResultMetadata:
+    """Constrói metadata conforme especificação seção 5.6"""
     return ResultMetadata(
-        method=method,
-        params=params,
-        version="2.0.0",
+        operation=method,
+        parameters=params,
+        platform_version="2.0.0",
         timestamp=datetime.now(timezone.utc),
+        duration_ms=duration_ms,
     )
 
 

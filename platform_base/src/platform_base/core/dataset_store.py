@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable, Optional
+from threading import RLock
 import numpy as np
 
 from platform_base.core.models import (
@@ -8,6 +9,7 @@ from platform_base.core.models import (
     DatasetID,
     Series,
     SeriesID,
+    SeriesSummary,
     TimeWindow,
     ViewData,
 )
@@ -19,24 +21,19 @@ logger = get_logger(__name__)
 
 
 class DatasetSummary:
+    """Resumo de dataset para UI"""
     def __init__(self, dataset_id: DatasetID, n_series: int, n_points: int):
         self.dataset_id = dataset_id
         self.n_series = n_series
         self.n_points = n_points
 
 
-class SeriesSummary:
-    def __init__(self, series_id: SeriesID, name: str, n_points: int):
-        self.series_id = series_id
-        self.name = name
-        self.n_points = n_points
-
-
 class DatasetStore:
     """
-    Dataset store com cache disk integrado conforme PRD seção 9.5
+    Dataset store thread-safe com cache disk integrado conforme PRD seção 5.2
     
     Features:
+    - Thread-safe com RLock
     - Cache multi-nível (memory + disk)
     - TTL configurável
     - Versionamento de datasets
@@ -45,6 +42,7 @@ class DatasetStore:
 
     def __init__(self, cache_config: Optional[dict] = None):
         self._datasets: dict[DatasetID, Dataset] = {}
+        self._lock = RLock()  # Thread safety
         
         # Setup disk cache se configurado
         if cache_config:
@@ -56,8 +54,10 @@ class DatasetStore:
             logger.info("dataset_store_cache_disabled")
 
     def add_dataset(self, dataset: Dataset) -> DatasetID:
+        """Adiciona dataset ao store thread-safe"""
         dataset_id = dataset.dataset_id
-        self._datasets[dataset_id] = dataset
+        with self._lock:
+            self._datasets[dataset_id] = dataset
         
         # Cache dataset se cache disponível
         if self._disk_cache:
@@ -68,45 +68,68 @@ class DatasetStore:
         return dataset_id
 
     def get_dataset(self, dataset_id: DatasetID) -> Dataset:
-        # Primeiro tenta memory cache
-        if dataset_id in self._datasets:
-            return self._datasets[dataset_id]
-        
-        # Tenta disk cache se disponível
-        if self._disk_cache:
-            cache_key = f"dataset:{dataset_id}"
-            cached_dataset = self._disk_cache.get(cache_key)
-            if cached_dataset:
-                # Restaura para memory cache
-                self._datasets[dataset_id] = cached_dataset
-                logger.debug("dataset_restored_from_cache", dataset_id=dataset_id)
-                return cached_dataset
-        
-        raise ValidationError("Dataset not found", {"dataset_id": dataset_id})
+        """Obtém dataset thread-safe"""
+        with self._lock:
+            # Primeiro tenta memory cache
+            if dataset_id in self._datasets:
+                return self._datasets[dataset_id]
+            
+            # Tenta disk cache se disponível
+            if self._disk_cache:
+                cache_key = f"dataset:{dataset_id}"
+                cached_dataset = self._disk_cache.get(cache_key)
+                if cached_dataset:
+                    # Restaura para memory cache
+                    self._datasets[dataset_id] = cached_dataset
+                    logger.debug("dataset_restored_from_cache", dataset_id=dataset_id)
+                    return cached_dataset
+            
+            raise ValidationError("Dataset not found", {"dataset_id": dataset_id})
 
     def list_datasets(self) -> list[DatasetSummary]:
-        return [
-            DatasetSummary(dataset_id=ds.dataset_id, n_series=len(ds.series), n_points=len(ds.t_seconds))
-            for ds in self._datasets.values()
-        ]
+        """Lista datasets thread-safe"""
+        with self._lock:
+            return [
+                DatasetSummary(dataset_id=ds.dataset_id, n_series=len(ds.series), n_points=len(ds.t_seconds))
+                for ds in self._datasets.values()
+            ]
 
     def add_series(self, dataset_id: DatasetID, series: Series) -> SeriesID:
-        dataset = self.get_dataset(dataset_id)
-        dataset.series[series.series_id] = series
-        return series.series_id
+        """Adiciona série ao dataset"""
+        with self._lock:
+            dataset = self._datasets[dataset_id] if dataset_id in self._datasets else None
+            if not dataset:
+                raise ValidationError("Dataset not found", {"dataset_id": dataset_id})
+            dataset.series[series.series_id] = series
+            return series.series_id
 
     def get_series(self, dataset_id: DatasetID, series_id: SeriesID) -> Series:
-        dataset = self.get_dataset(dataset_id)
-        if series_id not in dataset.series:
-            raise ValidationError("Series not found", {"series_id": series_id})
-        return dataset.series[series_id]
+        """Obtém série específica"""
+        with self._lock:
+            dataset = self._datasets[dataset_id] if dataset_id in self._datasets else None
+            if not dataset:
+                raise ValidationError("Dataset not found", {"dataset_id": dataset_id})
+            if series_id not in dataset.series:
+                raise ValidationError("Series not found", {"series_id": series_id})
+            return dataset.series[series_id]
 
     def list_series(self, dataset_id: DatasetID) -> list[SeriesSummary]:
-        dataset = self.get_dataset(dataset_id)
-        return [
-            SeriesSummary(series_id=s.series_id, name=s.name, n_points=len(s.values))
-            for s in dataset.series.values()
-        ]
+        """Lista séries de um dataset conforme especificação"""
+        with self._lock:
+            dataset = self._datasets[dataset_id] if dataset_id in self._datasets else None
+            if not dataset:
+                raise ValidationError("Dataset not found", {"dataset_id": dataset_id})
+            
+            return [
+                SeriesSummary(
+                    series_id=s.series_id,
+                    name=s.name,
+                    unit=str(s.unit),
+                    n_points=len(s.values),
+                    is_derived=s.lineage is not None
+                )
+                for s in dataset.series.values()
+            ]
 
     def create_view(
         self,
@@ -122,7 +145,7 @@ class DatasetStore:
         series_ids_list = list(series_ids)
         
         # Cria chave de cache baseada nos parâmetros
-        cache_key = f"view:{dataset_id}:{hash(tuple(series_ids_list))}:{time_window.start_seconds}:{time_window.end_seconds}"
+        cache_key = f"view:{dataset_id}:{hash(tuple(series_ids_list))}:{time_window.start}:{time_window.end}"
         
         # Tenta cache primeiro
         if self._disk_cache:
@@ -134,9 +157,14 @@ class DatasetStore:
                 return cached_view
         
         # Cache miss - calcula view
-        dataset = self.get_dataset(dataset_id)
-        t_seconds = dataset.t_seconds
-        mask = (t_seconds >= time_window.start_seconds) & (t_seconds <= time_window.end_seconds)
+        with self._lock:
+            dataset = self._datasets[dataset_id] if dataset_id in self._datasets else None
+            if not dataset:
+                raise ValidationError("Dataset not found", {"dataset_id": dataset_id})
+            
+            # Aplicar janela temporal
+            t_seconds = dataset.t_seconds
+            mask = (t_seconds >= time_window.start) & (t_seconds <= time_window.end)
         
         if not np.any(mask):
             raise ValidationError("Time window has no data", {"dataset_id": dataset_id})

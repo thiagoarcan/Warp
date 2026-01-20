@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
-
+from typing import Optional, Any
+import hashlib
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
@@ -15,51 +15,89 @@ SessionID = str
 
 
 class SourceInfo(BaseModel):
+    """Informação de origem do arquivo"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    path: str
-    format: str
-    loaded_at: datetime
-    notes: Optional[str] = None
+    filepath: str
+    filename: str
+    format: str  # csv, xlsx, parquet, hdf5
+    size_bytes: int
+    checksum: str  # SHA256
+    loaded_at: datetime = Field(default_factory=datetime.now)
+    
+    @classmethod
+    def from_file(cls, filepath: str) -> "SourceInfo":
+        """Cria SourceInfo a partir de um arquivo"""
+        from pathlib import Path
+        path_obj = Path(filepath)
+        
+        # Calcular checksum
+        with open(filepath, 'rb') as f:
+            checksum = hashlib.sha256(f.read()).hexdigest()
+        
+        return cls(
+            filepath=str(path_obj.absolute()),
+            filename=path_obj.name,
+            format=path_obj.suffix.lower().lstrip('.'),
+            size_bytes=path_obj.stat().st_size,
+            checksum=checksum
+        )
 
 
 class DatasetMetadata(BaseModel):
+    """Metadata do dataset"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    schema_confidence: float
+    description: Optional[str] = None
+    tags: list[str] = Field(default_factory=list)
+    custom: dict[str, Any] = Field(default_factory=dict)
+    schema_confidence: float = 1.0
     validation_warnings: list[str] = Field(default_factory=list)
     validation_errors: list[str] = Field(default_factory=list)
     timezone: str = "UTC"
 
 
 class SeriesMetadata(BaseModel):
+    """Metadata da série"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    original_name: str
     source_column: str
     original_unit: Optional[str] = None
-    tags: dict[str, str] = Field(default_factory=dict)
+    description: Optional[str] = None
+    tags: list[str] = Field(default_factory=list)
+    custom: dict[str, Any] = Field(default_factory=dict)
 
 
 class InterpolationInfo(BaseModel):
+    """Informação de interpolação por ponto"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    is_interpolated_mask: NDArray[np.bool_]
-    method_used: NDArray[np.str_]
+    is_interpolated: NDArray[np.bool_]  # bool mask
+    method_used: NDArray[np.str_]  # string array com método por ponto
+    confidence: Optional[NDArray[np.float64]] = None
 
 
 class ResultMetadata(BaseModel):
+    """Metadata de resultado de operação"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    method: str
-    params: dict
-    version: str
-    timestamp: datetime
+    operation: str
+    parameters: dict[str, Any]
+    timestamp: datetime = Field(default_factory=datetime.now)
+    duration_ms: float
+    platform_version: str = "2.0.0"
     seed: Optional[int] = None
 
 
 class QualityMetrics(BaseModel):
+    """Métricas de qualidade do resultado"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    n_valid: int
+    n_interpolated: int
+    n_nan: int
+    error_estimate: Optional[float] = None
     rmse: Optional[float] = None
     mae: Optional[float] = None
 
@@ -75,15 +113,16 @@ class Lineage(BaseModel):
 
 
 class Series(BaseModel):
+    """Série temporal"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     series_id: SeriesID
     name: str
     unit: Unit
     values: NDArray[np.float64]
-    interpolation_info: Optional[InterpolationInfo]
+    interpolation_info: Optional[InterpolationInfo] = None
     metadata: SeriesMetadata
-    lineage: Lineage
+    lineage: Optional[Lineage] = None
 
 
 class Dataset(BaseModel):
@@ -101,13 +140,19 @@ class Dataset(BaseModel):
 
 
 class TimeWindow(BaseModel):
+    """Janela temporal"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    start_seconds: float
-    end_seconds: float
+    start: float  # segundos
+    end: float  # segundos
+    
+    @property
+    def duration(self) -> float:
+        return self.end - self.start
 
 
 class ViewData(BaseModel):
+    """Dados preparados para visualização"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     dataset_id: DatasetID
@@ -118,6 +163,7 @@ class ViewData(BaseModel):
 
 
 class DerivedResult(BaseModel):
+    """Base para resultados de operações"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     values: NDArray[np.float64]
@@ -126,16 +172,30 @@ class DerivedResult(BaseModel):
 
 
 class InterpResult(DerivedResult):
+    """Resultado de interpolação"""
     interpolation_info: InterpolationInfo
 
 
 class CalcResult(DerivedResult):
-    operation: str
-    order: Optional[int] = None
+    """Resultado de cálculo matemático"""
+    operation: str  # derivative, integral, area
+    order: Optional[int] = None  # para derivadas
 
 
 class SyncResult(DerivedResult):
+    """Resultado de sincronização"""
     t_common: NDArray[np.float64]
     synced_series: dict[SeriesID, NDArray[np.float64]]
     alignment_error: float
     confidence: float
+
+
+class SeriesSummary(BaseModel):
+    """Resumo de série para UI"""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    series_id: SeriesID
+    name: str
+    unit: str
+    n_points: int
+    is_derived: bool = False
