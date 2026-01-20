@@ -10,7 +10,7 @@ try:
 except ImportError:
     NUMBA_AVAILABLE = False
 
-from platform_base.viz.config import PlotConfig
+from platform_base.viz.config import PlotConfig, VizConfig
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -294,12 +294,47 @@ def _lttb_numpy(x: np.ndarray, y: np.ndarray, max_points: int) -> Tuple[np.ndarr
 
 
 class BaseFigure(ABC):
-    def __init__(self, config: PlotConfig):
+    """
+    Classe base para todos os tipos de visualização conforme seção 10.2
+    
+    Features:
+    - Configuração unificada (VizConfig)
+    - Downsampling inteligente (LTTB + preservação de features)
+    - Rendering otimizado (OpenGL + caching)
+    - Suporte a seleção interativa
+    """
+    
+    def __init__(self, config: VizConfig):
         self.config = config
+        self._cached_data = {}
+        self._last_render_params = {}
 
     @abstractmethod
     def render(self, data):
+        """Renderiza a visualização com os dados fornecidos"""
         raise NotImplementedError
+    
+    @abstractmethod
+    def update_selection(self, selection_indices: np.ndarray):
+        """Atualiza visualização com nova seleção"""
+        raise NotImplementedError
+    
+    @abstractmethod
+    def export(self, file_path: str, format: str, **kwargs):
+        """Exporta visualização para arquivo"""
+        raise NotImplementedError
+    
+    def clear_cache(self):
+        """Limpa cache interno"""
+        self._cached_data.clear()
+        self._last_render_params.clear()
+        
+    def set_theme(self, theme_type: str):
+        """Aplica tema à visualização"""
+        from platform_base.viz.config import ThemeType
+        theme = ThemeType(theme_type)
+        self.config.apply_theme(theme)
+        self.clear_cache()  # Force re-render with new theme
     
     def _apply_downsampling(self, x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -308,23 +343,21 @@ class BaseFigure(ABC):
         Returns:
             Tuple com dados possivelmente reduzidos (x, y)
         """
-        if not hasattr(self.config, 'downsample') or not self.config.downsample:
-            return x, y
-        
-        downsample_config = self.config.downsample
-        max_points = downsample_config.max_points
+        perf_config = self.config.performance
+        max_points = perf_config.max_points_2d  # Use 2D limit by default
         
         if len(x) <= max_points:
             return x, y
             
-        method = downsample_config.method
-        preserve_features = downsample_config.preserve_features or []
+        method = perf_config.downsample_method
+        preserve_features = ["peaks", "valleys", "edges"]  # Default feature preservation
         
         if method == "lttb":
             return _downsample_lttb(x, y, max_points, preserve_features)
-        elif method == "minmax":
-            # Implementação simplificada de min-max
-            return self._downsample_minmax(x, y, max_points)
+        elif method == "uniform":
+            # Simple uniform sampling
+            indices = np.linspace(0, len(x)-1, max_points, dtype=int)
+            return x[indices], y[indices]
         elif method == "adaptive":
             # Implementação simplificada adaptativa
             return self._downsample_adaptive(x, y, max_points)

@@ -70,24 +70,33 @@ class SeriesMetadata(BaseModel):
 
 
 class InterpolationInfo(BaseModel):
-    """Informação de interpolação por ponto"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    """Informa??o de interpola??o por ponto"""
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
-    is_interpolated: NDArray[np.bool_]  # bool mask
-    method_used: NDArray[np.str_]  # string array com método por ponto
+    is_interpolated_mask: NDArray[np.bool_] = Field(alias="is_interpolated")
+    method_used: NDArray[np.str_]
     confidence: Optional[NDArray[np.float64]] = None
+
+    @property
+    def is_interpolated(self) -> NDArray[np.bool_]:
+        """Compatibilidade com nome anterior."""
+        return self.is_interpolated_mask
 
 
 class ResultMetadata(BaseModel):
-    """Metadata de resultado de operação"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    """Metadata de resultado de opera??o"""
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
     operation: str
-    parameters: dict[str, Any]
+    parameters: dict[str, Any] = Field(default_factory=dict, alias="params")
     timestamp: datetime = Field(default_factory=datetime.now)
-    duration_ms: float
+    duration_ms: float = 0.0
     platform_version: str = "2.0.0"
     seed: Optional[int] = None
+
+    @property
+    def params(self) -> dict[str, Any]:
+        return self.parameters
 
 
 class QualityMetrics(BaseModel):

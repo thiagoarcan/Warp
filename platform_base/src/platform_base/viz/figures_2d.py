@@ -1,19 +1,48 @@
+"""
+Figures 2D - Sistema de visualização 2D com pyqtgraph conforme seção 10.3
+
+Features:
+- Gráficos de linha e scatter com pyqtgraph
+- Brush selection interativa  
+- Performance otimizada para milhões de pontos
+- Suporte a múltiplas séries
+- Downsampling LTTB inteligente
+"""
+
 from __future__ import annotations
 
 import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
+import time
 
-from platform_base.core.models import ViewData, Series
+try:
+    import pyqtgraph as pg
+    from PyQt6.QtCore import Qt, pyqtSignal, QObject
+    from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
+    from PyQt6.QtGui import QColor, QPen, QBrush
+    PYQTGRAPH_AVAILABLE = True
+except ImportError:
+    PYQTGRAPH_AVAILABLE = False
+    
+from platform_base.core.models import Dataset, Series
 from platform_base.viz.base import BaseFigure, _downsample_lttb
-from platform_base.viz.config import VizConfig
+from platform_base.viz.config import VizConfig, ColorScale
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def _prepare_data_for_plotting(t: np.ndarray, values: np.ndarray, max_points: int = 5000) -> tuple[np.ndarray, np.ndarray]:
+if not PYQTGRAPH_AVAILABLE:
+    logger.error("pyqtgraph_not_available", message="PyQtGraph not available for 2D visualization")
+    
+
+def _hex_to_qcolor(hex_color: str) -> QColor:
+    """Converte cor hex para QColor"""
+    hex_color = hex_color.lstrip('#')
+    return QColor(int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16))
+
+
+def _prepare_data_for_plotting(t: np.ndarray, values: np.ndarray, max_points: int = 100000) -> Tuple[np.ndarray, np.ndarray]:
     """Prepara dados para plotagem com downsampling inteligente"""
     if len(t) <= max_points:
         return t, values
@@ -32,388 +61,425 @@ def _prepare_data_for_plotting(t: np.ndarray, values: np.ndarray, max_points: in
         return t[idx], values[idx]
 
 
-def _add_interpolated_markers(fig: go.Figure, t: np.ndarray, values: np.ndarray, 
-                            is_interpolated: np.ndarray, series_name: str, color: str):
-    """Adiciona marcadores para pontos interpolados conforme PRD"""
-    if is_interpolated is None or not np.any(is_interpolated):
-        return
+class Plot2DWidget(QWidget):
+    """
+    Widget PyQtGraph para visualização 2D conforme seção 10.3
     
-    # Pontos interpolados com marcadores especiais
-    interp_indices = np.where(is_interpolated)[0]
-    if len(interp_indices) > 0:
-        fig.add_trace(
-            go.Scatter(
-                x=t[interp_indices],
-                y=values[interp_indices],
-                mode='markers',
-                marker=dict(
-                    symbol='circle-open',
-                    size=6,
-                    color=color,
-                    line=dict(width=2)
-                ),
-                name=f"{series_name} (interpolated)",
-                hovertemplate="<b>%{fullData.name}</b><br>" +
-                            "Time: %{x}<br>" +
-                            "Value: %{y}<br>" +
-                            "<i>Interpolated point</i><extra></extra>",
-                showlegend=False
-            )
+    Features:
+    - Performance otimizada para milhões de pontos
+    - Brush selection interativa
+    - Múltiplas séries com cores configuráveis
+    - Zoom e pan responsivos
+    - Downsampling LTTB automático
+    """
+    
+    # Signals
+    selection_changed = pyqtSignal(np.ndarray)  # indices selecionados
+    range_changed = pyqtSignal(tuple, tuple)    # x_range, y_range
+    series_clicked = pyqtSignal(str)            # series_id
+    
+    def __init__(self, config: VizConfig, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        
+        if not PYQTGRAPH_AVAILABLE:
+            raise ImportError("PyQtGraph not available")
+        
+        self.config = config
+        self._series_data = {}  # {series_id: (x, y, plot_item)}
+        self._selection_enabled = True
+        self._brush_selection = None
+        
+        self._setup_ui()
+        self._setup_connections()
+        
+        logger.debug("plot2d_widget_initialized")
+    
+    def _setup_ui(self):
+        """Configura interface do widget"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Create plot widget with configuration
+        self.plot_widget = pg.PlotWidget(
+            title="Time Series Plot",
+            labels={'left': 'Value', 'bottom': 'Time (s)'}
         )
+        
+        # Apply theme configuration
+        self._apply_theme()
+        
+        # Enable OpenGL acceleration if configured
+        if self.config.performance.use_opengl:
+            self.plot_widget.useOpenGL(True)
+            logger.debug("opengl_acceleration_enabled")
+        
+        # Configure plot widget
+        self.plot_widget.setLabel('left', 'Value')
+        self.plot_widget.setLabel('bottom', 'Time (s)')
+        self.plot_widget.showGrid(
+            x=self.config.style.grid_enabled, 
+            y=self.config.style.grid_enabled,
+            alpha=self.config.style.grid_alpha
+        )
+        
+        # Enable anti-aliasing if configured
+        if self.config.performance.antialias:
+            self.plot_widget.setAntialiasing(True)
+        
+        layout.addWidget(self.plot_widget)
+        
+        # Selection region for brush selection
+        if self.config.interaction.brush_selection:
+            self._setup_brush_selection()
+    
+    def _setup_brush_selection(self):
+        """Configura seleção por brush"""
+        # Linear region for X-axis selection
+        self._brush_selection = pg.LinearRegionItem()
+        self._brush_selection.setZValue(10)
+        self.plot_widget.addItem(self._brush_selection)
+        
+        # Initially hide selection
+        self._brush_selection.setVisible(False)
+        
+        # Connect selection signals
+        self._brush_selection.sigRegionChanged.connect(self._on_selection_changed)
+        
+        logger.debug("brush_selection_configured")
+    
+    def _setup_connections(self):
+        """Configura conexões de sinais"""
+        # Range change signals
+        view_box = self.plot_widget.getViewBox()
+        view_box.sigRangeChanged.connect(self._on_range_changed)
+    
+    def _apply_theme(self):
+        """Aplica tema à visualização"""
+        # Background color
+        bg_color = _hex_to_qcolor(self.config.colors.background_color)
+        self.plot_widget.setBackground(bg_color)
+        
+        # Grid color is handled in showGrid call
+    
+    def add_series(self, series_id: str, x_data: np.ndarray, y_data: np.ndarray, 
+                   series_index: int = 0, **plot_kwargs):
+        """
+        Adiciona série ao gráfico
+        
+        Args:
+            series_id: Identificador da série
+            x_data: Dados do eixo X (timestamps)
+            y_data: Dados do eixo Y (valores)
+            series_index: Índice para seleção de cor
+            **plot_kwargs: Argumentos adicionais para plotagem
+        """
+        start_time = time.perf_counter()
+        
+        # Apply downsampling if needed
+        x_plot, y_plot = self._apply_downsampling(x_data, y_data)
+        
+        # Get color for series
+        color = self.config.get_color_for_series(series_index)
+        qcolor = _hex_to_qcolor(color)
+        
+        # Configure pen and brush
+        pen = QPen(qcolor)
+        pen.setWidth(self.config.style.line_width)
+        
+        # Plot configuration
+        plot_config = {
+            'pen': pen,
+            'symbol': 'o',
+            'symbolSize': self.config.style.marker_size,
+            'symbolBrush': QBrush(qcolor),
+            'name': series_id,
+            'connect': 'finite',  # Don't connect NaN gaps
+            **plot_kwargs
+        }
+        
+        # Add plot item
+        plot_item = self.plot_widget.plot(x_plot, y_plot, **plot_config)
+        
+        # Store series data
+        self._series_data[series_id] = {
+            'x_original': x_data,
+            'y_original': y_data, 
+            'x_plot': x_plot,
+            'y_plot': y_plot,
+            'plot_item': plot_item,
+            'color': color
+        }
+        
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.info("series_added_to_plot", 
+                   series_id=series_id, 
+                   original_points=len(x_data),
+                   plotted_points=len(x_plot),
+                   duration_ms=duration_ms)
+    
+    def remove_series(self, series_id: str):
+        """Remove série do gráfico"""
+        if series_id in self._series_data:
+            plot_item = self._series_data[series_id]['plot_item']
+            self.plot_widget.removeItem(plot_item)
+            del self._series_data[series_id]
+            
+            logger.debug("series_removed_from_plot", series_id=series_id)
+    
+    def clear_series(self):
+        """Remove todas as séries"""
+        for series_id in list(self._series_data.keys()):
+            self.remove_series(series_id)
+    
+    def update_series(self, series_id: str, x_data: np.ndarray, y_data: np.ndarray):
+        """Atualiza dados de uma série existente"""
+        if series_id in self._series_data:
+            # Apply downsampling
+            x_plot, y_plot = self._apply_downsampling(x_data, y_data)
+            
+            # Update plot data
+            plot_item = self._series_data[series_id]['plot_item']
+            plot_item.setData(x_plot, y_plot)
+            
+            # Update stored data
+            series_data = self._series_data[series_id]
+            series_data['x_original'] = x_data
+            series_data['y_original'] = y_data
+            series_data['x_plot'] = x_plot
+            series_data['y_plot'] = y_plot
+            
+            logger.debug("series_updated", series_id=series_id, points=len(x_plot))
+    
+    def enable_selection(self, enabled: bool = True):
+        """Habilita/desabilita seleção por brush"""
+        self._selection_enabled = enabled
+        if self._brush_selection:
+            self._brush_selection.setVisible(enabled)
+    
+    def get_selection_range(self) -> Optional[Tuple[float, float]]:
+        """Retorna range selecionado (min, max) ou None"""
+        if self._brush_selection and self._brush_selection.isVisible():
+            return self._brush_selection.getRegion()
+        return None
+    
+    def set_selection_range(self, x_min: float, x_max: float):
+        """Define range de seleção"""
+        if self._brush_selection:
+            self._brush_selection.setRegion([x_min, x_max])
+            self._brush_selection.setVisible(True)
+    
+    def clear_selection(self):
+        """Limpa seleção atual"""
+        if self._brush_selection:
+            self._brush_selection.setVisible(False)
+    
+    def auto_range(self):
+        """Auto-ajusta range para mostrar todos os dados"""
+        self.plot_widget.autoRange()
+    
+    def set_range(self, x_range: Tuple[float, float], y_range: Tuple[float, float]):
+        """Define ranges dos eixos"""
+        self.plot_widget.setRange(xRange=x_range, yRange=y_range)
+    
+    def export_image(self, file_path: str, width: int = 1920, height: int = 1080):
+        """Exporta gráfico como imagem"""
+        try:
+            # Set size temporarily
+            original_size = self.plot_widget.size()
+            self.plot_widget.resize(width, height)
+            
+            # Export image
+            exporter = pg.exporters.ImageExporter(self.plot_widget.plotItem)
+            exporter.parameters()['width'] = width
+            exporter.parameters()['height'] = height
+            exporter.export(file_path)
+            
+            # Restore original size
+            self.plot_widget.resize(original_size)
+            
+            logger.info("plot_exported", file_path=file_path, width=width, height=height)
+            
+        except Exception as e:
+            logger.error("plot_export_failed", file_path=file_path, error=str(e))
+            raise
+    
+    def _apply_downsampling(self, x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Aplica downsampling baseado na configuração"""
+        max_points = self.config.performance.max_points_2d
+        
+        if len(x) <= max_points:
+            return x, y
+        
+        method = self.config.performance.downsample_method
+        
+        if method == "lttb":
+            return _downsample_lttb(x, y, max_points, ["peaks", "valleys", "edges"])
+        elif method == "uniform":
+            indices = np.linspace(0, len(x)-1, max_points, dtype=int)
+            return x[indices], y[indices]
+        else:
+            # Default to uniform sampling
+            indices = np.linspace(0, len(x)-1, max_points, dtype=int)
+            return x[indices], y[indices]
+    
+    def _on_selection_changed(self):
+        """Handler para mudança de seleção"""
+        if not self._selection_enabled or not self._brush_selection:
+            return
+        
+        # Get selection range
+        x_min, x_max = self._brush_selection.getRegion()
+        
+        # Find indices in selection for all series
+        selected_indices = set()
+        
+        for series_data in self._series_data.values():
+            x_data = series_data['x_original']
+            mask = (x_data >= x_min) & (x_data <= x_max)
+            series_indices = np.where(mask)[0]
+            selected_indices.update(series_indices)
+        
+        # Convert to sorted array
+        selected_indices = np.array(sorted(selected_indices))
+        
+        # Emit signal
+        self.selection_changed.emit(selected_indices)
+        
+        logger.debug("selection_changed", 
+                    x_range=(x_min, x_max), 
+                    n_selected=len(selected_indices))
+    
+    def _on_range_changed(self):
+        """Handler para mudança de range"""
+        view_box = self.plot_widget.getViewBox()
+        x_range, y_range = view_box.viewRange()
+        self.range_changed.emit(tuple(x_range), tuple(y_range))
 
 
 class TimeseriesPlot(BaseFigure):
-    """Plotagem de séries temporais com downsampling inteligente e rastreamento de interpolação"""
+    """Wrapper para Plot2DWidget com interface BaseFigure"""
     
-    def render(self, view_data: ViewData, show_interpolated: bool = True) -> go.Figure:
+    def __init__(self, config: VizConfig):
+        super().__init__(config)
+        self._widget: Optional[Plot2DWidget] = None
+    
+    def render(self, dataset: Dataset) -> Plot2DWidget:
         """
-        Renderiza séries temporais com features avançadas conforme PRD seção 10.1
+        Renderiza séries temporais do dataset
         
         Args:
-            view_data: Dados das séries a serem plotadas
-            show_interpolated: Se deve mostrar pontos interpolados
+            dataset: Dataset com séries temporais
+            
+        Returns:
+            Widget PyQtGraph configurado
         """
-        fig = go.Figure()
+        # Create widget if not exists
+        if self._widget is None:
+            self._widget = Plot2DWidget(self.config)
         
-        # Configurações básicas
-        max_points = getattr(self.config.downsample, 'max_points', 5000)
-        colors = getattr(self.config.colors, 'palette', 
-                        ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'])
+        # Clear existing series
+        self._widget.clear_series()
         
-        for i, (series_id, values) in enumerate(view_data.series.items()):
-            # Prepara dados com downsampling inteligente
-            t_plot, v_plot = _prepare_data_for_plotting(
-                view_data.t_seconds, values, max_points
-            )
-            
-            color = colors[i % len(colors)]
-            
-            # Adiciona linha principal
-            fig.add_trace(
-                go.Scatter(
-                    x=t_plot,
-                    y=v_plot,
-                    name=series_id,
-                    mode="lines+markers",
-                    line=dict(color=color, width=2),
-                    marker=dict(size=4, color=color),
-                    hovertemplate="<b>%{fullData.name}</b><br>" +
-                                "Time: %{x}<br>" +
-                                "Value: %{y:.4f}<br>" +
-                                "<extra></extra>",
-                    connectgaps=False  # Não conecta gaps de dados
-                )
-            )
-            
-            # Adiciona marcadores de interpolação se disponível
-            if show_interpolated and hasattr(view_data, 'interpolation_mask'):
-                interp_mask = view_data.interpolation_mask.get(series_id)
-                if interp_mask is not None:
-                    _add_interpolated_markers(
-                        fig, view_data.t_seconds, values, 
-                        interp_mask, series_id, color
-                    )
-        
-        # Layout responsivo e interativo
-        fig.update_layout(
-            title=dict(
-                text=getattr(self.config, 'title', 'Time Series Plot'),
-                x=0.5,
-                font=dict(size=16)
-            ),
-            showlegend=getattr(self.config.interactive, 'show_legend', True),
-            hovermode=getattr(self.config.interactive, 'hover_mode', 'closest'),
-            xaxis=dict(
-                title="Time",
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='LightGrey'
-            ),
-            yaxis=dict(
-                title="Value",
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='LightGrey'
-            ),
-            plot_bgcolor='white',
-            # Configurações para seleção de dados
-            dragmode='select',
-            selectdirection='horizontal',
-            # Toolbar customizada
-            modebar=dict(
-                add=['select2d', 'lasso2d'],
-                remove=['autoScale2d']
-            )
-        )
-        
-        # Adiciona anotações de metadata se disponível
-        if hasattr(view_data, 'metadata') and view_data.metadata:
-            fig.add_annotation(
-                text=f"Dataset: {view_data.dataset_id}<br>" +
-                     f"Points: {len(view_data.t_seconds):,}<br>" +
-                     f"Window: {view_data.window.start_seconds:.1f}s - {view_data.window.end_seconds:.1f}s",
-                xref="paper", yref="paper",
-                x=0.02, y=0.98,
-                showarrow=False,
-                align="left",
-                bgcolor="rgba(255,255,255,0.8)",
-                bordercolor="rgba(0,0,0,0.1)",
-                borderwidth=1
+        # Add all series from dataset
+        for i, (series_id, series) in enumerate(dataset.series.items()):
+            self._widget.add_series(
+                series_id=series.name or series_id,
+                x_data=dataset.t_seconds,
+                y_data=series.values,
+                series_index=i
             )
         
-        return fig
-
-
-class MultipanelPlot(BaseFigure):
-    """Plotagem multipanel com sincronização de eixos conforme PRD seção 10.2"""
+        # Auto-range to show all data
+        self._widget.auto_range()
+        
+        logger.info("timeseries_plot_rendered", 
+                   dataset_id=dataset.dataset_id,
+                   n_series=len(dataset.series),
+                   n_points=len(dataset.t_seconds))
+        
+        return self._widget
     
-    def render(self, panels: list[ViewData], shared_xaxes: bool = True, 
-              shared_yaxes: bool = False) -> go.Figure:
-        """
-        Renderiza múltiplos painéis sincronizados
-        
-        Args:
-            panels: Lista de dados para cada painel
-            shared_xaxes: Se os eixos X devem ser compartilhados
-            shared_yaxes: Se os eixos Y devem ser compartilhados  
-        """
-        if not panels:
-            return go.Figure()
-            
-        # Cria subplots com configurações avançadas
-        subplot_titles = [f"Panel {i+1}" for i in range(len(panels))]
-        if hasattr(panels[0], 'metadata'):
-            subplot_titles = [panel.metadata.get('title', f'Panel {i+1}') 
-                            for i, panel in enumerate(panels)]
-        
-        fig = make_subplots(
-            rows=len(panels), 
-            cols=1, 
-            shared_xaxes=shared_xaxes,
-            shared_yaxes=shared_yaxes,
-            subplot_titles=subplot_titles,
-            vertical_spacing=0.05,
-            specs=[[{"secondary_y": True}] for _ in panels]  # Permite eixo Y duplo
-        )
-        
-        colors = getattr(self.config.colors, 'palette', 
-                        ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'])
-        max_points = getattr(self.config.downsample, 'max_points', 5000)
-        
-        for row, panel in enumerate(panels, start=1):
-            color_idx = 0
-            
-            for series_id, values in panel.series.items():
-                # Prepara dados
-                t_plot, v_plot = _prepare_data_for_plotting(
-                    panel.t_seconds, values, max_points
-                )
-                
-                color = colors[color_idx % len(colors)]
-                color_idx += 1
-                
-                # Adiciona trace ao painel específico
-                fig.add_trace(
-                    go.Scatter(
-                        x=t_plot, 
-                        y=v_plot, 
-                        name=f"{series_id} (P{row})",
-                        mode="lines+markers",
-                        line=dict(color=color, width=2),
-                        marker=dict(size=3, color=color),
-                        hovertemplate="<b>%{fullData.name}</b><br>" +
-                                    "Time: %{x}<br>" +
-                                    "Value: %{y:.4f}<br>" +
-                                    f"Panel: {row}<extra></extra>",
-                        showlegend=True
-                    ),
-                    row=row,
-                    col=1
-                )
-        
-        # Layout otimizado para multipanel
-        fig.update_layout(
-            title=dict(
-                text=getattr(self.config, 'title', 'Multi-Panel Time Series'),
-                x=0.5,
-                font=dict(size=16)
-            ),
-            showlegend=getattr(self.config.interactive, 'show_legend', True),
-            hovermode='x unified',  # Hover unificado para comparação
-            plot_bgcolor='white',
-            height=200 * len(panels) + 100,  # Altura dinâmica
-            # Sincronização de zoom
-            xaxis=dict(matches='x'),  # Sincroniza zoom X entre painéis
-            dragmode='zoom' if shared_xaxes else 'pan'
-        )
-        
-        # Configura eixos individuais
-        for i in range(len(panels)):
-            fig.update_xaxes(
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='LightGrey',
-                row=i+1, col=1
-            )
-            fig.update_yaxes(
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='LightGrey',
-                row=i+1, col=1
-            )
-        
-        return fig
+    def update_selection(self, selection_indices: np.ndarray):
+        """Atualiza seleção visual no gráfico"""
+        if self._widget and len(selection_indices) > 0:
+            # Get X range from selection indices
+            # Assume we have access to the original data somehow
+            # For now, this is a placeholder
+            pass
+    
+    def export(self, file_path: str, format: str, **kwargs):
+        """Exporta gráfico para arquivo"""
+        if self._widget:
+            width = kwargs.get('width', self.config.export_2d.default_width)
+            height = kwargs.get('height', self.config.export_2d.default_height)
+            self._widget.export_image(file_path, width, height)
 
 
 class ScatterPlot(BaseFigure):
-    """Plot de dispersão para análise de correlação entre séries"""
+    """Scatter plot para análise de correlação"""
     
-    def render(self, x_data: ViewData, y_data: ViewData, 
-              x_series: str, y_series: str) -> go.Figure:
+    def __init__(self, config: VizConfig):
+        super().__init__(config)
+        self._widget: Optional[Plot2DWidget] = None
+    
+    def render(self, x_series: Series, y_series: Series) -> Plot2DWidget:
         """
         Cria scatter plot entre duas séries
         
         Args:
-            x_data: Dados para eixo X
-            y_data: Dados para eixo Y  
-            x_series: ID da série X
-            y_series: ID da série Y
-        """
-        # Extrai dados das séries
-        x_values = x_data.series[x_series]
-        y_values = y_data.series[y_series]
-        
-        # Sincroniza timestamps (interpolação simples)
-        # TODO: Implementar sincronização mais sofisticada
-        min_len = min(len(x_values), len(y_values))
-        x_plot = x_values[:min_len]
-        y_plot = y_values[:min_len]
-        
-        # Calcula correlação
-        correlation = np.corrcoef(x_plot, y_plot)[0, 1]
-        
-        fig = go.Figure()
-        
-        # Scatter principal
-        fig.add_trace(
-            go.Scatter(
-                x=x_plot,
-                y=y_plot,
-                mode='markers',
-                marker=dict(
-                    size=6,
-                    color=x_data.t_seconds[:min_len],  # Colorir por tempo
-                    colorscale='Viridis',
-                    showscale=True,
-                    colorbar=dict(title="Time")
-                ),
-                name=f"{x_series} vs {y_series}",
-                hovertemplate="<b>%{fullData.name}</b><br>" +
-                            f"{x_series}: %{{x:.4f}}<br>" +
-                            f"{y_series}: %{{y:.4f}}<br>" +
-                            "<extra></extra>"
-            )
-        )
-        
-        # Linha de regressão linear
-        if len(x_plot) > 1:
-            z = np.polyfit(x_plot, y_plot, 1)
-            p = np.poly1d(z)
-            x_reg = np.linspace(np.min(x_plot), np.max(x_plot), 100)
-            y_reg = p(x_reg)
+            x_series: Série para eixo X
+            y_series: Série para eixo Y
             
-            fig.add_trace(
-                go.Scatter(
-                    x=x_reg,
-                    y=y_reg,
-                    mode='lines',
-                    line=dict(color='red', width=2, dash='dash'),
-                    name=f'Linear fit (R²={correlation**2:.3f})',
-                    hoverinfo='skip'
-                )
-            )
+        Returns:
+            Widget PyQtGraph configurado
+        """
+        # Create widget if not exists
+        if self._widget is None:
+            self._widget = Plot2DWidget(self.config)
         
-        fig.update_layout(
-            title=f"Scatter Plot: {x_series} vs {y_series}",
-            xaxis_title=x_series,
-            yaxis_title=y_series,
-            showlegend=True,
-            plot_bgcolor='white',
-            annotations=[
-                dict(
-                    text=f"Correlation: {correlation:.3f}",
-                    xref="paper", yref="paper",
-                    x=0.02, y=0.98,
-                    showarrow=False,
-                    bgcolor="rgba(255,255,255,0.8)",
-                    bordercolor="rgba(0,0,0,0.1)",
-                    borderwidth=1
-                )
-            ]
+        # Clear existing plots
+        self._widget.clear_series()
+        
+        # Ensure same length (simple truncation for now)
+        min_len = min(len(x_series.values), len(y_series.values))
+        x_data = x_series.values[:min_len]
+        y_data = y_series.values[:min_len]
+        
+        # Add scatter plot
+        self._widget.add_series(
+            series_id=f"{x_series.name} vs {y_series.name}",
+            x_data=x_data,
+            y_data=y_data,
+            series_index=0,
+            symbol='o',
+            pen=None  # No lines, only symbols
         )
         
-        return fig
-
-
-class DistributionPlot(BaseFigure):
-    """Plot de distribuição (histograma + densidade) conforme PRD seção 10.3"""
+        # Update axis labels
+        self._widget.plot_widget.setLabel('left', y_series.name or "Y")
+        self._widget.plot_widget.setLabel('bottom', x_series.name or "X")
+        
+        # Auto-range
+        self._widget.auto_range()
+        
+        # Calculate correlation
+        correlation = np.corrcoef(x_data, y_data)[0, 1]
+        logger.info("scatter_plot_rendered", 
+                   x_series=x_series.name, 
+                   y_series=y_series.name,
+                   correlation=correlation,
+                   n_points=min_len)
+        
+        return self._widget
     
-    def render(self, view_data: ViewData, series_id: str, 
-              bins: int = 50, show_kde: bool = True) -> go.Figure:
-        """
-        Renderiza distribuição de uma série
-        
-        Args:
-            view_data: Dados da série
-            series_id: ID da série a analisar
-            bins: Número de bins do histograma
-            show_kde: Se deve mostrar estimativa de densidade
-        """
-        values = view_data.series[series_id]
-        
-        fig = go.Figure()
-        
-        # Histograma
-        fig.add_trace(
-            go.Histogram(
-                x=values,
-                nbinsx=bins,
-                name=f"{series_id} distribution",
-                opacity=0.7,
-                hovertemplate="<b>%{fullData.name}</b><br>" +
-                            "Range: %{x}<br>" +
-                            "Count: %{y}<br>" +
-                            "<extra></extra>"
-            )
-        )
-        
-        # Estatísticas básicas
-        stats_text = (
-            f"Mean: {np.mean(values):.4f}<br>"
-            f"Std: {np.std(values):.4f}<br>"
-            f"Min: {np.min(values):.4f}<br>"
-            f"Max: {np.max(values):.4f}<br>"
-            f"Median: {np.median(values):.4f}"
-        )
-        
-        fig.update_layout(
-            title=f"Distribution: {series_id}",
-            xaxis_title="Value",
-            yaxis_title="Frequency",
-            showlegend=True,
-            plot_bgcolor='white',
-            annotations=[
-                dict(
-                    text=stats_text,
-                    xref="paper", yref="paper",
-                    x=0.98, y=0.98,
-                    showarrow=False,
-                    align="right",
-                    bgcolor="rgba(255,255,255,0.8)",
-                    bordercolor="rgba(0,0,0,0.1)",
-                    borderwidth=1
-                )
-            ]
-        )
-        
-        return fig
+    def update_selection(self, selection_indices: np.ndarray):
+        """Atualiza seleção visual"""
+        # Placeholder implementation
+        pass
+    
+    def export(self, file_path: str, format: str, **kwargs):
+        """Exporta scatter plot"""
+        if self._widget:
+            width = kwargs.get('width', self.config.export_2d.default_width)
+            height = kwargs.get('height', self.config.export_2d.default_height)
+            self._widget.export_image(file_path, width, height)

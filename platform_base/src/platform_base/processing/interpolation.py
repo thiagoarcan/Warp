@@ -46,10 +46,12 @@ SUPPORTED_METHODS = {
 
 def _build_metadata(method: str, params: dict) -> ResultMetadata:
     return ResultMetadata(
-        method=method,
-        params=params,
-        version="2.0.0",
+        operation=method,
+        parameters=params,
+        platform_version="2.0.0",
         timestamp=datetime.now(timezone.utc),
+        duration_ms=float(params.get("duration_ms", 0.0)),
+        seed=params.get("seed"),
     )
 
 
@@ -389,7 +391,7 @@ def interpolate(
         interp_values[mask_missing] = interp_all[mask_missing]
         method_used = np.where(mask_missing, method, "original")
         info = InterpolationInfo(
-            is_interpolated=mask_missing,
+            is_interpolated_mask=mask_missing,
             method_used=method_used.astype("<U32"),
         )
         return InterpResult(values=interp_values, interpolation_info=info, metadata=_build_metadata(method, params))

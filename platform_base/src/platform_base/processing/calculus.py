@@ -7,7 +7,15 @@ import time
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 from scipy.signal import savgol_filter
-from scipy.integrate import cumtrapz, simpson
+try:
+    from scipy.integrate import cumulative_trapezoid as cumtrapz
+except ImportError:
+    from scipy.integrate import cumtrapz
+    
+try:
+    from scipy.integrate import simpson
+except ImportError:
+    from scipy.integrate import simps as simpson
 
 try:
     import numba
