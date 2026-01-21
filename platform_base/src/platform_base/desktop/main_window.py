@@ -29,6 +29,7 @@ from platform_base.desktop.dialogs.upload_dialog import UploadDialog
 from platform_base.desktop.dialogs.settings_dialog import SettingsDialog
 from platform_base.desktop.dialogs.about_dialog import AboutDialog
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 from platform_base.utils.errors import PlatformError
 
 logger = get_logger(__name__)
@@ -90,7 +91,7 @@ class MainWindow(QMainWindow):
         
         # Data Management Panel (Left)
         self.data_panel = DataPanel(self.session_state, self.signal_hub)
-        self.data_dock = QDockWidget("Data", self)
+        self.data_dock = QDockWidget(tr("Data Panel"), self)
         self.data_dock.setWidget(self.data_panel)
         self.data_dock.setObjectName("DataPanel")
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.data_dock)
@@ -103,14 +104,14 @@ class MainWindow(QMainWindow):
         
         # Configuration Panel (Right)
         self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
-        self.config_dock = QDockWidget("Configuration", self)
+        self.config_dock = QDockWidget(tr("Configuration Panel"), self)
         self.config_dock.setWidget(self.config_panel)
         self.config_dock.setObjectName("ConfigPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
         
         # Results Panel (Bottom)
         self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
-        self.results_dock = QDockWidget("Results", self)
+        self.results_dock = QDockWidget(tr("Results Panel"), self)
         self.results_dock.setWidget(self.results_panel)
         self.results_dock.setObjectName("ResultsPanel")
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
@@ -125,22 +126,22 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
         
         # File Menu
-        file_menu = menubar.addMenu("&File")
+        file_menu = menubar.addMenu(tr("&File"))
         
         # New Session
-        new_action = QAction("&New Session", self)
+        new_action = QAction(tr("&New Session"), self)
         new_action.setShortcut(QKeySequence.StandardKey.New)
         new_action.triggered.connect(self._new_session)
         file_menu.addAction(new_action)
         
         # Open Session
-        open_action = QAction("&Open Session...", self)
+        open_action = QAction(tr("&Open Session..."), self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self._open_session)
         file_menu.addAction(open_action)
         
         # Save Session
-        save_action = QAction("&Save Session...", self)
+        save_action = QAction(tr("&Save Session..."), self)
         save_action.setShortcut(QKeySequence.StandardKey.Save)
         save_action.triggered.connect(self._save_session)
         file_menu.addAction(save_action)
@@ -148,7 +149,7 @@ class MainWindow(QMainWindow):
         file_menu.addSeparator()
         
         # Load Data
-        load_data_action = QAction("&Load Data...", self)
+        load_data_action = QAction(tr("&Load Data..."), self)
         load_data_action.setShortcut(QKeySequence("Ctrl+L"))
         load_data_action.triggered.connect(self._load_data)
         file_menu.addAction(load_data_action)
@@ -156,13 +157,13 @@ class MainWindow(QMainWindow):
         file_menu.addSeparator()
         
         # Exit
-        exit_action = QAction("E&xit", self)
+        exit_action = QAction(tr("E&xit"), self)
         exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
         
         # View Menu
-        view_menu = menubar.addMenu("&View")
+        view_menu = menubar.addMenu(tr("&View"))
         
         # Panel visibility toggles
         view_menu.addAction(self.data_dock.toggleViewAction())
@@ -172,31 +173,31 @@ class MainWindow(QMainWindow):
         view_menu.addSeparator()
         
         # Theme selection
-        theme_light = QAction("Light Theme", self)
+        theme_light = QAction(tr("Light Theme"), self)
         theme_light.triggered.connect(lambda: self._set_theme("light"))
         view_menu.addAction(theme_light)
         
-        theme_dark = QAction("Dark Theme", self)
+        theme_dark = QAction(tr("Dark Theme"), self)
         theme_dark.triggered.connect(lambda: self._set_theme("dark"))
         view_menu.addAction(theme_dark)
         
-        theme_auto = QAction("Auto Theme", self)
+        theme_auto = QAction(tr("Auto Theme"), self)
         theme_auto.triggered.connect(lambda: self._set_theme("auto"))
         view_menu.addAction(theme_auto)
         
         # Tools Menu
-        tools_menu = menubar.addMenu("&Tools")
+        tools_menu = menubar.addMenu(tr("&Tools"))
         
         # Settings
-        settings_action = QAction("&Settings...", self)
+        settings_action = QAction(tr("&Settings..."), self)
         settings_action.triggered.connect(self._show_settings)
         tools_menu.addAction(settings_action)
         
         # Help Menu
-        help_menu = menubar.addMenu("&Help")
+        help_menu = menubar.addMenu(tr("&Help"))
         
         # About
-        about_action = QAction("&About...", self)
+        about_action = QAction(tr("&About..."), self)
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
         
@@ -204,11 +205,11 @@ class MainWindow(QMainWindow):
     
     def _create_tool_bar(self):
         """Create main toolbar"""
-        toolbar = QToolBar("Main", self)
+        toolbar = QToolBar(tr("Main"), self)
         self.addToolBar(toolbar)
         
         # Load Data
-        load_action = QAction("Load Data", self)
+        load_action = QAction(tr("Load Data"), self)
         load_action.setIcon(self.style().standardIcon(
             self.style().StandardPixmap.SP_DialogOpenButton))
         load_action.triggered.connect(self._load_data)
@@ -217,7 +218,7 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         
         # New Session
-        new_action = QAction("New", self)
+        new_action = QAction(tr("New"), self)
         new_action.setIcon(self.style().standardIcon(
             self.style().StandardPixmap.SP_FileIcon))
         new_action.triggered.connect(self._new_session)

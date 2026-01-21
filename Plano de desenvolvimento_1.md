@@ -3923,7 +3923,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 2: I/O + Data (2 semanas)
 
-6. Loader multi-formato
+1. Loader multi-formato
 2. Schema detection
 3. Validação
 4. Units (pint)
@@ -3932,7 +3932,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 3: Processing (2 semanas)
 
-10. Interpolação (7 métodos core)
+1. Interpolação (7 métodos core)
 2. Sincronização (2 métodos core)
 3. Cálculos (derivadas, integrais)
 4. Smoothing
@@ -3941,7 +3941,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 4: Desktop UI Base (2 semanas)
 
-14. QApplication + MainWindow
+1. QApplication + MainWindow
 2. SessionState + SignalHub
 3. DataPanel
 4. VizPanel (placeholder)
@@ -3951,7 +3951,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 5: Visualização 2D (1 semana)
 
-19. BasePlot abstraction
+1. BasePlot abstraction
 2. TimeseriesPlot2D (pyqtgraph)
 3. MultipanelPlot2D
 4. Downsampling (LTTB)
@@ -3960,7 +3960,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 6: Visualização 3D (1 semana)
 
-23. Trajectory3D (PyVista)
+1. Trajectory3D (PyVista)
 2. StateCube3D
 3. Heatmap
 
@@ -3968,7 +3968,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 7: Workers & Threading (1 semana)
 
-26. BaseWorker
+1. BaseWorker
 2. LoaderWorker
 3. ProcessingWorker
 4. ExportWorker
@@ -3977,7 +3977,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 8: Streaming (1 semana)
 
-30. StreamingState + StreamFilters
+1. StreamingState + StreamFilters
 2. StreamingEngine (QTimer)
 3. Multi-view sync (signals)
 4. StreamingPanel
@@ -3986,7 +3986,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 9: Dialogs & Context Menu (1 semana)
 
-34. UploadDialog
+1. UploadDialog
 2. ExportDialog
 3. SettingsDialog
 4. InterpolationDialog
@@ -3996,7 +3996,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 10: Selection (1 semana)
 
-39. Selection model
+1. Selection model
 2. SelectionWidget
 3. 3 métodos integrados
 
@@ -4004,7 +4004,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 11: Plugins + Registry (1 semana)
 
-42. Plugin system
+1. Plugin system
 2. Discovery controlado
 3. Example plugins (DTW)
 
@@ -4012,14 +4012,14 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 12: Video Export (0.5 semana)
 
-45. VideoExportWorker
+1. VideoExportWorker
 2. OpenCV integration
 
 **Entregável:** Exportação de vídeo
 
 ### Fase 13: Testes (1 semana)
 
-47. Unit tests (backend)
+1. Unit tests (backend)
 2. UI tests (pytest-qt)
 3. Integration tests
 4. Stress tests
@@ -4028,7 +4028,7 @@ def test_streaming_controls(main_window, qtbot):
 
 ### Fase 14: Packaging (1 semana)
 
-51. PyInstaller setup
+1. PyInstaller setup
 2. Windows installer (.exe)
 3. macOS bundle (.app)
 4. Linux AppImage

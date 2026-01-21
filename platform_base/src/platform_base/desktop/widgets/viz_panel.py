@@ -24,6 +24,7 @@ from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
 from platform_base.core.models import DatasetID, SeriesID, ViewID, TimeWindow
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 
 logger = get_logger(__name__)
 
@@ -238,12 +239,12 @@ class VizPanel(QWidget):
     
     def _create_plot_toolbar(self) -> QToolBar:
         """Create plot toolbar"""
-        toolbar = QToolBar("Plot Actions")
+        toolbar = QToolBar(tr("Plot Actions"))
         
         # Plot type actions
         plot_group = QActionGroup(toolbar)
         
-        plot_2d_action = QAction("2D Plot", toolbar)
+        plot_2d_action = QAction(tr("2D Plot"), toolbar)
         plot_2d_action.setCheckable(True)
         plot_2d_action.setChecked(True)
         plot_2d_action.triggered.connect(lambda: self._create_plot("2d"))
@@ -251,7 +252,7 @@ class VizPanel(QWidget):
         toolbar.addAction(plot_2d_action)
         
         if PYVISTA_AVAILABLE:
-            plot_3d_action = QAction("3D Plot", toolbar)
+            plot_3d_action = QAction(tr("3D Plot"), toolbar)
             plot_3d_action.setCheckable(True)
             plot_3d_action.triggered.connect(lambda: self._create_plot("3d"))
             plot_group.addAction(plot_3d_action)
@@ -260,18 +261,18 @@ class VizPanel(QWidget):
         toolbar.addSeparator()
         
         # Plot actions
-        clear_action = QAction("Clear", toolbar)
+        clear_action = QAction(tr("Clear"), toolbar)
         clear_action.triggered.connect(self._clear_current_plot)
         toolbar.addAction(clear_action)
         
-        export_action = QAction("Export", toolbar)
+        export_action = QAction(tr("Export"), toolbar)
         export_action.triggered.connect(self._export_current_plot)
         toolbar.addAction(export_action)
         
         toolbar.addSeparator()
         
         # Selection tools
-        select_action = QAction("Select", toolbar)
+        select_action = QAction(tr("Select"), toolbar)
         select_action.setCheckable(True)
         select_action.triggered.connect(self._toggle_selection_mode)
         toolbar.addAction(select_action)
@@ -284,12 +285,12 @@ class VizPanel(QWidget):
         layout = QVBoxLayout(widget)
         
         # Plot settings group
-        settings_group = QGroupBox("Plot Settings")
+        settings_group = QGroupBox(tr("Plot Settings"))
         settings_layout = QVBoxLayout(settings_group)
         
         # Line width
         width_layout = QHBoxLayout()
-        width_layout.addWidget(QLabel("Line Width:"))
+        width_layout.addWidget(QLabel(tr("Line Width:")))
         self.line_width_spin = QSpinBox()
         self.line_width_spin.setRange(1, 10)
         self.line_width_spin.setValue(2)
@@ -298,13 +299,13 @@ class VizPanel(QWidget):
         settings_layout.addLayout(width_layout)
         
         # Grid toggle
-        self.grid_check = QCheckBox("Show Grid")
+        self.grid_check = QCheckBox(tr("Show Grid"))
         self.grid_check.setChecked(True)
         self.grid_check.toggled.connect(self._toggle_grid)
         settings_layout.addWidget(self.grid_check)
         
         # Legend toggle
-        self.legend_check = QCheckBox("Show Legend")
+        self.legend_check = QCheckBox(tr("Show Legend"))
         self.legend_check.setChecked(True)
         self.legend_check.toggled.connect(self._toggle_legend)
         settings_layout.addWidget(self.legend_check)
@@ -312,7 +313,7 @@ class VizPanel(QWidget):
         layout.addWidget(settings_group)
         
         # Series list group
-        series_group = QGroupBox("Active Series")
+        series_group = QGroupBox(tr("Active Series"))
         series_layout = QVBoxLayout(series_group)
         
         self.series_list = QWidget()
@@ -329,31 +330,31 @@ class VizPanel(QWidget):
         welcome_widget = QWidget()
         layout = QVBoxLayout(welcome_widget)
         
-        welcome_text = QLabel("""
-        <h2>Platform Base Visualization</h2>
-        <p>Welcome to the visualization panel!</p>
+        welcome_text = QLabel(f"""
+        <h2>{tr("Platform Base Visualization")}</h2>
+        <p>{tr("Welcome to the visualization panel!")}</p>
         
-        <h3>Getting Started:</h3>
+        <h3>{tr("Getting Started:")}:</h3>
         <ul>
-        <li>Load data using the Data panel</li>
-        <li>Select series to plot</li>
-        <li>Double-click series to create plots</li>
-        <li>Use toolbar to create 2D/3D plots</li>
+        <li>{tr("Load data using the Data panel")}</li>
+        <li>{tr("Select series to plot")}</li>
+        <li>{tr("Double-click series to create plots")}</li>
+        <li>{tr("Use toolbar to create 2D/3D plots")}</li>
         </ul>
         
-        <h3>Interaction:</h3>
+        <h3>{tr("Interaction:")}:</h3>
         <ul>
-        <li>Ctrl+Click to start time selection</li>
-        <li>Mouse wheel to zoom</li>
-        <li>Drag to pan</li>
-        <li>Right-click for context menu</li>
+        <li>{tr("Ctrl+Click to start time selection")}</li>
+        <li>{tr("Mouse wheel to zoom")}</li>
+        <li>{tr("Drag to pan")}</li>
+        <li>{tr("Right-click for context menu")}</li>
         </ul>
         """)
         welcome_text.setAlignment(Qt.AlignmentFlag.AlignTop)
         welcome_text.setWordWrap(True)
         layout.addWidget(welcome_text)
         
-        self.plot_tabs.addTab(welcome_widget, "Welcome")
+        self.plot_tabs.addTab(welcome_widget, tr("Welcome"))
     
     def _connect_signals(self):
         """Connect signals"""

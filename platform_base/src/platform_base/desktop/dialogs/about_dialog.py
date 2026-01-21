@@ -15,6 +15,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 
 logger = get_logger(__name__)
 
@@ -39,7 +40,7 @@ class AboutDialog(QDialog):
     
     def _setup_ui(self):
         """Setup user interface"""
-        self.setWindowTitle("About Platform Base")
+        self.setWindowTitle(tr("About Platform Base"))
         self.setModal(True)
         self.resize(500, 400)
         
@@ -52,25 +53,25 @@ class AboutDialog(QDialog):
         logo_label = QLabel()
         logo_label.setFixedSize(64, 64)
         logo_label.setStyleSheet("border: 1px solid gray; background: lightblue;")
-        logo_label.setText("Logo")
+        logo_label.setText(tr("Logo"))
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(logo_label)
         
         # Title and version
         title_layout = QVBoxLayout()
         
-        title_label = QLabel("Platform Base")
+        title_label = QLabel(tr("Platform Base"))
         title_font = QFont()
         title_font.setPointSize(16)
         title_font.setBold(True)
         title_label.setFont(title_font)
         title_layout.addWidget(title_label)
         
-        version_label = QLabel("Version 2.0.0")
+        version_label = QLabel(tr("Version 2.0.0"))
         version_label.setStyleSheet("color: gray;")
         title_layout.addWidget(version_label)
         
-        subtitle_label = QLabel("Time Series Analysis Tool")
+        subtitle_label = QLabel(tr("Time Series Analysis Tool"))
         title_layout.addWidget(subtitle_label)
         
         title_layout.addStretch()
@@ -84,19 +85,19 @@ class AboutDialog(QDialog):
         
         # About tab
         about_tab = self._create_about_tab()
-        self.tabs.addTab(about_tab, "About")
+        self.tabs.addTab(about_tab, tr("About"))
         
         # Credits tab
         credits_tab = self._create_credits_tab()
-        self.tabs.addTab(credits_tab, "Credits")
+        self.tabs.addTab(credits_tab, tr("Credits"))
         
         # System info tab
         system_tab = self._create_system_tab()
-        self.tabs.addTab(system_tab, "System")
+        self.tabs.addTab(system_tab, tr("System"))
         
         # License tab
         license_tab = self._create_license_tab()
-        self.tabs.addTab(license_tab, "License")
+        self.tabs.addTab(license_tab, tr("License"))
         
         layout.addWidget(self.tabs)
         
@@ -104,7 +105,7 @@ class AboutDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
         
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(tr("Close"))
         close_btn.clicked.connect(self.accept)
         close_btn.setDefault(True)
         buttons_layout.addWidget(close_btn)

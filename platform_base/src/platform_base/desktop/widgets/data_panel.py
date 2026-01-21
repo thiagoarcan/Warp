@@ -22,6 +22,7 @@ from platform_base.desktop.signal_hub import SignalHub
 from platform_base.desktop.models.dataset_model import DatasetTreeModel
 from platform_base.core.models import DatasetID, SeriesID
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 
 logger = get_logger(__name__)
 
@@ -54,7 +55,7 @@ class DataPanel(QWidget):
         layout = QVBoxLayout(self)
         
         # Data tree section
-        tree_group = QGroupBox("Datasets & Series")
+        tree_group = QGroupBox(tr("Datasets & Series"))
         tree_layout = QVBoxLayout(tree_group)
         
         # Tree view with model
@@ -82,18 +83,18 @@ class DataPanel(QWidget):
         # Tree action buttons
         tree_buttons = QHBoxLayout()
         
-        self.load_btn = QPushButton("Load Data")
+        self.load_btn = QPushButton(tr("Load Data"))
         self.load_btn.clicked.connect(self._load_data)
         tree_buttons.addWidget(self.load_btn)
         
-        self.remove_btn = QPushButton("Remove")
+        self.remove_btn = QPushButton(tr("Remove"))
         self.remove_btn.clicked.connect(self._remove_selected)
         self.remove_btn.setEnabled(False)
         tree_buttons.addWidget(self.remove_btn)
         
         tree_buttons.addStretch()
         
-        self.refresh_btn = QPushButton("Refresh")
+        self.refresh_btn = QPushButton(tr("Refresh"))
         self.refresh_btn.clicked.connect(self._refresh_data)
         tree_buttons.addWidget(self.refresh_btn)
         
@@ -101,7 +102,7 @@ class DataPanel(QWidget):
         layout.addWidget(tree_group)
         
         # Data info section
-        info_group = QGroupBox("Data Information")
+        info_group = QGroupBox(tr("Data Information"))
         info_layout = QVBoxLayout(info_group)
         
         # Info tabs
@@ -111,19 +112,19 @@ class DataPanel(QWidget):
         self.summary_text = QTextEdit()
         self.summary_text.setReadOnly(True)
         self.summary_text.setMaximumHeight(150)
-        self.info_tabs.addTab(self.summary_text, "Summary")
+        self.info_tabs.addTab(self.summary_text, tr("Summary"))
         
         # Metadata tab
         self.metadata_text = QTextEdit()
         self.metadata_text.setReadOnly(True)
         self.metadata_text.setMaximumHeight(150)
-        self.info_tabs.addTab(self.metadata_text, "Metadata")
+        self.info_tabs.addTab(self.metadata_text, tr("Metadata"))
         
         # Quality tab
         self.quality_text = QTextEdit()
         self.quality_text.setReadOnly(True)
         self.quality_text.setMaximumHeight(150)
-        self.info_tabs.addTab(self.quality_text, "Quality")
+        self.info_tabs.addTab(self.quality_text, tr("Quality"))
         
         info_layout.addWidget(self.info_tabs)
         layout.addWidget(info_group)

@@ -19,6 +19,7 @@ from PyQt6.QtGui import QFont
 
 from platform_base.desktop.session_state import SessionState
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 
 logger = get_logger(__name__)
 
@@ -35,44 +36,44 @@ class GeneralSettingsTab(QWidget):
         layout = QVBoxLayout(self)
         
         # Appearance group
-        appearance_group = QGroupBox("Appearance")
+        appearance_group = QGroupBox(tr("Appearance"))
         appearance_layout = QFormLayout(appearance_group)
         
         # Theme selection
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(["Auto", "Light", "Dark"])
-        appearance_layout.addRow("Theme:", self.theme_combo)
+        self.theme_combo.addItems([tr("Auto"), tr("Light"), tr("Dark")])
+        appearance_layout.addRow(tr("Theme:"), self.theme_combo)
         
         # Font size
         self.font_size_spin = QSpinBox()
         self.font_size_spin.setRange(8, 20)
         self.font_size_spin.setValue(9)
-        appearance_layout.addRow("Font Size:", self.font_size_spin)
+        appearance_layout.addRow(tr("Font Size:"), self.font_size_spin)
         
         # DPI scaling
-        self.dpi_check = QCheckBox("Enable high DPI scaling")
-        appearance_layout.addRow("Display:", self.dpi_check)
+        self.dpi_check = QCheckBox(tr("Enable high DPI scaling"))
+        appearance_layout.addRow(tr("Display:"), self.dpi_check)
         
         layout.addWidget(appearance_group)
         
         # Behavior group
-        behavior_group = QGroupBox("Behavior")
+        behavior_group = QGroupBox(tr("Behavior"))
         behavior_layout = QFormLayout(behavior_group)
         
         # Auto-save interval
         self.autosave_spin = QSpinBox()
         self.autosave_spin.setRange(1, 60)
         self.autosave_spin.setValue(5)
-        self.autosave_spin.setSuffix(" minutes")
-        behavior_layout.addRow("Auto-save interval:", self.autosave_spin)
+        self.autosave_spin.setSuffix(tr(" minutes"))
+        behavior_layout.addRow(tr("Auto-save interval:"), self.autosave_spin)
         
         # Confirm on exit
-        self.confirm_exit_check = QCheckBox("Confirm before exiting")
-        behavior_layout.addRow("Exit:", self.confirm_exit_check)
+        self.confirm_exit_check = QCheckBox(tr("Confirm before exiting"))
+        behavior_layout.addRow(tr("Exit:"), self.confirm_exit_check)
         
         # Remember window state
-        self.remember_window_check = QCheckBox("Remember window position and size")
-        behavior_layout.addRow("Window:", self.remember_window_check)
+        self.remember_window_check = QCheckBox(tr("Remember window position and size"))
+        behavior_layout.addRow(tr("Window:"), self.remember_window_check)
         
         layout.addWidget(behavior_group)
         
@@ -133,65 +134,65 @@ class PerformanceSettingsTab(QWidget):
         layout = QVBoxLayout(self)
         
         # Memory group
-        memory_group = QGroupBox("Memory Management")
+        memory_group = QGroupBox(tr("Memory Management"))
         memory_layout = QFormLayout(memory_group)
         
         # Memory cache size
         self.memory_cache_spin = QSpinBox()
         self.memory_cache_spin.setRange(64, 8192)
         self.memory_cache_spin.setValue(512)
-        self.memory_cache_spin.setSuffix(" MB")
-        memory_layout.addRow("Memory Cache Size:", self.memory_cache_spin)
+        self.memory_cache_spin.setSuffix(tr(" MB"))
+        memory_layout.addRow(tr("Memory Cache Size:"), self.memory_cache_spin)
         
         # Max datasets in memory
         self.max_datasets_spin = QSpinBox()
         self.max_datasets_spin.setRange(1, 100)
         self.max_datasets_spin.setValue(10)
-        memory_layout.addRow("Max Datasets in Memory:", self.max_datasets_spin)
+        memory_layout.addRow(tr("Max Datasets in Memory:"), self.max_datasets_spin)
         
         layout.addWidget(memory_group)
         
         # Disk cache group
-        cache_group = QGroupBox("Disk Cache")
+        cache_group = QGroupBox(tr("Disk Cache"))
         cache_layout = QFormLayout(cache_group)
         
         # Enable disk cache
-        self.disk_cache_check = QCheckBox("Enable disk cache")
-        cache_layout.addRow("Cache:", self.disk_cache_check)
+        self.disk_cache_check = QCheckBox(tr("Enable disk cache"))
+        cache_layout.addRow(tr("Cache:"), self.disk_cache_check)
         
         # Cache directory
         cache_dir_layout = QHBoxLayout()
         self.cache_dir_edit = QLineEdit()
         cache_dir_layout.addWidget(self.cache_dir_edit)
         
-        self.browse_cache_btn = QPushButton("Browse...")
+        self.browse_cache_btn = QPushButton(tr("Browse..."))
         self.browse_cache_btn.clicked.connect(self._browse_cache_dir)
         cache_dir_layout.addWidget(self.browse_cache_btn)
         
-        cache_layout.addRow("Cache Directory:", cache_dir_layout)
+        cache_layout.addRow(tr("Cache Directory:"), cache_dir_layout)
         
         # Cache size limit
         self.cache_size_spin = QSpinBox()
         self.cache_size_spin.setRange(100, 100000)
         self.cache_size_spin.setValue(1000)
-        self.cache_size_spin.setSuffix(" MB")
-        cache_layout.addRow("Cache Size Limit:", self.cache_size_spin)
+        self.cache_size_spin.setSuffix(tr(" MB"))
+        cache_layout.addRow(tr("Cache Size Limit:"), self.cache_size_spin)
         
         layout.addWidget(cache_group)
         
         # Processing group
-        processing_group = QGroupBox("Processing")
+        processing_group = QGroupBox(tr("Processing"))
         processing_layout = QFormLayout(processing_group)
         
         # Number of worker threads
         self.worker_threads_spin = QSpinBox()
         self.worker_threads_spin.setRange(1, 16)
         self.worker_threads_spin.setValue(4)
-        processing_layout.addRow("Worker Threads:", self.worker_threads_spin)
+        processing_layout.addRow(tr("Worker Threads:"), self.worker_threads_spin)
         
         # Use numba acceleration
-        self.numba_check = QCheckBox("Use Numba acceleration (requires restart)")
-        processing_layout.addRow("Acceleration:", self.numba_check)
+        self.numba_check = QCheckBox(tr("Use Numba acceleration (requires restart)"))
+        processing_layout.addRow(tr("Acceleration:"), self.numba_check)
         
         layout.addWidget(processing_group)
         
@@ -204,7 +205,7 @@ class PerformanceSettingsTab(QWidget):
     def _browse_cache_dir(self):
         """Browse for cache directory"""
         directory = QFileDialog.getExistingDirectory(
-            self, "Select Cache Directory", self.cache_dir_edit.text()
+            self, tr("Select Cache Directory"), self.cache_dir_edit.text()
         )
         if directory:
             self.cache_dir_edit.setText(directory)
@@ -275,42 +276,42 @@ class LoggingSettingsTab(QWidget):
         layout = QVBoxLayout(self)
         
         # Logging level group
-        level_group = QGroupBox("Logging Level")
+        level_group = QGroupBox(tr("Logging Level"))
         level_layout = QFormLayout(level_group)
         
         self.log_level_combo = QComboBox()
         self.log_level_combo.addItems(["DEBUG", "INFO", "WARNING", "ERROR"])
-        level_layout.addRow("Log Level:", self.log_level_combo)
+        level_layout.addRow(tr("Log Level:"), self.log_level_combo)
         
         layout.addWidget(level_group)
         
         # Log destinations group
-        destinations_group = QGroupBox("Log Destinations")
+        destinations_group = QGroupBox(tr("Log Destinations"))
         destinations_layout = QFormLayout(destinations_group)
         
         # Console logging
-        self.console_check = QCheckBox("Log to console")
-        destinations_layout.addRow("Console:", self.console_check)
+        self.console_check = QCheckBox(tr("Log to console"))
+        destinations_layout.addRow(tr("Console:"), self.console_check)
         
         # File logging
-        self.file_check = QCheckBox("Log to file")
-        destinations_layout.addRow("File:", self.file_check)
+        self.file_check = QCheckBox(tr("Log to file"))
+        destinations_layout.addRow(tr("File:"), self.file_check)
         
         # Log file path
         file_layout = QHBoxLayout()
         self.log_file_edit = QLineEdit()
         file_layout.addWidget(self.log_file_edit)
         
-        self.browse_log_btn = QPushButton("Browse...")
+        self.browse_log_btn = QPushButton(tr("Browse..."))
         self.browse_log_btn.clicked.connect(self._browse_log_file)
         file_layout.addWidget(self.browse_log_btn)
         
-        destinations_layout.addRow("Log File:", file_layout)
+        destinations_layout.addRow(tr("Log File:"), file_layout)
         
         layout.addWidget(destinations_group)
         
         # Log format group
-        format_group = QGroupBox("Log Format")
+        format_group = QGroupBox(tr("Log Format"))
         format_layout = QVBoxLayout(format_group)
         
         self.format_edit = QTextEdit()
@@ -331,8 +332,8 @@ class LoggingSettingsTab(QWidget):
     def _browse_log_file(self):
         """Browse for log file"""
         filepath, _ = QFileDialog.getSaveFileName(
-            self, "Select Log File", self.log_file_edit.text(),
-            "Log Files (*.log);;Text Files (*.txt);;All Files (*)"
+            self, tr("Select Log File"), self.log_file_edit.text(),
+            tr("Log Files (*.log);;Text Files (*.txt);;All Files (*)")
         )
         if filepath:
             self.log_file_edit.setText(filepath)
@@ -404,7 +405,7 @@ class SettingsDialog(QDialog):
     
     def _setup_ui(self):
         """Setup user interface"""
-        self.setWindowTitle("Platform Base Settings")
+        self.setWindowTitle(tr("Platform Base Settings"))
         self.setModal(True)
         self.resize(600, 500)
         
@@ -415,17 +416,17 @@ class SettingsDialog(QDialog):
         
         # General tab
         self.general_tab = GeneralSettingsTab()
-        self.tabs.addTab(self.general_tab, "General")
+        self.tabs.addTab(self.general_tab, tr("General"))
         self.settings_tabs.append(self.general_tab)
         
         # Performance tab
         self.performance_tab = PerformanceSettingsTab()
-        self.tabs.addTab(self.performance_tab, "Performance")
+        self.tabs.addTab(self.performance_tab, tr("Performance"))
         self.settings_tabs.append(self.performance_tab)
         
         # Logging tab
         self.logging_tab = LoggingSettingsTab()
-        self.tabs.addTab(self.logging_tab, "Logging")
+        self.tabs.addTab(self.logging_tab, tr("Logging"))
         self.settings_tabs.append(self.logging_tab)
         
         layout.addWidget(self.tabs)
@@ -433,21 +434,21 @@ class SettingsDialog(QDialog):
         # Buttons
         buttons_layout = QHBoxLayout()
         
-        self.defaults_btn = QPushButton("Restore Defaults")
+        self.defaults_btn = QPushButton(tr("Restore Defaults"))
         self.defaults_btn.clicked.connect(self._restore_defaults)
         buttons_layout.addWidget(self.defaults_btn)
         
         buttons_layout.addStretch()
         
-        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn = QPushButton(tr("Cancel"))
         self.cancel_btn.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_btn)
         
-        self.apply_btn = QPushButton("Apply")
+        self.apply_btn = QPushButton(tr("Apply"))
         self.apply_btn.clicked.connect(self._apply_settings)
         buttons_layout.addWidget(self.apply_btn)
         
-        self.ok_btn = QPushButton("OK")
+        self.ok_btn = QPushButton(tr("OK"))
         self.ok_btn.clicked.connect(self._ok_clicked)
         self.ok_btn.setDefault(True)
         buttons_layout.addWidget(self.ok_btn)
@@ -458,8 +459,8 @@ class SettingsDialog(QDialog):
     def _restore_defaults(self):
         """Restore default settings"""
         reply = QMessageBox.question(
-            self, "Restore Defaults",
-            "Are you sure you want to restore all settings to their default values?",
+            self, tr("Restore Defaults"),
+            tr("Are you sure you want to restore all settings to their default values?"),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
@@ -473,7 +474,7 @@ class SettingsDialog(QDialog):
             for tab in self.settings_tabs:
                 tab._load_settings()
             
-            QMessageBox.information(self, "Settings", "Default settings restored.")
+            QMessageBox.information(self, tr("Settings"), tr("Default settings restored."))
     
     @pyqtSlot()
     def _apply_settings(self):
@@ -490,7 +491,7 @@ class SettingsDialog(QDialog):
             logger.info("settings_applied")
             
         except Exception as e:
-            QMessageBox.critical(self, "Settings Error", f"Failed to apply settings:\\n{e}")
+            QMessageBox.critical(self, tr("Settings Error"), f"{tr('Failed to apply settings')}:\\n{e}")
             logger.error("settings_apply_failed", error=str(e))
     
     @pyqtSlot()

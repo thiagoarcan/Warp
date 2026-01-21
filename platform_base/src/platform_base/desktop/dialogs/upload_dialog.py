@@ -23,6 +23,7 @@ from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
 from platform_base.desktop.workers.base_worker import BaseWorker
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 
 logger = get_logger(__name__)
 
@@ -169,32 +170,32 @@ class UploadDialog(QDialog):
     
     def _setup_ui(self):
         """Setup user interface"""
-        self.setWindowTitle("Load Data Files")
+        self.setWindowTitle(tr("Load Data Files"))
         self.setModal(True)
         self.resize(800, 600)
         
         layout = QVBoxLayout(self)
         
         # File selection section
-        file_group = QGroupBox("File Selection")
+        file_group = QGroupBox(tr("File Selection"))
         file_layout = QVBoxLayout(file_group)
         
         # File path and browse button
         path_layout = QHBoxLayout()
         
         self.file_path_edit = QLineEdit()
-        self.file_path_edit.setPlaceholderText("Select file to load...")
+        self.file_path_edit.setPlaceholderText(tr("Select file to load..."))
         self.file_path_edit.textChanged.connect(self._on_file_path_changed)
         path_layout.addWidget(self.file_path_edit)
         
-        self.browse_btn = QPushButton("Browse...")
+        self.browse_btn = QPushButton(tr("Browse..."))
         self.browse_btn.clicked.connect(self._browse_file)
         path_layout.addWidget(self.browse_btn)
         
         file_layout.addLayout(path_layout)
         
         # Format detection
-        self.format_label = QLabel("Format: Not detected")
+        self.format_label = QLabel(tr("Format: Not detected"))
         file_layout.addWidget(self.format_label)
         
         layout.addWidget(file_group)
@@ -204,23 +205,23 @@ class UploadDialog(QDialog):
         
         # Configuration tab
         self.config_tab = self._create_config_tab()
-        self.tabs.addTab(self.config_tab, "Configuration")
+        self.tabs.addTab(self.config_tab, tr("Configuration"))
         
         # Preview tab
         self.preview_tab = self._create_preview_tab()
-        self.tabs.addTab(self.preview_tab, "Preview")
+        self.tabs.addTab(self.preview_tab, tr("Preview"))
         
         layout.addWidget(self.tabs)
         
         # Progress section
-        progress_group = QGroupBox("Progress")
+        progress_group = QGroupBox(tr("Progress"))
         progress_layout = QVBoxLayout(progress_group)
         
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         progress_layout.addWidget(self.progress_bar)
         
-        self.status_label = QLabel("Select a file to begin")
+        self.status_label = QLabel(tr("Select a file to begin"))
         progress_layout.addWidget(self.status_label)
         
         layout.addWidget(progress_group)
@@ -228,18 +229,18 @@ class UploadDialog(QDialog):
         # Buttons
         buttons_layout = QHBoxLayout()
         
-        self.preview_btn = QPushButton("Generate Preview")
+        self.preview_btn = QPushButton(tr("Generate Preview"))
         self.preview_btn.clicked.connect(self._generate_preview)
         self.preview_btn.setEnabled(False)
         buttons_layout.addWidget(self.preview_btn)
         
         buttons_layout.addStretch()
         
-        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn = QPushButton(tr("Cancel"))
         self.cancel_btn.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_btn)
         
-        self.load_btn = QPushButton("Load Data")
+        self.load_btn = QPushButton(tr("Load Data"))
         self.load_btn.clicked.connect(self._load_file)
         self.load_btn.setEnabled(False)
         self.load_btn.setDefault(True)
@@ -253,76 +254,76 @@ class UploadDialog(QDialog):
         layout = QVBoxLayout(widget)
         
         # General configuration
-        general_group = QGroupBox("General Settings")
+        general_group = QGroupBox(tr("General Settings"))
         general_layout = QFormLayout(general_group)
         
         # Encoding
         self.encoding_combo = QComboBox()
         self.encoding_combo.addItems(["utf-8", "latin-1", "cp1252", "ascii"])
         self.encoding_combo.currentTextChanged.connect(self._update_config)
-        general_layout.addRow("Encoding:", self.encoding_combo)
+        general_layout.addRow(tr("Encoding:"), self.encoding_combo)
         
         # Delimiter (for CSV)
         self.delimiter_combo = QComboBox()
         self.delimiter_combo.addItems([",", ";", "\\t", "|"])
         self.delimiter_combo.setEditable(True)
         self.delimiter_combo.currentTextChanged.connect(self._update_config)
-        general_layout.addRow("Delimiter:", self.delimiter_combo)
+        general_layout.addRow(tr("Delimiter:"), self.delimiter_combo)
         
         layout.addWidget(general_group)
         
         # Schema configuration
-        schema_group = QGroupBox("Schema Detection")
+        schema_group = QGroupBox(tr("Schema Detection"))
         schema_layout = QFormLayout(schema_group)
         
         # Timestamp column
         self.timestamp_combo = QComboBox()
-        self.timestamp_combo.addItem("Auto-detect", None)
+        self.timestamp_combo.addItem(tr("Auto-detect"), None)
         self.timestamp_combo.currentTextChanged.connect(self._update_config)
-        schema_layout.addRow("Timestamp Column:", self.timestamp_combo)
+        schema_layout.addRow(tr("Timestamp Column:"), self.timestamp_combo)
         
         # Skip rows
         self.skip_rows_spin = QSpinBox()
         self.skip_rows_spin.setRange(0, 100)
         self.skip_rows_spin.valueChanged.connect(self._update_config)
-        schema_layout.addRow("Skip Rows:", self.skip_rows_spin)
+        schema_layout.addRow(tr("Skip Rows:"), self.skip_rows_spin)
         
         layout.addWidget(schema_group)
         
         # Excel-specific configuration
-        self.excel_group = QGroupBox("Excel Settings")
+        self.excel_group = QGroupBox(tr("Excel Settings"))
         excel_layout = QFormLayout(self.excel_group)
         
         self.sheet_combo = QComboBox()
         self.sheet_combo.currentTextChanged.connect(self._update_config)
-        excel_layout.addRow("Sheet:", self.sheet_combo)
+        excel_layout.addRow(tr("Sheet:"), self.sheet_combo)
         
         layout.addWidget(self.excel_group)
         
         # HDF5-specific configuration
-        self.hdf5_group = QGroupBox("HDF5 Settings")
+        self.hdf5_group = QGroupBox(tr("HDF5 Settings"))
         hdf5_layout = QFormLayout(self.hdf5_group)
         
         self.hdf5_key_edit = QLineEdit()
         self.hdf5_key_edit.textChanged.connect(self._update_config)
-        hdf5_layout.addRow("Key:", self.hdf5_key_edit)
+        hdf5_layout.addRow(tr("Key:"), self.hdf5_key_edit)
         
         layout.addWidget(self.hdf5_group)
         
         # Advanced options
-        advanced_group = QGroupBox("Advanced Options")
+        advanced_group = QGroupBox(tr("Advanced Options"))
         advanced_layout = QFormLayout(advanced_group)
         
-        self.chunk_check = QCheckBox("Use chunked loading")
+        self.chunk_check = QCheckBox(tr("Use chunked loading"))
         self.chunk_check.toggled.connect(self._update_config)
-        advanced_layout.addRow("Performance:", self.chunk_check)
+        advanced_layout.addRow(tr("Performance:"), self.chunk_check)
         
         self.chunk_size_spin = QSpinBox()
         self.chunk_size_spin.setRange(1000, 1000000)
         self.chunk_size_spin.setValue(10000)
         self.chunk_size_spin.setEnabled(False)
         self.chunk_size_spin.valueChanged.connect(self._update_config)
-        advanced_layout.addRow("Chunk Size:", self.chunk_size_spin)
+        advanced_layout.addRow(tr("Chunk Size:"), self.chunk_size_spin)
         
         self.chunk_check.toggled.connect(self.chunk_size_spin.setEnabled)
         
@@ -343,10 +344,10 @@ class UploadDialog(QDialog):
         
         # Preview controls
         controls_layout = QHBoxLayout()
-        controls_layout.addWidget(QLabel("Data Preview:"))
+        controls_layout.addWidget(QLabel(tr("Data Preview:")))
         controls_layout.addStretch()
         
-        self.refresh_preview_btn = QPushButton("Refresh")
+        self.refresh_preview_btn = QPushButton(tr("Refresh"))
         self.refresh_preview_btn.clicked.connect(self._generate_preview)
         self.refresh_preview_btn.setEnabled(False)
         controls_layout.addWidget(self.refresh_preview_btn)
@@ -385,7 +386,7 @@ class UploadDialog(QDialog):
         ]
         
         filepath, _ = QFileDialog.getOpenFileName(
-            self, "Select Data File", "", ";;".join(file_filters)
+            self, tr("Select Data File"), "", ";;".join(file_filters)
         )
         
         if filepath:
@@ -401,7 +402,7 @@ class UploadDialog(QDialog):
         # Detect format
         file_path = Path(filepath)
         format_detected = self._detect_format(file_path)
-        self.format_label.setText(f"Format: {format_detected}")
+        self.format_label.setText(f"{tr('Format')}: {format_detected}")
         
         # Update UI based on format
         self._update_format_ui(format_detected)
@@ -414,7 +415,7 @@ class UploadDialog(QDialog):
         self.refresh_preview_btn.setEnabled(True)
         self.load_btn.setEnabled(True)
         
-        self.status_label.setText("File selected. Configure options or generate preview.")
+        self.status_label.setText(tr("File selected. Configure options or generate preview."))
     
     def _detect_format(self, file_path: Path) -> str:
         """Detect file format"""
@@ -454,7 +455,7 @@ class UploadDialog(QDialog):
                 
                 # Update timestamp column options
                 self.timestamp_combo.clear()
-                self.timestamp_combo.addItem("Auto-detect", None)
+                self.timestamp_combo.addItem(tr("Auto-detect"), None)
                 for col in columns:
                     self.timestamp_combo.addItem(col, col)
                     
@@ -509,7 +510,7 @@ class UploadDialog(QDialog):
     @pyqtSlot(str)
     def _on_preview_error(self, error_message: str):
         """Handle preview error"""
-        QMessageBox.warning(self, "Preview Error", f"Failed to generate preview:\\n{error_message}")
+        QMessageBox.warning(self, tr("Preview Error"), f"{tr('Failed to generate preview')}:\\n{error_message}")
         logger.error("preview_generation_failed", error=error_message)
     
     @pyqtSlot()
@@ -616,7 +617,7 @@ class UploadDialog(QDialog):
     @pyqtSlot(str)
     def _on_load_error(self, error_message: str):
         """Handle load error"""
-        QMessageBox.critical(self, "Load Error", f"Failed to load file:\\n{error_message}")
+        QMessageBox.critical(self, tr("Load Error"), f"{tr('Failed to load file')}:\\n{error_message}")
         logger.error("file_load_failed", error=error_message)
     
     @pyqtSlot()
@@ -642,11 +643,11 @@ class UploadDialog(QDialog):
     
     def _reset_ui_state(self):
         """Reset UI to initial state"""
-        self.format_label.setText("Format: Not detected")
+        self.format_label.setText(tr("Format: Not detected"))
         self.preview_btn.setEnabled(False)
         self.refresh_preview_btn.setEnabled(False)
         self.load_btn.setEnabled(False)
-        self.status_label.setText("Select a file to begin")
+        self.status_label.setText(tr("Select a file to begin"))
         
         # Clear preview
         self.preview_table.setRowCount(0)
