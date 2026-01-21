@@ -90,8 +90,8 @@ class LoadStrategy(BaseModel):
                 
         elif self.format == FileFormat.HDF5:
             # Para HDF5, permite especificar key
-            key = self.reader_params.get('key', '/data')
-            df = pd.read_hdf(path, key=key, **{k: v for k, v in self.reader_params.items() if k != 'key'})
+            key = config.hdf5_key or '/data'
+            df = pd.read_hdf(path, key=key, **self.reader_params)
             if config.max_rows:
                 df = df.head(config.max_rows)
         else:
@@ -154,7 +154,7 @@ class LoadConfig(BaseModel):
     delimiter: str = ","
     encoding: str = "utf-8"
     sheet_name: Optional[Union[str, int]] = 0  # para Excel
-    hdf5_key: str = "/data"  # para HDF5
+    hdf5_key: Optional[str] = "/data"  # para HDF5
     
     # Configurações de performance
     max_rows: Optional[int] = None

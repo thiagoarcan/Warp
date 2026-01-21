@@ -55,7 +55,7 @@ class FileLoadWorker(BaseWorker):
                 delimiter=self.config.get("delimiter", ","),
                 encoding=self.config.get("encoding", "utf-8"),
                 sheet_name=self.config.get("sheet_name"),
-                hdf5_key=self.config.get("hdf5_key"),
+                hdf5_key=self.config.get("hdf5_key") or "/data",
                 chunk_size=self.config.get("chunk_size")
             )
             
@@ -98,7 +98,13 @@ class PreviewWorker(BaseWorker):
             
             # Read first few rows based on file type
             filepath = Path(self.filepath)
+            logger.debug("preview_worker_start", filepath=str(filepath), config=self.config)
             
+            # Ensure file exists
+            if not filepath.exists():
+                raise FileNotFoundError(f"File not found: {filepath}")
+            
+            df = None
             if filepath.suffix.lower() == '.csv':
                 df = pd.read_csv(
                     filepath,
@@ -116,16 +122,40 @@ class PreviewWorker(BaseWorker):
                 # For other formats, use basic read
                 df = pd.DataFrame({"Preview": ["Preview not available for this format"]})
             
+            # Validate DataFrame
+            if df is None:
+                raise ValueError("Failed to read data from file")
+            
+            if isinstance(df, pd.DataFrame) and df.empty:
+                raise ValueError("DataFrame is empty")
+            elif not isinstance(df, pd.DataFrame):
+                raise ValueError(f"Expected DataFrame, got {type(df)}")
+                
+            logger.debug("preview_dataframe_loaded", shape=df.shape, columns=list(df.columns))
+            
             self.progress.emit(50)
             
-            # Generate preview data
-            preview_data = {
-                "columns": list(df.columns),
-                "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
-                "shape": df.shape,
-                "head": df.head(10).to_dict('records'),
-                "sample_values": {col: list(df[col].dropna().head(5)) for col in df.columns}
-            }
+            # Generate preview data - ensure all data is JSON serializable
+            try:
+                preview_data = {
+                    "columns": list(df.columns),
+                    "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
+                    "shape": df.shape,
+                    "head": df.head(10).to_dict('records'),
+                    "sample_values": {col: list(df[col].dropna().head(5)) for col in df.columns}
+                }
+                
+                # Validate preview_data structure
+                required_keys = ["columns", "dtypes", "shape", "head", "sample_values"]
+                for key in required_keys:
+                    if key not in preview_data:
+                        raise ValueError(f"Missing required key in preview_data: {key}")
+                        
+                logger.debug("preview_data_generated", keys=list(preview_data.keys()))
+                
+            except Exception as e:
+                logger.error("preview_data_generation_failed", error=str(e))
+                raise ValueError(f"Failed to generate preview data: {str(e)}")
             
             self.progress.emit(100)
             self.status_updated.emit("Preview generated")
@@ -469,7 +499,7 @@ class UploadDialog(QDialog):
             "delimiter": self.delimiter_combo.currentText(),
             "timestamp_column": self.timestamp_combo.currentData(),
             "skip_rows": self.skip_rows_spin.value(),
-            "sheet_name": self.sheet_combo.currentText() if self.sheet_combo.count() > 0 else None,
+            "sheet_name": self.sheet_combo.currentText() if self.sheet_combo.count() > 0 else 0,
             "hdf5_key": self.hdf5_key_edit.text() if self.hdf5_key_edit.text() else None,
             "chunk_size": self.chunk_size_spin.value() if self.chunk_check.isChecked() else None
         }
@@ -501,11 +531,27 @@ class UploadDialog(QDialog):
     @pyqtSlot(object)
     def _on_preview_ready(self, preview_data: Dict[str, Any]):
         """Handle preview data ready"""
-        self.preview_data = preview_data
-        self._update_preview_display()
-        
-        # Switch to preview tab
-        self.tabs.setCurrentIndex(1)
+        try:
+            logger.debug("preview_ready_received", type=type(preview_data).__name__)
+            
+            # Validate received data
+            if not isinstance(preview_data, dict):
+                logger.error("preview_ready_invalid_type", type=type(preview_data).__name__)
+                self._on_preview_error(f"Invalid preview data type: {type(preview_data).__name__}")
+                return
+            
+            # Store preview data
+            self.preview_data = preview_data
+            
+            # Update display
+            self._update_preview_display()
+            
+            # Switch to preview tab
+            self.tabs.setCurrentIndex(1)
+            
+        except Exception as e:
+            logger.error("preview_ready_handler_failed", error=str(e))
+            self._on_preview_error(f"Failed to process preview: {str(e)}")
     
     @pyqtSlot(str)
     def _on_preview_error(self, error_message: str):
@@ -533,39 +579,46 @@ class UploadDialog(QDialog):
             # Ensure preview_data is a dict and has expected structure
             if not isinstance(self.preview_data, dict):
                 logger.error("preview_data_invalid_type", 
-                           type=type(self.preview_data).__name__)
+                           type=type(self.preview_data).__name__,
+                           preview_data=str(self.preview_data)[:200])
                 return
+            
+            logger.debug("preview_display_start", keys=list(self.preview_data.keys()))
             
             # Update preview table
             head_data = self.preview_data.get("head", [])
             columns = self.preview_data.get("columns", [])
-        
-        if head_data and columns:
-            self.preview_table.setRowCount(len(head_data))
-            self.preview_table.setColumnCount(len(columns))
-            self.preview_table.setHorizontalHeaderLabels(columns)
             
-            for row, record in enumerate(head_data):
-                for col, column_name in enumerate(columns):
-                    value = record.get(column_name, "")
-                    item = QTableWidgetItem(str(value))
-                    self.preview_table.setItem(row, col, item)
+            logger.debug("preview_display_data", 
+                        head_data_len=len(head_data) if head_data else 0,
+                        columns_len=len(columns) if columns else 0)
             
-            # Auto-resize columns
-            self.preview_table.resizeColumnsToContents()
-            header = self.preview_table.horizontalHeader()
-            header.setStretchLastSection(True)
-        
-        # Update info text
-        shape = self.preview_data.get("shape", (0, 0))
-        dtypes = self.preview_data.get("dtypes", {})
-        
-        info_lines = [
-            f"Shape: {shape[0]} rows × {shape[1]} columns",
-            "",
-            "Column Types:"
-        ]
-        
+            if head_data and columns:
+                self.preview_table.setRowCount(len(head_data))
+                self.preview_table.setColumnCount(len(columns))
+                self.preview_table.setHorizontalHeaderLabels(columns)
+                
+                for row, record in enumerate(head_data):
+                    for col, column_name in enumerate(columns):
+                        value = record.get(column_name, "")
+                        item = QTableWidgetItem(str(value))
+                        self.preview_table.setItem(row, col, item)
+                
+                # Auto-resize columns
+                self.preview_table.resizeColumnsToContents()
+                header = self.preview_table.horizontalHeader()
+                header.setStretchLastSection(True)
+            
+            # Update info text
+            shape = self.preview_data.get("shape", (0, 0))
+            dtypes = self.preview_data.get("dtypes", {})
+            
+            info_lines = [
+                f"Shape: {shape[0]} rows × {shape[1]} columns",
+                "",
+                "Column Types:"
+            ]
+            
             for col, dtype in dtypes.items():
                 info_lines.append(f"  {col}: {dtype}")
             

@@ -12,13 +12,13 @@ from __future__ import annotations
 
 from typing import Optional, Dict, Any, Callable, List
 from PyQt6.QtWidgets import (
-    QMenu, QAction, QWidget, QInputDialog, QMessageBox,
+    QMenu, QWidget, QInputDialog, QMessageBox,
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QPushButton, QLabel, QComboBox, QDoubleSpinBox,
     QSpinBox, QCheckBox, QLineEdit, QGroupBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QPointF
-from PyQt6.QtGui import QActionGroup, QIcon, QKeySequence
+from PyQt6.QtGui import QActionGroup, QIcon, QKeySequence, QAction
 
 from platform_base.desktop.signal_hub import SignalHub
 from platform_base.desktop.session_state import SessionState

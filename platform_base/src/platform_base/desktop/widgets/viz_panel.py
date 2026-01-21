@@ -22,6 +22,7 @@ from pyqtgraph import PlotWidget, GraphicsLayoutWidget
 
 from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
+from platform_base.desktop.menus.plot_context_menu import PlotContextMenu
 from platform_base.core.models import DatasetID, SeriesID, ViewID, TimeWindow
 from platform_base.utils.logging import get_logger
 from platform_base.utils.i18n import tr
@@ -45,8 +46,11 @@ class Plot2DWidget(PlotWidget):
     time_selection_changed = pyqtSignal(float, float)  # start_time, end_time
     point_selection_changed = pyqtSignal(object)  # selected_points
     
-    def __init__(self, parent=None):
+    def __init__(self, session_state: SessionState = None, signal_hub: SignalHub = None, parent=None):
         super().__init__(parent)
+        
+        self.session_state = session_state
+        self.signal_hub = signal_hub
         
         # Configure plot
         self.setLabel('left', 'Value')
@@ -62,13 +66,26 @@ class Plot2DWidget(PlotWidget):
         self._selection_item = None
         self._is_selecting = False
         
+        # Multi-axis support
+        self._y_axes = []  # List of additional Y axes
+        self._series_on_y2 = []  # Series on secondary Y axis
+        
+        # Context menu
+        self.context_menu = None
+        if session_state and signal_hub:
+            self.context_menu = PlotContextMenu(session_state, signal_hub, self)
+        
         # Connect mouse events
         self.scene().sigMouseClicked.connect(self._on_mouse_clicked)
         self.scene().sigMouseMoved.connect(self._on_mouse_moved)
     
     def _on_mouse_clicked(self, event):
         """Handle mouse click for selection"""
-        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+        if event.button() == Qt.MouseButton.RightButton:
+            # Show context menu
+            if self.context_menu:
+                self.context_menu.exec(event.screenPos().toPoint())
+        elif event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             # Start selection mode
             pos = self.getViewBox().mapSceneToView(event.pos())
             self._start_selection(pos.x())
@@ -112,6 +129,48 @@ class Plot2DWidget(PlotWidget):
             self.removeItem(self._selection_item)
             self._selection_item = None
         self._is_selecting = False
+    
+    def add_secondary_y_axis(self, label: str = "Secondary Y"):
+        """Add a secondary Y axis"""
+        from pyqtgraph import AxisItem
+        
+        # Create new Y axis on the right side
+        y_axis = AxisItem('right')
+        y_axis.setLabel(label)
+        
+        # Add to plot layout
+        self.plotItem.layout.addItem(y_axis, 2, 3)
+        self._y_axes.append(y_axis)
+        
+        return len(self._y_axes) - 1  # Return axis index
+    
+    def plot_on_y_axis(self, x_data, y_data, axis_index=0, **kwargs):
+        """Plot data on specific Y axis"""
+        if axis_index == 0:
+            # Plot on primary Y axis
+            return self.plot(x_data, y_data, **kwargs)
+        elif axis_index - 1 < len(self._y_axes):
+            # Plot on secondary Y axis
+            # Create a new ViewBox for the secondary axis
+            vb = self.scene().addViewBox()
+            vb.setYRange(min(y_data), max(y_data))
+            
+            # Plot the data
+            curve = pg.PlotCurveItem(x_data, y_data, **kwargs)
+            vb.addItem(curve)
+            
+            # Link X axis but not Y axis
+            vb.setXLink(self.plotItem.vb)
+            
+            self._series_on_y2.append({
+                "curve": curve,
+                "viewbox": vb,
+                "axis_index": axis_index
+            })
+            
+            return curve
+        else:
+            raise ValueError(f"Y axis index {axis_index} does not exist")
 
 
 class Plot3DWidget(QWidget):
@@ -277,6 +336,17 @@ class VizPanel(QWidget):
         select_action.triggered.connect(self._toggle_selection_mode)
         toolbar.addAction(select_action)
         
+        toolbar.addSeparator()
+        
+        # Y-axis tools
+        add_y_axis_action = QAction(tr("Add Y Axis"), toolbar)
+        add_y_axis_action.triggered.connect(self._add_secondary_y_axis)
+        toolbar.addAction(add_y_axis_action)
+        
+        move_to_y2_action = QAction(tr("Move to Y2"), toolbar)
+        move_to_y2_action.triggered.connect(self._move_selected_to_y2)
+        toolbar.addAction(move_to_y2_action)
+        
         return toolbar
     
     def _create_controls_widget(self) -> QWidget:
@@ -372,7 +442,7 @@ class VizPanel(QWidget):
         plot_id = f"plot_{self.plot_counter}"
         
         if plot_type == "2d":
-            plot_widget = Plot2DWidget()
+            plot_widget = Plot2DWidget(self.session_state, self.signal_hub)
             plot_widget.time_selection_changed.connect(self._on_time_selection)
             tab_name = f"2D Plot {self.plot_counter}"
         elif plot_type == "3d" and PYVISTA_AVAILABLE:
@@ -458,6 +528,33 @@ class VizPanel(QWidget):
         """Toggle selection mode"""
         logger.debug("selection_mode_toggled")
         # Selection mode logic to be implemented
+    
+    @pyqtSlot()
+    def _add_secondary_y_axis(self):
+        """Add a secondary Y axis to current plot"""
+        current_index = self.plot_tabs.currentIndex()
+        if current_index < 0:
+            return
+        
+        # Find current plot widget
+        for plot_id, pinfo in self.active_plots.items():
+            if pinfo["tab_index"] == current_index:
+                widget = pinfo["widget"]
+                if hasattr(widget, 'add_secondary_y_axis'):
+                    axis_index = widget.add_secondary_y_axis("Y Axis 2")
+                    logger.info("secondary_y_axis_added", plot_id=plot_id, axis_index=axis_index)
+                break
+    
+    @pyqtSlot()
+    def _move_selected_to_y2(self):
+        """Move selected series to secondary Y axis"""
+        # This would require tracking which series is currently selected
+        # For now, just log the action
+        logger.debug("move_to_y2_requested")
+        # Implementation would involve:
+        # 1. Get currently selected series
+        # 2. Remove from current axis
+        # 3. Re-plot on Y2 axis
     
     @pyqtSlot(float, float)
     def _on_time_selection(self, start_time: float, end_time: float):

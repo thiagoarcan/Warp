@@ -268,6 +268,9 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Export Plot": "Exportar Gráfico",
     "Export Data": "Exportar Dados",
     "Copy to Clipboard": "Copiar para Área de Transferência",
+    "Add Y Axis": "Adicionar Eixo Y",
+    "Move to Y2": "Mover para Y2",
+    "Select": "Selecionar",
     
     # Gerenciamento de séries
     "Duplicate Series": "Duplicar Série",

@@ -5,7 +5,8 @@
       "Bash(find:*)",
       "Bash(mkdir:*)",
       "Bash(timeout 10 python:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []
