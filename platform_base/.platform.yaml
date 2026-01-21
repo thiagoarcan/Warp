@@ -1,0 +1,166 @@
+# Platform Base v2.0 - Project Configuration Template
+# This file should be placed in project root directories
+# It contains project-specific settings and overrides
+
+project:
+  name: "My Analysis Project"
+  version: "1.0.0"
+  description: "Data analysis project using Platform Base"
+  created: "2024-01-01"
+  author: "Your Name"
+  
+# Project-specific data paths
+data:
+  input_directory: "./data/input"
+  output_directory: "./data/output"
+  cache_directory: "./data/cache"
+  temp_directory: "./data/temp"
+  
+  # Default data files for this project
+  primary_dataset: "./data/input/main_data.csv"
+  reference_dataset: "./data/input/reference.csv"
+  
+# Project-specific processing settings
+processing:
+  max_workers: 2  # Reduced for smaller projects
+  memory_limit_mb: 1024  # 1GB limit
+  chunk_size: 5000  # Smaller chunks for project data
+  
+# Visualization settings for this project
+visualization:
+  default_plots:
+    - type: "timeseries"
+      columns: ["time", "value1", "value2"] 
+    - type: "scatter"
+      x_column: "value1"
+      y_column: "value2"
+      
+  custom_color_scheme: ["#e74c3c", "#3498db", "#2ecc71", "#f39c12"]
+  
+# Project-specific analysis workflows
+workflows:
+  standard_analysis:
+    description: "Standard data analysis workflow"
+    steps:
+      - name: "Load Data"
+        operation: "import_csv"
+        parameters:
+          file_path: "${data.primary_dataset}"
+          encoding: "utf-8"
+          
+      - name: "Basic Statistics"
+        operation: "calculate_statistics"
+        parameters:
+          columns: ["value1", "value2"]
+          
+      - name: "Correlation Analysis" 
+        operation: "correlation_matrix"
+        parameters:
+          method: "pearson"
+          
+      - name: "Export Results"
+        operation: "export_csv"
+        parameters:
+          output_path: "${data.output_directory}/results.csv"
+
+  signal_analysis:
+    description: "Signal processing workflow"
+    steps:
+      - name: "Load Signal Data"
+        operation: "import_csv"
+        
+      - name: "Filter Signal"
+        operation: "bandpass_filter"
+        parameters:
+          low_freq: 0.1
+          high_freq: 50.0
+          
+      - name: "FFT Analysis"
+        operation: "fft_transform"
+        
+      - name: "Plot Results"
+        operation: "plot_frequency_spectrum"
+
+# Project dependencies and plugins
+dependencies:
+  required_plugins:
+    - "dtw_plugin"
+    - "signal_processor"
+    
+  python_packages:
+    - "scipy>=1.7.0"
+    - "matplotlib>=3.5.0"
+    - "pandas>=1.3.0"
+
+# Environment variables specific to this project
+environment:
+  DATA_ROOT: "./data"
+  OUTPUT_ROOT: "./outputs"
+  PROJECT_NAME: "Analysis Project 2024"
+  
+# Quality assurance settings
+quality:
+  validation_rules:
+    - name: "Check for missing values"
+      type: "missing_data_check"
+      parameters:
+        max_missing_percent: 5.0
+        
+    - name: "Outlier detection"
+      type: "outlier_detection" 
+      parameters:
+        method: "iqr"
+        threshold: 1.5
+        
+  reporting:
+    generate_quality_report: true
+    report_path: "${data.output_directory}/quality_report.html"
+    
+# Backup settings for this project
+backup:
+  enabled: true
+  include_patterns:
+    - "*.csv"
+    - "*.yaml"
+    - "*.json"
+    - "*.py"
+    - "notebooks/*.ipynb"
+    
+  exclude_patterns:
+    - "data/temp/*"
+    - "data/cache/*"
+    - "__pycache__/*"
+    - "*.log"
+
+# Export templates
+export_templates:
+  research_paper:
+    format: "latex"
+    include_plots: true
+    include_statistics: true
+    template_file: "./templates/paper_template.tex"
+    
+  presentation:
+    format: "powerpoint"
+    plot_format: "png"
+    plot_dpi: 300
+    template_file: "./templates/presentation_template.pptx"
+    
+  technical_report:
+    format: "html"
+    include_code: false
+    include_data_preview: true
+    
+# Collaboration settings for this project
+collaboration:
+  shared_configurations: true
+  version_control_integration: true
+  merge_strategy: "latest_wins"
+  
+# Documentation generation
+documentation:
+  auto_generate: true
+  output_format: "markdown"
+  include_api_docs: true
+  include_examples: true
+  output_directory: "./docs"

@@ -1,0 +1,135 @@
+# Platform Base v2.0 - System Configuration
+# This is the main system-wide configuration file
+
+version: "2.0.0"
+development_mode: false
+debug_enabled: false
+telemetry_enabled: true
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file_enabled: true
+  file_path: "logs/platform.log"
+  max_file_size: 10485760  # 10MB
+  backup_count: 5
+  console_enabled: true
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# User Interface Configuration
+ui:
+  theme: "dark"
+  language: "en"
+  auto_save_interval: 300  # 5 minutes
+  max_recent_files: 10
+  window_geometry: null
+  performance_mode: false
+
+# Processing Configuration
+processing:
+  max_workers: 4
+  memory_limit_mb: 2048
+  chunk_size: 10000
+  enable_numba: true
+  cache_enabled: true
+  cache_size_mb: 256
+
+# Visualization Configuration
+visualization:
+  default_renderer: "opengl"
+  max_points_plot: 1000000
+  enable_antialiasing: true
+  fps_limit: 60
+  background_color: "#2b2b2b"
+  grid_enabled: true
+
+# Plugin Configuration
+plugins:
+  discovery_enabled: true
+  auto_load_trusted: true
+  sandbox_level: "moderate"
+  max_plugins: 50
+  timeout_seconds: 30.0
+  max_memory_mb: 256.0
+
+# Data Import/Export Configuration
+data:
+  supported_formats:
+    - "csv"
+    - "xlsx"
+    - "hdf5"
+    - "netcdf"
+    - "json"
+    - "parquet"
+  
+  import_settings:
+    auto_detect_encoding: true
+    default_encoding: "utf-8"
+    max_file_size_mb: 1024  # 1GB
+    chunk_size: 50000
+    
+  export_settings:
+    default_format: "csv"
+    compression_enabled: true
+    precision_digits: 6
+
+# Streaming Configuration
+streaming:
+  buffer_size: 1000
+  update_interval_ms: 100
+  max_fps: 60
+  enable_downsampling: true
+  downsampling_threshold: 100000
+
+# Selection Configuration  
+selection:
+  max_history: 100
+  auto_sync: true
+  highlight_color: "#ff6b6b"
+  selection_tolerance: 5
+
+# Operations Configuration
+operations:
+  preview_enabled: true
+  auto_preview_delay_ms: 500
+  max_preview_points: 10000
+  enable_threading: true
+
+# Performance Monitoring
+performance:
+  profiling_enabled: false
+  memory_monitoring: true
+  cpu_monitoring: true
+  metrics_retention_hours: 24
+  
+# Security Configuration
+security:
+  enable_audit_logging: true
+  max_login_attempts: 3
+  session_timeout_minutes: 480  # 8 hours
+  require_secure_connections: false
+
+# Backup Configuration
+backup:
+  auto_backup_enabled: true
+  backup_interval_minutes: 60
+  max_backup_files: 50
+  backup_compression: true
+
+# Environment Variables Substitution
+# Use ${VARIABLE_NAME} syntax in any config value
+# Example: data_directory: "${PLATFORM_DATA_DIR}/datasets"
+
+# Network Configuration (for future distributed features)
+network:
+  enable_remote_connections: false
+  default_port: 8080
+  max_connections: 10
+  timeout_seconds: 30
+
+# Experimental Features (disabled by default)
+experimental:
+  enable_gpu_acceleration: false
+  enable_distributed_processing: false
+  enable_ml_plugins: false
+  enable_real_time_collaboration: false

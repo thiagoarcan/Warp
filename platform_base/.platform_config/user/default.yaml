@@ -1,0 +1,138 @@
+# Platform Base v2.0 - User Configuration Template
+# This file contains user-specific overrides and preferences
+
+# User Interface Preferences
+ui:
+  theme: "dark"  # light, dark, auto
+  language: "en"  # en, pt, es, fr, de
+  window_geometry:
+    x: 100
+    y: 100
+    width: 1200
+    height: 800
+    maximized: false
+  
+  recent_files:
+    - "${HOME}/data/sample_dataset.csv"
+    - "${HOME}/projects/analysis_2024.h5"
+  
+  custom_shortcuts:
+    save: "Ctrl+S"
+    open: "Ctrl+O"
+    export: "Ctrl+E"
+    zoom_fit: "F"
+    toggle_grid: "G"
+
+# Personal Workspace Settings
+workspace:
+  default_project_location: "${HOME}/Platform_Projects"
+  auto_save_interval: 300  # 5 minutes
+  create_project_backups: true
+  
+# Visualization Preferences  
+visualization:
+  background_color: "#2b2b2b"
+  grid_enabled: true
+  axis_labels_enabled: true
+  legend_position: "top_right"  # top_left, top_right, bottom_left, bottom_right
+  color_schemes:
+    default: ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
+    colorblind_friendly: ["#0173b2", "#de8f05", "#029e73", "#cc78bc", "#ca9161"]
+
+# Data Analysis Preferences
+analysis:
+  default_interpolation_method: "linear"
+  auto_detect_outliers: true
+  outlier_threshold_sigma: 3.0
+  preferred_statistics: ["mean", "std", "min", "max", "median"]
+  
+# Export Preferences
+export:
+  default_format: "csv"
+  include_metadata: true
+  timestamp_format: "ISO8601"
+  decimal_separator: "."
+  thousands_separator: ","
+
+# Plugin Preferences  
+plugins:
+  auto_load_favorites: true
+  favorite_plugins:
+    - "dtw_plugin"
+    - "fft_analyzer"
+    - "signal_filter"
+  
+  disabled_plugins: []
+
+# Notification Preferences
+notifications:
+  show_processing_complete: true
+  show_export_complete: true
+  show_errors: true
+  show_warnings: false
+  position: "bottom_right"  # top_left, top_right, bottom_left, bottom_right
+
+# Advanced User Settings
+advanced:
+  enable_developer_mode: false
+  show_debug_info: false
+  custom_python_path: null
+  max_undo_levels: 50
+  
+# Custom Templates and Presets
+templates:
+  analysis_workflows:
+    basic_timeseries:
+      steps:
+        - import_data
+        - basic_statistics
+        - plot_timeseries
+        - export_results
+        
+    signal_processing:
+      steps:
+        - import_data
+        - apply_filters
+        - fft_analysis
+        - export_frequency_data
+
+# Data Source Connections (examples)
+data_sources:
+  databases:
+    production_db:
+      type: "postgresql"
+      host: "${DB_HOST}"
+      port: 5432
+      database: "${DB_NAME}"
+      username: "${DB_USER}"
+      # Note: password should be set via environment variables
+      
+  file_locations:
+    network_drive: "${NETWORK_PATH}/shared_data"
+    local_cache: "${HOME}/.platform_cache"
+
+# Collaboration Settings (for future features)
+collaboration:
+  default_sharing_mode: "view_only"  # edit, view_only, no_access
+  auto_sync_changes: false
+  conflict_resolution: "manual"  # auto, manual
+
+# Accessibility Options
+accessibility:
+  high_contrast_mode: false
+  large_fonts: false
+  keyboard_navigation: false
+  screen_reader_support: false
+
+# Performance Tuning (user-specific)
+performance:
+  reduce_animations: false
+  limit_concurrent_operations: 2
+  prefer_quality_over_speed: true
+  
+# Privacy Settings
+privacy:
+  send_usage_analytics: true
+  send_error_reports: true
+  store_usage_history: true
+  anonymize_data_paths: true
