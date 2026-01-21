@@ -1,0 +1,59 @@
+{
+  "name": "dtw_plugin",
+  "version": "1.0.0",
+  "description": "Dynamic Time Warping (DTW) analysis plugin for temporal signal alignment and similarity measurement",
+  "author": "Platform Base Development Team",
+  "website": "https://github.com/platform-base/plugins",
+  "license": "MIT",
+  
+  "requires_platform_version": ">=2.0.0",
+  "dependencies": [
+    "numpy>=1.20.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.5.0"
+  ],
+  "python_requires": ">=3.8",
+  
+  "min_compatible_version": "1.0.0",
+  "max_compatible_version": "1.9.9",
+  "api_version": "1.0.0",
+  
+  "plugin_dependencies": {},
+  "conflicts_with": [],
+  
+  "entry_point": "plugin.py",
+  "main_class": "DTWPlugin",
+  "category": "analysis",
+  
+  "trusted": false,
+  "permissions": [
+    "data.read",
+    "data.process",
+    "visualization.plot"
+  ],
+  "sandbox_level": "moderate",
+  
+  "timeout_seconds": 60.0,
+  "max_memory_mb": 500.0,
+  "max_cpu_percent": 90.0,
+  "allowed_modules": [
+    "numpy",
+    "scipy", 
+    "matplotlib",
+    "math",
+    "statistics",
+    "json",
+    "time",
+    "logging"
+  ],
+  "forbidden_modules": [
+    "os",
+    "subprocess", 
+    "socket",
+    "urllib",
+    "requests",
+    "sys",
+    "eval",
+    "exec"
+  ]
+}
