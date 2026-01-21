@@ -199,6 +199,12 @@ class SyncResult(DerivedResult):
     confidence: float
 
 
+class DownsampleResult(DerivedResult):
+    """Resultado de downsampling"""
+    t_seconds: NDArray[np.float64]
+    selected_indices: NDArray[np.int64]
+
+
 class SeriesSummary(BaseModel):
     """Resumo de série para UI"""
     model_config = ConfigDict(arbitrary_types_allowed=True)

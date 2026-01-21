@@ -19,8 +19,8 @@ def main():
     try:
         print("Starting Platform Base v2.0...")
         
-        # Import and run application
-        from platform_base.ui.app import main as app_main
+        # Import and run desktop application
+        from platform_base.desktop.app import main as app_main
         
         return app_main()
         

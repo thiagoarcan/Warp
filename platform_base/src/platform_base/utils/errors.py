@@ -48,6 +48,10 @@ class CacheError(PlatformError):
     pass
 
 
+class DownsampleError(PlatformError):
+    pass
+
+
 def handle_error(error: PlatformError) -> None:
     logger.error(
         "platform_error",

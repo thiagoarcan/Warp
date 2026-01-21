@@ -46,6 +46,7 @@ Desenvolver aplicação desktop Python **Platform Base** (PyQt6) para manipular 
 ### 2.2 Padrão de Conversão de Callbacks
 
 **Dash (antes):**
+
 ```python
 @callback(
     Output("graph", "figure"),
@@ -59,6 +60,7 @@ def update_graph(series_id, dataset_data):
 ```
 
 **PyQt6 (depois):**
+
 ```python
 class VizPanel(QWidget):
     # Signal emitido quando seleção muda
@@ -3910,6 +3912,7 @@ def test_streaming_controls(main_window, qtbot):
 ## 20. Plano de Implementação
 
 ### Fase 1: Core + Config (2 semanas)
+
 1. Setup projeto PyQt6
 2. Config YAML + Pydantic
 3. Logging estruturado (structlog)
@@ -3919,103 +3922,116 @@ def test_streaming_controls(main_window, qtbot):
 **Entregável:** Infraestrutura básica funcional
 
 ### Fase 2: I/O + Data (2 semanas)
+
 6. Loader multi-formato
-7. Schema detection
-8. Validação
-9. Units (pint)
+2. Schema detection
+3. Validação
+4. Units (pint)
 
 **Entregável:** Pipeline de carregamento completo
 
 ### Fase 3: Processing (2 semanas)
+
 10. Interpolação (7 métodos core)
-11. Sincronização (2 métodos core)
-12. Cálculos (derivadas, integrais)
-13. Smoothing
+2. Sincronização (2 métodos core)
+3. Cálculos (derivadas, integrais)
+4. Smoothing
 
 **Entregável:** Processamento matemático completo
 
 ### Fase 4: Desktop UI Base (2 semanas)
+
 14. QApplication + MainWindow
-15. SessionState + SignalHub
-16. DataPanel
-17. VizPanel (placeholder)
-18. ConfigPanel
+2. SessionState + SignalHub
+3. DataPanel
+4. VizPanel (placeholder)
+5. ConfigPanel
 
 **Entregável:** Esqueleto UI funcional
 
 ### Fase 5: Visualização 2D (1 semana)
+
 19. BasePlot abstraction
-20. TimeseriesPlot2D (pyqtgraph)
-21. MultipanelPlot2D
-22. Downsampling (LTTB)
+2. TimeseriesPlot2D (pyqtgraph)
+3. MultipanelPlot2D
+4. Downsampling (LTTB)
 
 **Entregável:** Visualização 2D completa
 
 ### Fase 6: Visualização 3D (1 semana)
+
 23. Trajectory3D (PyVista)
-24. StateCube3D
-25. Heatmap
+2. StateCube3D
+3. Heatmap
 
 **Entregável:** Visualização 3D completa
 
 ### Fase 7: Workers & Threading (1 semana)
+
 26. BaseWorker
-27. LoaderWorker
-28. ProcessingWorker
-29. ExportWorker
+2. LoaderWorker
+3. ProcessingWorker
+4. ExportWorker
 
 **Entregável:** Operações assíncronas funcionais
 
 ### Fase 8: Streaming (1 semana)
+
 30. StreamingState + StreamFilters
-31. StreamingEngine (QTimer)
-32. Multi-view sync (signals)
-33. StreamingPanel
+2. StreamingEngine (QTimer)
+3. Multi-view sync (signals)
+4. StreamingPanel
 
 **Entregável:** Streaming temporal completo
 
 ### Fase 9: Dialogs & Context Menu (1 semana)
+
 34. UploadDialog
-35. ExportDialog
-36. SettingsDialog
-37. InterpolationDialog
-38. PlotContextMenu
+2. ExportDialog
+3. SettingsDialog
+4. InterpolationDialog
+5. PlotContextMenu
 
 **Entregável:** Diálogos e menus completos
 
 ### Fase 10: Selection (1 semana)
+
 39. Selection model
-40. SelectionWidget
-41. 3 métodos integrados
+2. SelectionWidget
+3. 3 métodos integrados
 
 **Entregável:** Sistema de seleção completo
 
 ### Fase 11: Plugins + Registry (1 semana)
+
 42. Plugin system
-43. Discovery controlado
-44. Example plugins (DTW)
+2. Discovery controlado
+3. Example plugins (DTW)
 
 **Entregável:** Sistema de plugins funcional
 
 ### Fase 12: Video Export (0.5 semana)
+
 45. VideoExportWorker
-46. OpenCV integration
+2. OpenCV integration
 
 **Entregável:** Exportação de vídeo
 
 ### Fase 13: Testes (1 semana)
+
 47. Unit tests (backend)
-48. UI tests (pytest-qt)
-49. Integration tests
-50. Stress tests
+2. UI tests (pytest-qt)
+3. Integration tests
+4. Stress tests
 
 **Entregável:** Suite de testes >80% coverage
 
 ### Fase 14: Packaging (1 semana)
+
 51. PyInstaller setup
-52. Windows installer (.exe)
-53. macOS bundle (.app)
-54. Linux AppImage
+2. Windows installer (.exe)
+3. macOS bundle (.app)
+4. Linux AppImage
 
 **Entregável:** Instaladores multiplataforma
 
@@ -4026,6 +4042,7 @@ def test_streaming_controls(main_window, qtbot):
 ## 21. Critérios de Aceitação
 
 ### Desktop
+
 - [ ] Aplicação abre em <2s
 - [ ] Interface responsiva (sem freezes)
 - [ ] Operações pesadas não bloqueiam UI (QThread)
@@ -4034,12 +4051,14 @@ def test_streaming_controls(main_window, qtbot):
 - [ ] Multiplataforma (Windows/Linux/macOS)
 
 ### Performance
+
 - [ ] 1M pontos: plot 2D < 500ms
 - [ ] 10M pontos: downsampling automático
 - [ ] UI response time < 100ms
 - [ ] Streaming 60 FPS estável
 
 ### Funcional
+
 - [ ] Upload multi-formato funciona
 - [ ] Schema detection >95% accuracy
 - [ ] Interpolação 7 métodos funcionais
@@ -4049,6 +4068,7 @@ def test_streaming_controls(main_window, qtbot):
 - [ ] Plugins carregam sem erro
 
 ### Qualidade
+
 - [ ] Test coverage > 80%
 - [ ] Zero warnings em pytest -W error
 - [ ] Mypy passa com strict mode
@@ -4059,21 +4079,25 @@ def test_streaming_controls(main_window, qtbot):
 ## 22. Entrega Final
 
 ### Executáveis
+
 - [ ] Windows: `.exe` installer
 - [ ] macOS: `.app` bundle
 - [ ] Linux: AppImage ou .deb
 
 ### Código
+
 - [ ] Estrutura completa PyQt6
 - [ ] Type hints 100%
 - [ ] Docstrings Google style
 
 ### Recursos
+
 - [ ] Icons compiled (.qrc)
 - [ ] Styles (QSS light/dark)
 - [ ] Splash screen
 
 ### Docs
+
 - [ ] README.md
 - [ ] User manual
 - [ ] Developer guide
