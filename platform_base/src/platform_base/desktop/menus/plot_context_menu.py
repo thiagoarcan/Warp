@@ -24,6 +24,7 @@ from platform_base.desktop.signal_hub import SignalHub
 from platform_base.desktop.session_state import SessionState
 from platform_base.core.models import DatasetID, SeriesID
 from platform_base.utils.logging import get_logger
+from platform_base.utils.i18n import tr
 
 logger = get_logger(__name__)
 
@@ -37,7 +38,7 @@ class MathAnalysisDialog(QDialog):
         super().__init__(parent)
         
         self.operation = operation
-        self.setWindowTitle(f"Mathematical Analysis - {operation.title()}")
+        self.setWindowTitle(f"{tr('Mathematical Analysis')} - {operation.title()}")
         self.setModal(True)
         self.resize(350, 200)
         
@@ -61,12 +62,12 @@ class MathAnalysisDialog(QDialog):
         # Buttons
         button_layout = QHBoxLayout()
         
-        apply_btn = QPushButton("Apply")
+        apply_btn = QPushButton(tr("Apply"))
         apply_btn.clicked.connect(self._apply_operation)
         apply_btn.setDefault(True)
         button_layout.addWidget(apply_btn)
         
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(tr("Cancel"))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
         
@@ -74,22 +75,22 @@ class MathAnalysisDialog(QDialog):
     
     def _setup_derivative_ui(self, layout: QVBoxLayout):
         """Setup derivative calculation UI"""
-        params_group = QGroupBox("Derivative Parameters")
+        params_group = QGroupBox(tr("Derivative Parameters"))
         params_layout = QFormLayout(params_group)
         
         self.derivative_order = QSpinBox()
         self.derivative_order.setRange(1, 3)
         self.derivative_order.setValue(1)
-        params_layout.addRow("Order:", self.derivative_order)
+        params_layout.addRow(tr("Order:"), self.derivative_order)
         
         self.derivative_method = QComboBox()
         self.derivative_method.addItems([
             "finite_diff", "savitzky_golay", "spline_derivative"
         ])
-        params_layout.addRow("Method:", self.derivative_method)
+        params_layout.addRow(tr("Method:"), self.derivative_method)
         
         # Smoothing options
-        self.enable_smoothing = QCheckBox("Apply smoothing")
+        self.enable_smoothing = QCheckBox(tr("Apply smoothing"))
         params_layout.addRow("", self.enable_smoothing)
         
         self.smoothing_window = QSpinBox()
@@ -97,7 +98,7 @@ class MathAnalysisDialog(QDialog):
         self.smoothing_window.setValue(7)
         self.smoothing_window.setSingleStep(2)  # Keep odd numbers
         self.smoothing_window.setEnabled(False)
-        params_layout.addRow("Window size:", self.smoothing_window)
+        params_layout.addRow(tr("Window size:"), self.smoothing_window)
         
         self.enable_smoothing.toggled.connect(self.smoothing_window.setEnabled)
         
@@ -105,18 +106,18 @@ class MathAnalysisDialog(QDialog):
     
     def _setup_integral_ui(self, layout: QVBoxLayout):
         """Setup integral calculation UI"""
-        params_group = QGroupBox("Integration Parameters")
+        params_group = QGroupBox(tr("Integration Parameters"))
         params_layout = QFormLayout(params_group)
         
         self.integral_method = QComboBox()
         self.integral_method.addItems(["trapezoid", "simpson", "cumulative"])
-        params_layout.addRow("Method:", self.integral_method)
+        params_layout.addRow(tr("Method:"), self.integral_method)
         
         layout.addWidget(params_group)
     
     def _setup_smoothing_ui(self, layout: QVBoxLayout):
         """Setup smoothing UI"""
-        params_group = QGroupBox("Smoothing Parameters")
+        params_group = QGroupBox(tr("Smoothing Parameters"))
         params_layout = QFormLayout(params_group)
         
         self.smooth_method = QComboBox()
@@ -124,23 +125,23 @@ class MathAnalysisDialog(QDialog):
             "moving_average", "savitzky_golay", "gaussian", 
             "lowpass_filter", "median_filter"
         ])
-        params_layout.addRow("Method:", self.smooth_method)
+        params_layout.addRow(tr("Method:"), self.smooth_method)
         
         self.window_size = QSpinBox()
         self.window_size.setRange(3, 101)
         self.window_size.setValue(11)
-        params_layout.addRow("Window Size:", self.window_size)
+        params_layout.addRow(tr("Window Size:"), self.window_size)
         
         self.polyorder = QSpinBox()
         self.polyorder.setRange(1, 10)
         self.polyorder.setValue(3)
-        params_layout.addRow("Polynomial Order:", self.polyorder)
+        params_layout.addRow(tr("Polynomial Order:"), self.polyorder)
         
         layout.addWidget(params_group)
     
     def _setup_interpolation_ui(self, layout: QVBoxLayout):
         """Setup interpolation UI"""
-        params_group = QGroupBox("Interpolation Parameters")
+        params_group = QGroupBox(tr("Interpolation Parameters"))
         params_layout = QFormLayout(params_group)
         
         self.interp_method = QComboBox()
@@ -154,7 +155,7 @@ class MathAnalysisDialog(QDialog):
     
     def _setup_resample_ui(self, layout: QVBoxLayout):
         """Setup resampling UI"""
-        params_group = QGroupBox("Resampling Parameters")
+        params_group = QGroupBox(tr("Resampling Parameters"))
         params_layout = QFormLayout(params_group)
         
         self.resample_method = QComboBox()
@@ -164,7 +165,7 @@ class MathAnalysisDialog(QDialog):
         self.target_points = QSpinBox()
         self.target_points.setRange(10, 100000)
         self.target_points.setValue(1000)
-        params_layout.addRow("Target Points:", self.target_points)
+        params_layout.addRow(tr("Target Points:"), self.target_points)
         
         layout.addWidget(params_group)
     
@@ -253,17 +254,17 @@ class PlotContextMenu(QMenu):
     def _setup_menu(self):
         """Setup context menu structure"""
         # Mathematical Analysis submenu
-        math_menu = self.addMenu("📊 Mathematical Analysis")
+        math_menu = self.addMenu(tr("📊 Mathematical Analysis"))
         self._setup_math_menu(math_menu)
         
         # Data Processing submenu
-        processing_menu = self.addMenu("🔧 Data Processing")
+        processing_menu = self.addMenu(tr("🔧 Data Processing"))
         self._setup_processing_menu(processing_menu)
         
         self.addSeparator()
         
         # Visualization controls
-        viz_menu = self.addMenu("👁️ Visualization")
+        viz_menu = self.addMenu(tr("👁️ Visualization"))
         self._setup_visualization_menu(viz_menu)
         
         self.addSeparator()
@@ -274,7 +275,7 @@ class PlotContextMenu(QMenu):
         self.addSeparator()
         
         # Export options
-        export_menu = self.addMenu("💾 Export")
+        export_menu = self.addMenu(tr("💾 Export"))
         self._setup_export_menu(export_menu)
         
         self.addSeparator()
@@ -286,88 +287,88 @@ class PlotContextMenu(QMenu):
     def _setup_math_menu(self, menu: QMenu):
         """Setup mathematical analysis menu"""
         # Derivatives
-        derivative_action = menu.addAction("📈 Calculate Derivative...")
+        derivative_action = menu.addAction(tr("📈 Calculate Derivative..."))
         derivative_action.triggered.connect(
             lambda: self._show_analysis_dialog("derivative"))
         
         # Integrals
-        integral_action = menu.addAction("📉 Calculate Integral...")
+        integral_action = menu.addAction(tr("📉 Calculate Integral..."))
         integral_action.triggered.connect(
             lambda: self._show_analysis_dialog("integral"))
         
         menu.addSeparator()
         
         # Statistical analysis
-        stats_action = menu.addAction("📊 Show Statistics")
+        stats_action = menu.addAction(tr("📊 Show Statistics"))
         stats_action.triggered.connect(self._show_statistics)
         
         # FFT Analysis
-        fft_action = menu.addAction("🌊 FFT Analysis")
+        fft_action = menu.addAction(tr("🌊 FFT Analysis"))
         fft_action.triggered.connect(self._show_fft_analysis)
         
         # Correlation analysis (if multiple series)
         if self._has_multiple_series():
-            correlation_action = menu.addAction("🔗 Correlation Analysis")
+            correlation_action = menu.addAction(tr("🔗 Correlation Analysis"))
             correlation_action.triggered.connect(self._show_correlation_analysis)
     
     def _setup_processing_menu(self, menu: QMenu):
         """Setup data processing menu"""
         # Smoothing
-        smooth_action = menu.addAction("🌊 Smooth Data...")
+        smooth_action = menu.addAction(tr("🌊 Smooth Data..."))
         smooth_action.triggered.connect(
             lambda: self._show_analysis_dialog("smooth"))
         
         # Interpolation
-        interp_action = menu.addAction("🎯 Interpolate Missing Data...")
+        interp_action = menu.addAction(tr("🎯 Interpolate Missing Data..."))
         interp_action.triggered.connect(
             lambda: self._show_analysis_dialog("interpolate"))
         
         # Resampling/Downsampling
-        resample_action = menu.addAction("📏 Resample Data...")
+        resample_action = menu.addAction(tr("📏 Resample Data..."))
         resample_action.triggered.connect(
             lambda: self._show_analysis_dialog("resample"))
         
         menu.addSeparator()
         
         # Filtering
-        filter_menu = menu.addMenu("🔍 Filters")
+        filter_menu = menu.addMenu(tr("🔍 Filters"))
         
-        lowpass_action = filter_menu.addAction("Low-pass Filter")
+        lowpass_action = filter_menu.addAction(tr("Low-pass Filter"))
         lowpass_action.triggered.connect(
             lambda: self._apply_filter("lowpass"))
         
-        highpass_action = filter_menu.addAction("High-pass Filter")
+        highpass_action = filter_menu.addAction(tr("High-pass Filter"))
         highpass_action.triggered.connect(
             lambda: self._apply_filter("highpass"))
         
-        bandpass_action = filter_menu.addAction("Band-pass Filter")
+        bandpass_action = filter_menu.addAction(tr("Band-pass Filter"))
         bandpass_action.triggered.connect(
             lambda: self._apply_filter("bandpass"))
         
         # Outlier detection
-        outlier_action = menu.addAction("🎯 Detect Outliers")
+        outlier_action = menu.addAction(tr("🎯 Detect Outliers"))
         outlier_action.triggered.connect(self._detect_outliers)
     
     def _setup_visualization_menu(self, menu: QMenu):
         """Setup visualization menu"""
         # Zoom controls
-        zoom_selection_action = menu.addAction("🔍 Zoom to Selection")
+        zoom_selection_action = menu.addAction(tr("🔍 Zoom to Selection"))
         zoom_selection_action.triggered.connect(self.zoom_to_selection_requested.emit)
         zoom_selection_action.setShortcut(QKeySequence("Ctrl+Z"))
         
-        reset_zoom_action = menu.addAction("🔄 Reset Zoom")
+        reset_zoom_action = menu.addAction(tr("🔄 Reset Zoom"))
         reset_zoom_action.triggered.connect(self.reset_zoom_requested.emit)
         reset_zoom_action.setShortcut(QKeySequence("Ctrl+R"))
         
         menu.addSeparator()
         
         # Grid and styling
-        grid_action = menu.addAction("⊞ Toggle Grid")
+        grid_action = menu.addAction(tr("⊞ Toggle Grid"))
         grid_action.setCheckable(True)
         grid_action.setChecked(True)
         grid_action.triggered.connect(self._toggle_grid)
         
-        legend_action = menu.addAction("📝 Toggle Legend")
+        legend_action = menu.addAction(tr("📝 Toggle Legend"))
         legend_action.setCheckable(True)
         legend_action.setChecked(True)
         legend_action.triggered.connect(self._toggle_legend)
@@ -375,30 +376,30 @@ class PlotContextMenu(QMenu):
         # Annotations
         if self.plot_position:
             menu.addSeparator()
-            annotate_action = menu.addAction("📝 Add Annotation...")
+            annotate_action = menu.addAction(tr("📝 Add Annotation..."))
             annotate_action.triggered.connect(self._add_annotation)
     
     def _setup_selection_menu(self):
         """Setup selection tools menu"""
         # Clear selection
-        clear_selection_action = self.addAction("🗑️ Clear Selection")
+        clear_selection_action = self.addAction(tr("🗑️ Clear Selection"))
         clear_selection_action.triggered.connect(self._clear_selection)
         clear_selection_action.setShortcut(QKeySequence("Escape"))
         
         # Select all
-        select_all_action = self.addAction("☑️ Select All")
+        select_all_action = self.addAction(tr("☑️ Select All"))
         select_all_action.triggered.connect(self._select_all)
         select_all_action.setShortcut(QKeySequence("Ctrl+A"))
         
         # Invert selection
-        invert_selection_action = self.addAction("🔄 Invert Selection")
+        invert_selection_action = self.addAction(tr("🔄 Invert Selection"))
         invert_selection_action.triggered.connect(self._invert_selection)
         invert_selection_action.setShortcut(QKeySequence("Ctrl+I"))
     
     def _setup_export_menu(self, menu: QMenu):
         """Setup export menu"""
         # Plot export
-        plot_export_menu = menu.addMenu("🖼️ Export Plot")
+        plot_export_menu = menu.addMenu(tr("🖼️ Export Plot"))
         
         for fmt in ["PNG", "SVG", "PDF", "JPEG"]:
             action = plot_export_menu.addAction(fmt)
@@ -406,32 +407,32 @@ class PlotContextMenu(QMenu):
                 lambda checked, f=fmt: self.export_plot_requested.emit(f.lower()))
         
         # Data export
-        data_action = menu.addAction("📊 Export Data...")
+        data_action = menu.addAction(tr("📊 Export Data..."))
         data_action.triggered.connect(self.export_data_requested.emit)
         
         # Copy to clipboard
-        copy_action = menu.addAction("📋 Copy to Clipboard")
+        copy_action = menu.addAction(tr("📋 Copy to Clipboard"))
         copy_action.triggered.connect(self._copy_to_clipboard)
         copy_action.setShortcut(QKeySequence("Ctrl+C"))
     
     def _setup_series_menu(self):
         """Setup series management menu"""
         # Duplicate series
-        duplicate_action = self.addAction("📄 Duplicate Series")
+        duplicate_action = self.addAction(tr("📄 Duplicate Series"))
         duplicate_action.triggered.connect(self._duplicate_series)
         
         # Hide/show series
-        hide_action = self.addAction("👁️ Hide Series")
+        hide_action = self.addAction(tr("👁️ Hide Series"))
         hide_action.triggered.connect(self._hide_series)
         
         # Remove series
-        remove_action = self.addAction("🗑️ Remove Series")
+        remove_action = self.addAction(tr("🗑️ Remove Series"))
         remove_action.triggered.connect(self._remove_series)
         
         self.addSeparator()
         
         # Series properties
-        properties_action = self.addAction("⚙️ Series Properties...")
+        properties_action = self.addAction(tr("⚙️ Series Properties..."))
         properties_action.triggered.connect(self._show_series_properties)
     
     def _show_analysis_dialog(self, operation: str):
