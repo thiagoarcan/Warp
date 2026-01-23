@@ -76,6 +76,7 @@ class SessionState(QObject):
     selection_changed = pyqtSignal()
     operation_started = pyqtSignal(str)  # operation_name
     operation_finished = pyqtSignal(str, bool)  # operation_name, success
+    operation_progress = pyqtSignal(float, str)  # percent, message
     view_changed = pyqtSignal()
     
     def __init__(self, dataset_store: DatasetStore):
@@ -87,10 +88,10 @@ class SessionState(QObject):
         # Core components
         self._dataset_store = dataset_store
         
-        # Current state
+        # Current state - CORRIGIDO: suporta múltiplos datasets
         self._current_dataset: Optional[DatasetID] = None
         self._current_view: Optional[ViewID] = None
-        self._loaded_datasets: List[DatasetID] = []
+        self._loaded_datasets: Dict[DatasetID, Dataset] = {}  # Manter todos os datasets
         
         # Sub-states
         self._selection = SelectionState()
@@ -133,15 +134,15 @@ class SessionState(QObject):
     @property
     def loaded_datasets(self) -> List[DatasetID]:
         with QMutexLocker(self._mutex):
-            return self._loaded_datasets.copy()
+            return list(self._loaded_datasets.keys())
 
     def add_dataset(self, dataset: Dataset) -> DatasetID:
-        """Adiciona dataset e atualiza estado"""
+        """Adiciona dataset e atualiza estado - CORRIGIDO: mantém todos os datasets"""
         dataset_id = self._dataset_store.add_dataset(dataset)
         
         with QMutexLocker(self._mutex):
-            if dataset_id not in self._loaded_datasets:
-                self._loaded_datasets.append(dataset_id)
+            # Adiciona/atualiza dataset no mapeamento local
+            self._loaded_datasets[dataset_id] = dataset
                 
             # Se é o primeiro dataset, torna-o atual
             if self._current_dataset is None:
@@ -164,6 +165,21 @@ class SessionState(QObject):
             if self._current_dataset:
                 return self._dataset_store.get_dataset(self._current_dataset)
             return None
+
+    def get_all_datasets(self) -> Dict[DatasetID, Dataset]:
+        """Obtém todos os datasets carregados"""
+        with QMutexLocker(self._mutex):
+            return self._loaded_datasets.copy()
+
+    def set_current_dataset(self, dataset_id: DatasetID) -> bool:
+        """Define dataset atual"""
+        with QMutexLocker(self._mutex):
+            if dataset_id in self._loaded_datasets:
+                self._current_dataset = dataset_id
+                logger.info("current_dataset_changed", dataset_id=dataset_id)
+                self.dataset_changed.emit(dataset_id)
+                return True
+            return False
 
     def create_view(self, series_ids: List[SeriesID], 
                    time_window: Optional[TimeWindow] = None) -> Optional[ViewData]:
@@ -227,6 +243,9 @@ class SessionState(QObject):
             self._operation.progress_percent = percent
             if message:
                 self._operation.status_message = message
+                
+        # Emitir sinal para UI
+        self.operation_progress.emit(percent, message)
 
     def finish_operation(self, success: bool = True, message: str = "") -> None:
         """Finaliza operação"""

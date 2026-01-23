@@ -467,6 +467,7 @@ class ModernMainWindow(QMainWindow):
         # Connect session state signals
         self.session_state.operation_started.connect(self._on_operation_started)
         self.session_state.operation_finished.connect(self._on_operation_finished)
+        self.session_state.operation_progress.connect(self._on_operation_progress)
         self.session_state.dataset_changed.connect(self._on_dataset_changed)
         
         # Connect panel signals
@@ -485,6 +486,15 @@ class ModernMainWindow(QMainWindow):
         self._progress_bar.setRange(0, 0)
         
         logger.debug("operation_started", operation=operation_name)
+    
+    @pyqtSlot(float, str)
+    def _on_operation_progress(self, percent: float, message: str):
+        """Handler para progresso de operação"""
+        self._progress_bar.setRange(0, 100)
+        self._progress_bar.setValue(int(percent))
+        
+        if message:
+            self._status_label.setText(f"⚡ {message}")
     
     @pyqtSlot(str, bool)
     def _on_operation_finished(self, operation_name: str, success: bool):

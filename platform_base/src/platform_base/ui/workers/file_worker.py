@@ -34,56 +34,103 @@ class FileLoadWorker(QObject):
     def __init__(self, file_path: str, load_config: LoadConfig):
         super().__init__()
         
-        self.file_path = file_path
+        # Ensure proper encoding for Windows paths with Unicode characters
+        if isinstance(file_path, str):
+            # Convert to Path and back to string to ensure proper encoding
+            self.file_path = str(Path(file_path).resolve())
+        else:
+            self.file_path = str(file_path)
+        
         self.load_config = load_config
         
     def load_file(self):
-        """Carrega arquivo com progress reporting"""
+        """Carrega arquivo com progress reporting - VERSÃO ROBUSTA"""
+        filename = "unknown"
         try:
-            file_path = Path(self.file_path)
+            # Get filename safely for logging
+            try:
+                filename = Path(self.file_path).name
+            except:
+                filename = "unknown_file"
             
-            # Phase 1: File info
-            self.progress.emit(10, "Analisando arquivo...")
-            QApplication.processEvents()
+            logger.info("worker_starting", filename=filename)
             
-            file_info = get_file_info(self.file_path)
-            logger.info("file_info_obtained", 
-                       size_mb=file_info.get("size_mb", 0),
-                       format=file_info.get("format", "unknown"))
+            # Phase 1: File info with error handling
+            try:
+                self.progress.emit(10, "Analisando arquivo...")
+                if QApplication.instance():
+                    QApplication.processEvents()
+                
+                file_info = get_file_info(self.file_path)
+                logger.info("file_info_obtained", 
+                           filename=filename,
+                           size_mb=file_info.get("size_mb", 0),
+                           format=file_info.get("format", "unknown"))
+            except Exception as e:
+                logger.error("file_info_failed", filename=filename, error=str(e))
+                # Continue anyway
             
-            # Phase 2: Loading
+            # Phase 2: Loading with robust error handling
             self.progress.emit(30, "Carregando dados...")
-            QApplication.processEvents()
+            if QApplication.instance():
+                QApplication.processEvents()
             
             start_time = time.perf_counter()
             dataset = load(self.file_path, self.load_config)
             load_duration = time.perf_counter() - start_time
             
-            # Phase 3: Validation
-            self.progress.emit(80, "Validando dados...")
-            QApplication.processEvents()
+            logger.info("raw_load_completed", filename=filename, duration_ms=load_duration * 1000)
             
-            # Basic validation
+            # Phase 3: Validation with detailed checks
+            self.progress.emit(80, "Validando dados...")
+            if QApplication.instance():
+                QApplication.processEvents()
+            
+            # Enhanced validation
+            if not hasattr(dataset, 'series') or dataset.series is None:
+                raise ValueError(f"Dataset {filename}: objeto series inválido")
+            
             if len(dataset.series) == 0:
-                raise ValueError("Nenhuma série numérica encontrada no arquivo")
+                raise ValueError(f"Dataset {filename}: nenhuma série numérica encontrada")
+            
+            if not hasattr(dataset, 't_seconds') or dataset.t_seconds is None:
+                raise ValueError(f"Dataset {filename}: timestamps inválidos")
             
             if len(dataset.t_seconds) == 0:
-                raise ValueError("Nenhum timestamp válido encontrado")
+                raise ValueError(f"Dataset {filename}: nenhum timestamp válido encontrado")
+            
+            # Set filename as dataset ID for user-friendly display
+            try:
+                dataset.dataset_id = Path(self.file_path).stem
+            except:
+                dataset.dataset_id = filename
             
             # Phase 4: Complete
             self.progress.emit(100, "Carregamento concluído")
-            QApplication.processEvents()
+            if QApplication.instance():
+                QApplication.processEvents()
             
             logger.info("file_load_completed", 
-                       file_path=self.file_path,
+                       filename=filename,
+                       dataset_id=dataset.dataset_id,
                        n_series=len(dataset.series),
                        n_points=len(dataset.t_seconds),
                        duration_ms=load_duration * 1000)
             
+            # Emit finished signal
             self.finished.emit(dataset)
             
         except Exception as e:
+            error_msg = str(e)
             logger.error("file_load_failed", 
-                        file_path=self.file_path, 
-                        error=str(e))
-            self.error.emit(str(e))
+                        filename=filename, 
+                        error=error_msg,
+                        exception_type=type(e).__name__)
+            
+            # Always emit error signal
+            try:
+                self.error.emit(error_msg)
+            except Exception as emit_error:
+                logger.error("error_signal_emit_failed", 
+                            filename=filename,
+                            emit_error=str(emit_error))
