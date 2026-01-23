@@ -8,7 +8,7 @@ import hashlib
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from platform_base.core.models import (
     Dataset,
@@ -174,13 +174,13 @@ class LoadConfig(BaseModel):
     # Configurações de estratégia
     custom_strategy: Optional[LoadStrategy] = None
     
-    @validator('max_missing_ratio')
+    @field_validator('max_missing_ratio')
     def validate_missing_ratio(cls, v):
         if not 0 <= v <= 1:
             raise ValueError("max_missing_ratio deve estar entre 0 e 1")
         return v
         
-    @validator('min_valid_points')
+    @field_validator('min_valid_points')
     def validate_min_points(cls, v):
         if v < 1:
             raise ValueError("min_valid_points deve ser >= 1")

@@ -26,9 +26,9 @@ def _sample_scada_xlsx() -> Path | None:
 def test_load_csv(tmp_path):
     df = pd.DataFrame(
         {
-            "timestamp": pd.date_range("2024-01-01", periods=5, freq="s"),
-            "a": [1, 2, 3, 4, 5],
-            "b": [10, 11, 12, 13, 14],
+            "timestamp": pd.date_range("2024-01-01", periods=15, freq="s"),
+            "a": list(range(1, 16)),
+            "b": list(range(10, 25)),
         }
     )
     path = tmp_path / "data.csv"

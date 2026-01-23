@@ -5,7 +5,7 @@ import inspect
 import json
 import os
 import psutil
-import resource
+# import resource  # Not available on Windows
 import signal
 import sys
 import threading
@@ -444,19 +444,25 @@ class AdvancedPluginSandbox:
     def _apply_resource_limits(self):
         """Aplica limites de recursos ao processo atual"""
         try:
-            # Memory limit (soft limit)
-            if self.resource_limits.max_memory_mb:
-                memory_bytes = int(self.resource_limits.max_memory_mb * 1024 * 1024)
-                resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
-            
-            # CPU time limit
-            cpu_limit = int(self.resource_limits.max_execution_time * 1.5)  # Buffer
-            resource.setrlimit(resource.RLIMIT_CPU, (cpu_limit, cpu_limit))
-            
-            # File descriptor limit
-            resource.setrlimit(resource.RLIMIT_NOFILE, 
-                             (self.resource_limits.max_file_descriptors, 
-                              self.resource_limits.max_file_descriptors))
+            # Resource limits not available on Windows
+            import platform
+            if platform.system() != "Windows":
+                import resource
+                # Memory limit (soft limit)
+                if self.resource_limits.max_memory_mb:
+                    memory_bytes = int(self.resource_limits.max_memory_mb * 1024 * 1024)
+                    resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+                
+                # CPU time limit
+                cpu_limit = int(self.resource_limits.max_execution_time * 1.5)  # Buffer
+                resource.setrlimit(resource.RLIMIT_CPU, (cpu_limit, cpu_limit))
+                
+                # File descriptor limit
+                resource.setrlimit(resource.RLIMIT_NOFILE, 
+                                 (self.resource_limits.max_file_descriptors, 
+                                  self.resource_limits.max_file_descriptors))
+            else:
+                logger.debug("resource_limits_skipped_windows", plugin=self.plugin_name)
         
         except Exception as e:
             logger.warning("resource_limits_failed", plugin=self.plugin_name, error=str(e))

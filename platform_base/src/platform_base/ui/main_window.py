@@ -1,10 +1,11 @@
 """
-MainWindow - Janela principal PyQt6 conforme especificação seção 12.3
+MainWindow - Interface moderna PyQt6 para análise de séries temporais
 
-Arquitetura de painéis:
-- DataPanel (esquerda): Gerenciamento de datasets e séries
-- VizPanel (centro): Visualização principal
-- OperationsPanel (direita): Operações e configurações
+Layout moderno com:
+- Toolbar horizontal com ícones e tooltips
+- Painéis compactos e organizados
+- Sistema drag-and-drop para gráficos
+- Interface responsiva e moderna
 """
 
 from __future__ import annotations
@@ -16,10 +17,10 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, 
     QSplitter, QMenuBar, QStatusBar, QToolBar,
     QFileDialog, QMessageBox, QProgressBar,
-    QLabel, QApplication
+    QLabel, QTabWidget, QFrame
 )
-from PyQt6.QtCore import Qt, pyqtSlot, QTimer
-from PyQt6.QtGui import QKeySequence, QAction, QIcon
+from PyQt6.QtCore import Qt, pyqtSlot, QTimer, QSize
+from PyQt6.QtGui import QKeySequence, QAction, QIcon, QFont
 
 from platform_base.ui.state import SessionState
 from platform_base.ui.panels.data_panel import DataPanel
@@ -31,16 +32,16 @@ from platform_base.utils.errors import PlatformError
 logger = get_logger(__name__)
 
 
-class MainWindow(QMainWindow):
+class ModernMainWindow(QMainWindow):
     """
-    Janela principal da aplicação PyQt6
+    Interface principal moderna com design clean e funcional
     
-    Implementa layout conforme especificação:
-    - Menu bar com ações principais
-    - Tool bar para acesso rápido
-    - Status bar com progresso
-    - Splitter layout com 3 painéis principais
-    - Auto-save de sessão
+    Características:
+    - Layout responsivo com painéis organizados
+    - Toolbar horizontal com ícones intuitivos
+    - Sistema drag-and-drop para visualizações
+    - Tradução completa PT-BR
+    - Design moderno seguindo guidelines de UX
     """
     
     def __init__(self, session_state: SessionState):
@@ -61,173 +62,408 @@ class MainWindow(QMainWindow):
         self._autosave_timer.start(300000)  # 5 minutes
         
         # Initialize UI
-        self._setup_ui()
+        self._setup_modern_ui()
         self._setup_connections()
+        self._setup_icons()
         
-        logger.info("main_window_initialized")
+        logger.info("modern_main_window_initialized")
     
-    def _setup_ui(self):
-        """Configura interface conforme especificação seção 12.3"""
+    def _setup_modern_ui(self):
+        """Configura interface moderna e responsiva"""
         # Window properties
         self.setWindowTitle("Platform Base v2.0 - Análise de Séries Temporais")
-        self.setMinimumSize(1200, 800)
-        self.resize(1600, 1000)
+        self.setMinimumSize(1400, 900)
+        self.resize(1800, 1100)
         
-        # Create central widget with splitter layout
+        # Modern styling
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #f8f9fa;
+            }
+            QToolBar {
+                background-color: #ffffff;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                padding: 4px;
+                margin: 2px;
+            }
+            QToolBar QToolButton {
+                background-color: transparent;
+                border: 1px solid transparent;
+                border-radius: 4px;
+                padding: 8px;
+                margin: 2px;
+                min-width: 32px;
+                min-height: 32px;
+            }
+            QToolBar QToolButton:hover {
+                background-color: #e9ecef;
+                border: 1px solid #ced4da;
+            }
+            QToolBar QToolButton:pressed {
+                background-color: #dee2e6;
+            }
+            QStatusBar {
+                background-color: #ffffff;
+                border-top: 1px solid #e9ecef;
+                padding: 4px 8px;
+            }
+            QSplitter::handle {
+                background-color: #e9ecef;
+                width: 2px;
+                height: 2px;
+            }
+            QSplitter::handle:hover {
+                background-color: #0d6efd;
+            }
+        """)
+        
+        # Create central layout
+        self._setup_central_layout()
+        
+        # Create interface components
+        self._create_modern_toolbar()
+        self._create_modern_menu()
+        self._create_modern_statusbar()
+        
+        logger.debug("modern_ui_setup_completed")
+    
+    def _setup_central_layout(self):
+        """Layout central otimizado com máxima eficiência de espaço"""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
-        # Main layout
+        # Main horizontal layout com margens mínimas
         main_layout = QHBoxLayout(central_widget)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(4)
+        main_layout.setContentsMargins(2, 2, 2, 2)
+        main_layout.setSpacing(1)
         
-        # Create horizontal splitter
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        main_layout.addWidget(splitter)
+        # Create main splitter (horizontal) otimizado
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
+        main_splitter.setHandleWidth(3)  # Handle mais fino
+        main_layout.addWidget(main_splitter)
         
-        # Create panels
+        # Left panel: Data management (ultra compacto)
+        left_frame = QFrame()
+        left_frame.setMaximumWidth(300)  # Reduzido de 350
+        left_frame.setMinimumWidth(240)  # Reduzido de 280
+        left_frame.setFrameStyle(QFrame.Shape.StyledPanel)
+        left_frame.setStyleSheet("""
+            QFrame {
+                border: 1px solid #e9ecef;
+                border-radius: 4px;
+                background-color: #fafafa;
+            }
+        """)
+        left_layout = QVBoxLayout(left_frame)
+        left_layout.setContentsMargins(2, 2, 2, 2)
+        left_layout.setSpacing(2)
+        
+        # Data panel ultra compacto
         self._data_panel = DataPanel(self.session_state)
+        left_layout.addWidget(self._data_panel)
+        
+        # Center panel: Visualizations (área principal maximizada)
+        center_frame = QFrame()
+        center_frame.setFrameStyle(QFrame.Shape.StyledPanel)
+        center_frame.setStyleSheet("""
+            QFrame {
+                border: 1px solid #e9ecef;
+                border-radius: 4px;
+                background-color: #ffffff;
+            }
+        """)
+        center_layout = QVBoxLayout(center_frame)
+        center_layout.setContentsMargins(2, 2, 2, 2)
+        center_layout.setSpacing(2)
+        
         self._viz_panel = VizPanel(self.session_state)
+        center_layout.addWidget(self._viz_panel)
+        
+        # Right panel: Operations minimized (collapsible)
+        right_frame = QFrame()
+        right_frame.setMaximumWidth(280)  # Reduzido de 320
+        right_frame.setMinimumWidth(200)  # Reduzido de 250
+        right_frame.setFrameStyle(QFrame.Shape.StyledPanel)
+        right_frame.setStyleSheet("""
+            QFrame {
+                border: 1px solid #e9ecef;
+                border-radius: 4px;
+                background-color: #fafafa;
+            }
+        """)
+        right_layout = QVBoxLayout(right_frame)
+        right_layout.setContentsMargins(2, 2, 2, 2)
+        right_layout.setSpacing(2)
+        
         self._operations_panel = OperationsPanel(self.session_state)
+        right_layout.addWidget(self._operations_panel)
         
-        # Add panels to splitter
-        splitter.addWidget(self._data_panel)
-        splitter.addWidget(self._viz_panel)
-        splitter.addWidget(self._operations_panel)
+        # Add panels to main splitter
+        main_splitter.addWidget(left_frame)
+        main_splitter.addWidget(center_frame)
+        main_splitter.addWidget(right_frame)
         
-        # Set splitter proportions: Data(20%) - Viz(60%) - Operations(20%)
-        splitter.setStretchFactor(0, 20)
-        splitter.setStretchFactor(1, 60)
-        splitter.setStretchFactor(2, 20)
+        # Otimizações de proporções: Left(20%) - Center(65%) - Right(15%) 
+        # para maximizar área de visualização
+        main_splitter.setStretchFactor(0, 20)
+        main_splitter.setStretchFactor(1, 65)
+        main_splitter.setStretchFactor(2, 15)
         
-        # Create menus and toolbars
-        self._create_menu_bar()
-        self._create_tool_bar()
-        self._create_status_bar()
+        # Set initial sizes more precisely
+        main_splitter.setSizes([240, 800, 200])  # Valores absolutos otimizados
         
-        logger.debug("main_window_ui_setup_completed")
+        # Styling for splitter handles
+        main_splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #dee2e6;
+                border: 1px solid #ced4da;
+            }
+            QSplitter::handle:hover {
+                background-color: #0d6efd;
+            }
+            QSplitter::handle:horizontal {
+                width: 3px;
+            }
+        """)
     
-    def _create_menu_bar(self):
-        """Cria barra de menu"""
-        menubar = self.menuBar()
-        
-        # File Menu
-        file_menu = menubar.addMenu("&Arquivo")
-        
-        # Open action
-        open_action = QAction("&Abrir Dataset...", self)
-        open_action.setShortcut(QKeySequence.StandardKey.Open)
-        open_action.setStatusTip("Abrir arquivo de dados")
-        open_action.triggered.connect(self._open_dataset)
-        file_menu.addAction(open_action)
-        
-        file_menu.addSeparator()
-        
-        # Save session action
-        save_session_action = QAction("&Salvar Sessão...", self)
-        save_session_action.setShortcut(QKeySequence.StandardKey.Save)
-        save_session_action.setStatusTip("Salvar estado atual da sessão")
-        save_session_action.triggered.connect(self._save_session)
-        file_menu.addAction(save_session_action)
-        
-        # Load session action
-        load_session_action = QAction("&Carregar Sessão...", self)
-        load_session_action.setStatusTip("Carregar sessão salva")
-        load_session_action.triggered.connect(self._load_session)
-        file_menu.addAction(load_session_action)
-        
-        file_menu.addSeparator()
-        
-        # Export action
-        export_action = QAction("&Exportar Dados...", self)
-        export_action.setStatusTip("Exportar dados processados")
-        export_action.triggered.connect(self._export_data)
-        file_menu.addAction(export_action)
-        
-        file_menu.addSeparator()
-        
-        # Exit action
-        exit_action = QAction("&Sair", self)
-        exit_action.setShortcut(QKeySequence.StandardKey.Quit)
-        exit_action.setStatusTip("Sair da aplicação")
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
-        
-        # View Menu
-        view_menu = menubar.addMenu("&Visualizar")
-        
-        # Reset layout action
-        reset_layout_action = QAction("&Resetar Layout", self)
-        reset_layout_action.setStatusTip("Restaurar layout padrão")
-        reset_layout_action.triggered.connect(self._reset_layout)
-        view_menu.addAction(reset_layout_action)
-        
-        # Tools Menu
-        tools_menu = menubar.addMenu("&Ferramentas")
-        
-        # Clear cache action
-        clear_cache_action = QAction("&Limpar Cache", self)
-        clear_cache_action.setStatusTip("Limpar cache de dados")
-        clear_cache_action.triggered.connect(self._clear_cache)
-        tools_menu.addAction(clear_cache_action)
-        
-        # Help Menu
-        help_menu = menubar.addMenu("&Ajuda")
-        
-        # About action
-        about_action = QAction("&Sobre...", self)
-        about_action.setStatusTip("Sobre Platform Base")
-        about_action.triggered.connect(self._show_about)
-        help_menu.addAction(about_action)
-    
-    def _create_tool_bar(self):
-        """Cria barra de ferramentas"""
-        toolbar = self.addToolBar("Principal")
+    def _create_modern_toolbar(self):
+        """Toolbar moderna horizontal com ícones intuitivos"""
+        toolbar = self.addToolBar("Ferramentas")
         toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(24, 24))
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         
-        # Open dataset button
-        open_action = QAction("Abrir", self)
-        open_action.setStatusTip("Abrir dataset")
+        # Arquivo
+        open_action = QAction("📁", self)
+        open_action.setText("Abrir")
+        open_action.setToolTip("Abrir dataset (Ctrl+O)")
+        open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self._open_dataset)
         toolbar.addAction(open_action)
         
-        toolbar.addSeparator()
-        
-        # Save session button
-        save_action = QAction("Salvar", self)
-        save_action.setStatusTip("Salvar sessão")
+        save_action = QAction("💾", self)
+        save_action.setText("Salvar")
+        save_action.setToolTip("Salvar sessão (Ctrl+S)")
+        save_action.setShortcut(QKeySequence.StandardKey.Save)
         save_action.triggered.connect(self._save_session)
         toolbar.addAction(save_action)
         
         toolbar.addSeparator()
         
-        # Export button
-        export_action = QAction("Exportar", self)
-        export_action.setStatusTip("Exportar dados")
+        # Visualização
+        plot_2d_action = QAction("📊", self)
+        plot_2d_action.setText("Gráfico 2D")
+        plot_2d_action.setToolTip("Criar gráfico 2D")
+        plot_2d_action.triggered.connect(self._create_2d_plot)
+        toolbar.addAction(plot_2d_action)
+        
+        plot_3d_action = QAction("📈", self)
+        plot_3d_action.setText("Gráfico 3D")
+        plot_3d_action.setToolTip("Criar gráfico 3D")
+        plot_3d_action.triggered.connect(self._create_3d_plot)
+        toolbar.addAction(plot_3d_action)
+        
+        toolbar.addSeparator()
+        
+        # Operações
+        interpolate_action = QAction("⚡", self)
+        interpolate_action.setText("Interpolar")
+        interpolate_action.setToolTip("Interpolar série selecionada")
+        interpolate_action.triggered.connect(self._interpolate_series)
+        toolbar.addAction(interpolate_action)
+        
+        derivative_action = QAction("📐", self)
+        derivative_action.setText("Derivada")
+        derivative_action.setToolTip("Calcular derivada")
+        derivative_action.triggered.connect(self._calculate_derivative)
+        toolbar.addAction(derivative_action)
+        
+        integral_action = QAction("∫", self)
+        integral_action.setText("Integral")
+        integral_action.setToolTip("Calcular integral")
+        integral_action.triggered.connect(self._calculate_integral)
+        toolbar.addAction(integral_action)
+        
+        toolbar.addSeparator()
+        
+        # Exportar
+        export_action = QAction("📤", self)
+        export_action.setText("Exportar")
+        export_action.setToolTip("Exportar dados processados")
         export_action.triggered.connect(self._export_data)
         toolbar.addAction(export_action)
+        
+        # Configurações
+        settings_action = QAction("⚙️", self)
+        settings_action.setText("Config")
+        settings_action.setToolTip("Configurações da aplicação")
+        settings_action.triggered.connect(self._show_settings)
+        toolbar.addAction(settings_action)
     
-    def _create_status_bar(self):
-        """Cria barra de status"""
+    def _create_modern_menu(self):
+        """Menu moderno com tradução completa PT-BR"""
+        menubar = self.menuBar()
+        menubar.setStyleSheet("""
+            QMenuBar {
+                background-color: #ffffff;
+                border-bottom: 1px solid #e9ecef;
+                padding: 4px;
+            }
+            QMenuBar::item {
+                background: transparent;
+                padding: 6px 12px;
+                border-radius: 4px;
+            }
+            QMenuBar::item:selected {
+                background-color: #e9ecef;
+            }
+            QMenu {
+                background-color: #ffffff;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                padding: 4px;
+            }
+            QMenu::item {
+                padding: 8px 24px;
+                border-radius: 4px;
+            }
+            QMenu::item:selected {
+                background-color: #0d6efd;
+                color: white;
+            }
+        """)
+        
+        # Menu Arquivo
+        file_menu = menubar.addMenu("📁 &Arquivo")
+        
+        open_action = QAction("📁 &Abrir Dataset...", self)
+        open_action.setShortcut("Ctrl+O")
+        open_action.setStatusTip("Abrir arquivo de dados (CSV, Excel, Parquet, HDF5)")
+        open_action.triggered.connect(self._open_dataset)
+        file_menu.addAction(open_action)
+        
+        file_menu.addSeparator()
+        
+        save_action = QAction("💾 &Salvar Sessão...", self)
+        save_action.setShortcut("Ctrl+S")
+        save_action.triggered.connect(self._save_session)
+        file_menu.addAction(save_action)
+        
+        load_action = QAction("📂 &Carregar Sessão...", self)
+        load_action.triggered.connect(self._load_session)
+        file_menu.addAction(load_action)
+        
+        file_menu.addSeparator()
+        
+        export_action = QAction("📤 &Exportar Dados...", self)
+        export_action.triggered.connect(self._export_data)
+        file_menu.addAction(export_action)
+        
+        file_menu.addSeparator()
+        
+        exit_action = QAction("🚪 &Sair", self)
+        exit_action.setShortcut("Ctrl+Q")
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+        
+        # Menu Visualizar
+        view_menu = menubar.addMenu("👁️ &Visualizar")
+        
+        new_2d_action = QAction("📊 Novo Gráfico &2D", self)
+        new_2d_action.setShortcut("Ctrl+2")
+        new_2d_action.triggered.connect(self._create_2d_plot)
+        view_menu.addAction(new_2d_action)
+        
+        new_3d_action = QAction("📈 Novo Gráfico &3D", self)
+        new_3d_action.setShortcut("Ctrl+3")
+        new_3d_action.triggered.connect(self._create_3d_plot)
+        view_menu.addAction(new_3d_action)
+        
+        view_menu.addSeparator()
+        
+        reset_layout_action = QAction("🔄 &Resetar Layout", self)
+        reset_layout_action.triggered.connect(self._reset_layout)
+        view_menu.addAction(reset_layout_action)
+        
+        # Menu Operações
+        ops_menu = menubar.addMenu("⚡ &Operações")
+        
+        interpolate_action = QAction("🔗 &Interpolar Série...", self)
+        interpolate_action.triggered.connect(self._interpolate_series)
+        ops_menu.addAction(interpolate_action)
+        
+        derivative_action = QAction("📐 &Derivada...", self)
+        derivative_action.triggered.connect(self._calculate_derivative)
+        ops_menu.addAction(derivative_action)
+        
+        integral_action = QAction("∫ &Integral...", self)
+        integral_action.triggered.connect(self._calculate_integral)
+        ops_menu.addAction(integral_action)
+        
+        # Menu Ferramentas
+        tools_menu = menubar.addMenu("🔧 &Ferramentas")
+        
+        cache_action = QAction("🗑️ Limpar &Cache", self)
+        cache_action.triggered.connect(self._clear_cache)
+        tools_menu.addAction(cache_action)
+        
+        settings_action = QAction("⚙️ &Configurações...", self)
+        settings_action.triggered.connect(self._show_settings)
+        tools_menu.addAction(settings_action)
+        
+        # Menu Ajuda
+        help_menu = menubar.addMenu("❓ &Ajuda")
+        
+        about_action = QAction("ℹ️ &Sobre...", self)
+        about_action.triggered.connect(self._show_about)
+        help_menu.addAction(about_action)
+    
+    def _create_modern_statusbar(self):
+        """Status bar moderna com informações relevantes"""
         statusbar = self.statusBar()
         
-        # Status label
-        self._status_label = QLabel("Pronto")
+        # Status principal
+        self._status_label = QLabel("🟢 Pronto")
+        self._status_label.setStyleSheet("color: #198754; font-weight: bold;")
         statusbar.addWidget(self._status_label)
         
-        # Progress bar
+        # Progress bar moderna
         self._progress_bar = QProgressBar()
         self._progress_bar.setVisible(False)
         self._progress_bar.setMaximumWidth(200)
+        self._progress_bar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #e9ecef;
+                border-radius: 4px;
+                background-color: #f8f9fa;
+                height: 20px;
+            }
+            QProgressBar::chunk {
+                background-color: #0d6efd;
+                border-radius: 3px;
+            }
+        """)
         statusbar.addPermanentWidget(self._progress_bar)
         
+        # Dataset info
+        dataset_label = QLabel("📊 Nenhum dataset")
+        dataset_label.setStyleSheet("color: #6c757d;")
+        statusbar.addPermanentWidget(dataset_label)
+        
         # Session info
-        session_label = QLabel(f"Sessão: {self.session_state.session_id}")
+        session_label = QLabel(f"🔑 {self.session_state.session_id[:8]}...")
+        session_label.setStyleSheet("color: #6c757d;")
         statusbar.addPermanentWidget(session_label)
     
+    def _setup_icons(self):
+        """Configura ícones para ações"""
+        # Icons will be text emojis for now, can be replaced with actual icon files
+        pass
+    
     def _setup_connections(self):
-        """Configura conexões de sinais entre componentes"""
+        """Configura conexões entre componentes"""
         # Connect session state signals
         self.session_state.operation_started.connect(self._on_operation_started)
         self.session_state.operation_finished.connect(self._on_operation_finished)
@@ -237,61 +473,73 @@ class MainWindow(QMainWindow):
         if self._data_panel:
             self._data_panel.dataset_loaded.connect(self._on_dataset_loaded)
         
-        logger.debug("main_window_connections_setup_completed")
+        logger.debug("modern_connections_setup_completed")
     
-    # Slots for session state signals
+    # Signal handlers
     @pyqtSlot(str)
     def _on_operation_started(self, operation_name: str):
         """Handler para início de operação"""
-        self._status_label.setText(f"Executando: {operation_name}")
+        self._status_label.setText(f"⚡ Executando: {operation_name}")
+        self._status_label.setStyleSheet("color: #fd7e14; font-weight: bold;")
         self._progress_bar.setVisible(True)
-        self._progress_bar.setRange(0, 0)  # Indeterminate progress
+        self._progress_bar.setRange(0, 0)
         
-        # Disable actions during operation
-        self.setEnabled(False)
-        
-        logger.debug("operation_started_ui", operation=operation_name)
+        logger.debug("operation_started", operation=operation_name)
     
     @pyqtSlot(str, bool)
     def _on_operation_finished(self, operation_name: str, success: bool):
         """Handler para fim de operação"""
-        status = "concluída" if success else "falhou"
-        self._status_label.setText(f"Operação {operation_name} {status}")
+        if success:
+            self._status_label.setText(f"✅ {operation_name} concluída")
+            self._status_label.setStyleSheet("color: #198754; font-weight: bold;")
+        else:
+            self._status_label.setText(f"❌ {operation_name} falhou")
+            self._status_label.setStyleSheet("color: #dc3545; font-weight: bold;")
         
         self._progress_bar.setVisible(False)
-        self.setEnabled(True)
         
-        # Clear status after 3 seconds
-        QTimer.singleShot(3000, lambda: self._status_label.setText("Pronto"))
+        # Reset status after 3 seconds
+        QTimer.singleShot(3000, lambda: (
+            self._status_label.setText("🟢 Pronto"),
+            self._status_label.setStyleSheet("color: #198754; font-weight: bold;")
+        ))
         
-        logger.debug("operation_finished_ui", operation=operation_name, success=success)
+        logger.debug("operation_finished", operation=operation_name, success=success)
     
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
         """Handler para mudança de dataset"""
         if dataset_id:
-            self._status_label.setText(f"Dataset ativo: {dataset_id}")
+            # Get filename from dataset
+            dataset = self.session_state._dataset_store.get_dataset(dataset_id)
+            if dataset and hasattr(dataset, 'source_file'):
+                filename = Path(dataset.source_file).name
+                self._status_label.setText(f"📊 Dataset: {filename}")
+            else:
+                self._status_label.setText(f"📊 Dataset: {dataset_id}")
         else:
-            self._status_label.setText("Nenhum dataset ativo")
+            self._status_label.setText("📊 Nenhum dataset")
     
     @pyqtSlot(str)
     def _on_dataset_loaded(self, dataset_id: str):
         """Handler para dataset carregado"""
-        self._status_label.setText(f"Dataset carregado: {dataset_id}")
+        dataset = self.session_state._dataset_store.get_dataset(dataset_id)
+        if dataset and hasattr(dataset, 'source_file'):
+            filename = Path(dataset.source_file).name
+            self._status_label.setText(f"✅ Carregado: {filename}")
     
-    # Menu actions
+    # Action handlers
     def _open_dataset(self):
         """Abre diálogo para carregar dataset"""
         file_dialog = QFileDialog(self)
-        file_dialog.setWindowTitle("Abrir Dataset")
+        file_dialog.setWindowTitle("📁 Abrir Dataset")
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
         file_dialog.setNameFilters([
-            "Todos os formatos suportados (*.csv *.xlsx *.parquet *.h5)",
-            "CSV files (*.csv)",
-            "Excel files (*.xlsx *.xls)",
-            "Parquet files (*.parquet *.pq)",
-            "HDF5 files (*.h5 *.hdf5)",
-            "Todos os arquivos (*.*)"
+            "Todos os formatos (*.csv *.xlsx *.parquet *.h5)",
+            "CSV (*.csv)",
+            "Excel (*.xlsx *.xls)",
+            "Parquet (*.parquet *.pq)",
+            "HDF5 (*.h5 *.hdf5)"
         ])
         
         if file_dialog.exec():
@@ -302,137 +550,159 @@ class MainWindow(QMainWindow):
     def _save_session(self):
         """Salva sessão atual"""
         file_dialog = QFileDialog(self)
-        file_dialog.setWindowTitle("Salvar Sessão")
-        file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+        file_dialog.setWindowTitle("💾 Salvar Sessão")
         file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
         file_dialog.setDefaultSuffix("json")
-        file_dialog.setNameFilters(["Sessões (*.json)", "Todos os arquivos (*.*)"])
+        file_dialog.setNameFilters(["Sessões (*.json)"])
         
         if file_dialog.exec():
             file_paths = file_dialog.selectedFiles()
             if file_paths:
                 try:
                     self.session_state.save_session(file_paths[0])
-                    self._status_label.setText("Sessão salva com sucesso")
+                    self._status_label.setText("✅ Sessão salva")
                 except Exception as e:
-                    self._show_error("Erro ao Salvar", f"Falha ao salvar sessão:\n{e}")
+                    self._show_error("Erro ao Salvar", f"Falha ao salvar:\n{e}")
     
     def _load_session(self):
-        """Carrega sessão salva"""
+        """Carrega sessão"""
         file_dialog = QFileDialog(self)
-        file_dialog.setWindowTitle("Carregar Sessão")
+        file_dialog.setWindowTitle("📂 Carregar Sessão")
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-        file_dialog.setNameFilters(["Sessões (*.json)", "Todos os arquivos (*.*)"])
+        file_dialog.setNameFilters(["Sessões (*.json)"])
         
         if file_dialog.exec():
             file_paths = file_dialog.selectedFiles()
             if file_paths:
                 try:
                     self.session_state.load_session(file_paths[0])
-                    self._status_label.setText("Sessão carregada com sucesso")
+                    self._status_label.setText("✅ Sessão carregada")
                 except Exception as e:
-                    self._show_error("Erro ao Carregar", f"Falha ao carregar sessão:\n{e}")
+                    self._show_error("Erro ao Carregar", f"Falha ao carregar:\n{e}")
+    
+    def _create_2d_plot(self):
+        """Cria novo gráfico 2D"""
+        if self._viz_panel:
+            self._viz_panel.create_2d_plot()
+    
+    def _create_3d_plot(self):
+        """Cria novo gráfico 3D"""
+        if self._viz_panel:
+            self._viz_panel.create_3d_plot()
+    
+    def _interpolate_series(self):
+        """Interpola série selecionada"""
+        if self._operations_panel:
+            self._operations_panel.show_interpolation_dialog()
+    
+    def _calculate_derivative(self):
+        """Calcula derivada"""
+        if self._operations_panel:
+            self._operations_panel.show_derivative_dialog()
+    
+    def _calculate_integral(self):
+        """Calcula integral"""
+        if self._operations_panel:
+            self._operations_panel.show_integral_dialog()
     
     def _export_data(self):
-        """Exporta dados processados"""
+        """Exporta dados"""
         if not self.session_state.current_dataset:
-            self._show_info("Exportar Dados", "Nenhum dataset ativo para exportar.")
+            self._show_info("Exportar", "Nenhum dataset para exportar")
             return
         
-        # Delegate to operations panel
         if self._operations_panel:
             self._operations_panel.show_export_dialog()
     
+    def _show_settings(self):
+        """Mostra configurações"""
+        self._show_info("Configurações", "Painel de configurações em desenvolvimento")
+    
     def _reset_layout(self):
-        """Restaura layout padrão"""
-        # Reset splitter proportions
-        if hasattr(self, 'centralWidget'):
-            splitter = self.centralWidget().layout().itemAt(0).widget()
+        """Restaura layout para configuração otimizada"""
+        central_widget = self.centralWidget()
+        if central_widget:
+            splitter = central_widget.layout().itemAt(0).widget()
             if isinstance(splitter, QSplitter):
-                total_width = splitter.width()
-                splitter.setSizes([
-                    int(total_width * 0.2),  # Data panel
-                    int(total_width * 0.6),  # Viz panel  
-                    int(total_width * 0.2)   # Operations panel
-                ])
-        
-        self._status_label.setText("Layout restaurado")
+                # Use absolute sizes for more precise control
+                splitter.setSizes([240, 800, 200])  # Otimizado para eficiência
+                logger.info("layout_reset_completed", sizes="240-800-200")
+        self._status_label.setText("🔄 Layout otimizado restaurado")
+        self._status_label.setStyleSheet("color: #198754; font-weight: bold;")
     
     def _clear_cache(self):
-        """Limpa cache da aplicação"""
+        """Limpa cache"""
         reply = QMessageBox.question(
             self, 
-            "Limpar Cache",
-            "Isso irá limpar todos os dados em cache. Continuar?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            "🗑️ Limpar Cache",
+            "Limpar todos os dados em cache?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         
         if reply == QMessageBox.StandardButton.Yes:
             try:
-                # Clear dataset store cache
                 self.session_state._dataset_store.clear_cache()
-                self._status_label.setText("Cache limpo com sucesso")
+                self._status_label.setText("✅ Cache limpo")
             except Exception as e:
                 self._show_error("Erro", f"Falha ao limpar cache:\n{e}")
     
     def _show_about(self):
-        """Mostra diálogo sobre a aplicação"""
+        """Sobre a aplicação"""
         QMessageBox.about(
             self,
-            "Sobre Platform Base",
+            "ℹ️ Sobre Platform Base",
             """
-            <h3>Platform Base v2.0</h3>
-            <p>Plataforma de Análise Exploratória de Séries Temporais</p>
+            <h3>🚀 Platform Base v2.0</h3>
+            <p><b>Plataforma Moderna de Análise de Séries Temporais</b></p>
             <p>Desenvolvido para TRANSPETRO</p>
             <br>
-            <p><b>Recursos principais:</b></p>
+            <p><b>📊 Recursos:</b></p>
             <ul>
-            <li>Análise de séries temporais irregulares</li>
-            <li>Interpolação e sincronização avançada</li>
-            <li>Visualização 2D/3D interativa</li>
-            <li>Operações matemáticas (derivadas, integrais)</li>
-            <li>Streaming temporal</li>
+            <li>🔍 Análise exploratória avançada</li>
+            <li>📈 Visualização 2D/3D interativa</li>
+            <li>⚡ Interpolação e sincronização</li>
+            <li>📐 Operações matemáticas (derivadas, integrais)</li>
+            <li>🎯 Interface moderna e intuitiva</li>
+            <li>🚀 Streaming temporal em tempo real</li>
             </ul>
+            <br>
+            <p><b>Tecnologias:</b> Python 3.10+, PyQt6, NumPy, Pandas</p>
             """
         )
     
     def _show_error(self, title: str, message: str):
-        """Mostra diálogo de erro"""
-        QMessageBox.critical(self, title, message)
+        """Mostra erro"""
+        QMessageBox.critical(self, f"❌ {title}", message)
     
     def _show_info(self, title: str, message: str):
-        """Mostra diálogo de informação"""
-        QMessageBox.information(self, title, message)
+        """Mostra informação"""
+        QMessageBox.information(self, f"ℹ️ {title}", message)
     
     def _auto_save_session(self):
-        """Auto-save periódico da sessão"""
+        """Auto-save da sessão"""
         try:
-            # Create auto-save directory
             autosave_dir = Path.home() / ".platform_base" / "autosave"
             autosave_dir.mkdir(parents=True, exist_ok=True)
             
-            # Save session with timestamp
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             autosave_path = autosave_dir / f"autosave_{timestamp}.json"
             
             self.session_state.save_session(str(autosave_path))
             
-            # Keep only last 5 auto-saves
+            # Keep last 5 auto-saves
             autosave_files = sorted(autosave_dir.glob("autosave_*.json"))
             for old_file in autosave_files[:-5]:
                 old_file.unlink()
             
-            logger.debug("auto_save_session_completed", path=str(autosave_path))
+            logger.debug("auto_save_completed", path=str(autosave_path))
             
         except Exception as e:
-            logger.warning("auto_save_session_failed", error=str(e))
+            logger.warning("auto_save_failed", error=str(e))
     
     def save_session_on_exit(self):
-        """Salva sessão no fechamento da aplicação"""
+        """Salva sessão ao sair"""
         try:
-            # Create exit save
             exit_save_dir = Path.home() / ".platform_base"
             exit_save_dir.mkdir(parents=True, exist_ok=True)
             
@@ -445,11 +715,11 @@ class MainWindow(QMainWindow):
             logger.error("exit_session_save_failed", error=str(e))
     
     def closeEvent(self, event):
-        """Override para handling de fechamento"""
+        """Handler de fechamento"""
         reply = QMessageBox.question(
             self,
-            "Fechar Aplicação",
-            "Deseja salvar a sessão atual antes de sair?",
+            "🚪 Fechar Aplicação",
+            "Salvar sessão antes de sair?",
             QMessageBox.StandardButton.Save | 
             QMessageBox.StandardButton.Discard | 
             QMessageBox.StandardButton.Cancel,
@@ -463,8 +733,10 @@ class MainWindow(QMainWindow):
         if reply == QMessageBox.StandardButton.Save:
             self.save_session_on_exit()
         
-        # Stop auto-save timer
         self._autosave_timer.stop()
-        
-        logger.info("main_window_closing")
+        logger.info("application_closing")
         event.accept()
+
+
+# Alias para compatibilidade
+MainWindow = ModernMainWindow

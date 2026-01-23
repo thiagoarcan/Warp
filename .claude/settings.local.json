@@ -6,7 +6,9 @@
       "Bash(mkdir:*)",
       "Bash(timeout 10 python:*)",
       "Bash(timeout:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(mv:*)",
+      "Bash(start python src/platform_base/ui/main_window.py)"
     ],
     "deny": [],
     "ask": []
