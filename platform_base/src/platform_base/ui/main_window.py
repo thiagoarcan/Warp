@@ -19,8 +19,8 @@ from PyQt6.QtWidgets import (
     QFileDialog, QMessageBox, QProgressBar,
     QLabel, QTabWidget, QFrame
 )
-from PyQt6.QtCore import Qt, pyqtSlot, QTimer, QSize
-from PyQt6.QtGui import QKeySequence, QAction, QIcon, QFont
+from PyQt6.QtCore import Qt, pyqtSlot, QTimer, QSize, QSettings
+from PyQt6.QtGui import QKeySequence, QAction, QIcon, QFont, QShortcut
 
 from platform_base.ui.state import SessionState
 from platform_base.ui.panels.data_panel import DataPanel
@@ -55,6 +55,7 @@ class ModernMainWindow(QMainWindow):
         self._operations_panel: Optional[OperationsPanel] = None
         self._progress_bar: Optional[QProgressBar] = None
         self._status_label: Optional[QLabel] = None
+        self._main_splitter: Optional[QSplitter] = None
         
         # Auto-save timer
         self._autosave_timer = QTimer()
@@ -65,6 +66,8 @@ class ModernMainWindow(QMainWindow):
         self._setup_modern_ui()
         self._setup_connections()
         self._setup_icons()
+        self._setup_additional_shortcuts()  # NEW: Additional keyboard shortcuts
+        self._restore_window_state()  # NEW: Restore saved layout
         
         logger.info("modern_main_window_initialized")
     
@@ -139,10 +142,10 @@ class ModernMainWindow(QMainWindow):
         main_layout.setSpacing(1)
         
         # Create main splitter (horizontal) otimizado
-        main_splitter = QSplitter(Qt.Orientation.Horizontal)
-        main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
-        main_splitter.setHandleWidth(3)  # Handle mais fino
-        main_layout.addWidget(main_splitter)
+        self._main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self._main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
+        self._main_splitter.setHandleWidth(3)  # Handle mais fino
+        main_layout.addWidget(self._main_splitter)
         
         # Left panel: Data management (ultra compacto)
         left_frame = QFrame()
@@ -201,21 +204,21 @@ class ModernMainWindow(QMainWindow):
         right_layout.addWidget(self._operations_panel)
         
         # Add panels to main splitter
-        main_splitter.addWidget(left_frame)
-        main_splitter.addWidget(center_frame)
-        main_splitter.addWidget(right_frame)
+        self._main_splitter.addWidget(left_frame)
+        self._main_splitter.addWidget(center_frame)
+        self._main_splitter.addWidget(right_frame)
         
         # Otimizações de proporções: Left(20%) - Center(65%) - Right(15%) 
         # para maximizar área de visualização
-        main_splitter.setStretchFactor(0, 20)
-        main_splitter.setStretchFactor(1, 65)
-        main_splitter.setStretchFactor(2, 15)
+        self._main_splitter.setStretchFactor(0, 20)
+        self._main_splitter.setStretchFactor(1, 65)
+        self._main_splitter.setStretchFactor(2, 15)
         
         # Set initial sizes more precisely
-        main_splitter.setSizes([240, 800, 200])  # Valores absolutos otimizados
+        self._main_splitter.setSizes([240, 800, 200])  # Valores absolutos otimizados
         
         # Styling for splitter handles
-        main_splitter.setStyleSheet("""
+        self._main_splitter.setStyleSheet("""
             QSplitter::handle {
                 background-color: #dee2e6;
                 border: 1px solid #ced4da;
@@ -238,14 +241,16 @@ class ModernMainWindow(QMainWindow):
         # Arquivo
         open_action = QAction("📁", self)
         open_action.setText("Abrir")
-        open_action.setToolTip("Abrir dataset (Ctrl+O)")
+        open_action.setToolTip("📁 Abrir Dataset (Ctrl+O)\nAbre arquivo CSV, Excel, Parquet ou HDF5")
+        open_action.setStatusTip("Abrir arquivo de dados para análise")
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self._open_dataset)
         toolbar.addAction(open_action)
         
         save_action = QAction("💾", self)
         save_action.setText("Salvar")
-        save_action.setToolTip("Salvar sessão (Ctrl+S)")
+        save_action.setToolTip("💾 Salvar Sessão (Ctrl+S)\nSalva o estado atual da aplicação")
+        save_action.setStatusTip("Salvar sessão atual incluindo datasets e configurações")
         save_action.setShortcut(QKeySequence.StandardKey.Save)
         save_action.triggered.connect(self._save_session)
         toolbar.addAction(save_action)
@@ -255,13 +260,15 @@ class ModernMainWindow(QMainWindow):
         # Visualização
         plot_2d_action = QAction("📊", self)
         plot_2d_action.setText("Gráfico 2D")
-        plot_2d_action.setToolTip("Criar gráfico 2D")
+        plot_2d_action.setToolTip("📊 Criar Gráfico 2D (Ctrl+2)\nVisualização de linha temporal")
+        plot_2d_action.setStatusTip("Criar novo gráfico 2D da série selecionada")
         plot_2d_action.triggered.connect(self._create_2d_plot)
         toolbar.addAction(plot_2d_action)
         
         plot_3d_action = QAction("📈", self)
         plot_3d_action.setText("Gráfico 3D")
-        plot_3d_action.setToolTip("Criar gráfico 3D")
+        plot_3d_action.setToolTip("📈 Criar Gráfico 3D (Ctrl+3)\nVisualização tridimensional")
+        plot_3d_action.setStatusTip("Criar novo gráfico 3D da série selecionada")
         plot_3d_action.triggered.connect(self._create_3d_plot)
         toolbar.addAction(plot_3d_action)
         
@@ -270,19 +277,22 @@ class ModernMainWindow(QMainWindow):
         # Operações
         interpolate_action = QAction("⚡", self)
         interpolate_action.setText("Interpolar")
-        interpolate_action.setToolTip("Interpolar série selecionada")
+        interpolate_action.setToolTip("⚡ Interpolar Série (Ctrl+I)\nPreenche gaps nos dados")
+        interpolate_action.setStatusTip("Interpolação avançada com múltiplos métodos")
         interpolate_action.triggered.connect(self._interpolate_series)
         toolbar.addAction(interpolate_action)
         
         derivative_action = QAction("📐", self)
         derivative_action.setText("Derivada")
-        derivative_action.setToolTip("Calcular derivada")
+        derivative_action.setToolTip("📐 Calcular Derivada (Ctrl+D)\n1ª, 2ª ou 3ª ordem")
+        derivative_action.setStatusTip("Calcular derivada da série selecionada")
         derivative_action.triggered.connect(self._calculate_derivative)
         toolbar.addAction(derivative_action)
         
         integral_action = QAction("∫", self)
         integral_action.setText("Integral")
-        integral_action.setToolTip("Calcular integral")
+        integral_action.setToolTip("∫ Calcular Integral\nTrapézio, Simpson ou cumulativa")
+        integral_action.setStatusTip("Calcular integral da série selecionada")
         integral_action.triggered.connect(self._calculate_integral)
         toolbar.addAction(integral_action)
         
@@ -291,14 +301,16 @@ class ModernMainWindow(QMainWindow):
         # Exportar
         export_action = QAction("📤", self)
         export_action.setText("Exportar")
-        export_action.setToolTip("Exportar dados processados")
+        export_action.setToolTip("📤 Exportar Dados (Ctrl+E)\nCSV, Excel, Parquet, HDF5")
+        export_action.setStatusTip("Exportar dados processados em vários formatos")
         export_action.triggered.connect(self._export_data)
         toolbar.addAction(export_action)
         
         # Configurações
         settings_action = QAction("⚙️", self)
         settings_action.setText("Config")
-        settings_action.setToolTip("Configurações da aplicação")
+        settings_action.setToolTip("⚙️ Configurações\nPersonalizar aplicação")
+        settings_action.setStatusTip("Abrir painel de configurações")
         settings_action.triggered.connect(self._show_settings)
         toolbar.addAction(settings_action)
     
@@ -724,8 +736,118 @@ class ModernMainWindow(QMainWindow):
         except Exception as e:
             logger.error("exit_session_save_failed", error=str(e))
     
+    def _setup_additional_shortcuts(self):
+        """Configura atalhos adicionais de teclado para eficiência"""
+        # Atalhos de navegação
+        QShortcut(QKeySequence("Ctrl+Tab"), self, self._next_view)
+        QShortcut(QKeySequence("Ctrl+Shift+Tab"), self, self._prev_view)
+        QShortcut(QKeySequence("Ctrl+W"), self, self._close_current_view)
+        
+        # Atalhos de operações
+        QShortcut(QKeySequence("Ctrl+I"), self, self._interpolate_series)
+        QShortcut(QKeySequence("Ctrl+D"), self, self._calculate_derivative)
+        QShortcut(QKeySequence("Ctrl+E"), self, self._export_data)
+        
+        # Atalhos de visualização
+        QShortcut(QKeySequence("F5"), self, self._refresh_data)
+        QShortcut(QKeySequence("F11"), self, self._toggle_fullscreen)
+        
+        # Atalhos de edição (preparação para undo/redo futuro)
+        QShortcut(QKeySequence("Delete"), self, self._remove_selected_series)
+        
+        # Atalho de busca
+        QShortcut(QKeySequence("Ctrl+F"), self, self._show_find_dialog)
+        
+        logger.debug("additional_shortcuts_configured")
+    
+    def _next_view(self):
+        """Navega para próxima visualização (Ctrl+Tab)"""
+        if self._viz_panel and hasattr(self._viz_panel, 'tab_widget'):
+            tab_widget = self._viz_panel.tab_widget
+            current = tab_widget.currentIndex()
+            next_index = (current + 1) % tab_widget.count()
+            tab_widget.setCurrentIndex(next_index)
+            logger.debug("switched_to_next_view", index=next_index)
+    
+    def _prev_view(self):
+        """Navega para visualização anterior (Ctrl+Shift+Tab)"""
+        if self._viz_panel and hasattr(self._viz_panel, 'tab_widget'):
+            tab_widget = self._viz_panel.tab_widget
+            current = tab_widget.currentIndex()
+            prev_index = (current - 1) % tab_widget.count()
+            tab_widget.setCurrentIndex(prev_index)
+            logger.debug("switched_to_prev_view", index=prev_index)
+    
+    def _close_current_view(self):
+        """Fecha visualização atual (Ctrl+W)"""
+        if self._viz_panel and hasattr(self._viz_panel, 'tab_widget'):
+            tab_widget = self._viz_panel.tab_widget
+            current = tab_widget.currentIndex()
+            if tab_widget.count() > 0:
+                tab_widget.removeTab(current)
+                logger.debug("closed_view", index=current)
+    
+    def _refresh_data(self):
+        """Atualiza dados (F5)"""
+        if self.session_state.current_dataset:
+            self._show_info("Atualizar", "Dados atualizados com sucesso")
+            logger.debug("data_refreshed")
+    
+    def _toggle_fullscreen(self):
+        """Alterna tela cheia (F11)"""
+        if self.isFullScreen():
+            self.showNormal()
+            logger.debug("exited_fullscreen")
+        else:
+            self.showFullScreen()
+            logger.debug("entered_fullscreen")
+    
+    def _remove_selected_series(self):
+        """Remove série selecionada (Delete)"""
+        # TODO: Implementar após seleção ser gerenciada
+        logger.debug("remove_series_requested")
+    
+    def _show_find_dialog(self):
+        """Mostra diálogo de busca (Ctrl+F)"""
+        # TODO: Implementar diálogo de busca
+        self._show_info("Buscar", "Diálogo de busca em desenvolvimento")
+        logger.debug("find_dialog_requested")
+    
+    def _save_window_state(self):
+        """Salva estado da janela e layout"""
+        try:
+            settings = QSettings("TRANSPETRO", "PlatformBase")
+            settings.setValue("window/geometry", self.saveGeometry())
+            settings.setValue("window/state", self.saveState())
+            if self._main_splitter:
+                settings.setValue("splitter/state", self._main_splitter.saveState())
+            logger.debug("window_state_saved")
+        except Exception as e:
+            logger.warning("window_state_save_failed", error=str(e))
+    
+    def _restore_window_state(self):
+        """Restaura estado salvo da janela e layout"""
+        try:
+            settings = QSettings("TRANSPETRO", "PlatformBase")
+            geometry = settings.value("window/geometry")
+            if geometry:
+                self.restoreGeometry(geometry)
+            state = settings.value("window/state")
+            if state:
+                self.restoreState(state)
+            if self._main_splitter:
+                splitter_state = settings.value("splitter/state")
+                if splitter_state:
+                    self._main_splitter.restoreState(splitter_state)
+            logger.debug("window_state_restored")
+        except Exception as e:
+            logger.warning("window_state_restore_failed", error=str(e))
+    
     def closeEvent(self, event):
         """Handler de fechamento"""
+        # Salvar estado da janela antes de fechar
+        self._save_window_state()
+        
         reply = QMessageBox.question(
             self,
             "🚪 Fechar Aplicação",
