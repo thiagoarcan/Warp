@@ -36,6 +36,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.preview_dialog import OperationPreviewDialog, show_preview_dialog
 from platform_base.ui.state import SessionState
 from platform_base.utils.logging import get_logger
 
@@ -281,7 +282,15 @@ class OperationsPanel(QWidget):
         
         deriv_btn = QPushButton("📊 Calcular Derivada")
         deriv_btn.clicked.connect(self._calculate_derivative)
-        deriv_layout.addRow(deriv_btn)
+        
+        deriv_preview_btn = QPushButton("👁️ Preview")
+        deriv_preview_btn.setObjectName("secondary")
+        deriv_preview_btn.clicked.connect(self._preview_derivative)
+        
+        deriv_btn_layout = QHBoxLayout()
+        deriv_btn_layout.addWidget(deriv_preview_btn)
+        deriv_btn_layout.addWidget(deriv_btn)
+        deriv_layout.addRow(deriv_btn_layout)
         
         layout.addWidget(deriv_group)
         
@@ -296,7 +305,15 @@ class OperationsPanel(QWidget):
         
         integ_btn = QPushButton("📊 Calcular Integral")
         integ_btn.clicked.connect(self._calculate_integral)
-        integ_layout.addRow(integ_btn)
+        
+        integ_preview_btn = QPushButton("👁️ Preview")
+        integ_preview_btn.setObjectName("secondary")
+        integ_preview_btn.clicked.connect(self._preview_integral)
+        
+        integ_btn_layout = QHBoxLayout()
+        integ_btn_layout.addWidget(integ_preview_btn)
+        integ_btn_layout.addWidget(integ_btn)
+        integ_layout.addRow(integ_btn_layout)
         
         layout.addWidget(integ_group)
         
@@ -354,7 +371,15 @@ class OperationsPanel(QWidget):
         
         smooth_btn = QPushButton("〰️ Aplicar Suavização")
         smooth_btn.clicked.connect(self._apply_smoothing)
-        smooth_layout.addRow(smooth_btn)
+        
+        smooth_preview_btn = QPushButton("👁️ Preview")
+        smooth_preview_btn.setObjectName("secondary")
+        smooth_preview_btn.clicked.connect(self._preview_smoothing)
+        
+        smooth_btn_layout = QHBoxLayout()
+        smooth_btn_layout.addWidget(smooth_preview_btn)
+        smooth_btn_layout.addWidget(smooth_btn)
+        smooth_layout.addRow(smooth_btn_layout)
         
         layout.addWidget(smooth_group)
         
@@ -375,7 +400,15 @@ class OperationsPanel(QWidget):
         
         outlier_btn = QPushButton("🚫 Remover Outliers")
         outlier_btn.clicked.connect(self._remove_outliers)
-        outlier_layout.addRow(outlier_btn)
+        
+        outlier_preview_btn = QPushButton("👁️ Preview")
+        outlier_preview_btn.setObjectName("secondary")
+        outlier_preview_btn.clicked.connect(self._preview_remove_outliers)
+        
+        outlier_btn_layout = QHBoxLayout()
+        outlier_btn_layout.addWidget(outlier_preview_btn)
+        outlier_btn_layout.addWidget(outlier_btn)
+        outlier_layout.addRow(outlier_btn_layout)
         
         layout.addWidget(outlier_group)
         layout.addStretch()
@@ -489,7 +522,7 @@ class OperationsPanel(QWidget):
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
         """Callback quando dataset muda"""
-        logger.debug("operations_panel_dataset_changed", dataset_id=dataset_id)
+        logger.debug(f"operations_panel_dataset_changed: {dataset_id}")
     
     @pyqtSlot(str, bool)
     def _on_operation_finished(self, operation: str, success: bool):
@@ -527,20 +560,37 @@ class OperationsPanel(QWidget):
     # === HANDLERS DE INTERPOLAÇÃO ===
     
     def _preview_interpolation(self):
-        """Preview de interpolação"""
+        """Preview de interpolação com visualização gráfica"""
+        import numpy as np
+        
         params = self._get_interpolation_params()
-        logger.info("interpolation_preview_requested", params=params)
-        QMessageBox.information(self, "Preview", 
-            f"Preview de interpolação:\n\n"
-            f"Método: {params['method']}\n"
-            f"Pontos: {params['num_points']}")
+        logger.info(f"interpolation_preview_requested: {params}")
+        
+        # Obter dados da série selecionada
+        series_data = self._get_selected_series_data()
+        
+        if series_data is None or len(series_data) == 0:
+            QMessageBox.warning(self, "Aviso", 
+                "Selecione uma série de dados para preview.")
+            return
+        
+        # Mostrar preview dialog
+        dialog = OperationPreviewDialog("interpolation", params, series_data, self)
+        
+        if dialog.exec():
+            # Se usuário clicou "Aplicar", executar operação
+            result = dialog.get_result()
+            if result is not None:
+                self._add_to_history("interpolation", params)
+                self.operation_requested.emit("interpolation", params)
+                logger.info(f"interpolation_applied_from_preview: {params}")
     
     def _apply_interpolation(self):
         """Aplica interpolação"""
         params = self._get_interpolation_params()
         self._add_to_history("interpolation", params)
         self.operation_requested.emit("interpolation", params)
-        logger.info("interpolation_requested", params=params)
+        logger.info(f"interpolation_requested: {params}")
     
     def _get_interpolation_params(self) -> Dict[str, Any]:
         """Coleta parâmetros de interpolação"""
@@ -554,6 +604,93 @@ class OperationsPanel(QWidget):
     
     # === HANDLERS DE CÁLCULOS ===
     
+    def _preview_derivative(self):
+        """Preview de derivada com visualização gráfica"""
+        import numpy as np
+        
+        order = self._deriv_order.currentIndex() + 1
+        params = {
+            "order": order,
+            "method": self._deriv_method.currentText(),
+            "window_length": self._deriv_window.value(),
+            "pre_smooth": self._deriv_smooth.isChecked()
+        }
+        logger.info(f"derivative_preview_requested: {params}")
+        
+        series_data = self._get_selected_series_data()
+        if series_data is None or len(series_data) == 0:
+            QMessageBox.warning(self, "Aviso", 
+                "Selecione uma série de dados para preview.")
+            return
+        
+        dialog = OperationPreviewDialog("derivative", params, series_data, self)
+        if dialog.exec():
+            result = dialog.get_result()
+            if result is not None:
+                self._add_to_history(f"derivative_{order}order", params)
+                self.operation_requested.emit("derivative", params)
+    
+    def _preview_integral(self):
+        """Preview de integral com visualização gráfica"""
+        params = {"method": self._integ_method.currentText()}
+        logger.info(f"integral_preview_requested: {params}")
+        
+        series_data = self._get_selected_series_data()
+        if series_data is None or len(series_data) == 0:
+            QMessageBox.warning(self, "Aviso", 
+                "Selecione uma série de dados para preview.")
+            return
+        
+        dialog = OperationPreviewDialog("integral", params, series_data, self)
+        if dialog.exec():
+            result = dialog.get_result()
+            if result is not None:
+                self._add_to_history("integral", params)
+                self.operation_requested.emit("integral", params)
+    
+    def _preview_smoothing(self):
+        """Preview de suavização com visualização gráfica"""
+        params = {
+            "method": self._smooth_method.currentText(),
+            "window": self._smooth_window.value(),
+            "sigma": self._smooth_sigma.value()
+        }
+        logger.info(f"smoothing_preview_requested: {params}")
+        
+        series_data = self._get_selected_series_data()
+        if series_data is None or len(series_data) == 0:
+            QMessageBox.warning(self, "Aviso", 
+                "Selecione uma série de dados para preview.")
+            return
+        
+        dialog = OperationPreviewDialog("smoothing", params, series_data, self)
+        if dialog.exec():
+            result = dialog.get_result()
+            if result is not None:
+                self._add_to_history("smoothing", params)
+                self.operation_requested.emit("smoothing", params)
+    
+    def _preview_remove_outliers(self):
+        """Preview de remoção de outliers com visualização gráfica"""
+        params = {
+            "method": self._outlier_method.currentText(),
+            "threshold": self._outlier_threshold.value()
+        }
+        logger.info(f"outlier_removal_preview_requested: {params}")
+        
+        series_data = self._get_selected_series_data()
+        if series_data is None or len(series_data) == 0:
+            QMessageBox.warning(self, "Aviso", 
+                "Selecione uma série de dados para preview.")
+            return
+        
+        dialog = OperationPreviewDialog("remove_outliers", params, series_data, self)
+        if dialog.exec():
+            result = dialog.get_result()
+            if result is not None:
+                self._add_to_history("remove_outliers", params)
+                self.operation_requested.emit("remove_outliers", params)
+    
     def _calculate_derivative(self):
         """Calcula derivada"""
         order = self._deriv_order.currentIndex() + 1
@@ -565,14 +702,14 @@ class OperationsPanel(QWidget):
         }
         self._add_to_history(f"derivative_{order}order", params)
         self.operation_requested.emit("derivative", params)
-        logger.info("derivative_requested", params=params)
+        logger.info(f"derivative_requested: {params}")
     
     def _calculate_integral(self):
         """Calcula integral"""
         params = {"method": self._integ_method.currentText()}
         self._add_to_history("integral", params)
         self.operation_requested.emit("integral", params)
-        logger.info("integral_requested", params=params)
+        logger.info(f"integral_requested: {params}")
     
     def _calculate_area(self):
         """Calcula área"""
@@ -580,7 +717,7 @@ class OperationsPanel(QWidget):
         params = {"type": "under_curve" if "sob" in area_type.lower() else "between_curves"}
         self._add_to_history("area", params)
         self.operation_requested.emit("area", params)
-        logger.info("area_requested", params=params)
+        logger.info(f"area_requested: {params}")
     
     # === HANDLERS DE FILTROS ===
     
@@ -593,7 +730,7 @@ class OperationsPanel(QWidget):
         }
         self._add_to_history("smoothing", params)
         self.operation_requested.emit("smoothing", params)
-        logger.info("smoothing_requested", params=params)
+        logger.info(f"smoothing_requested: {params}")
     
     def _remove_outliers(self):
         """Remove outliers"""
@@ -603,7 +740,7 @@ class OperationsPanel(QWidget):
         }
         self._add_to_history("remove_outliers", params)
         self.operation_requested.emit("remove_outliers", params)
-        logger.info("outlier_removal_requested", params=params)
+        logger.info(f"outlier_removal_requested: {params}")
     
     # === HANDLERS DE EXPORT ===
     
@@ -628,7 +765,7 @@ class OperationsPanel(QWidget):
         
         self._add_to_history("export_data", params)
         self.export_requested.emit(params["format"], params)
-        logger.info("export_data_requested", params=params)
+        logger.info(f"export_data_requested: {params}")
     
     def _export_session(self):
         """Exporta sessão"""
@@ -658,9 +795,7 @@ class OperationsPanel(QWidget):
         """Repete uma operação do histórico"""
         history_item = item.data(Qt.ItemDataRole.UserRole)
         if history_item:
-            logger.info("replaying_operation", 
-                       operation=history_item.operation,
-                       params=history_item.params)
+            logger.info(f"replaying_operation: {history_item.operation}, params={history_item.params}")
             self.operation_requested.emit(history_item.operation, history_item.params)
     
     # === MÉTODOS PÚBLICOS PARA DIÁLOGOS ===
@@ -684,3 +819,49 @@ class OperationsPanel(QWidget):
         """Mostra diálogo de exportação"""
         self._tabs.setCurrentIndex(3)
         logger.debug("export_dialog_shown")
+    
+    # === MÉTODOS DE DADOS ===
+    
+    def _get_selected_series_data(self):
+        """
+        Obtém dados da série selecionada para preview
+        
+        Returns:
+            numpy.ndarray ou None se não houver seleção
+        """
+        import numpy as np
+
+        # Tentar obter dados do SessionState
+        if self.session_state:
+            # Verificar se há dados carregados
+            loaded_data = getattr(self.session_state, '_loaded_data', None)
+            
+            if loaded_data is not None:
+                # Se for DataFrame pandas
+                if hasattr(loaded_data, 'iloc'):
+                    # Pegar primeira coluna numérica
+                    for col in loaded_data.columns:
+                        if loaded_data[col].dtype in ('float64', 'float32', 'int64', 'int32'):
+                            return loaded_data[col].values
+                
+                # Se for array numpy
+                if isinstance(loaded_data, np.ndarray):
+                    return loaded_data if loaded_data.ndim == 1 else loaded_data[:, 0]
+            
+            # Se não houver dados carregados, gerar dados de exemplo para demonstração
+            logger.debug("No data loaded, generating sample data for preview")
+        
+        # Gerar dados de exemplo (senóide com ruído)
+        x = np.linspace(0, 10, 500)
+        y = np.sin(x) + 0.2 * np.random.randn(len(x))
+        return y
+    
+    def set_data(self, data):
+        """
+        Define os dados para preview
+        
+        Args:
+            data: numpy.ndarray ou pandas.DataFrame
+        """
+        self.session_state._loaded_data = data
+        logger.debug("data_set_for_preview")

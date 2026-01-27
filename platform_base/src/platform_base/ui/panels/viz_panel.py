@@ -39,10 +39,25 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.panels.performance import (
+    DecimationMethod,
+    PerformanceConfig,
+    decimate_for_plot,
+    get_performance_renderer,
+)
 from platform_base.ui.state import SessionState
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+# Configuração de performance para grandes volumes
+_perf_config = PerformanceConfig(
+    direct_render_limit=10_000,
+    decimation_limit=100_000,
+    streaming_limit=1_000_000,
+    target_display_points=5_000,
+    decimation_method=DecimationMethod.MINMAX,
+)
 
 
 class MatplotlibWidget(QWidget):
@@ -88,9 +103,20 @@ class MatplotlibWidget(QWidget):
         self._release_cid = None
         self._drag_cid = None
         
-        # Layout
+        # Pan state
+        self._pan_enabled = False
+        self._pan_start = None
+        
+        # Layout principal
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2)
+        
+        # Toolbar compacta por plot
+        self._toolbar = self._create_toolbar()
+        layout.addWidget(self._toolbar)
+        
+        # Canvas
         layout.addWidget(self.canvas)
         
         # Enable context menu
@@ -100,6 +126,113 @@ class MatplotlibWidget(QWidget):
         # Criar o gráfico
         self._create_plot()
     
+    def _create_toolbar(self) -> QWidget:
+        """Cria toolbar compacta para o plot"""
+        toolbar = QWidget()
+        toolbar.setMaximumHeight(32)
+        toolbar.setStyleSheet("""
+            QWidget {
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #dee2e6;
+            }
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                padding: 4px 8px;
+                font-size: 14px;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #e9ecef;
+            }
+            QPushButton:checked {
+                background-color: #0d6efd;
+                color: white;
+            }
+        """)
+        
+        layout = QHBoxLayout(toolbar)
+        layout.setContentsMargins(4, 2, 4, 2)
+        layout.setSpacing(2)
+        
+        # Zoom In
+        zoom_in_btn = QPushButton("🔍+")
+        zoom_in_btn.setToolTip("Zoom In")
+        zoom_in_btn.clicked.connect(self._zoom_in)
+        layout.addWidget(zoom_in_btn)
+        
+        # Zoom Out
+        zoom_out_btn = QPushButton("🔍−")
+        zoom_out_btn.setToolTip("Zoom Out")
+        zoom_out_btn.clicked.connect(self._zoom_out)
+        layout.addWidget(zoom_out_btn)
+        
+        # Fit/Reset
+        reset_btn = QPushButton("🔄")
+        reset_btn.setToolTip("Reset View (Fit)")
+        reset_btn.clicked.connect(self._reset_view)
+        layout.addWidget(reset_btn)
+        
+        # Separador
+        sep1 = QFrame()
+        sep1.setFrameShape(QFrame.Shape.VLine)
+        sep1.setStyleSheet("color: #dee2e6;")
+        layout.addWidget(sep1)
+        
+        # Pan
+        self._pan_btn = QPushButton("✋")
+        self._pan_btn.setToolTip("Pan (arrastar)")
+        self._pan_btn.setCheckable(True)
+        self._pan_btn.clicked.connect(self._toggle_pan)
+        layout.addWidget(self._pan_btn)
+        
+        # Crosshair
+        self._crosshair_btn = QPushButton("✛")
+        self._crosshair_btn.setToolTip("Crosshair (coordenadas)")
+        self._crosshair_btn.setCheckable(True)
+        self._crosshair_btn.clicked.connect(self.toggle_crosshair)
+        layout.addWidget(self._crosshair_btn)
+        
+        # Selection
+        self._selection_btn = QPushButton("⬚")
+        self._selection_btn.setToolTip("Seleção de região")
+        self._selection_btn.setCheckable(True)
+        self._selection_btn.clicked.connect(self.toggle_selection)
+        layout.addWidget(self._selection_btn)
+        
+        # Separador
+        sep2 = QFrame()
+        sep2.setFrameShape(QFrame.Shape.VLine)
+        sep2.setStyleSheet("color: #dee2e6;")
+        layout.addWidget(sep2)
+        
+        # Configure
+        config_btn = QPushButton("⚙")
+        config_btn.setToolTip("Configurar eixos")
+        config_btn.clicked.connect(self.configure_axes)
+        layout.addWidget(config_btn)
+        
+        # Copy
+        copy_btn = QPushButton("📋")
+        copy_btn.setToolTip("Copiar para clipboard")
+        copy_btn.clicked.connect(self.copy_to_clipboard)
+        layout.addWidget(copy_btn)
+        
+        # Save
+        save_btn = QPushButton("💾")
+        save_btn.setToolTip("Salvar imagem")
+        save_btn.clicked.connect(self._save_image)
+        layout.addWidget(save_btn)
+        
+        layout.addStretch()
+        
+        # Info label
+        self._info_label = QLabel("")
+        self._info_label.setStyleSheet("font-size: 10px; color: #6c757d; padding-right: 8px;")
+        layout.addWidget(self._info_label)
+        
+        return toolbar
+
     def _create_plot(self):
         """Cria o gráfico com base no tipo"""
         self.figure.clear()
@@ -123,7 +256,7 @@ class MatplotlibWidget(QWidget):
             self._create_error_plot(str(e))
     
     def _create_2d_plot(self):
-        """Cria gráfico 2D de linha com design moderno"""
+        """Cria gráfico 2D de linha com design moderno e performance otimizada"""
         ax = self.figure.add_subplot(111)
         
         # Dados da série
@@ -131,18 +264,40 @@ class MatplotlibWidget(QWidget):
         n_points = len(values)
         x_data = np.arange(n_points)
         
+        # Otimização de performance para grandes volumes
+        # Aplica decimação se necessário (MinMax preserva picos)
+        if n_points > _perf_config.direct_render_limit:
+            x_render, y_render = decimate_for_plot(
+                x_data, values,
+                target_points=_perf_config.target_display_points,
+                method=DecimationMethod.MINMAX
+            )
+            n_render = len(y_render)
+            decimation_info = f"({n_render:,} de {n_points:,} pontos)"
+        else:
+            x_render, y_render = x_data, values
+            n_render = n_points
+            decimation_info = ""
+        
         # Cor moderna baseada no índice
         color = self.colors[self.current_color_idx % len(self.colors)]
         
-        # Plot principal com linha mais moderna
-        line = ax.plot(x_data, values, linewidth=2.0, color=color, alpha=0.9,
-                      label=f"{self.series.name} ({self.series.unit})",
-                      markevery=max(1, n_points//50), marker='o', markersize=3,
-                      markerfacecolor=color, markeredgecolor='white', markeredgewidth=0.5)
+        # Plot principal com linha mais moderna (markers desabilitados para performance)
+        if n_render > 1000:
+            # Sem markers para muitos pontos
+            line = ax.plot(x_render, y_render, linewidth=1.5, color=color, alpha=0.9,
+                          label=f"{self.series.name} ({self.series.unit})")
+        else:
+            line = ax.plot(x_render, y_render, linewidth=2.0, color=color, alpha=0.9,
+                          label=f"{self.series.name} ({self.series.unit})",
+                          markevery=max(1, n_render//50), marker='o', markersize=3,
+                          markerfacecolor=color, markeredgecolor='white', markeredgewidth=0.5)
         
         # Personalização moderna
-        ax.set_title(f"📊 {self.series.name} - Análise Temporal", 
-                    fontsize=16, fontweight='bold', color='#212529', pad=20)
+        title = f"📊 {self.series.name} - Análise Temporal"
+        if decimation_info:
+            title += f" {decimation_info}"
+        ax.set_title(title, fontsize=16, fontweight='bold', color='#212529', pad=20)
         ax.set_xlabel("🔢 Índice da Amostra", fontsize=13, color='#495057', fontweight='500')
         ax.set_ylabel(f"📈 Valor ({self.series.unit})", fontsize=13, color='#495057', fontweight='500')
         
@@ -292,6 +447,159 @@ class MatplotlibWidget(QWidget):
         ax.set_title("Erro na Visualização", fontsize=14, color='red')
         ax.axis('off')
     
+    # === TOOLBAR ACTIONS ===
+    
+    def _zoom_in(self):
+        """Zoom in 20%"""
+        try:
+            ax = self.figure.gca()
+            xlim = ax.get_xlim()
+            ylim = ax.get_ylim()
+            
+            x_center = (xlim[0] + xlim[1]) / 2
+            y_center = (ylim[0] + ylim[1]) / 2
+            x_range = (xlim[1] - xlim[0]) * 0.4  # 80% of original
+            y_range = (ylim[1] - ylim[0]) * 0.4
+            
+            ax.set_xlim(x_center - x_range, x_center + x_range)
+            ax.set_ylim(y_center - y_range, y_center + y_range)
+            self.canvas.draw()
+            
+            self._info_label.setText("Zoom: +20%")
+            logger.debug("zoom_in_applied")
+        except Exception as e:
+            logger.error(f"zoom_in_error: {e}")
+    
+    def _zoom_out(self):
+        """Zoom out 20%"""
+        try:
+            ax = self.figure.gca()
+            xlim = ax.get_xlim()
+            ylim = ax.get_ylim()
+            
+            x_center = (xlim[0] + xlim[1]) / 2
+            y_center = (ylim[0] + ylim[1]) / 2
+            x_range = (xlim[1] - xlim[0]) * 0.6  # 120% of original
+            y_range = (ylim[1] - ylim[0]) * 0.6
+            
+            ax.set_xlim(x_center - x_range, x_center + x_range)
+            ax.set_ylim(y_center - y_range, y_center + y_range)
+            self.canvas.draw()
+            
+            self._info_label.setText("Zoom: -20%")
+            logger.debug("zoom_out_applied")
+        except Exception as e:
+            logger.error(f"zoom_out_error: {e}")
+    
+    def _reset_view(self):
+        """Reset view to fit all data"""
+        try:
+            ax = self.figure.gca()
+            ax.autoscale(enable=True, axis='both', tight=True)
+            ax.relim()
+            ax.autoscale_view()
+            self.canvas.draw()
+            
+            self._info_label.setText("View resetado")
+            logger.debug("view_reset")
+        except Exception as e:
+            logger.error(f"reset_view_error: {e}")
+    
+    def _toggle_pan(self):
+        """Toggle pan mode"""
+        try:
+            # Toggle pan state
+            if hasattr(self, '_pan_enabled'):
+                self._pan_enabled = not self._pan_enabled
+            else:
+                self._pan_enabled = True
+            
+            if self._pan_enabled:
+                # Disable other modes
+                if self._crosshair_enabled:
+                    self.toggle_crosshair()
+                if self._selection_enabled:
+                    self.toggle_selection()
+                
+                # Enable pan
+                self.canvas.mpl_connect('button_press_event', self._pan_press)
+                self.canvas.mpl_connect('button_release_event', self._pan_release)
+                self.canvas.mpl_connect('motion_notify_event', self._pan_motion)
+                self._info_label.setText("Pan ativado")
+                logger.debug("pan_enabled")
+            else:
+                self._info_label.setText("Pan desativado")
+                logger.debug("pan_disabled")
+            
+            self._pan_btn.setChecked(self._pan_enabled)
+        except Exception as e:
+            logger.error(f"toggle_pan_error: {e}")
+    
+    def _pan_press(self, event):
+        """Handle pan press"""
+        if event.button == 1 and self._pan_enabled:
+            self._pan_start = (event.xdata, event.ydata)
+    
+    def _pan_release(self, event):
+        """Handle pan release"""
+        self._pan_start = None
+    
+    def _pan_motion(self, event):
+        """Handle pan motion"""
+        if not self._pan_enabled or self._pan_start is None:
+            return
+        if event.xdata is None or event.ydata is None:
+            return
+        
+        try:
+            ax = self.figure.gca()
+            dx = self._pan_start[0] - event.xdata
+            dy = self._pan_start[1] - event.ydata
+            
+            xlim = ax.get_xlim()
+            ylim = ax.get_ylim()
+            
+            ax.set_xlim(xlim[0] + dx, xlim[1] + dx)
+            ax.set_ylim(ylim[0] + dy, ylim[1] + dy)
+            self.canvas.draw()
+        except Exception:
+            pass
+    
+    def _save_image(self):
+        """Save plot as image"""
+        try:
+            from PyQt6.QtWidgets import QFileDialog
+            
+            formats = "PNG (*.png);;SVG (*.svg);;PDF (*.pdf);;JPEG (*.jpg)"
+            file_path, selected_filter = QFileDialog.getSaveFileName(
+                self, "Salvar Imagem", 
+                f"{self.series.name}_plot.png",
+                formats
+            )
+            
+            if file_path:
+                # Determinar formato pelo filtro selecionado
+                if "SVG" in selected_filter:
+                    fmt = "svg"
+                elif "PDF" in selected_filter:
+                    fmt = "pdf"
+                elif "JPEG" in selected_filter:
+                    fmt = "jpg"
+                else:
+                    fmt = "png"
+                
+                self.figure.savefig(file_path, format=fmt, dpi=150, 
+                                   bbox_inches='tight', facecolor='white')
+                
+                self._info_label.setText(f"Salvo: {file_path.split('/')[-1]}")
+                logger.info(f"plot_saved: {file_path}")
+                
+                QMessageBox.information(self, "Sucesso", 
+                    f"Imagem salva em:\n{file_path}")
+        except Exception as e:
+            logger.error(f"save_image_error: {e}")
+            QMessageBox.warning(self, "Erro", f"Erro ao salvar imagem:\n{str(e)}")
+
     def _show_context_menu(self, position):
         """Mostra menu de contexto moderno para o gráfico"""
         try:
@@ -906,6 +1214,113 @@ Desvio Padrão: {np.std(self.series.values):.6f}
             
         except Exception as e:
             logger.error(f"apply_axes_config_error: {e}")
+    
+    # ========== SYNCHRONIZATION SUPPORT ==========
+    
+    def set_crosshair_position(self, x: float, y: float):
+        """
+        Define posição do crosshair (para sincronização)
+        
+        Args:
+            x: Coordenada X
+            y: Coordenada Y
+        """
+        if not self._crosshair_enabled:
+            return
+        
+        try:
+            if self._crosshair_hline:
+                self._crosshair_hline.set_ydata([y, y])
+                self._crosshair_hline.set_visible(True)
+            
+            if self._crosshair_vline:
+                self._crosshair_vline.set_xdata([x, x])
+                self._crosshair_vline.set_visible(True)
+            
+            if self._crosshair_text:
+                x_display = f"{x:.2f}" if abs(x) < 10000 else f"{x:.2e}"
+                y_display = f"{y:.4f}" if abs(y) < 10000 else f"{y:.2e}"
+                self._crosshair_text.set_text(f"X: {x_display}\nY: {y_display}")
+                self._crosshair_text.set_position((x, y))
+                self._crosshair_text.set_visible(True)
+            
+            self.canvas.draw_idle()
+            
+        except Exception as e:
+            logger.error(f"set_crosshair_position_error: {e}")
+    
+    def set_selection_region(self, x1: float, x2: float, y1: float, y2: float):
+        """
+        Define região de seleção (para sincronização)
+        
+        Args:
+            x1, x2: Coordenadas X da região
+            y1, y2: Coordenadas Y da região
+        """
+        try:
+            import matplotlib.patches as patches
+            
+            if self.figure.get_axes():
+                ax = self.figure.get_axes()[0]
+                
+                # Remover seleção anterior
+                if self._selection_rect:
+                    self._selection_rect.remove()
+                
+                # Criar nova seleção
+                width = abs(x2 - x1)
+                height = abs(y2 - y1)
+                x_min = min(x1, x2)
+                y_min = min(y1, y2)
+                
+                self._selection_rect = patches.Rectangle(
+                    (x_min, y_min), width, height,
+                    linewidth=2, edgecolor='#0d6efd', facecolor='#0d6efd',
+                    alpha=0.2, linestyle='--'
+                )
+                ax.add_patch(self._selection_rect)
+                self.canvas.draw_idle()
+                
+        except Exception as e:
+            logger.error(f"set_selection_region_error: {e}")
+    
+    def set_xlim(self, xmin: float, xmax: float):
+        """Define limites do eixo X (para sincronização)"""
+        try:
+            if self.figure.get_axes():
+                ax = self.figure.get_axes()[0]
+                ax.set_xlim(xmin, xmax)
+                self.canvas.draw_idle()
+        except Exception as e:
+            logger.error(f"set_xlim_error: {e}")
+    
+    def set_ylim(self, ymin: float, ymax: float):
+        """Define limites do eixo Y (para sincronização)"""
+        try:
+            if self.figure.get_axes():
+                ax = self.figure.get_axes()[0]
+                ax.set_ylim(ymin, ymax)
+                self.canvas.draw_idle()
+        except Exception as e:
+            logger.error(f"set_ylim_error: {e}")
+    
+    def get_xlim(self):
+        """Retorna limites do eixo X"""
+        try:
+            if self.figure.get_axes():
+                return self.figure.get_axes()[0].get_xlim()
+        except Exception:
+            pass
+        return (0, 1)
+    
+    def get_ylim(self):
+        """Retorna limites do eixo Y"""
+        try:
+            if self.figure.get_axes():
+                return self.figure.get_axes()[0].get_ylim()
+        except Exception:
+            pass
+        return (0, 1)
 
 
 class AxesConfigDialog(QDialog):

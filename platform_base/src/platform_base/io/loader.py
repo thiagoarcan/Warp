@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Optional, Union, Callable, Any
-from enum import Enum
 import hashlib
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -19,6 +19,7 @@ from platform_base.core.models import (
     SeriesMetadata,
     SourceInfo,
 )
+from platform_base.io.encoding_detector import detect_encoding
 from platform_base.io.schema_detector import SchemaRules, detect_schema
 from platform_base.io.validator import validate_time, validate_values
 from platform_base.processing.timebase import to_seconds
@@ -67,9 +68,15 @@ class LoadStrategy(BaseModel):
     def read_file(self, path: Path, config: "LoadConfig") -> pd.DataFrame:
         """Le arquivo usando estratégia específica"""
         if self.format == FileFormat.CSV:
+            # Auto-detect encoding se configurado
+            encoding = config.encoding
+            if encoding == "auto":
+                encoding = detect_encoding(path)
+                logger.info(f"auto_detected_encoding: {encoding}")
+            
             params = {
                 'delimiter': config.delimiter,
-                'encoding': config.encoding,
+                'encoding': encoding,
                 'nrows': config.max_rows,
                 **self.reader_params
             }
@@ -152,7 +159,7 @@ class LoadConfig(BaseModel):
     # Configurações básicas
     timestamp_column: Optional[str] = None  # auto-detect se None
     delimiter: str = ","
-    encoding: str = "utf-8"
+    encoding: str = "auto"  # "auto" para detecção automática
     sheet_name: Optional[Union[str, int]] = 0  # para Excel
     hdf5_key: Optional[str] = "/data"  # para HDF5
     

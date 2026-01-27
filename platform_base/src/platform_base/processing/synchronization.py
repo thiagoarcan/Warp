@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional, Literal
+from typing import Literal, Optional
 
 import numpy as np
 from scipy.interpolate import CubicSpline, interp1d
 
-from platform_base.core.models import ResultMetadata, SyncResult, QualityMetrics
+from platform_base.core.models import QualityMetrics, ResultMetadata, SyncResult
+from platform_base.profiling.decorators import performance_critical, profile
 from platform_base.utils.errors import InterpolationError
 from platform_base.utils.logging import get_logger
-from platform_base.profiling.decorators import profile, performance_critical
 
 logger = get_logger(__name__)
 
@@ -497,6 +497,11 @@ def synchronize(
     all_values = np.stack(list(synced_series.values()), axis=0)
     combined_values = np.nanmean(all_values, axis=0)
     
+    # Count valid/interpolated/nan values
+    n_total = len(combined_values)
+    n_nan = int(np.sum(np.isnan(combined_values)))
+    n_valid = n_total - n_nan
+    
     result = SyncResult(
         values=combined_values,
         metadata=_build_metadata(method, params),
@@ -504,7 +509,12 @@ def synchronize(
         synced_series=synced_series,
         alignment_error=alignment_error,
         confidence=confidence,
-        quality_metrics=QualityMetrics(rmse=alignment_error)
+        quality_metrics=QualityMetrics(
+            n_valid=n_valid,
+            n_interpolated=n_valid,  # All non-nan values were interpolated
+            n_nan=n_nan,
+            rmse=alignment_error
+        )
     )
     
     logger.info("synchronize_complete",
