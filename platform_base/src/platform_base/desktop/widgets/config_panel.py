@@ -6,14 +6,26 @@ Provides interface for data processing operations and parameter configuration.
 
 from __future__ import annotations
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QGroupBox, QFormLayout, QComboBox, QSpinBox,
-    QDoubleSpinBox, QCheckBox, QSlider, QLabel,
-    QTabWidget, QScrollArea, QTextEdit
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
 
 from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
@@ -397,8 +409,8 @@ class ConfigPanel(QWidget):
     @pyqtSlot(object)
     def _on_selection_changed(self, selection_state):
         """Handle selection changes"""
-        has_selection = (selection_state.dataset_id and 
-                        len(selection_state.series_ids) > 0)
+        has_selection = bool(selection_state.dataset_id and 
+                            len(selection_state.series_ids) > 0)
         
         self.execute_btn.setEnabled(has_selection)
         self.preview_btn.setEnabled(has_selection)

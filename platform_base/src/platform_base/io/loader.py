@@ -83,12 +83,19 @@ class LoadStrategy(BaseModel):
             df = pd.read_csv(path, **params)
             
         elif self.format == FileFormat.EXCEL:
+            # Ensure sheet_name defaults to 0 (first sheet) to avoid returning dict
+            sheet = config.sheet_name if config.sheet_name is not None else 0
             params = {
-                'sheet_name': config.sheet_name,
+                'sheet_name': sheet,
                 'nrows': config.max_rows,
                 **self.reader_params
             }
             df = pd.read_excel(path, **params)
+            
+            # Handle case where dict is returned (shouldn't happen with sheet_name set)
+            if isinstance(df, dict):
+                # Get first sheet
+                df = list(df.values())[0]
             
         elif self.format == FileFormat.PARQUET:
             df = pd.read_parquet(path, **self.reader_params)

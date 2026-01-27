@@ -8,21 +8,31 @@ Replaces Dash data selection components with native PyQt6 tree widget.
 from __future__ import annotations
 
 from typing import Optional
-import numpy as np
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QTreeWidget, QTreeWidgetItem, QLabel, QGroupBox,
-    QSplitter, QTabWidget, QTextEdit, QHeaderView
-)
-from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt6.QtGui import QIcon
 
+import numpy as np
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import (
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QPushButton,
+    QSplitter,
+    QTabWidget,
+    QTextEdit,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
+
+from platform_base.core.models import DatasetID, SeriesID
+from platform_base.desktop.models.dataset_model import DatasetTreeModel
 from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
-from platform_base.desktop.models.dataset_model import DatasetTreeModel
-from platform_base.core.models import DatasetID, SeriesID
-from platform_base.utils.logging import get_logger
 from platform_base.utils.i18n import tr
+from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -174,36 +184,44 @@ class DataPanel(QWidget):
     @pyqtSlot()
     def _on_tree_selection_changed(self):
         """Handle tree selection changes"""
-        selected_indexes = self.data_tree.selectionModel().selectedIndexes()
-        
-        if not selected_indexes:
-            self.remove_btn.setEnabled(False)
-            self.session_state.clear_selection()
+        # Prevent recursion when session state changes trigger tree updates
+        if getattr(self, '_updating_selection', False):
             return
         
-        self.remove_btn.setEnabled(True)
-        
-        # Get first selected item
-        index = selected_indexes[0]
-        item_info = self.tree_model.get_item_info(index)
-        
-        if item_info and item_info["dataset_id"]:
-            dataset_id = item_info["dataset_id"]
-            series_id = item_info["series_id"]
+        self._updating_selection = True
+        try:
+            selected_indexes = self.data_tree.selectionModel().selectedIndexes()
             
-            # Update session state
-            self.session_state.set_current_dataset(dataset_id)
+            if not selected_indexes:
+                self.remove_btn.setEnabled(False)
+                self.session_state.clear_selection()
+                return
             
-            if series_id:
-                # Series selected
-                self.session_state.add_series_selection(series_id)
-                self.signal_hub.emit_series_selected(dataset_id, series_id)
-            else:
-                # Dataset selected
-                self.signal_hub.dataset_selected.emit(dataset_id)
+            self.remove_btn.setEnabled(True)
             
-            # Update info display
-            self._update_info_display(dataset_id, series_id)
+            # Get first selected item
+            index = selected_indexes[0]
+            item_info = self.tree_model.get_item_info(index)
+            
+            if item_info and item_info["dataset_id"]:
+                dataset_id = item_info["dataset_id"]
+                series_id = item_info["series_id"]
+                
+                # Update session state
+                self.session_state.set_current_dataset(dataset_id)
+                
+                if series_id:
+                    # Series selected
+                    self.session_state.add_series_selection(series_id)
+                    self.signal_hub.emit_series_selected(dataset_id, series_id)
+                else:
+                    # Dataset selected
+                    self.signal_hub.dataset_selected.emit(dataset_id)
+                
+                # Update info display
+                self._update_info_display(dataset_id, series_id)
+        finally:
+            self._updating_selection = False
     
     @pyqtSlot()
     def _on_item_double_clicked(self, index):

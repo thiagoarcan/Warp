@@ -6,24 +6,40 @@ Provides interface for loading data files with format detection and configuratio
 
 from __future__ import annotations
 
-from typing import Optional, Dict, Any, List
 from pathlib import Path
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
-    QGroupBox, QFormLayout, QComboBox, QLineEdit,
-    QSpinBox, QCheckBox, QFileDialog, QTextEdit,
-    QProgressBar, QLabel, QTabWidget, QWidget,
-    QTableWidget, QTableWidgetItem, QHeaderView,
-    QMessageBox, QSplitter
-)
-from PyQt6.QtCore import Qt, pyqtSlot, QThread, pyqtSignal
+from typing import Any, Dict, List, Optional
+
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QSpinBox,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
 from platform_base.desktop.workers.base_worker import BaseWorker
-from platform_base.utils.logging import get_logger
 from platform_base.utils.i18n import tr
+from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -46,15 +62,14 @@ class FileLoadWorker(BaseWorker):
             self.status_updated.emit("Loading file...")
             
             # Import loader (avoid import at module level)
-            from platform_base.io.loader import load
-            from platform_base.io.loader import LoadConfig
-            
+            from platform_base.io.loader import LoadConfig, load
+
             # Create load config
             load_config = LoadConfig(
                 timestamp_column=self.config.get("timestamp_column"),
                 delimiter=self.config.get("delimiter", ","),
                 encoding=self.config.get("encoding", "utf-8"),
-                sheet_name=self.config.get("sheet_name"),
+                sheet_name=self.config.get("sheet_name", 0),  # Default to first sheet
                 hdf5_key=self.config.get("hdf5_key") or "/data",
                 chunk_size=self.config.get("chunk_size")
             )
@@ -95,7 +110,7 @@ class PreviewWorker(BaseWorker):
             self.status_updated.emit("Generating preview...")
             
             import pandas as pd
-            
+
             # Read first few rows based on file type
             filepath = Path(self.filepath)
             logger.debug("preview_worker_start", filepath=str(filepath), config=self.config)
@@ -193,6 +208,12 @@ class UploadDialog(QDialog):
         self.load_worker: Optional[FileLoadWorker] = None
         self.preview_worker: Optional[PreviewWorker] = None
         
+        # Multi-file loading state
+        self.pending_files: List[str] = []
+        self.loading_files: Dict[str, FileLoadWorker] = {}
+        self.loaded_datasets: List[str] = []  # Track loaded dataset IDs
+        self.load_errors: List[str] = []
+        
         self._setup_ui()
         self._connect_signals()
         
@@ -202,7 +223,7 @@ class UploadDialog(QDialog):
         """Setup user interface"""
         self.setWindowTitle(tr("Load Data Files"))
         self.setModal(True)
-        self.resize(800, 600)
+        self.resize(900, 700)
         
         layout = QVBoxLayout(self)
         
@@ -210,19 +231,30 @@ class UploadDialog(QDialog):
         file_group = QGroupBox(tr("File Selection"))
         file_layout = QVBoxLayout(file_group)
         
-        # File path and browse button
+        # File path and browse buttons
         path_layout = QHBoxLayout()
         
         self.file_path_edit = QLineEdit()
-        self.file_path_edit.setPlaceholderText(tr("Select file to load..."))
+        self.file_path_edit.setPlaceholderText(tr("Select file(s) to load..."))
         self.file_path_edit.textChanged.connect(self._on_file_path_changed)
         path_layout.addWidget(self.file_path_edit)
         
         self.browse_btn = QPushButton(tr("Browse..."))
         self.browse_btn.clicked.connect(self._browse_file)
+        self.browse_btn.setToolTip(tr("Select a single file"))
         path_layout.addWidget(self.browse_btn)
         
+        self.browse_multi_btn = QPushButton(tr("Select Multiple..."))
+        self.browse_multi_btn.clicked.connect(self._browse_multiple_files)
+        self.browse_multi_btn.setToolTip(tr("Select multiple files at once"))
+        path_layout.addWidget(self.browse_multi_btn)
+        
         file_layout.addLayout(path_layout)
+        
+        # Selected files list
+        self.files_list_label = QLabel(tr("No files selected"))
+        self.files_list_label.setWordWrap(True)
+        file_layout.addWidget(self.files_list_label)
         
         # Format detection
         self.format_label = QLabel(tr("Format: Not detected"))
@@ -256,6 +288,13 @@ class UploadDialog(QDialog):
         
         layout.addWidget(progress_group)
         
+        # Loaded files list (for multiple files)
+        self.loaded_files_label = QLabel("")
+        self.loaded_files_label.setStyleSheet("color: green; font-weight: bold;")
+        self.loaded_files_label.setWordWrap(True)
+        layout.addWidget(self.loaded_files_label)
+        self.loaded_count = 0
+        
         # Buttons
         buttons_layout = QHBoxLayout()
         
@@ -266,14 +305,21 @@ class UploadDialog(QDialog):
         
         buttons_layout.addStretch()
         
-        self.cancel_btn = QPushButton(tr("Cancel"))
-        self.cancel_btn.clicked.connect(self.reject)
+        self.cancel_btn = QPushButton(tr("Close"))
+        self.cancel_btn.clicked.connect(self._close_dialog)
         buttons_layout.addWidget(self.cancel_btn)
         
-        self.load_btn = QPushButton(tr("Load Data"))
+        self.load_all_btn = QPushButton(tr("Load All Selected"))
+        self.load_all_btn.clicked.connect(self._load_all_files)
+        self.load_all_btn.setEnabled(False)
+        self.load_all_btn.setToolTip(tr("Load all selected files simultaneously"))
+        self.load_all_btn.setStyleSheet("font-weight: bold;")
+        buttons_layout.addWidget(self.load_all_btn)
+        
+        self.load_btn = QPushButton(tr("Load && Close"))
         self.load_btn.clicked.connect(self._load_file)
         self.load_btn.setEnabled(False)
-        self.load_btn.setDefault(True)
+        self.load_btn.setToolTip(tr("Load single file and close dialog"))
         buttons_layout.addWidget(self.load_btn)
         
         layout.addLayout(buttons_layout)
@@ -405,7 +451,7 @@ class UploadDialog(QDialog):
     
     @pyqtSlot()
     def _browse_file(self):
-        """Open file browser"""
+        """Open file browser for single file"""
         file_filters = [
             "All Supported (*.csv *.xlsx *.xls *.parquet *.h5 *.hdf5)",
             "CSV Files (*.csv)",
@@ -420,14 +466,88 @@ class UploadDialog(QDialog):
         )
         
         if filepath:
+            self.selected_files = [filepath]
             self.file_path_edit.setText(filepath)
+            self._update_files_list_display()
     
+    @pyqtSlot()
+    def _browse_multiple_files(self):
+        """Open file browser for multiple files"""
+        file_filters = [
+            "All Supported (*.csv *.xlsx *.xls *.parquet *.h5 *.hdf5)",
+            "CSV Files (*.csv)",
+            "Excel Files (*.xlsx *.xls)", 
+            "Parquet Files (*.parquet)",
+            "HDF5 Files (*.h5 *.hdf5)",
+            "All Files (*)"
+        ]
+        
+        # Use non-native dialog to ensure multi-selection works on Windows
+        dialog = QFileDialog(self, tr("Select Data Files"))
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)  # Allow multiple file selection
+        dialog.setNameFilters(file_filters)
+        dialog.setViewMode(QFileDialog.ViewMode.Detail)
+        dialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)  # Use Qt dialog
+        
+        if dialog.exec() == QFileDialog.DialogCode.Accepted:
+            filepaths = dialog.selectedFiles()
+            if filepaths:
+                self.selected_files = filepaths
+                if len(filepaths) == 1:
+                    self.file_path_edit.setText(filepaths[0])
+                else:
+                    self.file_path_edit.setText(f"{len(filepaths)} files selected")
+                self._update_files_list_display()
+                self._enable_load_buttons()
+    
+    def _update_files_list_display(self):
+        """Update the display showing selected files"""
+        if not self.selected_files:
+            self.files_list_label.setText(tr("No files selected"))
+            return
+        
+        if len(self.selected_files) == 1:
+            self.files_list_label.setText(f"📄 {Path(self.selected_files[0]).name}")
+        else:
+            file_names = [Path(f).name for f in self.selected_files]
+            display_text = f"📄 {len(file_names)} files: " + ", ".join(file_names[:5])
+            if len(file_names) > 5:
+                display_text += f" ... (+{len(file_names) - 5} more)"
+            self.files_list_label.setText(display_text)
+    
+    def _enable_load_buttons(self):
+        """Enable load buttons based on selected files"""
+        has_files = len(self.selected_files) > 0
+        has_multiple = len(self.selected_files) > 1
+        
+        self.load_btn.setEnabled(has_files)
+        self.load_all_btn.setEnabled(has_multiple)
+        self.preview_btn.setEnabled(has_files and len(self.selected_files) == 1)
+        
+        if has_multiple:
+            self.status_label.setText(
+                tr("{count} files selected. Click 'Load All Selected' to load them.").format(
+                    count=len(self.selected_files)
+                )
+            )
+        elif has_files:
+            self.status_label.setText(tr("File selected. Configure options or generate preview."))
     @pyqtSlot(str)
     def _on_file_path_changed(self, filepath: str):
         """Handle file path change"""
+        # Check for multi-file indicator
+        if filepath and "files selected" in filepath:
+            # Multiple files selected, don't try to parse as path
+            return
+        
         if not filepath or not Path(filepath).exists():
             self._reset_ui_state()
             return
+        
+        # Update selected_files if single file
+        if len(self.selected_files) != 1 or self.selected_files[0] != filepath:
+            self.selected_files = [filepath]
+            self._update_files_list_display()
         
         # Detect format
         file_path = Path(filepath)
@@ -441,9 +561,8 @@ class UploadDialog(QDialog):
         self._update_column_options(filepath)
         
         # Enable buttons
-        self.preview_btn.setEnabled(True)
+        self._enable_load_buttons()
         self.refresh_preview_btn.setEnabled(True)
-        self.load_btn.setEnabled(True)
         
         self.status_label.setText(tr("File selected. Configure options or generate preview."))
     
@@ -633,10 +752,25 @@ class UploadDialog(QDialog):
     
     @pyqtSlot()
     def _load_file(self):
-        """Load the selected file"""
+        """Load the selected file and close dialog"""
+        self._close_after_load = True
+        self._start_file_load()
+    
+    @pyqtSlot()
+    def _load_file_and_continue(self):
+        """Load the selected file and keep dialog open for more files"""
+        self._close_after_load = False
+        self._start_file_load()
+    
+    def _start_file_load(self):
+        """Start the file loading process for single file"""
         filepath = self.file_path_edit.text()
-        if not filepath:
-            return
+        if not filepath or not Path(filepath).exists():
+            # Check if we have selected_files instead
+            if self.selected_files and len(self.selected_files) == 1:
+                filepath = self.selected_files[0]
+            else:
+                return
         
         # Start load worker
         self.load_worker = FileLoadWorker(filepath, self.current_config)
@@ -651,7 +785,153 @@ class UploadDialog(QDialog):
         # Update UI
         self.progress_bar.setVisible(True)
         self.load_btn.setEnabled(False)
+        self.load_all_btn.setEnabled(False)
         self.preview_btn.setEnabled(False)
+    
+    @pyqtSlot()
+    def _load_all_files(self):
+        """Load all selected files simultaneously"""
+        if not self.selected_files:
+            return
+        
+        # Reset state
+        self.pending_files = list(self.selected_files)
+        self.loading_files = {}
+        self.loaded_datasets = []
+        self.load_errors = []
+        
+        # Update UI
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setMaximum(len(self.pending_files))
+        self.progress_bar.setValue(0)
+        self.load_btn.setEnabled(False)
+        self.load_all_btn.setEnabled(False)
+        self.browse_btn.setEnabled(False)
+        self.browse_multi_btn.setEnabled(False)
+        self.preview_btn.setEnabled(False)
+        
+        self.status_label.setText(
+            tr("Loading {count} files...").format(count=len(self.pending_files))
+        )
+        
+        logger.info("multi_file_load_started", file_count=len(self.pending_files))
+        
+        # Start loading all files in parallel
+        for filepath in self.pending_files:
+            worker = FileLoadWorker(filepath, self.current_config)
+            worker.file_loaded.connect(self._on_multi_file_loaded)
+            worker.error.connect(lambda err, fp=filepath: self._on_multi_file_error(fp, err))
+            worker.finished.connect(lambda fp=filepath: self._on_multi_file_finished(fp))
+            
+            self.loading_files[filepath] = worker
+            worker.start()
+    
+    @pyqtSlot(str, object)
+    def _on_multi_file_loaded(self, filepath: str, dataset):
+        """Handle single file loaded in multi-file operation"""
+        # Add dataset to store
+        dataset_id = self.session_state.dataset_store.add_dataset(dataset)
+        self.loaded_datasets.append(dataset_id)
+        
+        # Emit signal
+        self.signal_hub.emit_dataset_loaded(dataset_id)
+        
+        # Update loaded count
+        self.loaded_count += 1
+        
+        # Update progress
+        completed = len(self.loaded_datasets) + len(self.load_errors)
+        self.progress_bar.setValue(completed)
+        
+        self.loaded_files_label.setText(
+            tr("✓ {count}/{total} files loaded").format(
+                count=len(self.loaded_datasets),
+                total=len(self.pending_files)
+            )
+        )
+        
+        logger.info("multi_file_loaded", 
+                   filepath=filepath, 
+                   dataset_id=dataset_id,
+                   progress=f"{completed}/{len(self.pending_files)}")
+    
+    def _on_multi_file_error(self, filepath: str, error_message: str):
+        """Handle error loading single file in multi-file operation"""
+        self.load_errors.append(f"{Path(filepath).name}: {error_message}")
+        logger.error("multi_file_load_error", filepath=filepath, error=error_message)
+        
+        # Update progress
+        completed = len(self.loaded_datasets) + len(self.load_errors)
+        self.progress_bar.setValue(completed)
+    
+    def _on_multi_file_finished(self, filepath: str):
+        """Handle worker finished for single file in multi-file operation"""
+        # Remove from loading dict
+        if filepath in self.loading_files:
+            worker = self.loading_files.pop(filepath)
+            worker.deleteLater()
+        
+        # Check if all files are done
+        if not self.loading_files:
+            self._on_all_files_loaded()
+    
+    def _on_all_files_loaded(self):
+        """Handle completion of all file loading"""
+        self.progress_bar.setVisible(False)
+        self.browse_btn.setEnabled(True)
+        self.browse_multi_btn.setEnabled(True)
+        
+        total = len(self.pending_files)
+        success = len(self.loaded_datasets)
+        errors = len(self.load_errors)
+        
+        # Show summary
+        if errors == 0:
+            self.status_label.setText(
+                tr("✓ All {count} files loaded successfully!").format(count=success)
+            )
+            self.loaded_files_label.setStyleSheet("color: green; font-weight: bold;")
+            self.loaded_files_label.setText(
+                tr("✓ {count} datasets ready").format(count=success)
+            )
+            logger.info("multi_file_load_complete", success=success, errors=0)
+            
+            # Auto-close after success
+            QMessageBox.information(
+                self, 
+                tr("Load Complete"),
+                tr("{count} files loaded successfully!").format(count=success)
+            )
+            self.accept()
+        else:
+            # Some errors occurred
+            self.loaded_files_label.setStyleSheet("color: orange; font-weight: bold;")
+            self.loaded_files_label.setText(
+                tr("⚠ {success} loaded, {errors} failed").format(success=success, errors=errors)
+            )
+            self.status_label.setText(tr("Loading completed with some errors"))
+            
+            # Show error details
+            error_details = "\n".join(self.load_errors[:10])
+            if len(self.load_errors) > 10:
+                error_details += f"\n... and {len(self.load_errors) - 10} more errors"
+            
+            QMessageBox.warning(
+                self,
+                tr("Load Completed with Errors"),
+                tr("{success} files loaded, {errors} failed:\n\n{details}").format(
+                    success=success, errors=errors, details=error_details
+                )
+            )
+            
+            logger.warning("multi_file_load_complete_with_errors", 
+                          success=success, errors=errors)
+            
+            if success > 0:
+                self.accept()
+            else:
+                # Re-enable buttons if nothing was loaded
+                self._enable_load_buttons()
     
     @pyqtSlot(str, object)
     def _on_file_loaded(self, filepath: str, dataset):
@@ -662,10 +942,33 @@ class UploadDialog(QDialog):
         # Emit signal
         self.signal_hub.emit_dataset_loaded(dataset_id)
         
-        # Close dialog
-        self.accept()
+        # Update loaded count
+        self.loaded_count += 1
+        self.loaded_files_label.setText(
+            tr("✓ {count} file(s) loaded successfully").format(count=self.loaded_count)
+        )
         
         logger.info("file_loaded_successfully", filepath=filepath, dataset_id=dataset_id)
+        
+        # Close dialog or prepare for next file
+        if getattr(self, '_close_after_load', True):
+            self.accept()
+        else:
+            # Reset for next file
+            self.file_path_edit.clear()
+            self.preview_table.setRowCount(0)
+            self.preview_table.setColumnCount(0)
+            self.preview_info.clear()
+            self.status_label.setText(tr("Select another file to load"))
+            self._browse_file()  # Open file browser for next file
+    
+    @pyqtSlot()
+    def _close_dialog(self):
+        """Close the dialog"""
+        if self.loaded_count > 0:
+            self.accept()
+        else:
+            self.reject()
     
     @pyqtSlot(str)
     def _on_load_error(self, error_message: str):
@@ -677,8 +980,7 @@ class UploadDialog(QDialog):
     def _on_load_finished(self):
         """Handle load worker finished"""
         self.progress_bar.setVisible(False)
-        self.load_btn.setEnabled(True)
-        self.preview_btn.setEnabled(True)
+        self._enable_load_buttons()
         
         if self.load_worker:
             self.load_worker.deleteLater()
@@ -696,10 +998,13 @@ class UploadDialog(QDialog):
     
     def _reset_ui_state(self):
         """Reset UI to initial state"""
+        self.selected_files = []
         self.format_label.setText(tr("Format: Not detected"))
+        self.files_list_label.setText(tr("No files selected"))
         self.preview_btn.setEnabled(False)
         self.refresh_preview_btn.setEnabled(False)
         self.load_btn.setEnabled(False)
+        self.load_all_btn.setEnabled(False)
         self.status_label.setText(tr("Select a file to begin"))
         
         # Clear preview
@@ -709,7 +1014,7 @@ class UploadDialog(QDialog):
     
     def closeEvent(self, event):
         """Handle dialog close"""
-        # Stop any running workers
+        # Stop any running single workers
         if self.load_worker and self.load_worker.isRunning():
             self.load_worker.terminate()
             self.load_worker.wait()
@@ -717,5 +1022,12 @@ class UploadDialog(QDialog):
         if self.preview_worker and self.preview_worker.isRunning():
             self.preview_worker.terminate()
             self.preview_worker.wait()
+        
+        # Stop any running multi-file workers
+        for filepath, worker in list(self.loading_files.items()):
+            if worker.isRunning():
+                worker.terminate()
+                worker.wait()
+        self.loading_files.clear()
         
         event.accept()
