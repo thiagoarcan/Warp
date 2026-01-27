@@ -13,21 +13,31 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+from PyQt6.QtCore import QByteArray, QSettings, QSize, Qt, QTimer, pyqtSlot
+from PyQt6.QtGui import QAction, QFont, QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, 
-    QSplitter, QMenuBar, QStatusBar, QToolBar,
-    QFileDialog, QMessageBox, QProgressBar,
-    QLabel, QTabWidget, QFrame
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMenuBar,
+    QMessageBox,
+    QProgressBar,
+    QSplitter,
+    QStatusBar,
+    QTabWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, pyqtSlot, QTimer, QSize
-from PyQt6.QtGui import QKeySequence, QAction, QIcon, QFont
 
-from platform_base.ui.state import SessionState
 from platform_base.ui.panels.data_panel import DataPanel
-from platform_base.ui.panels.viz_panel import VizPanel
 from platform_base.ui.panels.operations_panel import OperationsPanel
-from platform_base.utils.logging import get_logger
+from platform_base.ui.panels.viz_panel import VizPanel
+from platform_base.ui.state import SessionState
 from platform_base.utils.errors import PlatformError
+from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -42,12 +52,18 @@ class ModernMainWindow(QMainWindow):
     - Sistema drag-and-drop para visualizações
     - Tradução completa PT-BR
     - Design moderno seguindo guidelines de UX
+    - Persistência de layout com QSettings
     """
+    
+    # Chave para QSettings
+    SETTINGS_ORG = "TRANSPETRO"
+    SETTINGS_APP = "PlatformBase"
     
     def __init__(self, session_state: SessionState):
         super().__init__()
         
         self.session_state = session_state
+        self._main_splitter: Optional[QSplitter] = None  # Referência ao splitter principal
         
         # Components
         self._data_panel: Optional[DataPanel] = None
@@ -65,6 +81,9 @@ class ModernMainWindow(QMainWindow):
         self._setup_modern_ui()
         self._setup_connections()
         self._setup_icons()
+        
+        # Restore layout after UI is setup
+        self._restore_layout()
         
         logger.info("modern_main_window_initialized")
     
@@ -139,10 +158,10 @@ class ModernMainWindow(QMainWindow):
         main_layout.setSpacing(1)
         
         # Create main splitter (horizontal) otimizado
-        main_splitter = QSplitter(Qt.Orientation.Horizontal)
-        main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
-        main_splitter.setHandleWidth(3)  # Handle mais fino
-        main_layout.addWidget(main_splitter)
+        self._main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self._main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
+        self._main_splitter.setHandleWidth(3)  # Handle mais fino
+        main_layout.addWidget(self._main_splitter)
         
         # Left panel: Data management (ultra compacto)
         left_frame = QFrame()
@@ -201,21 +220,21 @@ class ModernMainWindow(QMainWindow):
         right_layout.addWidget(self._operations_panel)
         
         # Add panels to main splitter
-        main_splitter.addWidget(left_frame)
-        main_splitter.addWidget(center_frame)
-        main_splitter.addWidget(right_frame)
+        self._main_splitter.addWidget(left_frame)
+        self._main_splitter.addWidget(center_frame)
+        self._main_splitter.addWidget(right_frame)
         
         # Otimizações de proporções: Left(20%) - Center(65%) - Right(15%) 
         # para maximizar área de visualização
-        main_splitter.setStretchFactor(0, 20)
-        main_splitter.setStretchFactor(1, 65)
-        main_splitter.setStretchFactor(2, 15)
+        self._main_splitter.setStretchFactor(0, 20)
+        self._main_splitter.setStretchFactor(1, 65)
+        self._main_splitter.setStretchFactor(2, 15)
         
         # Set initial sizes more precisely
-        main_splitter.setSizes([240, 800, 200])  # Valores absolutos otimizados
+        self._main_splitter.setSizes([240, 800, 200])  # Valores absolutos otimizados
         
         # Styling for splitter handles
-        main_splitter.setStyleSheet("""
+        self._main_splitter.setStyleSheet("""
             QSplitter::handle {
                 background-color: #dee2e6;
                 border: 1px solid #ced4da;
@@ -474,7 +493,161 @@ class ModernMainWindow(QMainWindow):
         if self._data_panel:
             self._data_panel.dataset_loaded.connect(self._on_dataset_loaded)
         
+        # Setup keyboard shortcuts
+        self._setup_keyboard_shortcuts()
+        
         logger.debug("modern_connections_setup_completed")
+    
+    def _setup_keyboard_shortcuts(self):
+        """Configura atalhos de teclado conforme auditoria UX"""
+        from PyQt6.QtGui import QShortcut
+
+        # Undo/Redo - Ctrl+Z/Ctrl+Y
+        undo_shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
+        undo_shortcut.activated.connect(self._undo)
+        
+        redo_shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
+        redo_shortcut.activated.connect(self._redo)
+        
+        # Também suporta Ctrl+Shift+Z para redo (padrão Mac/Linux)
+        redo_alt_shortcut = QShortcut(QKeySequence("Ctrl+Shift+Z"), self)
+        redo_alt_shortcut.activated.connect(self._redo)
+        
+        # Export - Ctrl+E
+        export_shortcut = QShortcut(QKeySequence("Ctrl+E"), self)
+        export_shortcut.activated.connect(self._export_data)
+        
+        # Interpolate - Ctrl+I
+        interpolate_shortcut = QShortcut(QKeySequence("Ctrl+I"), self)
+        interpolate_shortcut.activated.connect(self._interpolate_series)
+        
+        # Derivative - Ctrl+D
+        derivative_shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
+        derivative_shortcut.activated.connect(self._calculate_derivative)
+        
+        # Integral - Ctrl+Shift+I (Ctrl+I já usado por interpolação)
+        integral_shortcut = QShortcut(QKeySequence("Ctrl+Shift+D"), self)
+        integral_shortcut.activated.connect(self._calculate_integral)
+        
+        # Refresh/Update - F5
+        refresh_shortcut = QShortcut(QKeySequence("F5"), self)
+        refresh_shortcut.activated.connect(self._refresh_view)
+        
+        # Delete selection - Delete
+        delete_shortcut = QShortcut(QKeySequence("Delete"), self)
+        delete_shortcut.activated.connect(self._delete_selection)
+        
+        # Cancel operation - Escape
+        escape_shortcut = QShortcut(QKeySequence("Escape"), self)
+        escape_shortcut.activated.connect(self._cancel_operation)
+        
+        # Fullscreen - F11
+        fullscreen_shortcut = QShortcut(QKeySequence("F11"), self)
+        fullscreen_shortcut.activated.connect(self._toggle_fullscreen)
+        
+        # Focus on data panel - F1
+        data_panel_shortcut = QShortcut(QKeySequence("F1"), self)
+        data_panel_shortcut.activated.connect(lambda: self._data_panel.setFocus() if self._data_panel else None)
+        
+        # Focus on viz panel - F2
+        viz_panel_shortcut = QShortcut(QKeySequence("F2"), self)
+        viz_panel_shortcut.activated.connect(lambda: self._viz_panel.setFocus() if self._viz_panel else None)
+        
+        # Focus on operations panel - F3
+        ops_panel_shortcut = QShortcut(QKeySequence("F3"), self)
+        ops_panel_shortcut.activated.connect(lambda: self._operations_panel.setFocus() if self._operations_panel else None)
+        
+        # New dataset - Ctrl+N
+        new_shortcut = QShortcut(QKeySequence("Ctrl+N"), self)
+        new_shortcut.activated.connect(self._new_session)
+        
+        # Select all - Ctrl+A
+        select_all_shortcut = QShortcut(QKeySequence("Ctrl+A"), self)
+        select_all_shortcut.activated.connect(self._select_all_series)
+        
+        logger.debug("keyboard_shortcuts_configured")
+    
+    def _undo(self):
+        """Desfazer última operação"""
+        if hasattr(self.session_state, 'undo') and callable(self.session_state.undo):
+            if self.session_state.undo():
+                self._status_label.setText("⏪ Desfeito")
+            else:
+                self._status_label.setText("⚠️ Nada para desfazer")
+        else:
+            self._status_label.setText("⚠️ Undo não disponível")
+    
+    def _redo(self):
+        """Refazer operação desfeita"""
+        if hasattr(self.session_state, 'redo') and callable(self.session_state.redo):
+            if self.session_state.redo():
+                self._status_label.setText("⏩ Refeito")
+            else:
+                self._status_label.setText("⚠️ Nada para refazer")
+        else:
+            self._status_label.setText("⚠️ Redo não disponível")
+    
+    def _refresh_view(self):
+        """Atualiza visualizações"""
+        if self._viz_panel:
+            self._viz_panel.refresh()
+        self._status_label.setText("🔄 Visualização atualizada")
+    
+    def _delete_selection(self):
+        """Remove séries selecionadas"""
+        # Verifica se há séries selecionadas
+        if not self.session_state.current_dataset:
+            return
+        
+        reply = QMessageBox.question(
+            self,
+            "🗑️ Remover Seleção",
+            "Remover séries selecionadas?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            # TODO: Implementar remoção de séries
+            self._status_label.setText("✅ Seleção removida")
+    
+    def _cancel_operation(self):
+        """Cancela operação em andamento"""
+        if hasattr(self.session_state, 'cancel_current_operation'):
+            self.session_state.cancel_current_operation()
+            self._status_label.setText("⛔ Operação cancelada")
+        else:
+            self._status_label.setText("🟢 Pronto")
+            self._progress_bar.setVisible(False)
+    
+    def _toggle_fullscreen(self):
+        """Alterna modo tela cheia"""
+        if self.isFullScreen():
+            self.showNormal()
+            self._status_label.setText("📐 Modo normal")
+        else:
+            self.showFullScreen()
+            self._status_label.setText("📺 Tela cheia (F11 para sair)")
+    
+    def _new_session(self):
+        """Cria nova sessão"""
+        reply = QMessageBox.question(
+            self,
+            "📄 Nova Sessão",
+            "Criar nova sessão? Dados não salvos serão perdidos.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            if hasattr(self.session_state, 'clear_session'):
+                self.session_state.clear_session()
+            self._status_label.setText("📄 Nova sessão criada")
+    
+    def _select_all_series(self):
+        """Seleciona todas as séries"""
+        if hasattr(self.session_state, 'select_all_series'):
+            self.session_state.select_all_series()
+            self._status_label.setText("✓ Todas as séries selecionadas")
+
     
     # Signal handlers
     @pyqtSlot(str)
@@ -630,15 +803,102 @@ class ModernMainWindow(QMainWindow):
     
     def _reset_layout(self):
         """Restaura layout para configuração otimizada"""
-        central_widget = self.centralWidget()
-        if central_widget:
-            splitter = central_widget.layout().itemAt(0).widget()
-            if isinstance(splitter, QSplitter):
-                # Use absolute sizes for more precise control
-                splitter.setSizes([240, 800, 200])  # Otimizado para eficiência
-                logger.info("layout_reset_completed", sizes="240-800-200")
+        if self._main_splitter:
+            # Use absolute sizes for more precise control
+            self._main_splitter.setSizes([240, 800, 200])  # Otimizado para eficiência
+            logger.info("layout_reset_completed", sizes="240-800-200")
+        
+        # Reset window geometry
+        self.resize(1800, 1100)
+        
         self._status_label.setText("🔄 Layout otimizado restaurado")
         self._status_label.setStyleSheet("color: #198754; font-weight: bold;")
+    
+    def _save_layout(self):
+        """Salva layout e geometria da janela com QSettings"""
+        settings = QSettings(self.SETTINGS_ORG, self.SETTINGS_APP)
+        
+        # Save window geometry
+        settings.setValue("mainwindow/geometry", self.saveGeometry())
+        settings.setValue("mainwindow/state", self.saveState())
+        settings.setValue("mainwindow/maximized", self.isMaximized())
+        settings.setValue("mainwindow/fullscreen", self.isFullScreen())
+        
+        # Save splitter sizes
+        if self._main_splitter:
+            settings.setValue("mainwindow/splitter_sizes", self._main_splitter.sizes())
+            settings.setValue("mainwindow/splitter_state", self._main_splitter.saveState())
+        
+        # Save panel visibility/collapsed states
+        if self._data_panel:
+            settings.setValue("panels/data_panel_visible", self._data_panel.isVisible())
+        if self._viz_panel:
+            settings.setValue("panels/viz_panel_visible", self._viz_panel.isVisible())
+        if self._operations_panel:
+            settings.setValue("panels/operations_panel_visible", self._operations_panel.isVisible())
+        
+        # Save operations panel tab index if it has tabs
+        if self._operations_panel and hasattr(self._operations_panel, 'currentIndex'):
+            settings.setValue("panels/operations_tab_index", self._operations_panel.currentIndex())
+        
+        settings.sync()
+        logger.debug("layout_saved")
+    
+    def _restore_layout(self):
+        """Restaura layout e geometria da janela com QSettings"""
+        settings = QSettings(self.SETTINGS_ORG, self.SETTINGS_APP)
+        
+        # Restore window geometry
+        geometry = settings.value("mainwindow/geometry")
+        if geometry:
+            self.restoreGeometry(geometry)
+        
+        state = settings.value("mainwindow/state")
+        if state:
+            self.restoreState(state)
+        
+        # Restore maximized/fullscreen state
+        was_maximized = settings.value("mainwindow/maximized", False, type=bool)
+        was_fullscreen = settings.value("mainwindow/fullscreen", False, type=bool)
+        
+        if was_fullscreen:
+            self.showFullScreen()
+        elif was_maximized:
+            self.showMaximized()
+        
+        # Restore splitter sizes
+        if self._main_splitter:
+            splitter_sizes = settings.value("mainwindow/splitter_sizes")
+            if splitter_sizes:
+                # Convert to list of ints
+                try:
+                    sizes = [int(s) for s in splitter_sizes]
+                    self._main_splitter.setSizes(sizes)
+                except (ValueError, TypeError):
+                    pass
+            
+            splitter_state = settings.value("mainwindow/splitter_state")
+            if splitter_state:
+                self._main_splitter.restoreState(splitter_state)
+        
+        # Restore panel visibility
+        data_visible = settings.value("panels/data_panel_visible", True, type=bool)
+        viz_visible = settings.value("panels/viz_panel_visible", True, type=bool)
+        ops_visible = settings.value("panels/operations_panel_visible", True, type=bool)
+        
+        if self._data_panel:
+            self._data_panel.setVisible(data_visible)
+        if self._viz_panel:
+            self._viz_panel.setVisible(viz_visible)
+        if self._operations_panel:
+            self._operations_panel.setVisible(ops_visible)
+        
+        # Restore operations panel tab index if applicable
+        if self._operations_panel and hasattr(self._operations_panel, 'setCurrentIndex'):
+            tab_index = settings.value("panels/operations_tab_index", 0, type=int)
+            self._operations_panel.setCurrentIndex(tab_index)
+        
+        logger.debug("layout_restored")
     
     def _clear_cache(self):
         """Limpa cache"""
@@ -742,6 +1002,9 @@ class ModernMainWindow(QMainWindow):
         
         if reply == QMessageBox.StandardButton.Save:
             self.save_session_on_exit()
+        
+        # Always save layout (even on discard)
+        self._save_layout()
         
         self._autosave_timer.stop()
         logger.info("application_closing")

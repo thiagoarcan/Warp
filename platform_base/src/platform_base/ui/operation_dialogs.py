@@ -11,20 +11,39 @@ Features:
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any, Tuple, Callable
-import numpy as np
-from pathlib import Path
 import json
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import numpy as np
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QColor, QFont, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox,
-    QFormLayout, QPushButton, QComboBox, QSpinBox, QDoubleSpinBox,
-    QCheckBox, QLabel, QLineEdit, QTextEdit, QSlider, QFrame,
-    QSplitter, QTableWidget, QTableWidgetItem, QHeaderView,
-    QMessageBox, QFileDialog, QProgressBar, QScrollArea
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot, QTimer
-from PyQt6.QtGui import QFont, QPixmap, QPainter, QPen, QColor
 
 try:
     import matplotlib.pyplot as plt
@@ -575,11 +594,368 @@ class SynchronizationDialog(BaseOperationDialog):
         return scroll
 
 
+class DerivativeDialog(BaseOperationDialog):
+    """Diálogo para configuração de derivadas 1ª/2ª/3ª ordem"""
+    
+    def __init__(self, available_series: List[Tuple[str, str]] = None, parent: Optional[QWidget] = None):
+        self.available_series = available_series or []
+        super().__init__("Configuração de Derivada", parent)
+    
+    def _create_parameters_panel(self) -> QWidget:
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        
+        # Ordem da derivada
+        order_widget = ChoiceParameterWidget(
+            "order",
+            ["1ª Ordem (velocidade)", "2ª Ordem (aceleração)", "3ª Ordem (jerk)"],
+            "1ª Ordem (velocidade)",
+            "Ordem da derivada a calcular"
+        )
+        layout.addWidget(order_widget)
+        self.add_parameter(order_widget)
+        
+        # Método de cálculo
+        method_widget = ChoiceParameterWidget(
+            "method",
+            ["finite_diff", "savitzky_golay", "spline_derivative"],
+            "finite_diff",
+            "Método numérico para cálculo da derivada"
+        )
+        layout.addWidget(method_widget)
+        self.add_parameter(method_widget)
+        
+        # Tamanho da janela (Savitzky-Golay)
+        window_widget = NumericParameterWidget(
+            "window_length", 3, 51, 2, 0, 7,
+            "Tamanho da janela para Savitzky-Golay (deve ser ímpar)"
+        )
+        layout.addWidget(window_widget)
+        self.add_parameter(window_widget)
+        
+        # Ordem do polinômio
+        polyorder_widget = NumericParameterWidget(
+            "polyorder", 1, 6, 1, 0, 3,
+            "Ordem do polinômio para Savitzky-Golay"
+        )
+        layout.addWidget(polyorder_widget)
+        self.add_parameter(polyorder_widget)
+        
+        # Suavização pré-derivada
+        smooth_widget = BooleanParameterWidget(
+            "pre_smooth", False,
+            "Aplicar suavização antes de derivar (reduz ruído)"
+        )
+        layout.addWidget(smooth_widget)
+        self.add_parameter(smooth_widget)
+        
+        # Fator de suavização
+        smooth_factor_widget = NumericParameterWidget(
+            "smooth_factor", 0.0, 1.0, 0.01, 3, 0.1,
+            "Fator de suavização pré-derivada (0=nenhuma)"
+        )
+        layout.addWidget(smooth_factor_widget)
+        self.add_parameter(smooth_factor_widget)
+        
+        # Criar nova série
+        new_series_widget = BooleanParameterWidget(
+            "create_new_series", True,
+            "Criar nova série com resultado (preserva original)"
+        )
+        layout.addWidget(new_series_widget)
+        self.add_parameter(new_series_widget)
+        
+        layout.addStretch()
+        scroll.setWidget(content)
+        return scroll
+    
+    def _generate_mock_preview(self, params: Dict[str, Any]):
+        """Gera preview com derivada simulada"""
+        import numpy as np
+        
+        x = np.linspace(0, 4*np.pi, 200)
+        y = np.sin(x)
+        
+        # Derivada analítica para demonstração
+        order_text = params.get('order', '1ª Ordem')
+        if '1ª' in order_text:
+            y_deriv = np.cos(x)  # d/dx(sin) = cos
+            label = "dy/dx"
+        elif '2ª' in order_text:
+            y_deriv = -np.sin(x)  # d²/dx²(sin) = -sin
+            label = "d²y/dx²"
+        else:
+            y_deriv = -np.cos(x)  # d³/dx³(sin) = -cos
+            label = "d³y/dx³"
+        
+        preview_data = {
+            'x': x,
+            'y': y,
+            'y_processed': y_deriv,
+            'label_original': 'sin(x)',
+            'label_processed': label
+        }
+        
+        self.preview_widget.update_preview(preview_data)
+        self.preview_status.setText(f"Preview: {order_text} - Método: {params.get('method', 'N/A')}")
+
+
+class IntegralDialog(BaseOperationDialog):
+    """Diálogo para configuração de integrais"""
+    
+    def __init__(self, available_series: List[Tuple[str, str]] = None, parent: Optional[QWidget] = None):
+        self.available_series = available_series or []
+        super().__init__("Configuração de Integral", parent)
+    
+    def _create_parameters_panel(self) -> QWidget:
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        
+        # Método de integração
+        method_widget = ChoiceParameterWidget(
+            "method",
+            ["trapezoid", "simpson", "cumulative"],
+            "trapezoid",
+            "Método de integração numérica"
+        )
+        layout.addWidget(method_widget)
+        self.add_parameter(method_widget)
+        
+        # Tipo de resultado
+        result_type_widget = ChoiceParameterWidget(
+            "result_type",
+            ["Valor escalar (área total)", "Integral cumulativa (série)"],
+            "Valor escalar (área total)",
+            "Tipo de resultado desejado"
+        )
+        layout.addWidget(result_type_widget)
+        self.add_parameter(result_type_widget)
+        
+        # Limites de integração
+        use_limits_widget = BooleanParameterWidget(
+            "use_limits", False,
+            "Definir limites de integração (default: todo o intervalo)"
+        )
+        layout.addWidget(use_limits_widget)
+        self.add_parameter(use_limits_widget)
+        
+        # Limite inferior
+        lower_limit_widget = NumericParameterWidget(
+            "lower_limit", -1e10, 1e10, 0.1, 6, 0.0,
+            "Limite inferior de integração"
+        )
+        layout.addWidget(lower_limit_widget)
+        self.add_parameter(lower_limit_widget)
+        
+        # Limite superior
+        upper_limit_widget = NumericParameterWidget(
+            "upper_limit", -1e10, 1e10, 0.1, 6, 1.0,
+            "Limite superior de integração"
+        )
+        layout.addWidget(upper_limit_widget)
+        self.add_parameter(upper_limit_widget)
+        
+        # Constante de integração
+        constant_widget = NumericParameterWidget(
+            "integration_constant", -1e10, 1e10, 0.1, 6, 0.0,
+            "Constante de integração (para integral cumulativa)"
+        )
+        layout.addWidget(constant_widget)
+        self.add_parameter(constant_widget)
+        
+        # Criar nova série
+        new_series_widget = BooleanParameterWidget(
+            "create_new_series", True,
+            "Criar nova série com resultado"
+        )
+        layout.addWidget(new_series_widget)
+        self.add_parameter(new_series_widget)
+        
+        layout.addStretch()
+        scroll.setWidget(content)
+        return scroll
+    
+    def _generate_mock_preview(self, params: Dict[str, Any]):
+        """Gera preview com integral simulada"""
+        import numpy as np
+        
+        x = np.linspace(0, 4*np.pi, 200)
+        y = np.sin(x)
+        
+        method = params.get('method', 'trapezoid')
+        result_type = params.get('result_type', 'Valor escalar')
+        
+        if 'cumulativa' in result_type.lower() or method == 'cumulative':
+            # Integral cumulativa: ∫sin = -cos + C
+            y_integral = -np.cos(x) + 1  # +1 como constante
+            label = "∫y dx (cumulativa)"
+        else:
+            # Área total sob a curva
+            y_integral = np.cumsum(y) * (x[1] - x[0])
+            label = "Área = {:.4f}".format(np.trapz(y, x))
+        
+        preview_data = {
+            'x': x,
+            'y': y,
+            'y_processed': y_integral,
+            'label_original': 'sin(x)',
+            'label_processed': label
+        }
+        
+        self.preview_widget.update_preview(preview_data)
+        self.preview_status.setText(f"Preview: {method} - {result_type}")
+
+
+class FilterDialog(BaseOperationDialog):
+    """Diálogo para configuração de filtros digitais"""
+    
+    def __init__(self, available_series: List[Tuple[str, str]] = None, parent: Optional[QWidget] = None):
+        self.available_series = available_series or []
+        super().__init__("Configuração de Filtro", parent)
+    
+    def _create_parameters_panel(self) -> QWidget:
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        
+        # Tipo de filtro
+        filter_type_widget = ChoiceParameterWidget(
+            "filter_type",
+            ["butterworth_lowpass", "butterworth_highpass", "butterworth_bandpass",
+             "gaussian", "median", "outlier_removal"],
+            "butterworth_lowpass",
+            "Tipo de filtro a aplicar"
+        )
+        layout.addWidget(filter_type_widget)
+        self.add_parameter(filter_type_widget)
+        
+        # Ordem do filtro
+        order_widget = NumericParameterWidget(
+            "order", 1, 10, 1, 0, 4,
+            "Ordem do filtro Butterworth"
+        )
+        layout.addWidget(order_widget)
+        self.add_parameter(order_widget)
+        
+        # Frequência de corte
+        cutoff_widget = NumericParameterWidget(
+            "cutoff_freq", 0.001, 0.999, 0.001, 3, 0.1,
+            "Frequência de corte normalizada (0-1)"
+        )
+        layout.addWidget(cutoff_widget)
+        self.add_parameter(cutoff_widget)
+        
+        # Frequência de corte alta (para bandpass)
+        cutoff_high_widget = NumericParameterWidget(
+            "cutoff_freq_high", 0.001, 0.999, 0.001, 3, 0.3,
+            "Frequência de corte alta (para bandpass)"
+        )
+        layout.addWidget(cutoff_high_widget)
+        self.add_parameter(cutoff_high_widget)
+        
+        # Tamanho da janela (para filtros de janela)
+        window_widget = NumericParameterWidget(
+            "window_size", 3, 101, 2, 0, 5,
+            "Tamanho da janela para filtros de média/mediana"
+        )
+        layout.addWidget(window_widget)
+        self.add_parameter(window_widget)
+        
+        # Limiar para remoção de outliers
+        threshold_widget = NumericParameterWidget(
+            "outlier_threshold", 1.0, 10.0, 0.1, 1, 3.0,
+            "Limiar em desvios padrão para detecção de outliers"
+        )
+        layout.addWidget(threshold_widget)
+        self.add_parameter(threshold_widget)
+        
+        layout.addStretch()
+        scroll.setWidget(content)
+        return scroll
+
+
+class SmoothingDialog(BaseOperationDialog):
+    """Diálogo para configuração de suavização"""
+    
+    def __init__(self, available_series: List[Tuple[str, str]] = None, parent: Optional[QWidget] = None):
+        self.available_series = available_series or []
+        super().__init__("Configuração de Suavização", parent)
+    
+    def _create_parameters_panel(self) -> QWidget:
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        
+        # Método de suavização
+        method_widget = ChoiceParameterWidget(
+            "method",
+            ["gaussian", "moving_average", "savitzky_golay", "exponential", "median"],
+            "gaussian",
+            "Método de suavização"
+        )
+        layout.addWidget(method_widget)
+        self.add_parameter(method_widget)
+        
+        # Tamanho da janela
+        window_widget = NumericParameterWidget(
+            "window_size", 3, 101, 2, 0, 5,
+            "Tamanho da janela de suavização (deve ser ímpar)"
+        )
+        layout.addWidget(window_widget)
+        self.add_parameter(window_widget)
+        
+        # Sigma (para Gaussiano)
+        sigma_widget = NumericParameterWidget(
+            "sigma", 0.1, 10.0, 0.1, 2, 1.0,
+            "Desvio padrão para filtro Gaussiano"
+        )
+        layout.addWidget(sigma_widget)
+        self.add_parameter(sigma_widget)
+        
+        # Ordem do polinômio (para Savitzky-Golay)
+        polyorder_widget = NumericParameterWidget(
+            "polyorder", 1, 6, 1, 0, 3,
+            "Ordem do polinômio para Savitzky-Golay"
+        )
+        layout.addWidget(polyorder_widget)
+        self.add_parameter(polyorder_widget)
+        
+        # Fator de decaimento (para exponencial)
+        alpha_widget = NumericParameterWidget(
+            "alpha", 0.01, 1.0, 0.01, 2, 0.3,
+            "Fator de decaimento para média móvel exponencial"
+        )
+        layout.addWidget(alpha_widget)
+        self.add_parameter(alpha_widget)
+        
+        # Preservar bordas
+        preserve_edges_widget = BooleanParameterWidget(
+            "preserve_edges", True,
+            "Preservar valores nas bordas (evita redução do tamanho)"
+        )
+        layout.addWidget(preserve_edges_widget)
+        self.add_parameter(preserve_edges_widget)
+        
+        layout.addStretch()
+        scroll.setWidget(content)
+        return scroll
+
+
 class CalculusDialog(BaseOperationDialog):
     """Diálogo para configuração de cálculos matemáticos"""
     
-    def __init__(self, available_series: List[Tuple[str, str]], parent: Optional[QWidget] = None):
-        self.available_series = available_series
+    def __init__(self, available_series: List[Tuple[str, str]] = None, parent: Optional[QWidget] = None):
+        self.available_series = available_series or []
         super().__init__("Calculus Configuration", parent)
     
     def _create_parameters_panel(self) -> QWidget:
@@ -637,10 +1013,14 @@ class OperationDialogManager:
         self.dialog_registry = {
             'interpolation': InterpolationDialog,
             'synchronization': SynchronizationDialog,
-            'calculus': CalculusDialog
+            'calculus': CalculusDialog,
+            'derivative': DerivativeDialog,
+            'integral': IntegralDialog,
+            'filter': FilterDialog,
+            'smoothing': SmoothingDialog,
         }
     
-    def show_dialog(self, operation_type: str, available_series: List[Tuple[str, str]],
+    def show_dialog(self, operation_type: str, available_series: List[Tuple[str, str]] = None,
                    parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
         """Mostra diálogo para tipo de operação e retorna parâmetros"""
         
@@ -649,7 +1029,7 @@ class OperationDialogManager:
             logger.warning("unknown_operation_dialog", operation_type=operation_type)
             return None
         
-        dialog = dialog_class(available_series, parent)
+        dialog = dialog_class(available_series or [], parent)
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
             return dialog._get_current_parameters()
@@ -670,19 +1050,43 @@ def get_operation_dialog_manager() -> OperationDialogManager:
     return _dialog_manager
 
 
-def show_interpolation_dialog(available_series: List[Tuple[str, str]], 
+def show_interpolation_dialog(available_series: List[Tuple[str, str]] = None, 
                             parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
     """Conveniência para mostrar diálogo de interpolação"""
     return _dialog_manager.show_dialog('interpolation', available_series, parent)
 
 
-def show_synchronization_dialog(available_series: List[Tuple[str, str]], 
+def show_synchronization_dialog(available_series: List[Tuple[str, str]] = None, 
                                parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
     """Conveniência para mostrar diálogo de sincronização"""
     return _dialog_manager.show_dialog('synchronization', available_series, parent)
 
 
-def show_calculus_dialog(available_series: List[Tuple[str, str]], 
+def show_calculus_dialog(available_series: List[Tuple[str, str]] = None, 
                         parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
     """Conveniência para mostrar diálogo de cálculo"""
     return _dialog_manager.show_dialog('calculus', available_series, parent)
+
+
+def show_derivative_dialog(available_series: List[Tuple[str, str]] = None, 
+                          parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
+    """Conveniência para mostrar diálogo de derivada"""
+    return _dialog_manager.show_dialog('derivative', available_series, parent)
+
+
+def show_integral_dialog(available_series: List[Tuple[str, str]] = None, 
+                        parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
+    """Conveniência para mostrar diálogo de integral"""
+    return _dialog_manager.show_dialog('integral', available_series, parent)
+
+
+def show_filter_dialog(available_series: List[Tuple[str, str]] = None, 
+                      parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
+    """Conveniência para mostrar diálogo de filtro"""
+    return _dialog_manager.show_dialog('filter', available_series, parent)
+
+
+def show_smoothing_dialog(available_series: List[Tuple[str, str]] = None, 
+                         parent: Optional[QWidget] = None) -> Optional[Dict[str, Any]]:
+    """Conveniência para mostrar diálogo de suavização"""
+    return _dialog_manager.show_dialog('smoothing', available_series, parent)

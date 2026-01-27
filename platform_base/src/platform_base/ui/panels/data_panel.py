@@ -10,25 +10,54 @@ Características:
 
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
 from pathlib import Path
 from typing import Optional
 
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem,
-    QGroupBox, QLabel, QPushButton, QFileDialog, QTableWidget, QTableWidgetItem,
-    QTabWidget, QTextEdit, QProgressBar, QComboBox, QSpinBox, QCheckBox,
-    QFormLayout, QMessageBox, QHeaderView, QAbstractItemView, QFrame,
-    QSplitter, QScrollArea, QMenu
+import numpy as np
+import pandas as pd
+from PyQt6.QtCore import (
+    QMutex,
+    QMutexLocker,
+    QPoint,
+    QSize,
+    Qt,
+    QThread,
+    pyqtSignal,
+    pyqtSlot,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot, QThread, QMutex, QMutexLocker, QSize, QPoint
-from PyQt6.QtGui import QFont, QIcon, QPalette, QAction, QColor
+from PyQt6.QtGui import QAction, QColor, QFont, QIcon, QPalette
+from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
+    QComboBox,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QMenu,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
 
+from platform_base.core.models import Dataset, SeriesID
+from platform_base.io.loader import LoadConfig, get_file_info
 from platform_base.ui.state import SessionState
 from platform_base.ui.workers.file_worker import FileLoadWorker
-from platform_base.io.loader import LoadConfig, get_file_info
-from platform_base.core.models import Dataset, SeriesID
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -206,6 +235,11 @@ class CompactDataPanel(QWidget):
         self._datasets_tree.setMaximumHeight(120)
         self._datasets_tree.setAlternatingRowColors(True)
         self._datasets_tree.itemClicked.connect(self._on_dataset_selected)
+        self._datasets_tree.setToolTip(
+            "Lista de datasets carregados.\n"
+            "Clique para selecionar o dataset ativo.\n"
+            "Duplo-clique para editar informações."
+        )
         
         # Configurar headers
         datasets_header = self._datasets_tree.header()
@@ -245,6 +279,12 @@ class CompactDataPanel(QWidget):
         self._series_tree.setMaximumHeight(100)  # Altura reduzida para otimização
         self._series_tree.setAlternatingRowColors(True)
         self._series_tree.itemClicked.connect(self._on_series_selected)
+        self._series_tree.setToolTip(
+            "Séries do dataset atual.\n"
+            "• Clique para selecionar uma série\n"
+            "• Arraste para o gráfico para visualizar\n"
+            "• Botão direito para opções (exportar, remover, etc.)"
+        )
         
         # Enable custom context menu for series
         self._series_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -287,6 +327,10 @@ class CompactDataPanel(QWidget):
         self._preview_rows_combo.setCurrentText("25")
         self._preview_rows_combo.setMaximumWidth(60)
         self._preview_rows_combo.currentTextChanged.connect(self._update_data_table)
+        self._preview_rows_combo.setToolTip(
+            "Número de linhas a exibir na prévia.\n"
+            "Valores maiores mostram mais dados mas podem ser mais lentos."
+        )
         
         table_header_layout.addStretch()
         table_header_layout.addWidget(QLabel("Linhas:"))
@@ -300,6 +344,12 @@ class CompactDataPanel(QWidget):
         self._data_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self._data_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self._data_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._data_table.setToolTip(
+            "Prévia dos dados do dataset.\n"
+            "• Tempo, valores e cálculos derivados\n"
+            "• Selecione linhas para análise\n"
+            "• Use o controle 'Linhas' para ajustar quantidade"
+        )
         
         # Configurar tabela
         table_header = self._data_table.horizontalHeader()
@@ -349,25 +399,176 @@ class CompactDataPanel(QWidget):
         self._load_button.setEnabled(True)
     
     def _open_file_dialog(self):
-        """Diálogo de seleção de múltiplos arquivos modernizado"""
+        """Diálogo de seleção de múltiplos arquivos com validação aprimorada"""
         file_dialog = QFileDialog(self)
         file_dialog.setWindowTitle("📁 Carregar Dataset(s)")
         file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)  # Múltiplos arquivos
         file_dialog.setNameFilters([
-            "Todos os formatos (*.csv *.xlsx *.parquet *.h5)",
-            "CSV (*.csv)",
-            "Excel (*.xlsx *.xls)", 
-            "Parquet (*.parquet *.pq)",
-            "HDF5 (*.h5 *.hdf5)"
+            "Todos os formatos suportados (*.csv *.xlsx *.xls *.parquet *.pq *.h5 *.hdf5)",
+            "CSV - Valores separados por vírgula (*.csv)",
+            "Excel - Planilha Microsoft (*.xlsx *.xls)", 
+            "Parquet - Formato colunar Apache (*.parquet *.pq)",
+            "HDF5 - Formato hierárquico (*.h5 *.hdf5)",
+            "Todos os arquivos (*.*)"
         ])
         
         if file_dialog.exec():
             file_paths = file_dialog.selectedFiles()
             if file_paths:
-                # Carregar múltiplos arquivos
+                # Validar cada arquivo antes de carregar
+                valid_files = []
+                invalid_files = []
+                large_files = []
+                
                 for file_path in file_paths:
+                    validation = self._validate_file(file_path)
+                    if validation['valid']:
+                        if validation.get('large_file'):
+                            large_files.append((file_path, validation['size_mb']))
+                        valid_files.append(file_path)
+                    else:
+                        invalid_files.append((file_path, validation['error']))
+                
+                # Alertar sobre arquivos inválidos
+                if invalid_files:
+                    error_details = "\n".join([f"• {Path(f).name}: {e}" for f, e in invalid_files])
+                    QMessageBox.warning(
+                        self,
+                        "⚠️ Arquivos Inválidos",
+                        f"Os seguintes arquivos não podem ser carregados:\n\n{error_details}"
+                    )
+                
+                # Alertar sobre arquivos grandes
+                if large_files:
+                    file_list = "\n".join([f"• {Path(f).name} ({s:.1f} MB)" for f, s in large_files])
+                    reply = QMessageBox.question(
+                        self,
+                        "⚠️ Arquivos Grandes Detectados",
+                        f"Os seguintes arquivos são grandes e podem demorar para carregar:\n\n{file_list}\n\n"
+                        f"Deseja continuar com o carregamento?",
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.Yes
+                    )
+                    if reply == QMessageBox.StandardButton.No:
+                        # Remover arquivos grandes da lista
+                        valid_files = [f for f in valid_files if f not in [lf[0] for lf in large_files]]
+                
+                # Carregar arquivos válidos
+                for file_path in valid_files:
                     self.load_dataset(file_path)
     
+    def _validate_file(self, file_path: str) -> dict:
+        """
+        Valida arquivo antes do carregamento
+        
+        Returns:
+            dict com:
+                - valid: bool
+                - error: str (se inválido)
+                - size_mb: float
+                - large_file: bool (>50MB)
+        """
+        result = {
+            'valid': False,
+            'error': None,
+            'size_mb': 0.0,
+            'large_file': False
+        }
+        
+        path = Path(file_path)
+        
+        # 1. Verificar se arquivo existe
+        if not path.exists():
+            result['error'] = "Arquivo não encontrado"
+            return result
+        
+        # 2. Verificar se é arquivo (não diretório)
+        if not path.is_file():
+            result['error'] = "Não é um arquivo válido"
+            return result
+        
+        # 3. Verificar extensão
+        valid_extensions = {'.csv', '.xlsx', '.xls', '.parquet', '.pq', '.h5', '.hdf5'}
+        if path.suffix.lower() not in valid_extensions:
+            result['error'] = f"Formato não suportado: {path.suffix}"
+            return result
+        
+        # 4. Verificar tamanho
+        try:
+            size_bytes = path.stat().st_size
+            result['size_mb'] = size_bytes / (1024 * 1024)
+            
+            # Arquivo vazio
+            if size_bytes == 0:
+                result['error'] = "Arquivo vazio"
+                return result
+            
+            # Arquivo muito grande (>500MB pode ter problemas de memória)
+            if result['size_mb'] > 500:
+                result['error'] = f"Arquivo muito grande ({result['size_mb']:.1f} MB > 500 MB limite)"
+                return result
+            
+            # Arquivo grande (>50MB) - aviso
+            if result['size_mb'] > 50:
+                result['large_file'] = True
+                
+        except OSError as e:
+            result['error'] = f"Erro ao acessar arquivo: {e}"
+            return result
+        
+        # 5. Verificar se arquivo não está corrompido (leitura básica)
+        try:
+            if path.suffix.lower() == '.csv':
+                # Ler apenas primeira linha para validar
+                with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                    first_line = f.readline()
+                    if not first_line.strip():
+                        result['error'] = "Arquivo CSV vazio ou inválido"
+                        return result
+                        
+            elif path.suffix.lower() in {'.xlsx', '.xls'}:
+                # Validar estrutura Excel
+                import openpyxl
+                try:
+                    wb = openpyxl.load_workbook(path, read_only=True)
+                    if not wb.sheetnames:
+                        result['error'] = "Arquivo Excel sem planilhas"
+                        return result
+                    wb.close()
+                except Exception as e:
+                    result['error'] = f"Arquivo Excel corrompido: {e}"
+                    return result
+                    
+            elif path.suffix.lower() in {'.parquet', '.pq'}:
+                import pyarrow.parquet as pq
+                try:
+                    pq.ParquetFile(path)
+                except Exception as e:
+                    result['error'] = f"Arquivo Parquet inválido: {e}"
+                    return result
+                    
+            elif path.suffix.lower() in {'.h5', '.hdf5'}:
+                import h5py
+                try:
+                    with h5py.File(path, 'r') as f:
+                        if len(f.keys()) == 0:
+                            result['error'] = "Arquivo HDF5 sem dados"
+                            return result
+                except Exception as e:
+                    result['error'] = f"Arquivo HDF5 inválido: {e}"
+                    return result
+                    
+        except ImportError as e:
+            # Biblioteca não disponível - permitir tentar carregar
+            logger.warning("validation_library_missing", error=str(e))
+        except Exception as e:
+            result['error'] = f"Erro na validação: {str(e)}"
+            return result
+        
+        # Arquivo válido
+        result['valid'] = True
+        return result
+
     def load_dataset(self, file_path: str):
         """Carrega dataset usando worker thread - CORRIGIDO para múltiplos arquivos COM THREADS ROBUSTAS"""
         # Ensure proper path handling for Windows Unicode characters
@@ -428,6 +629,7 @@ class CompactDataPanel(QWidget):
         except Exception as e:
             logger.error("thread_start_failed", error=str(e))
             cleanup_worker()
+
     
     @pyqtSlot(int, str)
     def _on_load_progress(self, percent: int, message: str):
@@ -857,9 +1059,11 @@ class CompactDataPanel(QWidget):
             
             # Create matplotlib plot
             import matplotlib.pyplot as plt
-            from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+            from matplotlib.backends.backend_qt5agg import (
+                FigureCanvasQTAgg as FigureCanvas,
+            )
             from matplotlib.figure import Figure
-            
+
             # Create figure
             fig = Figure(figsize=(12, 8), dpi=100, tight_layout=True)
             ax = fig.add_subplot(111)
@@ -907,11 +1111,13 @@ class CompactDataPanel(QWidget):
             
             # Create matplotlib 3D plot
             import matplotlib.pyplot as plt
-            from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+            import numpy as np
+            from matplotlib.backends.backend_qt5agg import (
+                FigureCanvasQTAgg as FigureCanvas,
+            )
             from matplotlib.figure import Figure
             from mpl_toolkits.mplot3d import Axes3D
-            import numpy as np
-            
+
             # Create figure with 3D projection
             fig = Figure(figsize=(12, 8), dpi=100, tight_layout=True)
             ax = fig.add_subplot(111, projection='3d')
@@ -970,7 +1176,7 @@ class CompactDataPanel(QWidget):
             # Multiple interpolation methods
             import numpy as np
             from scipy import interpolate
-            
+
             # Linear interpolation
             linear_interp = interpolate.interp1d(dataset.t_seconds, series.values, 
                                                kind='linear', fill_value='extrapolate')
@@ -1002,7 +1208,7 @@ class CompactDataPanel(QWidget):
             series = dataset.series[series_id]
             
             import numpy as np
-            
+
             # First derivative
             dt = np.diff(dataset.t_seconds)
             dy = np.diff(series.values)
@@ -1042,7 +1248,7 @@ class CompactDataPanel(QWidget):
             
             import numpy as np
             from scipy import integrate
-            
+
             # Trapezoidal rule integration
             trapezoidal_integral = integrate.trapezoid(series.values, dataset.t_seconds)
             
@@ -1079,7 +1285,7 @@ class CompactDataPanel(QWidget):
             
             import numpy as np
             from scipy import integrate
-            
+
             # Total area under curve (absolute)
             total_area = integrate.trapezoid(np.abs(series.values), dataset.t_seconds)
             
@@ -1115,7 +1321,7 @@ class CompactDataPanel(QWidget):
             
             import numpy as np
             from scipy import ndimage, signal
-            
+
             # Gaussian filter
             gaussian_smoothed = ndimage.gaussian_filter1d(series.values, sigma=2.0)
             
@@ -1159,7 +1365,7 @@ class CompactDataPanel(QWidget):
             
             import numpy as np
             from scipy import signal
-            
+
             # Remove outliers (values beyond 3 standard deviations)
             mean_val = np.mean(series.values)
             std_val = np.std(series.values)

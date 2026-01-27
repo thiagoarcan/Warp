@@ -10,19 +10,34 @@ Características:
 
 from __future__ import annotations
 
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTabWidget,
-    QFrame, QScrollArea, QSplitter, QPushButton, QGroupBox,
-    QGridLayout, QMessageBox
-)
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot, QRect
-from PyQt6.QtGui import QPainter, QPen, QBrush, QFont, QColor
-
 # Matplotlib imports para visualização real
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import numpy as np
+from PyQt6.QtCore import QRect, Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDoubleSpinBox,
+    QFormLayout,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QSplitter,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from platform_base.ui.state import SessionState
 from platform_base.utils.logging import get_logger
@@ -32,6 +47,13 @@ logger = get_logger(__name__)
 
 class MatplotlibWidget(QWidget):
     """Widget real de matplotlib para visualização de dados"""
+    
+    # Signal para coordenadas do crosshair
+    coordinates_changed = pyqtSignal(float, float)  # x, y
+    # Signal para região selecionada
+    region_selected = pyqtSignal(float, float, float, float)  # x1, x2, y1, y2
+    # Signal para dados extraídos
+    data_extracted = pyqtSignal(object)  # numpy array
     
     def __init__(self, series, plot_type: str = "2d", parent=None):
         super().__init__(parent)
@@ -50,6 +72,21 @@ class MatplotlibWidget(QWidget):
         # Configurar cores modernas
         self.colors = ['#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1', '#20c997']
         self.current_color_idx = 0
+        
+        # Crosshair state
+        self._crosshair_enabled = False
+        self._crosshair_hline = None
+        self._crosshair_vline = None
+        self._crosshair_text = None
+        self._motion_cid = None
+        
+        # Region selection (brush) state
+        self._selection_enabled = False
+        self._selection_rect = None
+        self._selection_start = None
+        self._press_cid = None
+        self._release_cid = None
+        self._drag_cid = None
         
         # Layout
         layout = QVBoxLayout(self)
@@ -82,7 +119,7 @@ class MatplotlibWidget(QWidget):
             self.canvas.draw()
             
         except Exception as e:
-            logger.error("plot_creation_error", error=str(e), plot_type=self.plot_type)
+            logger.error(f"plot_creation_error: {e}, plot_type={self.plot_type}")
             self._create_error_plot(str(e))
     
     def _create_2d_plot(self):
@@ -259,8 +296,8 @@ class MatplotlibWidget(QWidget):
         """Mostra menu de contexto moderno para o gráfico"""
         try:
             from PyQt6.QtCore import QPoint
-            from PyQt6.QtWidgets import QMenu
             from PyQt6.QtGui import QAction
+            from PyQt6.QtWidgets import QMenu
             
             menu = QMenu(self)
             menu.setStyleSheet("""
@@ -318,7 +355,37 @@ class MatplotlibWidget(QWidget):
             legend_action.triggered.connect(self._toggle_legend)
             menu.addAction(legend_action)
             
+            # Crosshair toggle
+            crosshair_text = "❌ Desativar Crosshair" if self._crosshair_enabled else "➕ Ativar Crosshair"
+            crosshair_action = QAction(crosshair_text, self)
+            crosshair_action.triggered.connect(self.toggle_crosshair)
+            menu.addAction(crosshair_action)
+            
+            # Selection (brush) toggle
+            selection_text = "❌ Desativar Seleção" if self._selection_enabled else "🎯 Ativar Seleção"
+            selection_action = QAction(selection_text, self)
+            selection_action.triggered.connect(self.toggle_selection)
+            menu.addAction(selection_action)
+            
+            # Clear selection
+            if self._selection_rect:
+                clear_sel_action = QAction("🗑️ Limpar Seleção", self)
+                clear_sel_action.triggered.connect(self.clear_selection)
+                menu.addAction(clear_sel_action)
+            
             menu.addSeparator()
+            
+            # Copiar para clipboard
+            copy_action = QAction("📋 Copiar para Clipboard", self)
+            copy_action.triggered.connect(self.copy_to_clipboard)
+            menu.addAction(copy_action)
+            
+            menu.addSeparator()
+            
+            # Configure axes
+            axes_action = QAction("📐 Configurar Eixos", self)
+            axes_action.triggered.connect(self.configure_axes)
+            menu.addAction(axes_action)
             
             # Propriedades
             props_action = QAction("⚙️ Propriedades do Gráfico", self)
@@ -329,7 +396,7 @@ class MatplotlibWidget(QWidget):
             menu.exec(self.mapToGlobal(position))
             
         except Exception as e:
-            logger.error("context_menu_error", error=str(e))
+            logger.error(f"context_menu_error: {e}")
     
     def _export_png(self):
         """Exporta gráfico como PNG"""
@@ -343,10 +410,10 @@ class MatplotlibWidget(QWidget):
             
             if filename:
                 self.figure.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
-                logger.info("plot_exported_png", filename=filename)
+                logger.info(f"plot_exported_png: {filename}")
                 
         except Exception as e:
-            logger.error("export_png_error", error=str(e))
+            logger.error(f"export_png_error: {e}")
     
     def _export_pdf(self):
         """Exporta gráfico como PDF"""
@@ -360,10 +427,10 @@ class MatplotlibWidget(QWidget):
             
             if filename:
                 self.figure.savefig(filename, format='pdf', bbox_inches='tight', facecolor='white')
-                logger.info("plot_exported_pdf", filename=filename)
+                logger.info(f"plot_exported_pdf: {filename}")
                 
         except Exception as e:
-            logger.error("export_pdf_error", error=str(e))
+            logger.error(f"export_pdf_error: {e}")
     
     def _zoom_to_fit(self):
         """Ajusta zoom para mostrar todos os dados"""
@@ -374,7 +441,7 @@ class MatplotlibWidget(QWidget):
             self.canvas.draw()
             
         except Exception as e:
-            logger.error("zoom_fit_error", error=str(e))
+            logger.error(f"zoom_fit_error: {e}")
     
     def _toggle_grid(self):
         """Alterna exibição do grid"""
@@ -384,7 +451,7 @@ class MatplotlibWidget(QWidget):
             self.canvas.draw()
             
         except Exception as e:
-            logger.error("toggle_grid_error", error=str(e))
+            logger.error(f"toggle_grid_error: {e}")
     
     def _toggle_legend(self):
         """Alterna exibição da legenda"""
@@ -398,7 +465,7 @@ class MatplotlibWidget(QWidget):
             self.canvas.draw()
             
         except Exception as e:
-            logger.error("toggle_legend_error", error=str(e))
+            logger.error(f"toggle_legend_error: {e}")
     
     def _show_properties(self):
         """Mostra dialog de propriedades do gráfico"""
@@ -419,7 +486,647 @@ Desvio Padrão: {np.std(self.series.values):.6f}
             QMessageBox.information(self, f"Propriedades - {self.series.name}", props_text)
             
         except Exception as e:
-            logger.error("show_properties_error", error=str(e))
+            logger.error(f"show_properties_error: {e}")
+    
+    # ========== CROSSHAIR METHODS ==========
+    
+    def toggle_crosshair(self):
+        """Alterna exibição do crosshair"""
+        self._crosshair_enabled = not self._crosshair_enabled
+        
+        if self._crosshair_enabled:
+            self._enable_crosshair()
+        else:
+            self._disable_crosshair()
+    
+    def _enable_crosshair(self):
+        """Habilita o crosshair com label de coordenadas"""
+        try:
+            if self.figure.get_axes():
+                ax = self.figure.get_axes()[0]
+                
+                # Criar linhas do crosshair (inicialmente invisíveis)
+                self._crosshair_hline = ax.axhline(
+                    y=0, color='#dc3545', linestyle='--', 
+                    linewidth=1, alpha=0.7, visible=False
+                )
+                self._crosshair_vline = ax.axvline(
+                    x=0, color='#dc3545', linestyle='--', 
+                    linewidth=1, alpha=0.7, visible=False
+                )
+                
+                # Criar texto das coordenadas
+                self._crosshair_text = ax.text(
+                    0, 0, '', transform=ax.transData,
+                    fontsize=9, fontweight='bold',
+                    bbox=dict(boxstyle='round,pad=0.4', facecolor='#fff3cd', 
+                             edgecolor='#ffc107', alpha=0.95, linewidth=1.5),
+                    ha='left', va='bottom', visible=False
+                )
+                
+                # Conectar evento de movimento do mouse
+                self._motion_cid = self.canvas.mpl_connect(
+                    'motion_notify_event', self._on_mouse_move
+                )
+                
+                self.canvas.draw()
+                logger.info("Crosshair enabled")
+                
+        except Exception as e:
+            logger.error(f"enable_crosshair_error: {e}")
+    
+    def _disable_crosshair(self):
+        """Desabilita o crosshair"""
+        try:
+            # Desconectar evento
+            if self._motion_cid is not None:
+                self.canvas.mpl_disconnect(self._motion_cid)
+                self._motion_cid = None
+            
+            # Remover linhas e texto
+            if self._crosshair_hline is not None:
+                self._crosshair_hline.remove()
+                self._crosshair_hline = None
+            
+            if self._crosshair_vline is not None:
+                self._crosshair_vline.remove()
+                self._crosshair_vline = None
+            
+            if self._crosshair_text is not None:
+                self._crosshair_text.remove()
+                self._crosshair_text = None
+            
+            self.canvas.draw()
+            logger.info("Crosshair disabled")
+            
+        except Exception as e:
+            logger.error(f"disable_crosshair_error: {e}")
+    
+    def _on_mouse_move(self, event):
+        """Handler para movimento do mouse - atualiza crosshair"""
+        try:
+            if not self._crosshair_enabled:
+                return
+            
+            # Verificar se está dentro de um eixo
+            if event.inaxes is None:
+                # Fora do eixo - esconder crosshair
+                if self._crosshair_hline:
+                    self._crosshair_hline.set_visible(False)
+                if self._crosshair_vline:
+                    self._crosshair_vline.set_visible(False)
+                if self._crosshair_text:
+                    self._crosshair_text.set_visible(False)
+                self.canvas.draw_idle()
+                return
+            
+            ax = event.inaxes
+            x, y = event.xdata, event.ydata
+            
+            if x is None or y is None:
+                return
+            
+            # Atualizar posição das linhas
+            if self._crosshair_hline:
+                self._crosshair_hline.set_ydata([y, y])
+                self._crosshair_hline.set_visible(True)
+            
+            if self._crosshair_vline:
+                self._crosshair_vline.set_xdata([x, x])
+                self._crosshair_vline.set_visible(True)
+            
+            # Atualizar texto das coordenadas
+            if self._crosshair_text:
+                # Formatar coordenadas
+                x_display = f"{x:.2f}" if abs(x) < 10000 else f"{x:.2e}"
+                y_display = f"{y:.4f}" if abs(y) < 10000 else f"{y:.2e}"
+                coord_text = f"X: {x_display}\nY: {y_display}"
+                
+                self._crosshair_text.set_text(coord_text)
+                
+                # Posição do texto - um pouco deslocado do cursor
+                xlim = ax.get_xlim()
+                ylim = ax.get_ylim()
+                x_offset = (xlim[1] - xlim[0]) * 0.02
+                y_offset = (ylim[1] - ylim[0]) * 0.02
+                
+                # Ajustar lado do texto para não sair do gráfico
+                if x > (xlim[0] + xlim[1]) / 2:
+                    ha = 'right'
+                    text_x = x - x_offset
+                else:
+                    ha = 'left'
+                    text_x = x + x_offset
+                
+                if y > (ylim[0] + ylim[1]) / 2:
+                    va = 'top'
+                    text_y = y - y_offset
+                else:
+                    va = 'bottom'
+                    text_y = y + y_offset
+                
+                self._crosshair_text.set_position((text_x, text_y))
+                self._crosshair_text.set_ha(ha)
+                self._crosshair_text.set_va(va)
+                self._crosshair_text.set_visible(True)
+            
+            # Emitir sinal de coordenadas
+            self.coordinates_changed.emit(x, y)
+            
+            # Redesenhar (usando draw_idle para melhor performance)
+            self.canvas.draw_idle()
+            
+        except Exception as e:
+            logger.error(f"crosshair_mouse_move_error: {e}")
+    
+    def is_crosshair_enabled(self) -> bool:
+        """Retorna se o crosshair está habilitado"""
+        return self._crosshair_enabled
+    
+    # ========== COPY TO CLIPBOARD ==========
+    
+    def copy_to_clipboard(self):
+        """Copia o gráfico para a área de transferência"""
+        try:
+            import io
+
+            from PyQt6.QtGui import QImage
+            from PyQt6.QtWidgets import QApplication
+
+            # Renderizar figura para buffer
+            buf = io.BytesIO()
+            self.figure.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+            buf.seek(0)
+            
+            # Criar QImage a partir do buffer
+            image_data = buf.read()
+            qimage = QImage()
+            qimage.loadFromData(image_data)
+            
+            # Copiar para clipboard
+            clipboard = QApplication.clipboard()
+            clipboard.setImage(qimage)
+            
+            logger.info("Plot copied to clipboard")
+            
+            # Mostrar feedback visual
+            from PyQt6.QtWidgets import QToolTip
+            QToolTip.showText(self.canvas.mapToGlobal(self.canvas.rect().center()), 
+                             "✓ Copiado para área de transferência!", 
+                             self, self.canvas.rect(), 1500)
+            
+        except Exception as e:
+            logger.error(f"copy_to_clipboard_error: {e}")
+    
+    # ========== REGION SELECTION (BRUSH) ==========
+    
+    def toggle_selection(self):
+        """Alterna modo de seleção de região"""
+        self._selection_enabled = not self._selection_enabled
+        
+        if self._selection_enabled:
+            self._enable_selection()
+        else:
+            self._disable_selection()
+    
+    def _enable_selection(self):
+        """Habilita seleção de região por brush"""
+        try:
+            # Desabilitar crosshair se estiver ativo
+            if self._crosshair_enabled:
+                self.toggle_crosshair()
+            
+            # Conectar eventos de mouse
+            self._press_cid = self.canvas.mpl_connect('button_press_event', self._on_selection_press)
+            self._release_cid = self.canvas.mpl_connect('button_release_event', self._on_selection_release)
+            self._drag_cid = self.canvas.mpl_connect('motion_notify_event', self._on_selection_drag)
+            
+            logger.info("Region selection enabled")
+            
+            # Feedback visual
+            from PyQt6.QtWidgets import QToolTip
+            QToolTip.showText(self.canvas.mapToGlobal(self.canvas.rect().center()), 
+                             "🎯 Modo seleção ativo - arraste para selecionar região", 
+                             self, self.canvas.rect(), 2000)
+            
+        except Exception as e:
+            logger.error(f"enable_selection_error: {e}")
+    
+    def _disable_selection(self):
+        """Desabilita seleção de região"""
+        try:
+            # Desconectar eventos
+            if self._press_cid:
+                self.canvas.mpl_disconnect(self._press_cid)
+                self._press_cid = None
+            if self._release_cid:
+                self.canvas.mpl_disconnect(self._release_cid)
+                self._release_cid = None
+            if self._drag_cid:
+                self.canvas.mpl_disconnect(self._drag_cid)
+                self._drag_cid = None
+            
+            # Remover retângulo de seleção se existir
+            if self._selection_rect:
+                self._selection_rect.remove()
+                self._selection_rect = None
+                self.canvas.draw()
+            
+            logger.info("Region selection disabled")
+            
+        except Exception as e:
+            logger.error(f"disable_selection_error: {e}")
+    
+    def _on_selection_press(self, event):
+        """Handler para início da seleção"""
+        if event.inaxes is None or event.button != 1:  # Só botão esquerdo
+            return
+        
+        self._selection_start = (event.xdata, event.ydata)
+        
+        # Remover retângulo anterior se existir
+        if self._selection_rect:
+            self._selection_rect.remove()
+            self._selection_rect = None
+    
+    def _on_selection_drag(self, event):
+        """Handler para arrastar seleção"""
+        if self._selection_start is None or event.inaxes is None:
+            return
+        
+        if event.xdata is None or event.ydata is None:
+            return
+        
+        ax = event.inaxes
+        x0, y0 = self._selection_start
+        x1, y1 = event.xdata, event.ydata
+        
+        # Calcular dimensões
+        width = x1 - x0
+        height = y1 - y0
+        
+        # Remover retângulo anterior
+        if self._selection_rect:
+            self._selection_rect.remove()
+        
+        # Criar novo retângulo
+        from matplotlib.patches import Rectangle
+        self._selection_rect = ax.add_patch(
+            Rectangle((x0, y0), width, height,
+                      fill=True, facecolor='#0d6efd', alpha=0.2,
+                      edgecolor='#0d6efd', linewidth=2, linestyle='--')
+        )
+        
+        self.canvas.draw_idle()
+    
+    def _on_selection_release(self, event):
+        """Handler para fim da seleção"""
+        if self._selection_start is None or event.inaxes is None:
+            return
+        
+        if event.xdata is None or event.ydata is None:
+            self._selection_start = None
+            return
+        
+        x0, y0 = self._selection_start
+        x1, y1 = event.xdata, event.ydata
+        
+        # Normalizar coordenadas
+        x_min, x_max = min(x0, x1), max(x0, x1)
+        y_min, y_max = min(y0, y1), max(y0, y1)
+        
+        # Emitir sinal de região selecionada
+        self.region_selected.emit(x_min, x_max, y_min, y_max)
+        
+        # Extrair dados na região
+        self._extract_region_data(x_min, x_max)
+        
+        self._selection_start = None
+        logger.info(f"Region selected: X=[{x_min:.2f}, {x_max:.2f}], Y=[{y_min:.2f}, {y_max:.2f}]")
+    
+    def _extract_region_data(self, x_min: float, x_max: float):
+        """Extrai dados da região selecionada"""
+        try:
+            values = self.series.values
+            n_points = len(values)
+            
+            # Converter coordenadas X para índices
+            idx_min = max(0, int(x_min))
+            idx_max = min(n_points, int(x_max) + 1)
+            
+            if idx_min < idx_max:
+                extracted = values[idx_min:idx_max]
+                
+                # Emitir dados extraídos
+                self.data_extracted.emit(extracted)
+                
+                # Mostrar info
+                from PyQt6.QtWidgets import QMessageBox
+                msg = QMessageBox(self)
+                msg.setWindowTitle("📊 Dados Extraídos")
+                msg.setText(f"Região selecionada com sucesso!")
+                msg.setInformativeText(
+                    f"Pontos: {len(extracted):,}\n"
+                    f"Índices: [{idx_min}, {idx_max})\n"
+                    f"Min: {extracted.min():.4f}\n"
+                    f"Max: {extracted.max():.4f}\n"
+                    f"Média: {extracted.mean():.4f}"
+                )
+                msg.setIcon(QMessageBox.Icon.Information)
+                msg.exec()
+                
+        except Exception as e:
+            logger.error(f"extract_region_data_error: {e}")
+    
+    def is_selection_enabled(self) -> bool:
+        """Retorna se o modo de seleção está habilitado"""
+        return self._selection_enabled
+    
+    def clear_selection(self):
+        """Limpa seleção atual"""
+        if self._selection_rect:
+            self._selection_rect.remove()
+            self._selection_rect = None
+            self.canvas.draw()
+    
+    # ========== CONFIGURE AXES ==========
+    
+    def configure_axes(self):
+        """Abre diálogo de configuração dos eixos"""
+        try:
+            if not self.figure.get_axes():
+                return
+            
+            ax = self.figure.get_axes()[0]
+            
+            dialog = AxesConfigDialog(ax, self)
+            if dialog.exec():
+                config = dialog.get_config()
+                self._apply_axes_config(ax, config)
+                self.canvas.draw()
+                
+        except Exception as e:
+            logger.error(f"configure_axes_error: {e}")
+    
+    def _apply_axes_config(self, ax, config: dict):
+        """Aplica configuração aos eixos"""
+        try:
+            # Título
+            if config.get('title'):
+                ax.set_title(config['title'], fontsize=config.get('title_size', 14), 
+                            fontweight='bold')
+            
+            # Labels
+            if config.get('xlabel'):
+                ax.set_xlabel(config['xlabel'], fontsize=config.get('label_size', 12))
+            if config.get('ylabel'):
+                ax.set_ylabel(config['ylabel'], fontsize=config.get('label_size', 12))
+            
+            # Limites
+            if config.get('xlim_auto', True):
+                ax.autoscale(axis='x')
+            else:
+                ax.set_xlim(config.get('xmin', 0), config.get('xmax', 1))
+            
+            if config.get('ylim_auto', True):
+                ax.autoscale(axis='y')
+            else:
+                ax.set_ylim(config.get('ymin', 0), config.get('ymax', 1))
+            
+            # Grid
+            ax.grid(config.get('show_grid', True), alpha=config.get('grid_alpha', 0.3))
+            
+            # Escala
+            if config.get('xscale'):
+                ax.set_xscale(config['xscale'])
+            if config.get('yscale'):
+                ax.set_yscale(config['yscale'])
+            
+            logger.info("Axes configuration applied")
+            
+        except Exception as e:
+            logger.error(f"apply_axes_config_error: {e}")
+
+
+class AxesConfigDialog(QDialog):
+    """Diálogo de configuração dos eixos"""
+    
+    def __init__(self, ax, parent=None):
+        super().__init__(parent)
+        self.ax = ax
+        
+        self.setWindowTitle("⚙️ Configurar Eixos")
+        self.setMinimumSize(400, 450)
+        self.setModal(True)
+        
+        self._setup_ui()
+        self._load_current_values()
+    
+    def _setup_ui(self):
+        """Configura interface"""
+        layout = QVBoxLayout(self)
+        layout.setSpacing(12)
+        layout.setContentsMargins(16, 16, 16, 16)
+        
+        # Grupo: Título
+        title_group = QGroupBox("📝 Título")
+        title_layout = QFormLayout(title_group)
+        
+        self._title_edit = QLineEdit()
+        self._title_edit.setPlaceholderText("Título do gráfico")
+        title_layout.addRow("Título:", self._title_edit)
+        
+        self._title_size_spin = QSpinBox()
+        self._title_size_spin.setRange(8, 24)
+        self._title_size_spin.setValue(14)
+        title_layout.addRow("Tamanho:", self._title_size_spin)
+        
+        layout.addWidget(title_group)
+        
+        # Grupo: Labels
+        labels_group = QGroupBox("🏷️ Labels")
+        labels_layout = QFormLayout(labels_group)
+        
+        self._xlabel_edit = QLineEdit()
+        self._xlabel_edit.setPlaceholderText("Label do eixo X")
+        labels_layout.addRow("Eixo X:", self._xlabel_edit)
+        
+        self._ylabel_edit = QLineEdit()
+        self._ylabel_edit.setPlaceholderText("Label do eixo Y")
+        labels_layout.addRow("Eixo Y:", self._ylabel_edit)
+        
+        self._label_size_spin = QSpinBox()
+        self._label_size_spin.setRange(8, 18)
+        self._label_size_spin.setValue(12)
+        labels_layout.addRow("Tamanho:", self._label_size_spin)
+        
+        layout.addWidget(labels_group)
+        
+        # Grupo: Limites X
+        xlim_group = QGroupBox("↔️ Limites X")
+        xlim_layout = QVBoxLayout(xlim_group)
+        
+        self._xlim_auto_check = QCheckBox("Auto-ajustar")
+        self._xlim_auto_check.setChecked(True)
+        self._xlim_auto_check.stateChanged.connect(self._on_xlim_auto_changed)
+        xlim_layout.addWidget(self._xlim_auto_check)
+        
+        xlim_vals = QHBoxLayout()
+        xlim_vals.addWidget(QLabel("Min:"))
+        self._xmin_spin = QDoubleSpinBox()
+        self._xmin_spin.setRange(-1e10, 1e10)
+        self._xmin_spin.setDecimals(4)
+        self._xmin_spin.setEnabled(False)
+        xlim_vals.addWidget(self._xmin_spin)
+        xlim_vals.addWidget(QLabel("Max:"))
+        self._xmax_spin = QDoubleSpinBox()
+        self._xmax_spin.setRange(-1e10, 1e10)
+        self._xmax_spin.setDecimals(4)
+        self._xmax_spin.setEnabled(False)
+        xlim_vals.addWidget(self._xmax_spin)
+        xlim_layout.addLayout(xlim_vals)
+        
+        layout.addWidget(xlim_group)
+        
+        # Grupo: Limites Y
+        ylim_group = QGroupBox("↕️ Limites Y")
+        ylim_layout = QVBoxLayout(ylim_group)
+        
+        self._ylim_auto_check = QCheckBox("Auto-ajustar")
+        self._ylim_auto_check.setChecked(True)
+        self._ylim_auto_check.stateChanged.connect(self._on_ylim_auto_changed)
+        ylim_layout.addWidget(self._ylim_auto_check)
+        
+        ylim_vals = QHBoxLayout()
+        ylim_vals.addWidget(QLabel("Min:"))
+        self._ymin_spin = QDoubleSpinBox()
+        self._ymin_spin.setRange(-1e10, 1e10)
+        self._ymin_spin.setDecimals(4)
+        self._ymin_spin.setEnabled(False)
+        ylim_vals.addWidget(self._ymin_spin)
+        ylim_vals.addWidget(QLabel("Max:"))
+        self._ymax_spin = QDoubleSpinBox()
+        self._ymax_spin.setRange(-1e10, 1e10)
+        self._ymax_spin.setDecimals(4)
+        self._ymax_spin.setEnabled(False)
+        ylim_vals.addWidget(self._ymax_spin)
+        ylim_layout.addLayout(ylim_vals)
+        
+        layout.addWidget(ylim_group)
+        
+        # Grupo: Escala
+        scale_group = QGroupBox("📏 Escala")
+        scale_layout = QFormLayout(scale_group)
+        
+        self._xscale_combo = QComboBox()
+        self._xscale_combo.addItems(["linear", "log", "symlog"])
+        scale_layout.addRow("Escala X:", self._xscale_combo)
+        
+        self._yscale_combo = QComboBox()
+        self._yscale_combo.addItems(["linear", "log", "symlog"])
+        scale_layout.addRow("Escala Y:", self._yscale_combo)
+        
+        layout.addWidget(scale_group)
+        
+        # Grupo: Grid
+        grid_group = QGroupBox("⚏ Grid")
+        grid_layout = QFormLayout(grid_group)
+        
+        self._grid_check = QCheckBox("Mostrar grid")
+        self._grid_check.setChecked(True)
+        grid_layout.addRow(self._grid_check)
+        
+        self._grid_alpha_spin = QDoubleSpinBox()
+        self._grid_alpha_spin.setRange(0.0, 1.0)
+        self._grid_alpha_spin.setSingleStep(0.1)
+        self._grid_alpha_spin.setValue(0.3)
+        grid_layout.addRow("Transparência:", self._grid_alpha_spin)
+        
+        layout.addWidget(grid_group)
+        
+        # Botões
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        cancel_btn = QPushButton("❌ Cancelar")
+        cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_btn)
+        
+        ok_btn = QPushButton("✓ Aplicar")
+        ok_btn.setDefault(True)
+        ok_btn.clicked.connect(self.accept)
+        button_layout.addWidget(ok_btn)
+        
+        layout.addLayout(button_layout)
+        
+        # Estilo
+        self.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #e9ecef;
+                border-radius: 8px;
+                margin-top: 10px;
+                padding-top: 14px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                color: #0d6efd;
+            }
+        """)
+    
+    def _load_current_values(self):
+        """Carrega valores atuais do eixo"""
+        try:
+            self._title_edit.setText(self.ax.get_title())
+            self._xlabel_edit.setText(self.ax.get_xlabel())
+            self._ylabel_edit.setText(self.ax.get_ylabel())
+            
+            xlim = self.ax.get_xlim()
+            self._xmin_spin.setValue(xlim[0])
+            self._xmax_spin.setValue(xlim[1])
+            
+            ylim = self.ax.get_ylim()
+            self._ymin_spin.setValue(ylim[0])
+            self._ymax_spin.setValue(ylim[1])
+            
+            # Grid - tentar detectar estado atual
+            self._grid_check.setChecked(True)  # Assume grid ativo por padrão
+            
+        except Exception as e:
+            logger.error(f"load_axes_values_error: {e}")
+    
+    def _on_xlim_auto_changed(self, state):
+        """Handler para mudança de auto X"""
+        enabled = state != Qt.CheckState.Checked.value
+        self._xmin_spin.setEnabled(enabled)
+        self._xmax_spin.setEnabled(enabled)
+    
+    def _on_ylim_auto_changed(self, state):
+        """Handler para mudança de auto Y"""
+        enabled = state != Qt.CheckState.Checked.value
+        self._ymin_spin.setEnabled(enabled)
+        self._ymax_spin.setEnabled(enabled)
+    
+    def get_config(self) -> dict:
+        """Retorna configuração definida"""
+        return {
+            'title': self._title_edit.text(),
+            'title_size': self._title_size_spin.value(),
+            'xlabel': self._xlabel_edit.text(),
+            'ylabel': self._ylabel_edit.text(),
+            'label_size': self._label_size_spin.value(),
+            'xlim_auto': self._xlim_auto_check.isChecked(),
+            'xmin': self._xmin_spin.value(),
+            'xmax': self._xmax_spin.value(),
+            'ylim_auto': self._ylim_auto_check.isChecked(),
+            'ymin': self._ymin_spin.value(),
+            'ymax': self._ymax_spin.value(),
+            'xscale': self._xscale_combo.currentText(),
+            'yscale': self._yscale_combo.currentText(),
+            'show_grid': self._grid_check.isChecked(),
+            'grid_alpha': self._grid_alpha_spin.value(),
+        }
 
 
 class DropZone(QFrame):
@@ -711,7 +1418,7 @@ class ModernVizPanel(QWidget):
     def _on_dataset_changed(self, dataset_id: str):
         """Handler para mudança de dataset"""
         # Update UI quando dataset mudar
-        logger.debug("viz_panel_dataset_changed", dataset_id=dataset_id)
+        logger.debug(f"viz_panel_dataset_changed: {dataset_id}")
     
     # Handlers para drop de séries
     @pyqtSlot(str, str)
@@ -760,16 +1467,10 @@ class ModernVizPanel(QWidget):
                 'tab_index': tab_index
             })
             
-            logger.info("plot_created", 
-                       series_id=series_id, 
-                       plot_type=plot_type, 
-                       tab_index=tab_index)
+            logger.info(f"plot_created: series={series_id}, type={plot_type}, tab={tab_index}")
             
         except Exception as e:
-            logger.error("plot_creation_failed", 
-                        series_id=series_id, 
-                        plot_type=plot_type, 
-                        error=str(e))
+            logger.error(f"plot_creation_failed: series={series_id}, type={plot_type}, error={e}")
     
     def _create_plot_widget(self, series, plot_type: str) -> QWidget:
         """Cria widget de gráfico REAL usando matplotlib"""
@@ -779,7 +1480,7 @@ class ModernVizPanel(QWidget):
             return plot_widget
             
         except Exception as e:
-            logger.error("matplotlib_widget_creation_failed", error=str(e), plot_type=plot_type)
+            logger.error(f"matplotlib_widget_creation_failed: {e}, plot_type={plot_type}")
             
             # Fallback para widget de erro
             widget = QFrame()
@@ -830,7 +1531,7 @@ class ModernVizPanel(QWidget):
             if plot['tab_index'] > index:
                 plot['tab_index'] -= 1
         
-        logger.debug("plot_tab_closed", index=index)
+        logger.debug(f"plot_tab_closed: index={index}")
     
     # Public methods para toolbar
     def create_2d_plot(self):
