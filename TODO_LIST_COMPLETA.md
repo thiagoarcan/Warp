@@ -347,12 +347,12 @@
 
 ### 11.2 Casos Críticos
 
-- [ ] **TEST-004**: Load de arquivo vazio
-- [ ] **TEST-005**: Load de arquivo corrompido
-- [ ] **TEST-006**: Operação com dados NaN
-- [ ] **TEST-007**: Cancelamento de operação em andamento
-- [ ] **TEST-008**: Múltiplos datasets simultâneos
-- [ ] **TEST-009**: Stress test com 10+ datasets
+- [x] **TEST-004**: Load de arquivo vazio ✅
+- [x] **TEST-005**: Load de arquivo corrompido ✅
+- [x] **TEST-006**: Operação com dados NaN ✅
+- [x] **TEST-007**: Cancelamento de operação em andamento ✅
+- [x] **TEST-008**: Múltiplos datasets simultâneos ✅
+- [x] **TEST-009**: Stress test com 10+ datasets ✅
 
 ---
 
