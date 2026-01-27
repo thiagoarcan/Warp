@@ -52,6 +52,16 @@ class DownsampleError(PlatformError):
     pass
 
 
+class ConfigError(PlatformError):
+    """Error for configuration issues."""
+    pass
+
+
+class StreamingError(PlatformError):
+    """Error for streaming operations."""
+    pass
+
+
 def handle_error(error: PlatformError) -> None:
     logger.error(
         "platform_error",
