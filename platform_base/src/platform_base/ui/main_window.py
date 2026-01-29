@@ -607,8 +607,47 @@ class ModernMainWindow(QMainWindow):
         )
         
         if reply == QMessageBox.StandardButton.Yes:
-            # TODO: Implementar remoção de séries
-            self._status_label.setText("✅ Seleção removida")
+            try:
+                # Get current dataset
+                current_dataset_id = self.session_state.current_dataset
+                if not current_dataset_id:
+                    self._status_label.setText("⚠️ Nenhum dataset ativo")
+                    return
+                
+                # Get selected series from data panel
+                if not self._data_panel:
+                    self._status_label.setText("⚠️ Painel de dados não disponível")
+                    return
+                
+                selected_ids = self._data_panel.get_selected_series_ids()
+                if not selected_ids:
+                    self._status_label.setText("⚠️ Nenhuma série selecionada")
+                    return
+                
+                # Get dataset and remove series
+                dataset = self.session_state.get_dataset(current_dataset_id)
+                if not dataset:
+                    self._status_label.setText("⚠️ Dataset não encontrado")
+                    return
+                
+                # Remove each selected series
+                removed_count = 0
+                for series_id in selected_ids:
+                    if series_id in dataset.series:
+                        del dataset.series[series_id]
+                        removed_count += 1
+                
+                if removed_count > 0:
+                    # Update session state with modified dataset
+                    self.session_state.update_dataset(current_dataset_id, dataset)
+                    self._status_label.setText(f"✅ {removed_count} série(s) removida(s)")
+                    logger.info("series_removed", dataset_id=current_dataset_id, count=removed_count)
+                else:
+                    self._status_label.setText("⚠️ Nenhuma série foi removida")
+                    
+            except Exception as e:
+                logger.error("series_removal_failed", error=str(e), exc_info=True)
+                self._status_label.setText(f"❌ Erro ao remover séries: {e}")
     
     def _cancel_operation(self):
         """Cancela operação em andamento"""

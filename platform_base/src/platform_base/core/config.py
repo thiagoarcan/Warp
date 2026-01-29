@@ -319,7 +319,7 @@ class ConfigManager:
         self.config_data = merged
         
         # Notify callbacks of changes
-        self._notify_changes(old_config, merged)
+        self._notify_changes(old_config, merged, source_name="merge")
     
     def _deep_merge(self, base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[str, Any]:
         """Deep merge de dicionários"""
@@ -333,8 +333,14 @@ class ConfigManager:
         
         return result
     
-    def _notify_changes(self, old_config: Dict[str, Any], new_config: Dict[str, Any]):
-        """Notifica callbacks sobre mudanças"""
+    def _notify_changes(self, old_config: Dict[str, Any], new_config: Dict[str, Any], source_name: Optional[str] = None):
+        """Notifica callbacks sobre mudanças
+        
+        Args:
+            old_config: Configuração anterior
+            new_config: Nova configuração  
+            source_name: Nome da fonte que causou a mudança (opcional)
+        """
         if not self.change_callbacks:
             return
         
@@ -354,8 +360,11 @@ class ConfigManager:
                 new_values[key] = new_val
         
         if changed_keys:
+            # Use provided source_name or fall back to first source
+            actual_source = source_name or (self.sources[0] if self.sources else "unknown")
+            
             change = ConfigChange(
-                source=self.sources[0] if self.sources else None,  # TODO: track actual source
+                source=actual_source,
                 affected_keys=changed_keys,
                 old_values=old_values,
                 new_values=new_values
@@ -395,6 +404,9 @@ class ConfigManager:
         with self._lock:
             old_data = self.config_data.copy()
             self._load_source(source)
+            
+            # Notify changes with source information
+            self._notify_changes(old_data, self.config_data, source_name=str(source.name))
             
             logger.info("config_source_reloaded", path=str(source.path))
     
@@ -469,8 +481,18 @@ class ConfigManager:
         # Filter data by scope if specified
         data_to_save = self.config_data
         if scope_filter:
-            # TODO: implement scope filtering
-            pass
+            # Filter config by scope - look for config from matching source
+            filtered_data = {}
+            scope_name = scope_filter.name.lower()
+            
+            # Find matching source and use its raw data
+            for source in self.sources:
+                if scope_name in str(source.path).lower() or scope_name in source.name.lower():
+                    # This source matches the scope
+                    filtered_data = self.raw_data.get(source.name, {})
+                    break
+            
+            data_to_save = filtered_data if filtered_data else {}
         
         content = ""
         if format == ConfigFormat.YAML:
