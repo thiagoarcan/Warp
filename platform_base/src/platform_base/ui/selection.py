@@ -61,7 +61,21 @@ class Selection:
         return list(self.series.keys())
     
     def to_view_data(self, dataset_id: str) -> ViewData:
-        """Converte seleção para ViewData"""
+        """
+        Converte seleção para ViewData
+        
+        Args:
+            dataset_id: ID do dataset
+            
+        Returns:
+            ViewData com séries selecionadas e janela temporal
+            
+        Note:
+            O campo t_datetime será None se:
+            - Não houver referência temporal em metadata['t_reference']
+            - A conversão falhar por qualquer motivo
+            Callers devem verificar se t_datetime é None antes de usar.
+        """
         import pandas as pd
         
         # Convert t_seconds to datetime if we have a time reference in metadata

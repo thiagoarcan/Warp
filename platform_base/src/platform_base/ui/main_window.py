@@ -638,8 +638,10 @@ class ModernMainWindow(QMainWindow):
                         removed_count += 1
                 
                 if removed_count > 0:
-                    # Update session state with modified dataset
-                    self.session_state.update_dataset(current_dataset_id, dataset)
+                    # Update dataset in store and local cache
+                    self.session_state._loaded_datasets[current_dataset_id] = dataset
+                    # Emit signal to notify UI of changes
+                    self.session_state.dataset_changed.emit(current_dataset_id)
                     self._status_label.setText(f"✅ {removed_count} série(s) removida(s)")
                     logger.info("series_removed", dataset_id=current_dataset_id, count=removed_count)
                 else:
