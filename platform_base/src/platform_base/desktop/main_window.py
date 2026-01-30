@@ -60,6 +60,7 @@ class MainWindow(QMainWindow):
         self._create_menu_bar()
         self._create_tool_bar()
         self._create_status_bar()
+        self._setup_keyboard_shortcuts()  # Enhanced keyboard shortcuts
         self._connect_signals()
         
         # Auto-save timer
@@ -131,18 +132,21 @@ class MainWindow(QMainWindow):
         # New Session
         new_action = QAction(tr("&New Session"), self)
         new_action.setShortcut(QKeySequence.StandardKey.New)
+        new_action.setStatusTip(tr("Create a new session (Ctrl+N)"))
         new_action.triggered.connect(self._new_session)
         file_menu.addAction(new_action)
         
         # Open Session
         open_action = QAction(tr("&Open Session..."), self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
+        open_action.setStatusTip(tr("Open an existing session (Ctrl+O)"))
         open_action.triggered.connect(self._open_session)
         file_menu.addAction(open_action)
         
         # Save Session
         save_action = QAction(tr("&Save Session..."), self)
         save_action.setShortcut(QKeySequence.StandardKey.Save)
+        save_action.setStatusTip(tr("Save current session (Ctrl+S)"))
         save_action.triggered.connect(self._save_session)
         file_menu.addAction(save_action)
         
@@ -151,16 +155,54 @@ class MainWindow(QMainWindow):
         # Load Data
         load_data_action = QAction(tr("&Load Data..."), self)
         load_data_action.setShortcut(QKeySequence("Ctrl+L"))
+        load_data_action.setStatusTip(tr("Load data from file (Ctrl+L)"))
         load_data_action.triggered.connect(self._load_data)
         file_menu.addAction(load_data_action)
+        
+        # Export Data
+        export_data_action = QAction(tr("&Export Data..."), self)
+        export_data_action.setShortcut(QKeySequence("Ctrl+E"))
+        export_data_action.setStatusTip(tr("Export data to file (Ctrl+E)"))
+        export_data_action.triggered.connect(self._export_data)
+        file_menu.addAction(export_data_action)
         
         file_menu.addSeparator()
         
         # Exit
         exit_action = QAction(tr("E&xit"), self)
         exit_action.setShortcut(QKeySequence.StandardKey.Quit)
+        exit_action.setStatusTip(tr("Exit application (Ctrl+Q)"))
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
+        
+        # Edit Menu
+        edit_menu = menubar.addMenu(tr("&Edit"))
+        
+        # Undo
+        self.undo_action = QAction(tr("&Undo"), self)
+        self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
+        self.undo_action.setStatusTip(tr("Undo last operation (Ctrl+Z)"))
+        self.undo_action.setEnabled(False)  # Enabled when undo stack implemented
+        self.undo_action.triggered.connect(self._undo_operation)
+        edit_menu.addAction(self.undo_action)
+        
+        # Redo
+        self.redo_action = QAction(tr("&Redo"), self)
+        self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
+        self.redo_action.setStatusTip(tr("Redo last undone operation (Ctrl+Y)"))
+        self.redo_action.setEnabled(False)  # Enabled when undo stack implemented
+        self.redo_action.triggered.connect(self._redo_operation)
+        edit_menu.addAction(self.redo_action)
+        
+        edit_menu.addSeparator()
+        
+        # Find/Filter Series
+        find_action = QAction(tr("&Find Series..."), self)
+        find_action.setShortcut(QKeySequence.StandardKey.Find)
+        find_action.setStatusTip(tr("Find/filter series (Ctrl+F)"))
+        find_action.triggered.connect(self._find_series)
+        edit_menu.addAction(find_action)
+        
         
         # View Menu
         view_menu = menubar.addMenu(tr("&View"))
@@ -172,16 +214,35 @@ class MainWindow(QMainWindow):
         
         view_menu.addSeparator()
         
+        # Refresh Data
+        refresh_action = QAction(tr("&Refresh Data"), self)
+        refresh_action.setShortcut(QKeySequence("F5"))
+        refresh_action.setStatusTip(tr("Refresh/reload current data (F5)"))
+        refresh_action.triggered.connect(self._refresh_data)
+        view_menu.addAction(refresh_action)
+        
+        # Fullscreen
+        fullscreen_action = QAction(tr("&Fullscreen"), self)
+        fullscreen_action.setShortcut(QKeySequence("F11"))
+        fullscreen_action.setStatusTip(tr("Toggle fullscreen mode (F11)"))
+        fullscreen_action.triggered.connect(self._toggle_fullscreen)
+        view_menu.addAction(fullscreen_action)
+        
+        view_menu.addSeparator()
+        
         # Theme selection
         theme_light = QAction(tr("Light Theme"), self)
+        theme_light.setStatusTip(tr("Switch to light theme"))
         theme_light.triggered.connect(lambda: self._set_theme("light"))
         view_menu.addAction(theme_light)
         
         theme_dark = QAction(tr("Dark Theme"), self)
+        theme_dark.setStatusTip(tr("Switch to dark theme"))
         theme_dark.triggered.connect(lambda: self._set_theme("dark"))
         view_menu.addAction(theme_dark)
         
         theme_auto = QAction(tr("Auto Theme"), self)
+        theme_auto.setStatusTip(tr("Use system theme"))
         theme_auto.triggered.connect(lambda: self._set_theme("auto"))
         view_menu.addAction(theme_auto)
         
@@ -190,14 +251,32 @@ class MainWindow(QMainWindow):
         
         # Settings
         settings_action = QAction(tr("&Settings..."), self)
+        settings_action.setStatusTip(tr("Application settings"))
         settings_action.triggered.connect(self._show_settings)
         tools_menu.addAction(settings_action)
         
         # Help Menu
         help_menu = menubar.addMenu(tr("&Help"))
         
+        # Contextual Help
+        help_contextual_action = QAction(tr("&Contextual Help"), self)
+        help_contextual_action.setShortcut(QKeySequence("F1"))
+        help_contextual_action.setStatusTip(tr("Show help for current context (F1)"))
+        help_contextual_action.triggered.connect(self._show_contextual_help)
+        help_menu.addAction(help_contextual_action)
+        
+        # Keyboard Shortcuts
+        shortcuts_action = QAction(tr("&Keyboard Shortcuts"), self)
+        shortcuts_action.setShortcut(QKeySequence("Ctrl+?"))
+        shortcuts_action.setStatusTip(tr("Show all keyboard shortcuts"))
+        shortcuts_action.triggered.connect(self._show_keyboard_shortcuts)
+        help_menu.addAction(shortcuts_action)
+        
+        help_menu.addSeparator()
+        
         # About
         about_action = QAction(tr("&About..."), self)
+        about_action.setStatusTip(tr("About Platform Base"))
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
         
@@ -265,6 +344,37 @@ class MainWindow(QMainWindow):
         self.memory_timer.start(5000)  # Update every 5 seconds
         
         logger.debug("status_bar_created")
+    
+    def _setup_keyboard_shortcuts(self):
+        """Setup additional keyboard shortcuts not in menus"""
+        from PyQt6.QtGui import QShortcut
+        
+        # Delete key - Remove selected series
+        delete_shortcut = QShortcut(QKeySequence.StandardKey.Delete, self)
+        delete_shortcut.activated.connect(self._delete_selected_series)
+        delete_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        
+        # Escape - Cancel current operation
+        escape_shortcut = QShortcut(QKeySequence("Esc"), self)
+        escape_shortcut.activated.connect(self._cancel_operation)
+        escape_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        
+        # Ctrl+W - Close current view/tab
+        close_tab_shortcut = QShortcut(QKeySequence.StandardKey.Close, self)
+        close_tab_shortcut.activated.connect(self._close_current_view)
+        close_tab_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        
+        # Ctrl+Tab - Next tab/view
+        next_tab_shortcut = QShortcut(QKeySequence("Ctrl+Tab"), self)
+        next_tab_shortcut.activated.connect(self._next_view)
+        next_tab_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        
+        # Ctrl+Shift+Tab - Previous tab/view
+        prev_tab_shortcut = QShortcut(QKeySequence("Ctrl+Shift+Tab"), self)
+        prev_tab_shortcut.activated.connect(self._previous_view)
+        prev_tab_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        
+        logger.debug("keyboard_shortcuts_configured")
     
     def _connect_signals(self):
         """Connect signals from session state and signal hub"""
@@ -447,6 +557,184 @@ class MainWindow(QMainWindow):
         except ImportError:
             # psutil not available
             self.memory_label.setText("")
+    
+    # New action handlers for enhanced keyboard shortcuts
+    
+    @pyqtSlot()
+    def _export_data(self):
+        """Export data to file"""
+        # Placeholder for export functionality
+        self.status_label.setText("Export functionality - Coming soon")
+        logger.info("export_data_requested")
+        QMessageBox.information(
+            self, "Export Data", 
+            "Export functionality will be available in Sprint 2-3.\\n"
+            "This will support CSV, Excel, Parquet, HDF5, and JSON formats."
+        )
+    
+    @pyqtSlot()
+    def _undo_operation(self):
+        """Undo last operation"""
+        # Placeholder - will be implemented with QUndoStack in Sprint 4
+        self.status_label.setText("Undo - not yet implemented")
+        logger.info("undo_requested")
+    
+    @pyqtSlot()
+    def _redo_operation(self):
+        """Redo last undone operation"""
+        # Placeholder - will be implemented with QUndoStack in Sprint 4
+        self.status_label.setText("Redo - not yet implemented")
+        logger.info("redo_requested")
+    
+    @pyqtSlot()
+    def _find_series(self):
+        """Find/filter series in data panel"""
+        self.status_label.setText("Find series")
+        logger.info("find_series_requested")
+        # Focus data panel search if it exists
+        if hasattr(self.data_panel, 'show_search'):
+            self.data_panel.show_search()
+        else:
+            QMessageBox.information(
+                self, "Find Series",
+                "Search functionality will be enhanced in Sprint 1.\\n"
+                "Use the Data Panel to browse available series."
+            )
+    
+    @pyqtSlot()
+    def _refresh_data(self):
+        """Refresh/reload current data"""
+        self.status_label.setText("Refreshing data...")
+        logger.info("refresh_data_requested")
+        # Signal to panels to refresh their data
+        self.signal_hub.status_updated.emit("Data refreshed")
+        QMessageBox.information(
+            self, "Refresh Data",
+            "Data refresh functionality will reload the current dataset.\\n"
+            "This feature will be fully implemented in Sprint 1."
+        )
+    
+    @pyqtSlot()
+    def _toggle_fullscreen(self):
+        """Toggle fullscreen mode"""
+        if self.isFullScreen():
+            self.showNormal()
+            self.status_label.setText("Exited fullscreen")
+            logger.info("fullscreen_disabled")
+        else:
+            self.showFullScreen()
+            self.status_label.setText("Entered fullscreen (F11 to exit)")
+            logger.info("fullscreen_enabled")
+    
+    @pyqtSlot()
+    def _show_contextual_help(self):
+        """Show contextual help for current widget"""
+        self.status_label.setText("Contextual help")
+        logger.info("contextual_help_requested")
+        QMessageBox.information(
+            self, "Contextual Help (F1)",
+            "Contextual help system will be implemented in Sprint 6.\\n\\n"
+            "Features:\\n"
+            "• Press F1 to get help for the current widget\\n"
+            "• Hover tooltips provide quick guidance\\n"
+            "• Full user guide accessible from Help menu"
+        )
+    
+    @pyqtSlot()
+    def _show_keyboard_shortcuts(self):
+        """Show keyboard shortcuts dialog"""
+        shortcuts_text = """
+<h2>Keyboard Shortcuts</h2>
+
+<h3>File Operations</h3>
+<table>
+<tr><td><b>Ctrl+N</b></td><td>New Session</td></tr>
+<tr><td><b>Ctrl+O</b></td><td>Open Session</td></tr>
+<tr><td><b>Ctrl+S</b></td><td>Save Session</td></tr>
+<tr><td><b>Ctrl+L</b></td><td>Load Data</td></tr>
+<tr><td><b>Ctrl+E</b></td><td>Export Data</td></tr>
+<tr><td><b>Ctrl+Q</b></td><td>Quit</td></tr>
+</table>
+
+<h3>Edit Operations</h3>
+<table>
+<tr><td><b>Ctrl+Z</b></td><td>Undo</td></tr>
+<tr><td><b>Ctrl+Y</b></td><td>Redo</td></tr>
+<tr><td><b>Ctrl+F</b></td><td>Find Series</td></tr>
+<tr><td><b>Delete</b></td><td>Remove Selected Series</td></tr>
+</table>
+
+<h3>View Controls</h3>
+<table>
+<tr><td><b>F5</b></td><td>Refresh Data</td></tr>
+<tr><td><b>F11</b></td><td>Toggle Fullscreen</td></tr>
+<tr><td><b>Ctrl+W</b></td><td>Close Current View</td></tr>
+<tr><td><b>Ctrl+Tab</b></td><td>Next View</td></tr>
+<tr><td><b>Ctrl+Shift+Tab</b></td><td>Previous View</td></tr>
+</table>
+
+<h3>Help</h3>
+<table>
+<tr><td><b>F1</b></td><td>Contextual Help</td></tr>
+<tr><td><b>Ctrl+?</b></td><td>Show This Dialog</td></tr>
+<tr><td><b>Esc</b></td><td>Cancel Operation</td></tr>
+</table>
+        """
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Keyboard Shortcuts")
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(shortcuts_text)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+        logger.info("keyboard_shortcuts_shown")
+    
+    @pyqtSlot()
+    def _delete_selected_series(self):
+        """Delete selected series"""
+        self.status_label.setText("Delete series")
+        logger.info("delete_series_requested")
+        # Delegate to data panel
+        if hasattr(self.data_panel, 'delete_selected'):
+            self.data_panel.delete_selected()
+        else:
+            QMessageBox.information(
+                self, "Delete Series",
+                "Select a series in the Data Panel and press Delete to remove it."
+            )
+    
+    @pyqtSlot()
+    def _cancel_operation(self):
+        """Cancel current operation"""
+        self.status_label.setText("Operation cancelled")
+        logger.info("operation_cancelled")
+        # Emit signal to cancel any ongoing operations
+        if hasattr(self.signal_hub, 'operation_cancelled'):
+            self.signal_hub.operation_cancelled.emit()
+    
+    @pyqtSlot()
+    def _close_current_view(self):
+        """Close current view/tab"""
+        self.status_label.setText("Close view")
+        logger.info("close_view_requested")
+        # Delegate to viz panel
+        if hasattr(self.viz_panel, 'close_current_view'):
+            self.viz_panel.close_current_view()
+    
+    @pyqtSlot()
+    def _next_view(self):
+        """Switch to next view/tab"""
+        logger.info("next_view_requested")
+        # Delegate to viz panel
+        if hasattr(self.viz_panel, 'next_view'):
+            self.viz_panel.next_view()
+    
+    @pyqtSlot()
+    def _previous_view(self):
+        """Switch to previous view/tab"""
+        logger.info("previous_view_requested")
+        # Delegate to viz panel
+        if hasattr(self.viz_panel, 'previous_view'):
+            self.viz_panel.previous_view()
     
     def _auto_save_session(self):
         """Auto-save session periodically"""
