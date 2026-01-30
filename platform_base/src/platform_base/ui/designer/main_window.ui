@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1800</width>
+    <height>1100</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1400</width>
+    <height>900</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Platform Base v2.0 - Análise de Séries Temporais</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {
+    background-color: #f8f9fa;
+}
+QToolBar {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 4px;
+    margin: 2px;
+}
+QToolBar QToolButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 2px;
+    min-width: 32px;
+    min-height: 32px;
+}
+QToolBar QToolButton:hover {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+}
+QToolBar QToolButton:pressed {
+    background-color: #dee2e6;
+}
+QStatusBar {
+    background-color: #ffffff;
+    border-top: 1px solid #e9ecef;
+    padding: 4px 8px;
+}
+QSplitter::handle {
+    background-color: #e9ecef;
+    width: 2px;
+    height: 2px;
+}
+QSplitter::handle:hover {
+    background-color: #0d6efd;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>1</number>
+    </property>
+    <property name="leftMargin">
+     <number>2</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <property name="rightMargin">
+     <number>2</number>
+    </property>
+    <property name="bottomMargin">
+     <number>2</number>
+    </property>
+    <item>
+     <widget class="QSplitter" name="main_splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>3</number>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>true</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QSplitter::handle {
+    background-color: #dee2e6;
+    border: 1px solid #ced4da;
+}
+QSplitter::handle:hover {
+    background-color: #0d6efd;
+}
+QSplitter::handle:horizontal {
+    width: 3px;
+}</string>
+      </property>
+      <widget class="QFrame" name="left_frame">
+       <property name="minimumSize">
+        <size>
+         <width>240</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #fafafa;
+}</string>
+       </property>
+       <layout class="QVBoxLayout" name="left_layout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="data_panel_placeholder" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QFrame" name="center_frame">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #ffffff;
+}</string>
+       </property>
+       <layout class="QVBoxLayout" name="center_layout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="viz_panel_placeholder" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QFrame" name="right_frame">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>280</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #fafafa;
+}</string>
+       </property>
+       <layout class="QVBoxLayout" name="right_layout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="operations_panel_placeholder" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1800</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QMenuBar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 4px;
+}
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QMenuBar::item:selected {
+    background-color: #e9ecef;
+}
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 4px;
+}
+QMenu::item {
+    padding: 8px 24px;
+    border-radius: 4px;
+}
+QMenu::item:selected {
+    background-color: #0d6efd;
+    color: white;
+}</string>
+   </property>
+   <widget class="QMenu" name="menu_file">
+    <property name="title">
+     <string>📁 &amp;Arquivo</string>
+    </property>
+    <addaction name="action_open_dataset"/>
+    <addaction name="separator"/>
+    <addaction name="action_save_session"/>
+    <addaction name="action_load_session"/>
+    <addaction name="separator"/>
+    <addaction name="action_export_data"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_view">
+    <property name="title">
+     <string>👁️ &amp;Visualizar</string>
+    </property>
+    <addaction name="action_new_2d_plot"/>
+    <addaction name="action_new_3d_plot"/>
+    <addaction name="separator"/>
+    <addaction name="action_reset_layout"/>
+   </widget>
+   <widget class="QMenu" name="menu_operations">
+    <property name="title">
+     <string>⚡ &amp;Operações</string>
+    </property>
+    <addaction name="action_interpolate"/>
+    <addaction name="action_derivative"/>
+    <addaction name="action_integral"/>
+   </widget>
+   <widget class="QMenu" name="menu_tools">
+    <property name="title">
+     <string>🔧 &amp;Ferramentas</string>
+    </property>
+    <addaction name="action_clear_cache"/>
+    <addaction name="action_settings"/>
+   </widget>
+   <widget class="QMenu" name="menu_help">
+    <property name="title">
+     <string>❓ &amp;Ajuda</string>
+    </property>
+    <addaction name="action_about"/>
+   </widget>
+   <addaction name="menu_file"/>
+   <addaction name="menu_view"/>
+   <addaction name="menu_operations"/>
+   <addaction name="menu_tools"/>
+   <addaction name="menu_help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="styleSheet">
+    <string notr="true">QStatusBar {
+    background-color: #ffffff;
+    border-top: 1px solid #e9ecef;
+    padding: 4px 8px;
+}</string>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="toolbar">
+   <property name="windowTitle">
+    <string>Ferramentas</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextBesideIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_open_dataset"/>
+   <addaction name="action_save_session"/>
+   <addaction name="separator"/>
+   <addaction name="action_new_2d_plot"/>
+   <addaction name="action_new_3d_plot"/>
+   <addaction name="separator"/>
+   <addaction name="action_interpolate"/>
+   <addaction name="action_derivative"/>
+   <addaction name="action_integral"/>
+   <addaction name="separator"/>
+   <addaction name="action_export_data"/>
+   <addaction name="action_settings"/>
+  </widget>
+  <action name="action_open_dataset">
+   <property name="text">
+    <string>Abrir</string>
+   </property>
+   <property name="iconText">
+    <string>📁 Abrir</string>
+   </property>
+   <property name="toolTip">
+    <string>Abrir dataset (Ctrl+O)</string>
+   </property>
+   <property name="statusTip">
+    <string>Abrir arquivo de dados (CSV, Excel, Parquet, HDF5)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="action_save_session">
+   <property name="text">
+    <string>💾 &amp;Salvar Sessão...</string>
+   </property>
+   <property name="iconText">
+    <string>💾 Salvar</string>
+   </property>
+   <property name="toolTip">
+    <string>Salvar sessão (Ctrl+S)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="action_load_session">
+   <property name="text">
+    <string>📂 &amp;Carregar Sessão...</string>
+   </property>
+  </action>
+  <action name="action_export_data">
+   <property name="text">
+    <string>📤 &amp;Exportar Dados...</string>
+   </property>
+   <property name="iconText">
+    <string>📤 Exportar</string>
+   </property>
+   <property name="toolTip">
+    <string>Exportar dados processados</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="text">
+    <string>🚪 &amp;Sair</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="action_new_2d_plot">
+   <property name="text">
+    <string>📊 Novo Gráfico &amp;2D</string>
+   </property>
+   <property name="iconText">
+    <string>📊 Gráfico 2D</string>
+   </property>
+   <property name="toolTip">
+    <string>Criar gráfico 2D</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="action_new_3d_plot">
+   <property name="text">
+    <string>📈 Novo Gráfico &amp;3D</string>
+   </property>
+   <property name="iconText">
+    <string>📈 Gráfico 3D</string>
+   </property>
+   <property name="toolTip">
+    <string>Criar gráfico 3D</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="action_reset_layout">
+   <property name="text">
+    <string>🔄 &amp;Resetar Layout</string>
+   </property>
+  </action>
+  <action name="action_interpolate">
+   <property name="text">
+    <string>🔗 &amp;Interpolar Série...</string>
+   </property>
+   <property name="iconText">
+    <string>⚡ Interpolar</string>
+   </property>
+   <property name="toolTip">
+    <string>Interpolar série selecionada</string>
+   </property>
+  </action>
+  <action name="action_derivative">
+   <property name="text">
+    <string>📐 &amp;Derivada...</string>
+   </property>
+   <property name="iconText">
+    <string>📐 Derivada</string>
+   </property>
+   <property name="toolTip">
+    <string>Calcular derivada</string>
+   </property>
+  </action>
+  <action name="action_integral">
+   <property name="text">
+    <string>∫ &amp;Integral...</string>
+   </property>
+   <property name="iconText">
+    <string>∫ Integral</string>
+   </property>
+   <property name="toolTip">
+    <string>Calcular integral</string>
+   </property>
+  </action>
+  <action name="action_clear_cache">
+   <property name="text">
+    <string>🗑️ Limpar &amp;Cache</string>
+   </property>
+  </action>
+  <action name="action_settings">
+   <property name="text">
+    <string>⚙️ &amp;Configurações...</string>
+   </property>
+   <property name="iconText">
+    <string>⚙️ Config</string>
+   </property>
+   <property name="toolTip">
+    <string>Configurações da aplicação</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>ℹ️ &amp;Sobre...</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
