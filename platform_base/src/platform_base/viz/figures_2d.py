@@ -126,6 +126,11 @@ class Plot2DWidget(QWidget):
         if self.config.performance.antialias:
             self.plot_widget.setAntialiasing(True)
         
+        # Add legend to plot (Bug Fix #2: Legend not appearing)
+        plot_item = self.plot_widget.getPlotItem()
+        plot_item.addLegend()
+        logger.debug("legend_added_to_plot")
+        
         layout.addWidget(self.plot_widget)
         
         # Selection region for brush selection
@@ -184,7 +189,8 @@ class Plot2DWidget(QWidget):
         
         # Configure pen and brush
         pen = QPen(qcolor)
-        pen.setWidth(self.config.style.line_width)
+        # Bug Fix #1: setWidth expects int, not float
+        pen.setWidth(int(self.config.style.line_width))
         
         # Plot configuration
         plot_config = {
