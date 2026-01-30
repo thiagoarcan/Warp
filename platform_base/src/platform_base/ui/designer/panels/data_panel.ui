@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DataPanel</class>
+ <widget class="QWidget" name="DataPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>240</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>300</width>
+    <height>16777215</height>
+   </size>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+    background-color: #ffffff;
+}
+QGroupBox {
+    font-weight: bold;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-top: 8px;
+    padding-top: 4px;
+    background-color: #f8f9fa;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 2px 6px;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+}
+QPushButton {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    min-height: 24px;
+}
+QPushButton:hover {
+    background-color: #0b5ed7;
+}
+QPushButton:pressed {
+    background-color: #0a58ca;
+}
+QPushButton:disabled {
+    background-color: #6c757d;
+}
+QTableWidget {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #ffffff;
+    gridline-color: #f8f9fa;
+    alternate-background-color: #f8f9fa;
+}
+QHeaderView::section {
+    background-color: #e9ecef;
+    padding: 4px 8px;
+    border: none;
+    border-right: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: bold;
+}
+QTreeWidget {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #ffffff;
+    alternate-background-color: #f8f9fa;
+}
+QTreeWidget::item {
+    padding: 4px;
+    border-bottom: 1px solid #f8f9fa;
+}
+QTreeWidget::item:selected {
+    background-color: #0d6efd;
+    color: white;
+}
+QTreeWidget::item:hover {
+    background-color: #e9ecef;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="header_frame">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <layout class="QHBoxLayout" name="header_layout">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="title_label">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: #0d6efd; font-size: 13px;</string>
+        </property>
+        <property name="text">
+         <string>📊 Dados</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="load_button">
+        <property name="toolTip">
+         <string>Carregar dataset (CSV, Excel, Parquet, HDF5)</string>
+        </property>
+        <property name="text">
+         <string>📁 Carregar</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSplitter" name="main_splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QFrame" name="info_frame">
+      <layout class="QVBoxLayout" name="info_layout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="datasets_group">
+         <property name="title">
+          <string>📋 Datasets Carregados</string>
+         </property>
+         <layout class="QVBoxLayout" name="datasets_layout">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QTreeWidget" name="datasets_tree">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>120</height>
+             </size>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="rootIsDecorated">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string>Lista de datasets carregados.
+Clique para selecionar o dataset ativo.
+Duplo-clique para editar informações.</string>
+            </property>
+            <column>
+             <property name="text">
+              <string>Dataset</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Séries</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Pontos</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="current_dataset_group">
+         <property name="title">
+          <string>🎯 Dataset Atual</string>
+         </property>
+         <layout class="QFormLayout" name="current_dataset_layout">
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>6</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_filename">
+            <property name="text">
+             <string>📄 Arquivo:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="dataset_name_label">
+            <property name="styleSheet">
+             <string notr="true">font-weight: normal; color: #6c757d;</string>
+            </property>
+            <property name="text">
+             <string>Nenhum dataset</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_summary">
+            <property name="text">
+             <string>📊 Resumo:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="dataset_stats_label">
+            <property name="styleSheet">
+             <string notr="true">font-weight: normal; color: #6c757d; font-size: 11px;</string>
+            </property>
+            <property name="text">
+             <string>0 séries • 0 pontos</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="series_group">
+         <property name="title">
+          <string>🎯 Séries Ativas</string>
+         </property>
+         <layout class="QVBoxLayout" name="series_layout">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QTreeWidget" name="series_tree">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="rootIsDecorated">
+             <bool>false</bool>
+            </property>
+            <property name="itemsExpandable">
+             <bool>false</bool>
+            </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragOnly</enum>
+            </property>
+            <property name="toolTip">
+             <string>Séries do dataset atual.
+• Clique para selecionar uma série
+• Arraste para o gráfico para visualizar
+• Botão direito para opções (exportar, remover, etc.)</string>
+            </property>
+            <column>
+             <property name="text">
+              <string>Série</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Pontos</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Unidade</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QFrame" name="table_frame">
+      <layout class="QVBoxLayout" name="table_layout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <layout class="QHBoxLayout" name="table_header_layout">
+         <item>
+          <widget class="QLabel" name="table_title">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: #0d6efd;</string>
+           </property>
+           <property name="text">
+            <string>📋 Dados + Cálculos</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_rows">
+           <property name="text">
+            <string>Linhas:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="preview_rows_combo">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Número de linhas a exibir na prévia.
+Valores maiores mostram mais dados mas podem ser mais lentos.</string>
+           </property>
+           <property name="currentText">
+            <string>25</string>
+           </property>
+           <item>
+            <property name="text">
+             <string>10</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>25</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>50</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>100</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="data_table">
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="toolTip">
+          <string>Prévia dos dados do dataset.
+• Tempo, valores e cálculos derivados
+• Selecione linhas para análise
+• Use o controle 'Linhas' para ajustar quantidade</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
