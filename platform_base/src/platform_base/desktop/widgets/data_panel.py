@@ -223,7 +223,7 @@ class DataPanel(QWidget):
         finally:
             self._updating_selection = False
     
-    @pyqtSlot()
+    @pyqtSlot('QModelIndex')
     def _on_item_double_clicked(self, index):
         """Handle item double click"""
         item_info = self.tree_model.get_item_info(index)

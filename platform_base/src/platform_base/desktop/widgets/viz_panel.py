@@ -7,25 +7,35 @@ Replaces Dash plotly components with native PyQt6 plotting widgets.
 
 from __future__ import annotations
 
-from typing import Optional, Dict, Any
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QTabWidget, QSplitter, QFrame, QLabel, QComboBox,
-    QCheckBox, QSpinBox, QDoubleSpinBox, QGroupBox,
-    QToolBar
-)
-from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt6.QtGui import QAction, QIcon, QActionGroup
+from typing import Any, Dict, Optional
 
 import pyqtgraph as pg
-from pyqtgraph import PlotWidget, GraphicsLayoutWidget
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QActionGroup, QIcon
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSpinBox,
+    QSplitter,
+    QTabWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+from pyqtgraph import GraphicsLayoutWidget, PlotWidget
 
+from platform_base.core.models import DatasetID, SeriesID, TimeWindow, ViewID
+from platform_base.desktop.menus.plot_context_menu import PlotContextMenu
 from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
-from platform_base.desktop.menus.plot_context_menu import PlotContextMenu
-from platform_base.core.models import DatasetID, SeriesID, ViewID, TimeWindow
-from platform_base.utils.logging import get_logger
 from platform_base.utils.i18n import tr
+from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -45,6 +55,12 @@ class Plot2DWidget(PlotWidget):
     # Selection signals
     time_selection_changed = pyqtSignal(float, float)  # start_time, end_time
     point_selection_changed = pyqtSignal(object)  # selected_points
+    
+    # Color palette for series
+    COLORS = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    ]
     
     def __init__(self, session_state: SessionState = None, signal_hub: SignalHub = None, parent=None):
         super().__init__(parent)
@@ -70,6 +86,12 @@ class Plot2DWidget(PlotWidget):
         self._y_axes = []  # List of additional Y axes
         self._series_on_y2 = []  # Series on secondary Y axis
         
+        # Series data storage for color management
+        self._series_data = {}
+        
+        # Add legend
+        self.addLegend()
+        
         # Context menu
         self.context_menu = None
         if session_state and signal_hub:
@@ -78,6 +100,47 @@ class Plot2DWidget(PlotWidget):
         # Connect mouse events
         self.scene().sigMouseClicked.connect(self._on_mouse_clicked)
         self.scene().sigMouseMoved.connect(self._on_mouse_moved)
+    
+    def add_series(self, series_id: str, x_data, y_data, series_index: int = 0, name: str = None):
+        """
+        Add a series to the plot with automatic color assignment.
+        
+        Args:
+            series_id: Unique identifier for the series
+            x_data: X axis data (time)
+            y_data: Y axis data (values)
+            series_index: Index for color selection
+            name: Display name for legend
+        """
+        # Get color for this series
+        color = self.COLORS[series_index % len(self.COLORS)]
+        
+        # Create pen with color
+        pen = pg.mkPen(color=color, width=2)
+        
+        # Plot the data
+        display_name = name or series_id
+        plot_item = self.plot(x_data, y_data, pen=pen, name=display_name)
+        
+        # Store series data
+        self._series_data[series_id] = {
+            'plot_item': plot_item,
+            'color': color,
+            'x_data': x_data,
+            'y_data': y_data,
+            'name': display_name
+        }
+        
+        logger.debug("series_added_to_plot2d", series_id=series_id, color=color)
+        return plot_item
+    
+    def remove_series(self, series_id: str):
+        """Remove a series from the plot"""
+        if series_id in self._series_data:
+            plot_item = self._series_data[series_id]['plot_item']
+            self.removeItem(plot_item)
+            del self._series_data[series_id]
+            logger.debug("series_removed_from_plot2d", series_id=series_id)
     
     def _on_mouse_clicked(self, event):
         """Handle mouse click for selection"""
@@ -133,7 +196,7 @@ class Plot2DWidget(PlotWidget):
     def add_secondary_y_axis(self, label: str = "Secondary Y"):
         """Add a secondary Y axis"""
         from pyqtgraph import AxisItem
-        
+
         # Create new Y axis on the right side
         y_axis = AxisItem('right')
         y_axis.setLabel(label)
@@ -613,13 +676,16 @@ class VizPanel(QWidget):
             widget = plot_info["widget"]
             
             if plot_info["type"] == "2d" and isinstance(widget, Plot2DWidget):
-                # Plot 2D
-                curve = widget.plot(dataset.t_seconds, series.values,
-                                  pen=pg.mkPen(width=self.line_width_spin.value()),
-                                  name=series.name)
+                # Plot 2D - use add_series method which handles colors correctly
+                series_index = len(plot_info["series"])  # Index for color selection
+                widget.add_series(
+                    series_id=series_id,
+                    x_data=dataset.t_seconds,
+                    y_data=series.values,
+                    series_index=series_index
+                )
                 
                 plot_info["series"][series_id] = {
-                    "curve": curve,
                     "dataset_id": dataset_id,
                     "name": series.name
                 }
@@ -664,9 +730,15 @@ class VizPanel(QWidget):
         """Update line width for all plots"""
         for plot_info in self.active_plots.values():
             if plot_info["type"] == "2d":
-                for series_info in plot_info["series"].values():
-                    if "curve" in series_info:
-                        series_info["curve"].setPen(pg.mkPen(width=width))
+                widget = plot_info["widget"]
+                # Update line width for all series in the widget
+                if hasattr(widget, '_series_data'):
+                    for series_data in widget._series_data.values():
+                        if 'plot_item' in series_data:
+                            color = series_data.get('color', '#1f77b4')
+                            qcolor = pg.mkColor(color)
+                            pen = pg.mkPen(qcolor, width=width)
+                            series_data['plot_item'].setPen(pen)
     
     @pyqtSlot(bool)
     def _toggle_grid(self, enabled: bool):
