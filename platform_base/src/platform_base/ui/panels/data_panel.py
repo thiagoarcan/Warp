@@ -278,6 +278,7 @@ class CompactDataPanel(QWidget):
         self._series_tree.setItemsExpandable(False)
         self._series_tree.setMaximumHeight(100)  # Altura reduzida para otimização
         self._series_tree.setAlternatingRowColors(True)
+        self._series_tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)  # Allow multi-selection
         self._series_tree.itemClicked.connect(self._on_series_selected)
         self._series_tree.setToolTip(
             "Séries do dataset atual.\n"
@@ -944,6 +945,24 @@ class CompactDataPanel(QWidget):
             dataset_id, series_id = data
             self.series_selected.emit(dataset_id, series_id)
             logger.debug("series_selected", dataset_id=dataset_id, series_id=series_id)
+    
+    def get_selected_series_ids(self) -> list[str]:
+        """
+        Get list of currently selected series IDs
+        
+        Returns:
+            List of series IDs (strings) that are currently selected
+        """
+        selected_ids = []
+        selected_items = self._series_tree.selectedItems()
+        
+        for item in selected_items:
+            data = item.data(0, Qt.ItemDataRole.UserRole)
+            if data and len(data) == 2:
+                _dataset_id, series_id = data
+                selected_ids.append(series_id)
+        
+        return selected_ids
     
     def _clear_ui(self):
         """Limpa interface"""
