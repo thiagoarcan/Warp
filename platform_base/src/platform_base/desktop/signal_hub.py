@@ -51,6 +51,7 @@ class SignalHub(QObject):
     operation_progress = pyqtSignal(str, int)  # operation_id, progress_percent
     operation_completed = pyqtSignal(str, object)  # operation_id, result
     operation_failed = pyqtSignal(str, str)  # operation_id, error_message
+    operation_cancelled = pyqtSignal()  # Request to cancel current operation
     
     # Streaming signals
     streaming_started = pyqtSignal()
