@@ -26,7 +26,6 @@ from platform_base.desktop.models.dataset_model import DatasetTreeModel
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from PyQt6.QtGui import QIcon
 
@@ -150,6 +149,17 @@ class DataPanel(QWidget):
 
         # Listen to session state changes
         self.session_state.selection_changed.connect(self._on_selection_changed)
+
+        # Connect checkbox visibility changes to signal hub
+        self.tree_model.seriesVisibilityChanged.connect(self._on_series_visibility_changed)
+
+    @pyqtSlot(str, str, bool)
+    def _on_series_visibility_changed(self, dataset_id: str, series_id: str, visible: bool):
+        """Handle series visibility checkbox changes"""
+        # Emit signal to update visualization
+        self.signal_hub.series_visibility_changed.emit(dataset_id, series_id, visible)
+        logger.debug("series_visibility_changed",
+                    dataset_id=dataset_id, series_id=series_id, visible=visible)
 
     @pyqtSlot()
     def _load_data(self):

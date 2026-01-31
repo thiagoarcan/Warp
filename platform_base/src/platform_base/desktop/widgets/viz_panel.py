@@ -31,7 +31,6 @@ from platform_base.desktop.menus.plot_context_menu import PlotContextMenu
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -497,6 +496,22 @@ class VizPanel(QWidget):
         self.signal_hub.plot_created.connect(self._on_plot_requested)
         self.signal_hub.series_selected.connect(self._on_series_selected)
 
+        # Listen to series visibility changes (from checkboxes)
+        self.signal_hub.series_visibility_changed.connect(self._on_series_visibility_changed)
+
+    @pyqtSlot(str, str, bool)
+    def _on_series_visibility_changed(self, dataset_id: str, series_id: str, visible: bool):
+        """Handle series visibility changes from data panel checkboxes"""
+        # Update visibility in all active plots
+        for plot_id, plot_info in self.active_plots.items():
+            series_key = f"{dataset_id}_{series_id}"
+            if series_key in plot_info.get("series", {}):
+                series_data = plot_info["series"][series_key]
+                if "plot_item" in series_data:
+                    series_data["plot_item"].setVisible(visible)
+                    logger.debug("series_visibility_updated",
+                               plot_id=plot_id, series_id=series_id, visible=visible)
+
     @pyqtSlot()
     def _create_plot(self, plot_type: str):
         """Create new plot tab"""
@@ -682,6 +697,7 @@ class VizPanel(QWidget):
                     x_data=dataset.t_seconds,
                     y_data=series.values,
                     series_index=series_index,
+                    name=series.name,  # BUG-002 FIX: Pass series name for legend
                 )
 
                 plot_info["series"][series_id] = {

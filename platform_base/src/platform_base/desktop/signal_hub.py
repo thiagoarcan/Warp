@@ -13,7 +13,6 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.core.models import DatasetID, SeriesID
 
@@ -39,6 +38,7 @@ class SignalHub(QObject):
     series_removed = pyqtSignal(str, str)  # dataset_id, series_id
     series_selected = pyqtSignal(str, str)  # dataset_id, series_id
     series_deselected = pyqtSignal(str, str)  # dataset_id, series_id
+    series_visibility_changed = pyqtSignal(str, str, bool)  # dataset_id, series_id, visible
 
     # Visualization signals
     plot_created = pyqtSignal(str)  # view_id

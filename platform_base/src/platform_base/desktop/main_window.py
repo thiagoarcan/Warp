@@ -35,7 +35,6 @@ from platform_base.desktop.widgets.viz_panel import VizPanel
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -62,6 +61,14 @@ class MainWindow(QMainWindow):
 
         self.session_state = session_state
         self.signal_hub = signal_hub
+
+        # Initialize processing worker manager
+        from platform_base.desktop.workers.processing_worker import (
+            ProcessingWorkerManager,
+        )
+        self.processing_manager = ProcessingWorkerManager(
+            session_state.dataset_store, signal_hub
+        )
 
         # Initialize UI components
         self._setup_window()
@@ -119,6 +126,16 @@ class MainWindow(QMainWindow):
         self.config_dock.setObjectName("ConfigPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
 
+        # Streaming Panel (Bottom - for playback controls)
+        from platform_base.ui.panels.streaming_panel import StreamingPanel
+        self.streaming_panel = StreamingPanel()
+        self.streaming_panel.position_changed.connect(self._on_streaming_position_changed)
+        self.streaming_panel.state_changed.connect(self._on_streaming_state_changed)
+        self.streaming_dock = QDockWidget(tr("Streaming Controls"), self)
+        self.streaming_dock.setWidget(self.streaming_panel)
+        self.streaming_dock.setObjectName("StreamingPanel")
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.streaming_dock)
+
         # Results Panel (Bottom)
         self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
         self.results_dock = QDockWidget(tr("Results Panel"), self)
@@ -126,8 +143,11 @@ class MainWindow(QMainWindow):
         self.results_dock.setObjectName("ResultsPanel")
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
 
-        # Initially hide results panel
-        self.results_dock.hide()
+        # Tabify bottom panels
+        self.tabifyDockWidget(self.streaming_dock, self.results_dock)
+
+        # Initially show streaming panel
+        self.streaming_dock.raise_()
 
         logger.debug("dockable_panels_created")
 
@@ -517,10 +537,75 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(str, str)
     def _on_operation_started(self, operation_type: str, operation_id: str):
-        """Handle operation started"""
+        """Handle operation started - create and start the appropriate worker"""
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.status_label.setText(f"Running {operation_type}...")
+
+        # Get current selection and parameters
+        selection = self.session_state.selection
+        if not selection.dataset_id or not selection.series_ids:
+            self.status_label.setText("No data selected")
+            self.progress_bar.setVisible(False)
+            return
+
+        dataset_id = selection.dataset_id
+        series_id = selection.series_ids[0] if selection.series_ids else None
+
+        # Get operation parameters from processing state
+        processing_state = self.session_state.processing
+        operation_info = processing_state.active_operations.get(operation_id, {})
+        params = operation_info.get("parameters", {})
+
+        try:
+            # Start the appropriate worker based on operation type
+            if operation_type == "interpolation":
+                method = params.get("method", "linear")
+                self.processing_manager.start_interpolation(
+                    operation_id, dataset_id, series_id, method, params
+                )
+            elif operation_type == "calculus":
+                operation = params.get("operation", "derivative_1st")
+                self.processing_manager.start_calculus(
+                    operation_id, dataset_id, series_id, operation, params
+                )
+            elif operation_type == "synchronization":
+                series_ids = list(selection.series_ids)
+                method = params.get("method", "dtw")
+                self.processing_manager.start_synchronization(
+                    operation_id, dataset_id, series_ids, method, params
+                )
+            elif operation_type in ("derivative", "derivative_1st", "derivative_2nd", "derivative_3rd"):
+                # Handle derivative operations directly
+                self.processing_manager.start_calculus(
+                    operation_id, dataset_id, series_id, operation_type, params
+                )
+            elif operation_type == "integral":
+                self.processing_manager.start_calculus(
+                    operation_id, dataset_id, series_id, "integral", params
+                )
+            elif operation_type == "area":
+                self.processing_manager.start_calculus(
+                    operation_id, dataset_id, series_id, "area", params
+                )
+            elif operation_type in ("smoothing", "remove_outliers"):
+                # Handle filtering operations via calculus worker
+                self.processing_manager.start_calculus(
+                    operation_id, dataset_id, series_id, operation_type, params
+                )
+            else:
+                logger.warning("unknown_operation_type", operation_type=operation_type)
+                self.status_label.setText(f"Unknown operation: {operation_type}")
+                self.progress_bar.setVisible(False)
+
+            logger.info("worker_started_from_ui",
+                       operation_type=operation_type, operation_id=operation_id)
+
+        except Exception as e:
+            logger.exception("operation_start_failed", error=str(e))
+            self.status_label.setText(f"Operation failed: {e}")
+            self.progress_bar.setVisible(False)
+            self.signal_hub.operation_failed.emit(operation_id, str(e))
 
     @pyqtSlot(str, int)
     def _on_operation_progress(self, operation_id: str, progress: int):
@@ -535,6 +620,47 @@ class MainWindow(QMainWindow):
 
         # Show results panel if hidden
         self.results_dock.show()
+
+        # Update results panel with result info
+        if isinstance(result, dict):
+            operation_type = result.get("operation", "unknown")
+            series_id = result.get("series_id")
+            series_name = result.get("series_name", series_id)
+
+            # Add result to results panel
+            if hasattr(self.results_panel, "add_result"):
+                self.results_panel.add_result(operation_id, result)
+
+            # If a new series was created, update data panel and optionally plot it
+            if series_id:
+                # Refresh data panel to show new series
+                if hasattr(self.data_panel, "refresh_data"):
+                    self.data_panel.refresh_data()
+                elif hasattr(self.data_panel, "_refresh_tree"):
+                    self.data_panel._refresh_tree()
+
+                # Automatically plot the new series
+                selection = self.session_state.selection
+                if selection.dataset_id:
+                    # Add new series to visualization
+                    try:
+                        dataset = self.session_state.dataset_store.get_dataset(selection.dataset_id)
+                        if series_id in dataset.series:
+                            new_series = dataset.series[series_id]
+                            self.viz_panel.add_series(
+                                selection.dataset_id,
+                                series_id,
+                                new_series,
+                                dataset.timestamps if hasattr(dataset, 'timestamps') else dataset.t_seconds
+                            )
+                            logger.info("new_series_plotted", series_id=series_id)
+                    except Exception as e:
+                        logger.warning("failed_to_auto_plot_series", error=str(e))
+
+            logger.info("operation_result_displayed",
+                       operation_id=operation_id,
+                       operation_type=operation_type,
+                       series_id=series_id)
 
     @pyqtSlot(str, str)
     def _on_operation_failed(self, operation_id: str, error_message: str):
@@ -777,6 +903,69 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             logger.exception("exit_save_failed", error=str(e))
+
+    # Streaming handlers
+    @pyqtSlot(int)
+    def _on_streaming_position_changed(self, position: int):
+        """Handle streaming position changes - update visualization"""
+        try:
+            # Update time window in session state
+            selection = self.session_state.selection
+            if selection.dataset_id:
+                dataset = self.session_state.dataset_store.get_dataset(selection.dataset_id)
+                total_points = len(dataset.t_seconds)
+
+                if total_points > 0:
+                    # Calculate time position from frame position
+                    time_position = dataset.t_seconds[min(position, total_points - 1)]
+
+                    # Get window size from streaming panel
+                    window_frames = self.streaming_panel._window_spin.value() if hasattr(self.streaming_panel, '_window_spin') else 100
+                    window_size = (dataset.t_seconds[-1] - dataset.t_seconds[0]) * window_frames / total_points
+
+                    # Update visualization with sliding window
+                    from platform_base.core.models import TimeWindow
+                    window = TimeWindow(
+                        start=max(0, time_position - window_size / 2),
+                        end=min(dataset.t_seconds[-1], time_position + window_size / 2)
+                    )
+                    self.session_state.set_time_window(window)
+
+                    # Emit signal for viz panel update
+                    self.signal_hub.streaming_time_changed.emit(time_position)
+
+            self.status_label.setText(f"Position: {position}")
+        except Exception as e:
+            logger.exception("streaming_position_update_failed", error=str(e))
+
+    @pyqtSlot(object)
+    def _on_streaming_state_changed(self, state):
+        """Handle streaming state changes"""
+        from platform_base.ui.panels.streaming_panel import PlaybackState
+
+        if state == PlaybackState.PLAYING:
+            self.signal_hub.streaming_started.emit()
+            self.status_label.setText("Streaming: Playing")
+        elif state == PlaybackState.PAUSED:
+            self.signal_hub.streaming_paused.emit()
+            self.status_label.setText("Streaming: Paused")
+        elif state == PlaybackState.STOPPED:
+            self.signal_hub.streaming_stopped.emit()
+            self.status_label.setText("Streaming: Stopped")
+
+        logger.debug("streaming_state_changed", state=state)
+
+    def _update_streaming_panel_data(self):
+        """Update streaming panel with current dataset"""
+        selection = self.session_state.selection
+        if selection.dataset_id:
+            try:
+                dataset = self.session_state.dataset_store.get_dataset(selection.dataset_id)
+                total_frames = len(dataset.t_seconds)
+                self.streaming_panel.set_total_frames(total_frames)
+                logger.debug("streaming_panel_updated", total_frames=total_frames)
+            except Exception as e:
+                logger.exception("streaming_panel_update_failed", error=str(e))
 
     def closeEvent(self, event):
         """Handle window close event"""

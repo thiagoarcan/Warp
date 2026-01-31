@@ -517,16 +517,181 @@ class PlotContextMenu(QMenu):
         return (np.sum(((values - mean) / std) ** 4)) / n - 3  # Excess kurtosis
 
     def _show_fft_analysis(self):
-        """Show FFT analysis"""
-        # Placeholder for FFT analysis
-        QMessageBox.information(self.parent(), "FFT Analysis",
-                              "FFT analysis feature coming soon!")
+        """Show FFT analysis of selected series"""
+        if not self.dataset_id or not self.series_id:
+            QMessageBox.warning(self.parent(), "Warning",
+                              "Please select a series first.")
+            return
+
+        try:
+            import numpy as np
+
+            # Get series data
+            dataset = self.session_state.dataset_store.get_dataset(self.dataset_id)
+            series = dataset.series[self.series_id]
+            values = series.values
+            timestamps = dataset.timestamps
+
+            # Remove NaN values
+            valid_mask = ~np.isnan(values)
+            clean_values = values[valid_mask]
+            clean_times = timestamps[valid_mask] if len(timestamps) == len(values) else None
+
+            if len(clean_values) < 4:
+                QMessageBox.warning(self.parent(), "FFT Analysis",
+                                  "Insufficient data points for FFT (minimum 4).")
+                return
+
+            # Calculate sampling frequency
+            if clean_times is not None and len(clean_times) > 1:
+                dt = np.mean(np.diff(clean_times))
+                sample_freq = 1.0 / dt if dt > 0 else 1.0
+            else:
+                sample_freq = 1.0
+
+            # Compute FFT
+            n = len(clean_values)
+            fft_vals = np.fft.rfft(clean_values - np.mean(clean_values))
+            fft_freq = np.fft.rfftfreq(n, d=1.0/sample_freq)
+            fft_magnitude = np.abs(fft_vals) * 2.0 / n
+
+            # Find dominant frequencies
+            sorted_indices = np.argsort(fft_magnitude[1:])[::-1] + 1  # Exclude DC
+            top_freqs = fft_freq[sorted_indices[:5]]
+            top_mags = fft_magnitude[sorted_indices[:5]]
+
+            # Build results message
+            msg = f"""<h3>FFT Analysis: {series.name}</h3>
+<table>
+<tr><td><b>Sample Frequency:</b></td><td>{sample_freq:.4g} Hz</td></tr>
+<tr><td><b>Points Analyzed:</b></td><td>{n:,}</td></tr>
+<tr><td><b>Frequency Resolution:</b></td><td>{sample_freq/n:.4g} Hz</td></tr>
+</table>
+<h4>Dominant Frequencies</h4>
+<table>
+<tr><th>Rank</th><th>Frequency (Hz)</th><th>Magnitude</th></tr>"""
+
+            for i, (freq, mag) in enumerate(zip(top_freqs, top_mags), 1):
+                if mag > 1e-10:  # Only show significant peaks
+                    msg += f"<tr><td>{i}</td><td>{freq:.4g}</td><td>{mag:.4g}</td></tr>"
+
+            msg += "</table>"
+
+            # Show dialog with option to plot
+            dialog = QMessageBox(self.parent())
+            dialog.setWindowTitle("FFT Analysis")
+            dialog.setTextFormat(Qt.TextFormat.RichText)
+            dialog.setText(msg)
+            dialog.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Save)
+            dialog.button(QMessageBox.StandardButton.Save).setText("Plot Spectrum")
+
+            result = dialog.exec()
+
+            if result == QMessageBox.StandardButton.Save:
+                # Emit signal to create spectrum plot
+                self.math_operation_requested.emit(
+                    "fft_spectrum",
+                    {"frequencies": fft_freq.tolist(), "magnitudes": fft_magnitude.tolist()},
+                    self.dataset_id,
+                    self.series_id,
+                )
+
+            logger.info("fft_analysis_completed", series=series.name, sample_freq=sample_freq)
+
+        except Exception as e:
+            logger.exception("fft_analysis_failed", error=str(e))
+            QMessageBox.warning(self.parent(), "Error", f"FFT analysis failed: {e}")
 
     def _show_correlation_analysis(self):
-        """Show correlation analysis"""
-        # Placeholder for correlation analysis
-        QMessageBox.information(self.parent(), "Correlation Analysis",
-                              "Correlation analysis feature coming soon!")
+        """Show correlation analysis between series"""
+        if not self.dataset_id:
+            QMessageBox.warning(self.parent(), "Warning",
+                              "Please select a dataset first.")
+            return
+
+        try:
+            import numpy as np
+
+            # Get all series in dataset
+            dataset = self.session_state.dataset_store.get_dataset(self.dataset_id)
+
+            if len(dataset.series) < 2:
+                QMessageBox.warning(self.parent(), "Correlation Analysis",
+                                  "At least 2 series required for correlation analysis.")
+                return
+
+            series_names = list(dataset.series.keys())
+            series_values = [dataset.series[name].values for name in series_names]
+
+            # Calculate correlation matrix
+            n_series = len(series_names)
+            corr_matrix = np.zeros((n_series, n_series))
+
+            for i in range(n_series):
+                for j in range(n_series):
+                    # Handle different lengths and NaN values
+                    min_len = min(len(series_values[i]), len(series_values[j]))
+                    vals_i = series_values[i][:min_len]
+                    vals_j = series_values[j][:min_len]
+
+                    # Remove NaN pairs
+                    valid_mask = ~(np.isnan(vals_i) | np.isnan(vals_j))
+                    if np.sum(valid_mask) > 1:
+                        corr_matrix[i, j] = np.corrcoef(
+                            vals_i[valid_mask],
+                            vals_j[valid_mask]
+                        )[0, 1]
+                    else:
+                        corr_matrix[i, j] = np.nan
+
+            # Build correlation table
+            msg = f"<h3>Correlation Matrix</h3><p>Dataset: {self.dataset_id}</p>"
+            msg += "<table border='1' cellpadding='4'><tr><th></th>"
+
+            # Header row
+            for name in series_names:
+                short_name = name[:10] + "..." if len(name) > 10 else name
+                msg += f"<th>{short_name}</th>"
+            msg += "</tr>"
+
+            # Data rows
+            for i, name_i in enumerate(series_names):
+                short_name = name_i[:10] + "..." if len(name_i) > 10 else name_i
+                msg += f"<tr><td><b>{short_name}</b></td>"
+                for j in range(n_series):
+                    val = corr_matrix[i, j]
+                    if np.isnan(val):
+                        cell = "N/A"
+                        color = "#888888"
+                    else:
+                        cell = f"{val:.3f}"
+                        # Color code: green for positive, red for negative
+                        if val > 0.7:
+                            color = "#228B22"
+                        elif val < -0.7:
+                            color = "#DC143C"
+                        elif val > 0.3:
+                            color = "#90EE90"
+                        elif val < -0.3:
+                            color = "#FFA07A"
+                        else:
+                            color = "#FFFFFF"
+                    msg += f"<td style='background-color:{color}'>{cell}</td>"
+                msg += "</tr>"
+            msg += "</table>"
+
+            # Show results
+            dialog = QMessageBox(self.parent())
+            dialog.setWindowTitle("Correlation Analysis")
+            dialog.setTextFormat(Qt.TextFormat.RichText)
+            dialog.setText(msg)
+            dialog.exec()
+
+            logger.info("correlation_analysis_completed", n_series=n_series)
+
+        except Exception as e:
+            logger.exception("correlation_analysis_failed", error=str(e))
+            QMessageBox.warning(self.parent(), "Error", f"Correlation analysis failed: {e}")
 
     def _has_multiple_series(self) -> bool:
         """Check if multiple series are available"""
@@ -540,23 +705,151 @@ class PlotContextMenu(QMenu):
 
     def _apply_filter(self, filter_type: str):
         """Apply filter to data"""
-        # Placeholder for filter implementation
-        QMessageBox.information(self.parent(), f"{filter_type.title()} Filter",
-                              f"{filter_type.title()} filter feature coming soon!")
+        if not self.dataset_id or not self.series_id:
+            QMessageBox.warning(self.parent(), "Warning",
+                              "Please select a series first.")
+            return
+
+        try:
+            from platform_base.streaming.filters import ButterworthFilter, FilterType
+
+            # Get cutoff frequency from user
+            cutoff, ok = QInputDialog.getDouble(
+                self.parent(),
+                f"{filter_type.title()} Filter",
+                "Cutoff frequency (Hz):",
+                value=10.0,
+                min=0.1,
+                max=1000.0,
+                decimals=2,
+            )
+
+            if not ok:
+                return
+
+            # Map filter type
+            filter_map = {
+                "lowpass": FilterType.LOWPASS,
+                "highpass": FilterType.HIGHPASS,
+                "bandpass": FilterType.BANDPASS,
+            }
+
+            if filter_type not in filter_map:
+                QMessageBox.warning(self.parent(), "Error", f"Unknown filter type: {filter_type}")
+                return
+
+            # Emit signal to apply filter
+            self.math_operation_requested.emit(
+                "filter",
+                {"filter_type": filter_type, "cutoff": cutoff},
+                self.dataset_id,
+                self.series_id,
+            )
+
+            logger.info("filter_requested", filter_type=filter_type, cutoff=cutoff)
+
+        except Exception as e:
+            logger.exception("filter_apply_failed", error=str(e))
+            QMessageBox.warning(self.parent(), "Error", f"Failed to apply filter: {e}")
 
     def _detect_outliers(self):
         """Detect outliers in data"""
-        # Placeholder for outlier detection
-        QMessageBox.information(self.parent(), "Outlier Detection",
-                              "Outlier detection feature coming soon!")
+        if not self.dataset_id or not self.series_id:
+            QMessageBox.warning(self.parent(), "Warning",
+                              "Please select a series first.")
+            return
+
+        try:
+            # Get threshold from user
+            threshold, ok = QInputDialog.getDouble(
+                self.parent(),
+                "Outlier Detection",
+                "Z-score threshold:",
+                value=3.0,
+                min=1.0,
+                max=10.0,
+                decimals=1,
+            )
+
+            if not ok:
+                return
+
+            # Get series data
+            dataset = self.session_state.dataset_store.get_dataset(self.dataset_id)
+            series = dataset.series[self.series_id]
+            values = series.values
+
+            import numpy as np
+
+            # Calculate z-scores
+            mean = np.nanmean(values)
+            std = np.nanstd(values)
+
+            if std == 0:
+                QMessageBox.information(self.parent(), "Outlier Detection",
+                                      "No outliers detected (constant data).")
+                return
+
+            z_scores = np.abs((values - mean) / std)
+            outlier_mask = z_scores > threshold
+            outlier_count = np.sum(outlier_mask)
+            outlier_indices = np.where(outlier_mask)[0]
+
+            # Show results
+            if outlier_count == 0:
+                QMessageBox.information(self.parent(), "Outlier Detection",
+                                      f"No outliers detected with threshold {threshold}.")
+            else:
+                msg = f"Found {outlier_count} outliers with threshold {threshold}.\n\n"
+                msg += f"Outlier indices (first 10): {outlier_indices[:10].tolist()}"
+                if outlier_count > 10:
+                    msg += f"\n... and {outlier_count - 10} more"
+
+                reply = QMessageBox.question(
+                    self.parent(),
+                    "Outlier Detection",
+                    msg + "\n\nRemove outliers (set to NaN)?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                )
+
+                if reply == QMessageBox.StandardButton.Yes:
+                    self.math_operation_requested.emit(
+                        "remove_outliers",
+                        {"threshold": threshold, "method": "zscore"},
+                        self.dataset_id,
+                        self.series_id,
+                    )
+
+            logger.info("outlier_detection_completed", count=outlier_count)
+
+        except Exception as e:
+            logger.exception("outlier_detection_failed", error=str(e))
+            QMessageBox.warning(self.parent(), "Error", f"Outlier detection failed: {e}")
 
     def _toggle_grid(self):
         """Toggle plot grid"""
-        # Signal to be handled by plot widget
+        parent_widget = self.parent()
+        if hasattr(parent_widget, "showGrid"):
+            # Get current grid state and toggle
+            current_state = getattr(parent_widget, "_grid_visible", True)
+            new_state = not current_state
+            parent_widget.showGrid(new_state, new_state, alpha=0.3)
+            parent_widget._grid_visible = new_state
+            logger.debug("grid_toggled", visible=new_state)
 
     def _toggle_legend(self):
         """Toggle plot legend"""
-        # Signal to be handled by plot widget
+        parent_widget = self.parent()
+        if hasattr(parent_widget, "legend") and parent_widget.legend is not None:
+            legend = parent_widget.legend
+            if legend.isVisible():
+                legend.hide()
+            else:
+                legend.show()
+            logger.debug("legend_toggled", visible=legend.isVisible())
+        elif hasattr(parent_widget, "addLegend"):
+            parent_widget.addLegend()
+            logger.debug("legend_added")
 
     def _add_annotation(self):
         """Add annotation at plot position"""
@@ -574,21 +867,116 @@ class PlotContextMenu(QMenu):
 
     def _clear_selection(self):
         """Clear current selection"""
-        # Signal to be handled by selection system
+        # Clear selection in session state
+        self.session_state.clear_selection()
+
+        # Clear visual selection on plot
+        parent_widget = self.parent()
+        if hasattr(parent_widget, "clear_selection"):
+            parent_widget.clear_selection()
+        elif hasattr(parent_widget, "_selection_item") and parent_widget._selection_item:
+            parent_widget.removeItem(parent_widget._selection_item)
+            parent_widget._selection_item = None
+
+        logger.debug("selection_cleared")
 
     def _select_all(self):
         """Select all data points"""
-        # Signal to be handled by selection system
+        parent_widget = self.parent()
+
+        if hasattr(parent_widget, "_series_data") and parent_widget._series_data:
+            # Get all series data
+            for series_id, series_data in parent_widget._series_data.items():
+                if "x_data" in series_data and "y_data" in series_data:
+                    x_data = series_data["x_data"]
+                    # Create selection for entire range
+                    if len(x_data) > 0:
+                        x_min, x_max = x_data[0], x_data[-1]
+                        if hasattr(parent_widget, "_start_selection"):
+                            parent_widget._start_selection(x_min)
+                            parent_widget._update_selection(x_max)
+                            parent_widget.finish_selection()
+                        break
+
+        logger.debug("select_all_requested")
 
     def _invert_selection(self):
         """Invert current selection"""
-        # Signal to be handled by selection system
+        # Get current time window selection
+        time_window = self.session_state.selection.time_window
+
+        if time_window is None:
+            # No selection to invert
+            QMessageBox.information(self.parent(), "Invert Selection",
+                                  "No selection to invert. Select a region first.")
+            return
+
+        parent_widget = self.parent()
+        if hasattr(parent_widget, "_series_data") and parent_widget._series_data:
+            # Get full data range
+            for series_data in parent_widget._series_data.values():
+                if "x_data" in series_data:
+                    x_data = series_data["x_data"]
+                    if len(x_data) > 0:
+                        full_start, full_end = x_data[0], x_data[-1]
+
+                        # Create inverted selection (before and after current)
+                        # For simplicity, select the larger unselected region
+                        before_size = time_window.start - full_start
+                        after_size = full_end - time_window.end
+
+                        if before_size > after_size:
+                            new_start, new_end = full_start, time_window.start
+                        else:
+                            new_start, new_end = time_window.end, full_end
+
+                        # Update selection
+                        from platform_base.core.models import TimeWindow as TW
+                        self.session_state.set_time_window(TW(start=new_start, end=new_end))
+                        break
+
+        logger.debug("selection_inverted")
 
     def _copy_to_clipboard(self):
         """Copy plot or data to clipboard"""
-        # Placeholder for clipboard functionality
-        QMessageBox.information(self.parent(), "Copy to Clipboard",
-                              "Copy to clipboard feature coming soon!")
+        from PyQt6.QtGui import QGuiApplication, QImage
+        from PyQt6.QtWidgets import QApplication
+
+        parent_widget = self.parent()
+
+        try:
+            # Try to get plot as image
+            if hasattr(parent_widget, "grab"):
+                # Capture widget as image
+                pixmap = parent_widget.grab()
+                QApplication.clipboard().setPixmap(pixmap)
+                QMessageBox.information(self.parent(), "Copy to Clipboard",
+                                      "Plot image copied to clipboard!")
+                logger.info("plot_copied_to_clipboard")
+            elif hasattr(parent_widget, "_series_data"):
+                # Copy data as text
+                import numpy as np
+
+                text_lines = ["Time,Value,Series"]
+                for series_id, series_data in parent_widget._series_data.items():
+                    if "x_data" in series_data and "y_data" in series_data:
+                        x_data = series_data["x_data"]
+                        y_data = series_data["y_data"]
+                        name = series_data.get("name", series_id)
+                        for x, y in zip(x_data[:100], y_data[:100]):  # Limit to first 100 points
+                            text_lines.append(f"{x},{y},{name}")
+
+                QApplication.clipboard().setText("\n".join(text_lines))
+                QMessageBox.information(self.parent(), "Copy to Clipboard",
+                                      f"Data copied to clipboard ({len(text_lines)-1} rows)!")
+                logger.info("data_copied_to_clipboard")
+            else:
+                QMessageBox.warning(self.parent(), "Copy to Clipboard",
+                                  "Unable to copy - no data available.")
+
+        except Exception as e:
+            logger.exception("copy_to_clipboard_failed", error=str(e))
+            QMessageBox.warning(self.parent(), "Error", f"Copy failed: {e}")
 
     def _duplicate_series(self):
         """Duplicate current series"""
@@ -597,7 +985,18 @@ class PlotContextMenu(QMenu):
 
     def _hide_series(self):
         """Hide current series"""
-        # Signal to be handled by plot widget
+        if not self.series_id:
+            return
+
+        parent_widget = self.parent()
+        if hasattr(parent_widget, "_series_data") and self.series_id in parent_widget._series_data:
+            series_data = parent_widget._series_data[self.series_id]
+            if "plot_item" in series_data:
+                plot_item = series_data["plot_item"]
+                # Toggle visibility
+                current_visible = plot_item.isVisible()
+                plot_item.setVisible(not current_visible)
+                logger.debug("series_visibility_toggled", series_id=self.series_id, visible=not current_visible)
 
     def _remove_series(self):
         """Remove current series"""
@@ -613,9 +1012,50 @@ class PlotContextMenu(QMenu):
 
     def _show_series_properties(self):
         """Show series properties dialog"""
-        # Placeholder for series properties
-        QMessageBox.information(self.parent(), "Series Properties",
-                              "Series properties dialog coming soon!")
+        if not self.dataset_id or not self.series_id:
+            QMessageBox.warning(self.parent(), "Warning",
+                              "Please select a series first.")
+            return
+
+        try:
+            dataset = self.session_state.dataset_store.get_dataset(self.dataset_id)
+            series = dataset.series[self.series_id]
+
+            import numpy as np
+
+            # Build properties text
+            props = f"""<h3>Series Properties</h3>
+<table>
+<tr><td><b>Name:</b></td><td>{series.name}</td></tr>
+<tr><td><b>ID:</b></td><td>{self.series_id}</td></tr>
+<tr><td><b>Unit:</b></td><td>{series.unit or 'N/A'}</td></tr>
+<tr><td><b>Points:</b></td><td>{len(series.values):,}</td></tr>
+<tr><td><b>Min:</b></td><td>{np.nanmin(series.values):.6g}</td></tr>
+<tr><td><b>Max:</b></td><td>{np.nanmax(series.values):.6g}</td></tr>
+<tr><td><b>Mean:</b></td><td>{np.nanmean(series.values):.6g}</td></tr>
+<tr><td><b>Std:</b></td><td>{np.nanstd(series.values):.6g}</td></tr>
+<tr><td><b>NaN count:</b></td><td>{np.isnan(series.values).sum():,}</td></tr>
+</table>"""
+
+            if series.lineage:
+                props += f"""<h4>Lineage</h4>
+<table>
+<tr><td><b>Operation:</b></td><td>{series.lineage.operation}</td></tr>
+<tr><td><b>Origin:</b></td><td>{', '.join(series.lineage.origin_series)}</td></tr>
+<tr><td><b>Created:</b></td><td>{series.lineage.timestamp}</td></tr>
+</table>"""
+
+            msg = QMessageBox(self.parent())
+            msg.setWindowTitle("Series Properties")
+            msg.setTextFormat(Qt.TextFormat.RichText)
+            msg.setText(props)
+            msg.exec()
+
+            logger.debug("series_properties_shown", series_id=self.series_id)
+
+        except Exception as e:
+            logger.exception("series_properties_failed", error=str(e))
+            QMessageBox.warning(self.parent(), "Error", f"Failed to get properties: {e}")
 
 
 def create_plot_context_menu(session_state: SessionState, signal_hub: SignalHub,

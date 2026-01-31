@@ -14,7 +14,6 @@ from PyQt6.QtGui import QIcon
 
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.core.dataset_store import DatasetStore
 
@@ -35,6 +34,7 @@ class TreeItem:
         self.dataset_id: str | None = None
         self.series_id: str | None = None
         self.is_derived = False
+        self.is_checked = True  # Default to checked (visible)
 
     def append_child(self, item: TreeItem):
         """Add child item"""
@@ -87,6 +87,7 @@ class DatasetTreeModel(QAbstractItemModel):
     # Signals
     datasetSelectionChanged = pyqtSignal(str)  # dataset_id
     seriesSelectionChanged = pyqtSignal(str, str)  # dataset_id, series_id
+    seriesVisibilityChanged = pyqtSignal(str, str, bool)  # dataset_id, series_id, visible
 
     def __init__(self, dataset_store: DatasetStore, parent=None):
         super().__init__(parent)
@@ -116,6 +117,23 @@ class DatasetTreeModel(QAbstractItemModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return item.data(index.column())
 
+        if role == Qt.ItemDataRole.CheckStateRole and index.column() == 0:
+            # Return checkbox state for first column (series items only)
+            if item.item_type == "series":
+                return Qt.CheckState.Checked if item.is_checked else Qt.CheckState.Unchecked
+            elif item.item_type == "dataset":
+                # Dataset is checked if all children are checked
+                if item.child_count() == 0:
+                    return Qt.CheckState.Unchecked
+                all_checked = all(child.is_checked for child in item.child_items)
+                none_checked = not any(child.is_checked for child in item.child_items)
+                if all_checked:
+                    return Qt.CheckState.Checked
+                elif none_checked:
+                    return Qt.CheckState.Unchecked
+                else:
+                    return Qt.CheckState.PartiallyChecked
+
         if role == Qt.ItemDataRole.DecorationRole and index.column() == 0:
             # Return icon for first column
             if item.item_type == "dataset":
@@ -135,16 +153,70 @@ class DatasetTreeModel(QAbstractItemModel):
                 "dataset_id": item.dataset_id,
                 "series_id": item.series_id,
                 "is_derived": item.is_derived,
+                "is_checked": item.is_checked,
             }
 
         return None
+
+    def setData(self, index: QModelIndex, value: Any, role: int = Qt.ItemDataRole.EditRole) -> bool:
+        """Set data for the given index"""
+        if not index.isValid():
+            return False
+
+        item: TreeItem = index.internalPointer()
+
+        if role == Qt.ItemDataRole.CheckStateRole and index.column() == 0:
+            new_state = value == Qt.CheckState.Checked.value or value == Qt.CheckState.Checked
+
+            if item.item_type == "series":
+                item.is_checked = new_state
+                self.dataChanged.emit(index, index, [Qt.ItemDataRole.CheckStateRole])
+
+                # Emit visibility change signal
+                self.seriesVisibilityChanged.emit(item.dataset_id, item.series_id, new_state)
+
+                # Update parent dataset checkbox state
+                parent_index = self.parent(index)
+                if parent_index.isValid():
+                    self.dataChanged.emit(parent_index, parent_index, [Qt.ItemDataRole.CheckStateRole])
+
+                logger.debug("series_visibility_changed",
+                           dataset_id=item.dataset_id, series_id=item.series_id, visible=new_state)
+                return True
+
+            elif item.item_type == "dataset":
+                # Toggle all children
+                for child in item.child_items:
+                    child.is_checked = new_state
+                    self.seriesVisibilityChanged.emit(child.dataset_id, child.series_id, new_state)
+
+                # Emit data changed for all children
+                first_child = self.index(0, 0, index)
+                last_child = self.index(item.child_count() - 1, 0, index)
+                if first_child.isValid() and last_child.isValid():
+                    self.dataChanged.emit(first_child, last_child, [Qt.ItemDataRole.CheckStateRole])
+                self.dataChanged.emit(index, index, [Qt.ItemDataRole.CheckStateRole])
+
+                logger.debug("dataset_visibility_changed",
+                           dataset_id=item.dataset_id, visible=new_state)
+                return True
+
+        return False
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         """Return item flags"""
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
 
-        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+        base_flags = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+
+        # Add checkbox flag for first column
+        if index.column() == 0:
+            item: TreeItem = index.internalPointer()
+            if item.item_type in ("dataset", "series"):
+                base_flags |= Qt.ItemFlag.ItemIsUserCheckable
+
+        return base_flags
 
     def headerData(self, section: int, orientation: Qt.Orientation,
                    role: int = Qt.ItemDataRole.DisplayRole) -> Any:
@@ -204,9 +276,22 @@ class DatasetTreeModel(QAbstractItemModel):
             dataset_summaries = self.dataset_store.list_datasets()
 
             for summary in dataset_summaries:
-                # Create dataset item
+                # Get dataset to get filename
+                try:
+                    dataset = self.dataset_store.get_dataset(summary.dataset_id)
+                    # Use filename for display, fallback to dataset_id
+                    from pathlib import Path
+                    if hasattr(dataset, 'source') and dataset.source and hasattr(dataset.source, 'filename'):
+                        display_name = Path(dataset.source.filename).stem  # Remove extension
+                    else:
+                        display_name = summary.dataset_id
+                except Exception:
+                    display_name = summary.dataset_id
+                    dataset = None
+
+                # Create dataset item with filename
                 dataset_item = TreeItem([
-                    summary.dataset_id,
+                    display_name,  # BUG-007 FIX: Use filename instead of dataset_id
                     "Dataset",
                     f"{summary.n_points:,}",
                     "",
@@ -219,8 +304,9 @@ class DatasetTreeModel(QAbstractItemModel):
                 self.root_item.append_child(dataset_item)
 
                 try:
-                    # Get dataset details for series
-                    dataset = self.dataset_store.get_dataset(summary.dataset_id)
+                    # Get dataset details for series (if not already loaded)
+                    if dataset is None:
+                        dataset = self.dataset_store.get_dataset(summary.dataset_id)
 
                     for series_id, series in dataset.series.items():
                         # Create series item
@@ -405,12 +491,13 @@ class DatasetTreeModel(QAbstractItemModel):
         if item.item_type == "dataset":
             try:
                 dataset = self.dataset_store.get_dataset(item.dataset_id)
-                return (f"Dataset: {item.dataset_id}\n"
-                       f"Source: {dataset.source.filename}\n"
-                       f"Format: {dataset.source.format}\n"
+                return (f"Dataset: {dataset.source.filename}\n"
+                       f"Full Path: {dataset.source.filepath}\n"
+                       f"Format: {dataset.source.format.upper()}\n"
                        f"Size: {dataset.source.size_bytes / 1024 / 1024:.2f} MB\n"
                        f"Points: {len(dataset.t_seconds):,}\n"
-                       f"Series: {len(dataset.series)}")
+                       f"Series: {len(dataset.series)}\n"
+                       f"ID: {item.dataset_id}")
             except Exception:
                 return f"Dataset: {item.dataset_id}"
 
@@ -418,11 +505,15 @@ class DatasetTreeModel(QAbstractItemModel):
             try:
                 dataset = self.dataset_store.get_dataset(item.dataset_id)
                 series = dataset.series[item.series_id]
+                nan_count = np.isnan(series.values).sum()
+                valid_count = len(series.values) - nan_count
                 return (f"Series: {series.name}\n"
-                       f"Unit: {series.unit}\n"
+                       f"Unit: {series.unit or 'N/A'}\n"
                        f"Points: {len(series.values):,}\n"
+                       f"Valid: {valid_count:,} ({100*valid_count/len(series.values):.1f}%)\n"
+                       f"NaN: {nan_count:,}\n"
                        f"Type: {'Derived' if series.lineage else 'Original'}\n"
-                       f"Valid: {(~np.isnan(series.values)).sum():,}")
+                       f"ID: {item.series_id}")
             except Exception:
                 return f"Series: {item.series_id}"
 
