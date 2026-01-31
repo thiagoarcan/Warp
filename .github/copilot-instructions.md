@@ -6,7 +6,7 @@
 ---
 
 > ⚠️ **AVISO**: Esta lista representa o que precisa ser implementado para colocar a aplicação em produção real.
-> Nenhum workaround, nenhuma simplificação, nenhum jeitinho.
+> Nenhum workaround, nenhuma simplificação, nenhum jeitinho. Ative o modo engenheiro programador e não pare até concluí-la
 >
 > Cada item inclui **critérios de aceitação** que DEVEM ser atendidos.
 >
