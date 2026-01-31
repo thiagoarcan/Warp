@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\io\encoding_detector.py
+# hypothesis_version: 6.151.4
+
+[b'\x00\x00\xfe\xff', b'\xef\xbb\xbf', b'\xfe\xff', b'\xff\xfe', b'\xff\xfe\x00\x00', 0.0, 0.5, 0.7, 0.9, 1.0, 100, 10000, 'ascii', 'bom', 'bom_type', 'chardet', 'chardet_result', 'confidence', 'cp1250', 'cp1252', 'detected_encoding', 'encoding', 'fallback', 'has_bom', 'iso-8859-1', 'iso-8859-15', 'latin-1', 'method', 'rb', 'suggested_encoding', 'trial', 'utf-16', 'utf-16-be', 'utf-16-le', 'utf-32-be', 'utf-32-le', 'utf-8', 'utf-8-sig', 'windows-1250', 'windows-1252']

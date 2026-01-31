@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\AppData\Roaming\Python\Python312\site-packages\xlsxwriter\relationships.py
+# hypothesis_version: 6.151.4
+
+['FeaturePropertyBag', 'Id', 'Relationship', 'Relationships', 'Target', 'TargetMode', 'Type', 'rId', 'rdRichValue', 'rdRichValueStructure', 'rdRichValueTypes', 'richValueRel', 'xmlns']

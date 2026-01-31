@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\utils\resource_manager.py
+# hypothesis_version: 6.151.4
+
+['_resource_tracker', 'active_figures', 'all', 'canvas', 'close', 'figure', 'gc_collected', 'matplotlib', 'resources', 'tracked_canvases', 'tracked_figures']

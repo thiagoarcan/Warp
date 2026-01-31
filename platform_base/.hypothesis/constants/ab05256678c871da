@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\caching\disk.py
+# hypothesis_version: 6.151.4
+
+[100, 1024, 3600, '*.cache', '.cache', '.lru', '.ttl', 'Cache cleanup failed', '__name__', '_call_count', 'cache_cleared', 'cache_expired_on_get', 'cache_file_evicted', 'cache_hit', 'cache_key', 'cache_miss', 'cache_set', 'current_size_bytes', 'enabled', 'entry_count', 'error', 'expired', 'func_name', 'function_cached', 'key', 'last_updated', 'location', 'lru_entries', 'lru_order_cleaned', 'max_size_bytes', 'max_size_gb', 'path', 'rb', 'time_to_expiry', 'ttl_check_failed', 'ttl_hours', 'ttl_seconds', 'ttl_touch_failed', 'unknown', 'utf-8', 'wb']

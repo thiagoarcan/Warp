@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\profiling\setup.py
+# hypothesis_version: 6.151.4
+
+[0.1, 1.0, 1000, 'automatic', 'enabled', 'formats', 'interpolate', 'max_time', 'memory', 'name', 'operation', 'output_dir', 'points', 'profiling', 'profiling_disabled', 'stats', 'targets', 'test_interpolation', 'test_profiling', 'threshold_mb', 'threshold_seconds', 'track_allocations', 'utf-8']

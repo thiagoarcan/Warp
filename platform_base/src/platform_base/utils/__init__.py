@@ -20,13 +20,14 @@ from platform_base.utils.resource_manager import (
     get_resource_tracker,
 )
 
+
 __all__ = [
+    "CloseEventHandler",
+    "MatplotlibResourceManager",
     # Resource Management
-    'ResourceTracker',
-    'MatplotlibResourceManager',
-    'CloseEventHandler',
-    'get_resource_tracker',
-    'get_matplotlib_manager',
-    'cleanup_on_close',
-    'force_cleanup',
+    "ResourceTracker",
+    "cleanup_on_close",
+    "force_cleanup",
+    "get_matplotlib_manager",
+    "get_resource_tracker",
 ]

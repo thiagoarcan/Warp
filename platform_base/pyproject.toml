@@ -3,7 +3,7 @@ name = "platform-base"
 version = "2.0.0"
 description = "Platform Base: exploratory time-series analysis for irregular sensor data (PyQt6 Desktop)"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "numpy>=1.24.0",
     "pandas>=2.0.0",
@@ -33,13 +33,14 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-xdist>=3.3.0",
     "pytest-qt>=4.3.0",
+    "pytest-benchmark>=4.0.0",
     "hypothesis>=6.75.0",
-    "black>=23.3.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
+    "ruff>=0.1.0",
     "mypy>=1.3.0",
+    "bandit>=1.7.0",
     "sphinx>=6.2.0",
     "sphinx-rtd-theme>=1.2.0",
+    "memory_profiler>=0.61.0",
 ]
 viz = [
     "opencv-python>=4.7.0",
@@ -66,13 +67,204 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.black]
+# ============================================
+# RUFF - Linting e Formatação
+# ============================================
+[tool.ruff]
 line-length = 100
-target-version = ["py310"]
+target-version = "py312"
 
-[tool.isort]
-profile = "black"
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented code)
+    "PL",     # pylint
+    "RUF",    # Ruff-specific
+    "N",      # pep8-naming
+    "S",      # flake8-bandit (security)
+    "A",      # flake8-builtins
+    "COM",    # flake8-commas
+    "C90",    # mccabe complexity
+    "DJ",     # flake8-django
+    "EM",     # flake8-errmsg
+    "EXE",    # flake8-executable
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "G",      # flake8-logging-format
+    "INP",    # flake8-no-pep420
+    "PIE",    # flake8-pie
+    "T20",    # flake8-print
+    "PYI",    # flake8-pyi
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RSE",    # flake8-raise
+    "RET",    # flake8-return
+    "SLF",    # flake8-self
+    "SLOT",   # flake8-slots
+    "TID",    # flake8-tidy-imports
+    "INT",    # flake8-gettext
+    "TD",     # flake8-todos
+    "FIX",    # flake8-fixme
+    "FLY",    # flynt
+    "PERF",   # perflint
+    "FURB",   # refurb
+    "LOG",    # flake8-logging
+    "TRY",    # tryceratops
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "PLR0913", # too many arguments
+    "PLR2004", # magic value comparison
+    "S101",   # use of assert (allowed in tests)
+    "T201",   # print found (we use logging mostly)
+    "TD003",  # missing issue link in TODO
+    "FIX002", # line contains TODO
+    "ERA001", # commented out code (will fix later)
+    "TRY003", # long messages outside exception class
+    "EM101",  # exception string literal
+    "EM102",  # exception f-string literal
+]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "ARG", "PLR2004"]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.isort]
+known-first-party = ["platform_base"]
+force-single-line = false
+lines-after-imports = 2
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ============================================
+# MYPY - Type Checking
+# ============================================
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+show_column_numbers = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pyqtgraph.*",
+    "pyvista.*",
+    "pyvistaqt.*",
+    "numba.*",
+    "joblib.*",
+    "structlog.*",
+    "pint.*",
+    "tables.*",
+    "h5py.*",
+]
+ignore_missing_imports = true
+
+# ============================================
+# BANDIT - Security
+# ============================================
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv", "build", "dist"]
+skips = ["B101"]  # assert used in tests
+
+# ============================================
+# PYTEST - Testing
+# ============================================
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--tb=short",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "smoke: smoke tests (critical path tests)",
+    "unit: unit tests",
+    "integration: integration tests",
+    "gui: GUI tests requiring Qt",
+    "e2e: end-to-end tests",
+    "performance: performance benchmark tests",
+    "stress: stress/load tests",
+    "property: property-based tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore::UserWarning",
+    "ignore:.*CUDA.*:UserWarning",
+]
+qt_api = "pyqt6"
+
+# ============================================
+# COVERAGE - Code Coverage
+# ============================================
+[tool.coverage.run]
+source = ["src/platform_base"]
+branch = true
+parallel = true
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+    "*/venv/*",
+]
+
+[tool.coverage.paths]
+source = ["src/platform_base"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+    "@abstractmethod",
+    "@abc.abstractmethod",
+    "pass",
+    "\\.\\.\\.",
+]
+fail_under = 90
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"

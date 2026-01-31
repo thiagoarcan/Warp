@@ -24,20 +24,19 @@ from platform_base.io.loader import (
 )
 from platform_base.io.schema_detector import SchemaRules, detect_schema
 
+
 __all__ = [
     # Loader
-    'FileFormat',
-    'LoadConfig',
-    'LoadStrategy',
-    'load',
-    'load_async',
-    
-    # Encoding
-    'detect_encoding',
-    'get_encoding_info',
-    'detect_bom',
-    
+    "FileFormat",
+    "LoadConfig",
+    "LoadStrategy",
     # Schema
-    'SchemaRules',
-    'detect_schema',
+    "SchemaRules",
+    "detect_bom",
+    # Encoding
+    "detect_encoding",
+    "detect_schema",
+    "get_encoding_info",
+    "load",
+    "load_async",
 ]

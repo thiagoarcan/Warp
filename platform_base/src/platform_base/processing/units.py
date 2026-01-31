@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING
 
-import numpy as np
 import pint
+
+
+if TYPE_CHECKING:
+    import numpy as np
+
 
 ureg = pint.UnitRegistry()
 
 
-def parse_unit(unit_str: Optional[str]) -> pint.Unit:
+def parse_unit(unit_str: str | None) -> pint.Unit:
     if not unit_str:
         return ureg.dimensionless
     return ureg.parse_units(unit_str)
 
 
-def infer_unit_from_name(name: str) -> Optional[str]:
+def infer_unit_from_name(name: str) -> str | None:
     lower = name.lower()
     if "bar" in lower:
         return "bar"

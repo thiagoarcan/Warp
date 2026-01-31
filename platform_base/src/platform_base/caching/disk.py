@@ -1,19 +1,22 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import pickle
-import shutil
 import time
 from collections import OrderedDict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from joblib import Memory
 
 from platform_base.utils.errors import CacheError, handle_error
 from platform_base.utils.logging import get_logger
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 logger = get_logger(__name__)
 
@@ -21,7 +24,7 @@ logger = get_logger(__name__)
 class DiskCache:
     """
     Disk cache with joblib.Memory integration, TTL, and LRU cleanup.
-    
+
     Features:
     - Integração com joblib.Memory para caching de funções
     - TTL configurável via timestamp
@@ -39,7 +42,7 @@ class DiskCache:
     ):
         """
         Initialize disk cache.
-        
+
         Args:
             location: Directory path for cache storage
             ttl_seconds: Time-to-live in seconds (None for no expiration)
@@ -49,19 +52,19 @@ class DiskCache:
         self.location.mkdir(parents=True, exist_ok=True)
         self._ttl_seconds = ttl_seconds
         self._max_size_bytes = max_size_bytes
-        
+
         # joblib.Memory for function caching
         self._memory = Memory(location=str(self.location), verbose=0)
-        
+
         # TTL timestamp file
         self._stamp_file = self.location / ".ttl"
-        
+
         # LRU tracking file
         self._lru_file = self.location / ".lru"
-        
+
         # Initialize LRU order
         self._lru_order: OrderedDict[str, float] = self._load_lru_order()
-        
+
         logger.info(
             "disk_cache_initialized",
             location=str(self.location),
@@ -113,8 +116,8 @@ class DiskCache:
             stamp = datetime.fromisoformat(self._stamp_file.read_text(encoding="utf-8"))
             # Make stamp timezone-aware if it isn't
             if stamp.tzinfo is None:
-                stamp = stamp.replace(tzinfo=timezone.utc)
-            return datetime.now(timezone.utc) - stamp > timedelta(seconds=self._ttl_seconds)
+                stamp = stamp.replace(tzinfo=UTC)
+            return datetime.now(UTC) - stamp > timedelta(seconds=self._ttl_seconds)
         except Exception as e:
             logger.warning("ttl_check_failed", error=str(e))
             return True
@@ -122,7 +125,7 @@ class DiskCache:
     def _touch(self) -> None:
         """Update TTL timestamp."""
         try:
-            self._stamp_file.write_text(datetime.now(timezone.utc).isoformat(), encoding="utf-8")
+            self._stamp_file.write_text(datetime.now(UTC).isoformat(), encoding="utf-8")
         except Exception as e:
             logger.warning("ttl_touch_failed", error=str(e))
 
@@ -141,26 +144,23 @@ class DiskCache:
         """Enforce cache size limit using LRU eviction."""
         if self._max_size_bytes is None:
             return
-        
+
         current_size = self._get_cache_size()
         if current_size <= self._max_size_bytes:
             return
-            
+
         logger.info(
             "cache_size_limit_exceeded",
             current_size=current_size,
             max_size=self._max_size_bytes,
         )
-        
+
         # Sort by access time (oldest first)
         sorted_items = sorted(self._lru_order.items(), key=lambda x: x[1])
-        
+
         # Get most recently added item to protect it
-        if sorted_items:
-            most_recent_key = sorted_items[-1][0]
-        else:
-            most_recent_key = None
-        
+        most_recent_key = sorted_items[-1][0] if sorted_items else None
+
         for cache_key, _ in sorted_items:
             # Skip the most recently added item
             if cache_key == most_recent_key:
@@ -172,14 +172,14 @@ class DiskCache:
                     file_path.unlink()
                     del self._lru_order[cache_key]
                     current_size -= file_size
-                    
+
                     logger.debug(
                         "cache_file_evicted",
                         cache_key=cache_key,
                         file_size=file_size,
                         remaining_size=current_size,
                     )
-                    
+
                     if current_size <= self._max_size_bytes:
                         break
                 except Exception as e:
@@ -188,9 +188,9 @@ class DiskCache:
                         cache_key=cache_key,
                         error=str(e),
                     )
-        
+
         self._save_lru_order()
-        
+
         logger.info(
             "cache_size_enforcement_completed",
             final_size=current_size,
@@ -200,10 +200,10 @@ class DiskCache:
     def get(self, key: str) -> Any | None:
         """
         Get value from cache.
-        
+
         Args:
             key: Cache key
-            
+
         Returns:
             Cached value or None if not found/expired
         """
@@ -211,30 +211,30 @@ class DiskCache:
             logger.debug("cache_expired_on_get", key=key)
             self.clear()
             return None
-            
+
         cache_key = self._get_cache_key(key)
         file_path = self._get_file_path(cache_key)
-        
+
         try:
             if not file_path.exists():
                 logger.debug("cache_miss", key=key, cache_key=cache_key)
                 return None
-                
+
             with open(file_path, "rb") as f:
                 value = pickle.load(f)
-            
+
             # Update LRU order
             self._lru_order[cache_key] = time.time()
             self._lru_order.move_to_end(cache_key)
             self._save_lru_order()
-            
+
             logger.debug("cache_hit", key=key, cache_key=cache_key)
             return value
-            
+
         except Exception as e:
             error = CacheError(
                 f"Failed to get cache value for key: {key}",
-                context={"key": key, "cache_key": cache_key, "error": str(e)}
+                context={"key": key, "cache_key": cache_key, "error": str(e)},
             )
             handle_error(error)
             return None
@@ -242,41 +242,41 @@ class DiskCache:
     def set(self, key: str, value: Any) -> None:
         """
         Set value in cache.
-        
+
         Args:
             key: Cache key
             value: Value to cache
         """
         cache_key = self._get_cache_key(key)
         file_path = self._get_file_path(cache_key)
-        
+
         try:
             with open(file_path, "wb") as f:
                 pickle.dump(value, f)
-            
+
             # Update LRU order
             self._lru_order[cache_key] = time.time()
             self._lru_order.move_to_end(cache_key)
             self._save_lru_order()
-            
+
             # Update TTL
             if self._ttl_seconds is not None:
                 self._touch()
-            
+
             # Enforce size limit
             self._enforce_size_limit()
-            
+
             logger.debug(
                 "cache_set",
                 key=key,
                 cache_key=cache_key,
                 file_size=file_path.stat().st_size,
             )
-            
+
         except Exception as e:
             error = CacheError(
                 f"Failed to set cache value for key: {key}",
-                context={"key": key, "cache_key": cache_key, "error": str(e)}
+                context={"key": key, "cache_key": cache_key, "error": str(e)},
             )
             handle_error(error)
 
@@ -285,7 +285,7 @@ class DiskCache:
         try:
             # Clear joblib cache
             self._memory.clear(warn=False)
-            
+
             # Clear manual cache files
             for file_path in self.location.glob("*.cache"):
                 try:
@@ -296,31 +296,31 @@ class DiskCache:
                         file_path=str(file_path),
                         error=str(e),
                     )
-            
+
             # Clear LRU order
             self._lru_order.clear()
             self._save_lru_order()
-            
+
             # Clear TTL stamp
             if self._stamp_file.exists():
                 try:
                     self._stamp_file.unlink()
                 except Exception as e:
                     logger.warning("ttl_stamp_deletion_failed", error=str(e))
-            
+
             logger.info("cache_cleared", location=str(self.location))
-            
+
         except Exception as e:
             error = CacheError(
                 "Failed to clear cache",
-                context={"location": str(self.location), "error": str(e)}
+                context={"location": str(self.location), "error": str(e)},
             )
             handle_error(error)
 
     def cleanup(self) -> None:
         """
         Clean up expired entries and enforce size limits.
-        
+
         This method is called automatically but can be invoked manually
         for maintenance.
         """
@@ -329,12 +329,12 @@ class DiskCache:
                 logger.info("cache_cleanup_ttl_expired")
                 self.clear()
                 return
-            
+
             # Clean up orphaned files (not in LRU order)
             cache_files = {f.stem for f in self.location.glob("*.cache")}
             lru_keys = set(self._lru_order.keys())
             orphaned = cache_files - lru_keys
-            
+
             for orphaned_key in orphaned:
                 orphaned_file = self._get_file_path(orphaned_key)
                 try:
@@ -346,22 +346,22 @@ class DiskCache:
                         cache_key=orphaned_key,
                         error=str(e),
                     )
-            
+
             # Remove LRU entries for non-existent files
             missing_keys = lru_keys - cache_files
             for missing_key in missing_keys:
                 del self._lru_order[missing_key]
-            
+
             if missing_keys:
                 self._save_lru_order()
                 logger.debug("lru_order_cleaned", removed_count=len(missing_keys))
-            
+
             # Enforce size limit
             self._enforce_size_limit()
-            
+
             cache_size = self._get_cache_size()
-            cache_count = len([f for f in self.location.glob("*.cache")])
-            
+            cache_count = len(list(self.location.glob("*.cache")))
+
             logger.info(
                 "cache_cleanup_completed",
                 cache_size=cache_size,
@@ -369,63 +369,63 @@ class DiskCache:
                 orphaned_removed=len(orphaned),
                 missing_removed=len(missing_keys),
             )
-            
+
         except Exception as e:
             error = CacheError(
                 "Cache cleanup failed",
-                context={"location": str(self.location), "error": str(e)}
+                context={"location": str(self.location), "error": str(e)},
             )
             handle_error(error)
 
     def cache_function(self, func: Callable) -> Callable:
         """
         Decorator for caching function results using joblib.Memory.
-        
+
         Args:
             func: Function to cache
-            
+
         Returns:
             Wrapped function with caching
         """
         try:
             cached = self._memory.cache(func)
-            
+
             def wrapper(*args, **kwargs):
                 if self._expired():
                     logger.debug("cache_function_ttl_expired", func_name=func.__name__)
                     self.clear()
-                
+
                 result = cached(*args, **kwargs)
-                
+
                 if self._ttl_seconds is not None:
                     self._touch()
-                
+
                 # Periodic cleanup (every 100 calls)
-                if hasattr(wrapper, '_call_count'):
+                if hasattr(wrapper, "_call_count"):
                     wrapper._call_count += 1
                 else:
                     wrapper._call_count = 1
-                
+
                 if wrapper._call_count % 100 == 0:
                     self.cleanup()
-                
+
                 return result
-            
+
             wrapper.__wrapped__ = func
-            wrapper.__name__ = getattr(func, '__name__', 'unknown')
-            
+            wrapper.__name__ = getattr(func, "__name__", "unknown")
+
             logger.debug(
                 "function_cached",
                 func_name=func.__name__,
                 location=str(self.location),
             )
-            
+
             return wrapper
-            
+
         except Exception as e:
             error = CacheError(
                 f"Failed to cache function: {func.__name__}",
-                context={"func_name": func.__name__, "error": str(e)}
+                context={"func_name": func.__name__, "error": str(e)},
             )
             handle_error(error)
             return func
@@ -433,14 +433,14 @@ class DiskCache:
     def get_stats(self) -> dict[str, Any]:
         """
         Get cache statistics.
-        
+
         Returns:
             Dictionary with cache statistics
         """
         try:
             cache_size = self._get_cache_size()
-            cache_count = len([f for f in self.location.glob("*.cache")])
-            
+            cache_count = len(list(self.location.glob("*.cache")))
+
             stats = {
                 "location": str(self.location),
                 "ttl_seconds": self._ttl_seconds,
@@ -450,28 +450,28 @@ class DiskCache:
                 "lru_entries": len(self._lru_order),
                 "expired": self._expired(),
             }
-            
+
             if self._ttl_seconds is not None and self._stamp_file.exists():
                 try:
                     stamp = datetime.fromisoformat(self._stamp_file.read_text())
                     # Make stamp timezone-aware if it isn't
                     if stamp.tzinfo is None:
-                        stamp = stamp.replace(tzinfo=timezone.utc)
+                        stamp = stamp.replace(tzinfo=UTC)
                     stats["last_updated"] = stamp.isoformat()
-                    stats["time_to_expiry"] = max(0, self._ttl_seconds - (datetime.now(timezone.utc) - stamp).total_seconds())
+                    stats["time_to_expiry"] = max(0, self._ttl_seconds - (datetime.now(UTC) - stamp).total_seconds())
                 except Exception:
                     stats["last_updated"] = None
                     stats["time_to_expiry"] = None
             else:
                 stats["last_updated"] = None
                 stats["time_to_expiry"] = None
-            
+
             return stats
-            
+
         except Exception as e:
             error = CacheError(
                 "Failed to get cache statistics",
-                context={"location": str(self.location), "error": str(e)}
+                context={"location": str(self.location), "error": str(e)},
             )
             handle_error(error)
             return {"error": str(e)}
@@ -495,13 +495,13 @@ class DiskCache:
 def create_disk_cache_from_config(config: dict) -> DiskCache:
     """
     Create DiskCache instance from platform configuration.
-    
+
     Args:
         config: Configuration dictionary from platform.yaml
-        
+
     Returns:
         Configured DiskCache instance
-        
+
     Example:
         >>> config = {
         ...     "enabled": True,
@@ -515,15 +515,15 @@ def create_disk_cache_from_config(config: dict) -> DiskCache:
         logger.warning("disk_cache_disabled_by_config")
         # Return a no-op cache for disabled case
         return DiskCache(location=config.get("path", ".cache"))
-    
+
     ttl_hours = config.get("ttl_hours")
     ttl_seconds = ttl_hours * 3600 if ttl_hours is not None else None
-    
+
     max_size_gb = config.get("max_size_gb")
     max_size_bytes = int(max_size_gb * 1024 * 1024 * 1024) if max_size_gb is not None else None
-    
+
     location = config.get("path", ".cache")
-    
+
     logger.info(
         "creating_disk_cache_from_config",
         location=location,
@@ -531,7 +531,7 @@ def create_disk_cache_from_config(config: dict) -> DiskCache:
         max_size_gb=max_size_gb,
         enabled=config.get("enabled", True),
     )
-    
+
     return DiskCache(
         location=location,
         ttl_seconds=ttl_seconds,

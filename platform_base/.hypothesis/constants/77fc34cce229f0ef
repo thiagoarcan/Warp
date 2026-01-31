@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\profiling\profiler.py
+# hypothesis_version: 6.151.4
+
+[0.1, 1.0, 100, 1024, 'args_count', 'automatic', 'avg', 'avg_peak', 'call_count', 'calls', 'cpu_profile_saved', 'cumulative', 'cumulative_time', 'duration_stats', 'enabled', 'filename', 'formats', 'function', 'function_count', 'function_profiled', 'functions', 'inf', 'kwargs_count', 'line', 'max', 'max_peak', 'max_time', 'memory', 'memory_profile', 'memory_stats', 'message', 'min', 'min_peak', 'name', 'output_dir', 'primitive_call_count', 'profiling_reports', 'stats', 'target_name', 'targets', 'targets_met', 'targets_missed', 'threshold_mb', 'threshold_seconds', 'top_functions', 'total', 'total_call_count', 'total_calls', 'total_functions', 'total_time', 'w']

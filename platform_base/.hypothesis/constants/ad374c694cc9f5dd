@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\AppData\Roaming\Python\Python312\site-packages\xlsxwriter\xmlwriter.py
+# hypothesis_version: 6.151.4
+
+['"', '&', '&#xA;', '&amp;', '&gt;', '&lt;', '&quot;', '(_x[0-9a-fA-F]{4}_)', '<', '>', '["&<>\n]', '_x005F\\1', '_xFFFE_', '_xFFFF_', 'utf-8', 'w', '\ufffe', '\uffff']

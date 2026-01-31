@@ -23,13 +23,14 @@ from platform_base.ui.dialogs.smoothing_dialog import (
     show_smoothing_dialog,
 )
 
+
 __all__ = [
-    'FilterDialog',
-    'show_filter_dialog',
-    'SmoothingDialog', 
-    'show_smoothing_dialog',
-    'SettingsDialog',
-    'AppSettings',
-    'show_settings_dialog',
-    'load_app_settings',
+    "AppSettings",
+    "FilterDialog",
+    "SettingsDialog",
+    "SmoothingDialog",
+    "load_app_settings",
+    "show_filter_dialog",
+    "show_settings_dialog",
+    "show_smoothing_dialog",
 ]

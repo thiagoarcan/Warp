@@ -4,6 +4,7 @@ from typing import Any
 
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 
@@ -54,12 +55,10 @@ class DownsampleError(PlatformError):
 
 class ConfigError(PlatformError):
     """Error for configuration issues."""
-    pass
 
 
 class StreamingError(PlatformError):
     """Error for streaming operations."""
-    pass
 
 
 def handle_error(error: PlatformError) -> None:

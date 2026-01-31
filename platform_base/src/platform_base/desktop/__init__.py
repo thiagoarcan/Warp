@@ -9,10 +9,11 @@ from .main_window import MainWindow
 from .session_state import SessionState
 from .signal_hub import SignalHub
 
+
 __all__ = [
-    "create_application",
-    "main",
-    "MainWindow", 
+    "MainWindow",
     "SessionState",
     "SignalHub",
+    "create_application",
+    "main",
 ]

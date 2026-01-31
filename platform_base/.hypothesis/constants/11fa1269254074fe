@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\io\schema_detector.py
+# hypothesis_version: 6.151.4
+
+[0.5, 0.9, 0.95, '__index__', 'datahora', 'date', 'datetime', 'time', 'timestamp']

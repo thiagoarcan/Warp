@@ -5,22 +5,21 @@ HTML reports and statistics generation
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any
 
 from .profiler import ProfilingResult
 
 
 class ProfilingReport:
     """Gerador de relatórios de profiling"""
-    
-    def __init__(self, results: List[ProfilingResult]):
+
+    def __init__(self, results: list[ProfilingResult]):
         self.results = results
-        
+
     def generate_summary_html(self) -> str:
         """Gera relatório HTML resumido"""
-        
+
         # Agrupa resultados por função
         by_function = {}
         for result in self.results:
@@ -28,7 +27,7 @@ class ProfilingReport:
             if fname not in by_function:
                 by_function[fname] = []
             by_function[fname].append(result)
-        
+
         html = f"""
 <!DOCTYPE html>
 <html>
@@ -36,49 +35,49 @@ class ProfilingReport:
     <title>Platform Base - Profiling Report</title>
     <meta charset="utf-8">
     <style>
-        body {{ 
-            font-family: 'Segoe UI', Arial, sans-serif; 
+        body {{
+            font-family: 'Segoe UI', Arial, sans-serif;
             margin: 20px;
             background: #f5f5f5;
         }}
-        .container {{ 
-            max-width: 1200px; 
-            margin: 0 auto; 
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }}
-        .header {{ 
+        .header {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             border-radius: 8px;
             margin: -20px -20px 30px -20px;
         }}
-        .metric {{ 
-            display: inline-block; 
-            background: #f8f9fa; 
-            padding: 15px; 
-            margin: 10px; 
+        .metric {{
+            display: inline-block;
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px;
             border-radius: 6px;
             border-left: 4px solid #007bff;
         }}
         .metric-title {{ font-size: 12px; color: #666; text-transform: uppercase; }}
         .metric-value {{ font-size: 24px; font-weight: bold; color: #333; }}
-        table {{ 
-            width: 100%; 
-            border-collapse: collapse; 
+        table {{
+            width: 100%;
+            border-collapse: collapse;
             margin: 20px 0;
             background: white;
         }}
-        th, td {{ 
-            padding: 12px; 
-            text-align: left; 
+        th, td {{
+            padding: 12px;
+            text-align: left;
             border-bottom: 1px solid #dee2e6;
         }}
-        th {{ 
-            background: #f8f9fa; 
+        th {{
+            background: #f8f9fa;
             font-weight: 600;
             color: #495057;
         }}
@@ -90,9 +89,9 @@ class ProfilingReport:
         .duration {{ color: #007bff; }}
         .memory {{ color: #20c997; }}
         .section {{ margin: 30px 0; }}
-        .section-title {{ 
-            font-size: 20px; 
-            font-weight: bold; 
+        .section-title {{
+            font-size: 20px;
+            font-weight: bold;
             margin-bottom: 15px;
             color: #333;
             border-bottom: 2px solid #e9ecef;
@@ -106,7 +105,7 @@ class ProfilingReport:
             <h1>Platform Base v2.0 - Profiling Report</h1>
             <p>Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
         </div>
-        
+
         <div class="section">
             <div class="section-title">Summary</div>
             <div class="metric">
@@ -126,7 +125,7 @@ class ProfilingReport:
                 <div class="metric-value">{sum(1 for r in self.results if r.performance_target_met)}/{len(self.results)}</div>
             </div>
         </div>
-        
+
         <div class="section">
             <div class="section-title">Function Performance</div>
             <table>
@@ -143,19 +142,19 @@ class ProfilingReport:
                 </thead>
                 <tbody>
         """
-        
+
         for fname, results in by_function.items():
             durations = [r.duration_seconds for r in results]
             memory_peaks = [r.memory_peak_mb for r in results]
             targets_met = sum(1 for r in results if r.performance_target_met)
-            
+
             avg_duration = sum(durations) / len(durations)
             max_duration = max(durations)
             avg_memory = sum(memory_peaks) / len(memory_peaks) if memory_peaks else 0
             max_memory = max(memory_peaks) if memory_peaks else 0
-            
+
             target_status = "ok" if targets_met == len(results) else ("warning" if targets_met > 0 else "error")
-            
+
             html += f"""
                     <tr>
                         <td class="function-name">{fname.split('.')[-1]}</td>
@@ -167,12 +166,12 @@ class ProfilingReport:
                         <td class="status-{target_status}">{targets_met}/{len(results)}</td>
                     </tr>
             """
-        
+
         html += """
                 </tbody>
             </table>
         </div>
-        
+
         <div class="section">
             <div class="section-title">Recent Calls</div>
             <table>
@@ -187,12 +186,12 @@ class ProfilingReport:
                 </thead>
                 <tbody>
         """
-        
+
         # Mostra últimas 20 calls
         recent_results = self.results[-20:]
         for result in reversed(recent_results):
             status = "ok" if result.performance_target_met else "error"
-            
+
             html += f"""
                     <tr>
                         <td class="function-name">{result.function_name.split('.')[-1]}</td>
@@ -202,7 +201,7 @@ class ProfilingReport:
                         <td class="status-{status}">{'✓' if result.performance_target_met else '✗'}</td>
                     </tr>
             """
-        
+
         html += """
                 </tbody>
             </table>
@@ -211,10 +210,10 @@ class ProfilingReport:
 </body>
 </html>
         """
-        
+
         return html
-    
-    def generate_json_summary(self) -> Dict[str, Any]:
+
+    def generate_json_summary(self) -> dict[str, Any]:
         """Gera resumo em JSON para APIs"""
         by_function = {}
         for result in self.results:
@@ -222,54 +221,54 @@ class ProfilingReport:
             if fname not in by_function:
                 by_function[fname] = []
             by_function[fname].append(result)
-        
+
         summary = {
             "generated_at": datetime.now().isoformat(),
             "total_functions": len(by_function),
             "total_calls": len(self.results),
-            "functions": {}
+            "functions": {},
         }
-        
+
         for fname, results in by_function.items():
             durations = [r.duration_seconds for r in results]
             memory_peaks = [r.memory_peak_mb for r in results]
             targets_met = sum(1 for r in results if r.performance_target_met)
-            
+
             summary["functions"][fname] = {
                 "call_count": len(results),
                 "duration": {
                     "min": min(durations),
                     "max": max(durations),
                     "avg": sum(durations) / len(durations),
-                    "total": sum(durations)
+                    "total": sum(durations),
                 },
                 "memory": {
                     "avg_peak": sum(memory_peaks) / len(memory_peaks) if memory_peaks else 0,
-                    "max_peak": max(memory_peaks) if memory_peaks else 0
+                    "max_peak": max(memory_peaks) if memory_peaks else 0,
                 },
                 "targets": {
                     "met": targets_met,
                     "total": len(results),
-                    "success_rate": targets_met / len(results) if results else 0
-                }
+                    "success_rate": targets_met / len(results) if results else 0,
+                },
             }
-        
+
         return summary
 
 
-def generate_html_report(results: List[ProfilingResult], output_file: str):
+def generate_html_report(results: list[ProfilingResult], output_file: str):
     """Gera e salva relatório HTML"""
     report = ProfilingReport(results)
     html = report.generate_summary_html()
-    
-    with open(output_file, 'w', encoding='utf-8') as f:
+
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write(html)
 
 
-def generate_json_report(results: List[ProfilingResult], output_file: str):
+def generate_json_report(results: list[ProfilingResult], output_file: str):
     """Gera e salva relatório JSON"""
     report = ProfilingReport(results)
     data = report.generate_json_summary()
-    
-    with open(output_file, 'w', encoding='utf-8') as f:
+
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)

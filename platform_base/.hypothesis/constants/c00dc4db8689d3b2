@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\io\__init__.py
+# hypothesis_version: 6.151.4
+
+['FileFormat', 'LoadConfig', 'LoadStrategy', 'SchemaRules', 'detect_bom', 'detect_encoding', 'detect_schema', 'get_encoding_info', 'load', 'load_async']

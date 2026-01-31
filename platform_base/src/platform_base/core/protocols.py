@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-import numpy as np
-from numpy.typing import NDArray
 
-from platform_base.core.models import InterpResult, SyncResult
+if TYPE_CHECKING:
+    import numpy as np
+    from numpy.typing import NDArray
+
+    from platform_base.core.models import InterpResult, SyncResult
 
 
 @runtime_checkable

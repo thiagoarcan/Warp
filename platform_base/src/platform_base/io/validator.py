@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
@@ -9,23 +7,24 @@ from pydantic import BaseModel, ConfigDict, Field
 from platform_base.processing.timebase import to_seconds
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 
 def _parse_timestamps_for_validation(data: pd.Series | pd.Index) -> pd.DatetimeIndex:
     """
     Parse timestamps robustly for validation, trying common formats.
-    
+
     Args:
         data: Series or Index containing timestamp data
-        
+
     Returns:
         DatetimeIndex with parsed timestamps
     """
     # If already datetime, just convert
     if pd.api.types.is_datetime64_any_dtype(data):
         return pd.DatetimeIndex(data)
-    
+
     # Common datetime formats to try
     formats = [
         "%Y-%m-%d %H:%M:%S",
@@ -38,15 +37,17 @@ def _parse_timestamps_for_validation(data: pd.Series | pd.Index) -> pd.DatetimeI
         "%m/%d/%Y %H:%M:%S",
         "%m/%d/%Y",
     ]
-    
+
     for fmt in formats:
         try:
-            return pd.to_datetime(data, format=fmt, errors="raise")
+            parsed = pd.to_datetime(data, format=fmt, errors="raise")
+            return pd.DatetimeIndex(parsed)
         except (ValueError, TypeError):
             continue
-    
-    # Fallback
-    return pd.to_datetime(data, errors="coerce")
+
+    # Fallback - try auto detection
+    parsed = pd.to_datetime(data, errors="coerce")
+    return pd.DatetimeIndex(parsed)
 
 
 class ValidationWarning(BaseModel):
@@ -119,7 +120,7 @@ def validate_time(df: pd.DataFrame, timestamp_column: str) -> ValidationReport:
                 code="timestamp_nan",
                 message="Timestamp column has NaT values",
                 context={"count": int(timestamps.isna().sum())},
-            )
+            ),
         )
 
     if not timestamps.is_monotonic_increasing:
@@ -128,7 +129,7 @@ def validate_time(df: pd.DataFrame, timestamp_column: str) -> ValidationReport:
                 code="timestamp_not_monotonic",
                 message="Timestamp column is not monotonic",
                 context={},
-            )
+            ),
         )
 
     if timestamps.duplicated().any():
@@ -137,7 +138,7 @@ def validate_time(df: pd.DataFrame, timestamp_column: str) -> ValidationReport:
                 code="timestamp_duplicates",
                 message="Timestamp column has duplicate entries",
                 context={"count": int(timestamps.duplicated().sum())},
-            )
+            ),
         )
 
     t_seconds = to_seconds(timestamps.to_numpy())
@@ -162,7 +163,7 @@ def validate_values(
                     code="series_high_missing",
                     message="Series has high missing ratio",
                     context={"column": col, "missing_ratio": missing_ratio},
-                )
+                ),
             )
 
     return ValidationReport(

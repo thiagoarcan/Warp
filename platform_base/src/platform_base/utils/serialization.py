@@ -10,7 +10,7 @@ def to_jsonable(obj: Any) -> Any:
     """Convert common numpy/datetime objects to JSON-friendly structures."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
-    if isinstance(obj, (np.integer, np.floating)):
+    if isinstance(obj, np.integer | np.floating):
         return obj.item()
     if isinstance(obj, datetime):
         return obj.isoformat()

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 def to_seconds(t_datetime: np.ndarray) -> np.ndarray:

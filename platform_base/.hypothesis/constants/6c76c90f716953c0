@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py
+# hypothesis_version: 6.151.4
+
+[-1.0, 0.0, 0.1, 1.0, 2.0, 95.0, 100, 1000, '2.0.0', 'actual_points', 'adaptive', 'compression_ratio', 'data_sorted_by_time', 'downsample_1m', 'downsampling', 'lttb', 'method', 'minimum', 'minmax', 'n_data', 'n_points', 'original_points', 'peak_aware', 'reduction_ratio', 'supported', 'target_points', 'time_len', 'time_span_preserved', 'uniform', 'values_len', 'variance_threshold']

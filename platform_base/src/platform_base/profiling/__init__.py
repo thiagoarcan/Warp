@@ -5,15 +5,16 @@ Provides automatic profiling and performance monitoring
 conforme PRD seção 10.6
 """
 
+from .decorators import memory_profile, profile
 from .profiler import AutoProfiler, Profiler
-from .decorators import profile, memory_profile
 from .reports import ProfilingReport, generate_html_report
+
 
 __all__ = [
     "AutoProfiler",
-    "Profiler", 
-    "profile",
-    "memory_profile",
+    "Profiler",
     "ProfilingReport",
-    "generate_html_report"
+    "generate_html_report",
+    "memory_profile",
+    "profile",
 ]

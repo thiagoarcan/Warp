@@ -2,10 +2,15 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from platform_base.utils.errors import ValidationError
 from platform_base.utils.logging import get_logger
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 logger = get_logger(__name__)
 
@@ -32,7 +37,7 @@ class Orchestrator:
         inputs = inputs or {}
         results: dict[str, Any] = {}
         graph: dict[str, list[str]] = defaultdict(list)
-        indegree: dict[str, int] = {name: 0 for name in self._tasks}
+        indegree: dict[str, int] = dict.fromkeys(self._tasks, 0)
 
         for task in self._tasks.values():
             for dep in task.deps:

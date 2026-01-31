@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\AppData\Roaming\Python\Python312\site-packages\xlsxwriter\core.py
+# hypothesis_version: 6.151.4
+
+['%Y-%m-%dT%H:%M:%SZ', 'author', 'category', 'comments', 'cp:category', 'cp:contentStatus', 'cp:coreProperties', 'cp:keywords', 'cp:lastModifiedBy', 'created', 'dc:creator', 'dc:description', 'dc:subject', 'dc:title', 'dcterms:W3CDTF', 'dcterms:created', 'dcterms:modified', 'keywords', 'status', 'subject', 'title', 'xmlns:cp', 'xmlns:dc', 'xmlns:dcmitype', 'xmlns:dcterms', 'xmlns:xsi', 'xsi:type']

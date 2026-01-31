@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
+
 import plotly.graph_objects as go
 
 from platform_base.viz.base import BaseFigure
+
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class StateCube3D(BaseFigure):
@@ -15,8 +20,8 @@ class StateCube3D(BaseFigure):
                     y=states[:, 1],
                     z=states[:, 2],
                     mode="markers",
-                )
-            ]
+                ),
+            ],
         )
         fig.update_layout(title=self.config.title)
         return fig

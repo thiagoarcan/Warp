@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\utils\__init__.py
+# hypothesis_version: 6.151.4
+
+['CloseEventHandler', 'ResourceTracker', 'cleanup_on_close', 'force_cleanup', 'get_resource_tracker']

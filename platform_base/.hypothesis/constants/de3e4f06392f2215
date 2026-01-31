@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\AppData\Roaming\Python\Python312\site-packages\xlsxwriter\contenttypes.py
+# hypothesis_version: 6.151.4
+
+['.xml', '/docProps/app.xml', '/docProps/core.xml', '/docProps/custom.xml', '/xl/', '/xl/calcChain.xml', '/xl/charts/', '/xl/chartsheets/', '/xl/drawings/', '/xl/metadata.xml', '/xl/styles.xml', '/xl/tables/', '/xl/theme/theme1.xml', '/xl/workbook.xml', '/xl/worksheets/', 'ContentType', 'Default', 'Extension', 'Override', 'PartName', 'Types', 'application/xml', 'bin', 'core-properties+xml', 'drawing+xml', 'drawingml.chart+xml', 'emf', 'image/', 'relationships+xml', 'rels', 'theme+xml', 'vml', 'vmlDrawing', 'wmf', 'x-', 'xml', 'xmlns']

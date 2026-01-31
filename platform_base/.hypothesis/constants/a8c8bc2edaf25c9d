@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\streaming\filters.py
+# hypothesis_version: 6.151.4
+
+[0.001, 0.6745, 1.0, 3.0, 60.0, 100.0, '; ', '__builtins__', 'abs', 'avg', 'block', 'blocked', 'business_hours', 'chain_stats', 'cos', 'e', 'efficiency', 'enabled', 'exp', 'filter_chain', 'filter_stats', 'flag', 'flagged', 'interpolate', 'iqr', 'len', 'log', 'max', 'min', 'modified', 'modified_zscore', 'modify', 'pass', 'passed', 'pi', 'quality_filter', 'range_filter', 'rate_limiter', 'sin', 'sqrt', 'standard_chain', 'standard_quality', 'statistics', 'sum', 'tan', 'temporal_filter', 'total_processed', 'value_filter', 'zscore']

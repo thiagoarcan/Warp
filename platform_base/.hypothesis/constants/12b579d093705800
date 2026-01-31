@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\desktop\widgets\results_panel.py
+# hypothesis_version: 6.151.4
+
+[0.05, 0.8, -1000, 100, 150, 1000, '#0066cc', '#666666', '#ff4444', '#ffaa00', '%H:%M:%S', '%H:%M:%S.%f', 'Auto-show on results', 'Clear', 'Clear Results', 'Consolas', 'Created', 'Data Quality Summary', 'Dataset Quality', 'Duration', 'ERROR', 'Export Results', 'Failed', 'Filter:', 'Good', 'INFO', 'Info', 'Interpolated Ratio', 'Level:', 'Logs', 'Metric', 'N/A', 'NaN Ratio', 'Operation', 'Points', 'Quality', 'Quality Metrics', 'Result Details', 'Results', 'Schema Confidence', 'Search logs...', 'Series', 'Status', 'Success', 'Unknown', 'Value', 'WARNING', 'Warning', '\\n', '\\nParameters:', 'all', 'debug', 'error', 'extra', 'failed', 'info', 'level', 'message', 'n_points', 'nan', 'operation', 'operation_id', 'parameters', 'quality_score', 'series_name', 'success', 'timestamp', 'warning']

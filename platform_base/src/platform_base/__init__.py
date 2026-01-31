@@ -1,7 +1,8 @@
 from platform_base.core.dataset_store import DatasetStore
 from platform_base.io.loader import load
 
-__all__ = ["load_dataset", "DatasetStore"]
+
+__all__ = ["DatasetStore", "load_dataset"]
 __version__ = "2.0.0"
 
 

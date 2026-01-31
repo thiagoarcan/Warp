@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\io\loader.py
+# hypothesis_version: 6.151.4
+
+[0.0, 0.95, 20.0, 100.0, 1024, '%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f', '%d/%m/%Y', '%d/%m/%Y %H:%M:%S', '%m/%d/%Y', '%m/%d/%Y %H:%M:%S', ',', '.', '/data', '2.0.0', '<U32', 'Load complete', 'Reading file...', 'Starting load...', 'UTC', '__index__', 'auto', 'coerce', 'column_types', 'columns', 'config', 'csv', 'custom_strategy', 'dataframe_validated', 'dataset', 'dataset_loaded', 'delimiter', 'encoding', 'extension', 'file_load_failed', 'filename', 'format', 'h5', 'hdf5', 'load', 'loading_file', 'max_missing_ratio', 'min_required', 'min_valid_points', 'missing', 'n_points', 'nrows', 'numeric_columns', 'original', 'original_error', 'parquet', 'path', 'pq', 'preview_error', 'preview_shape', 'raise', 'rb', 'sheet_name', 'size_bytes', 'size_mb', 'txt', 'xls', 'xlsx']

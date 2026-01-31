@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\profiling\reports.py
+# hypothesis_version: 6.151.4
+
+['avg', 'avg_peak', 'call_count', 'duration', 'error', 'functions', 'generated_at', 'max', 'max_peak', 'memory', 'met', 'min', 'ok', 'success_rate', 'targets', 'total', 'total_calls', 'total_functions', 'utf-8', 'w', 'warning']

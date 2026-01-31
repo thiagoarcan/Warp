@@ -2,7 +2,7 @@
 
 Exports:
 - VizPanel: Painel de visualização com suporte a drag-and-drop
-- OperationsPanel: Painel de operações em séries temporais  
+- OperationsPanel: Painel de operações em séries temporais
 - FileUploadDialog: Diálogo de upload de arquivos
 - Performance: Otimização para grandes volumes de dados
 - ResultsPanel: Painel de estatísticas e resultados
@@ -35,28 +35,29 @@ from platform_base.ui.panels.streaming_panel import (
     TimelineSlider,
 )
 
+
 __all__ = [
-    # Performance module
-    "DecimationMethod",
-    "PerformanceConfig",
-    "DataDecimator",
-    "LODManager",
-    "StreamingDataManager",
-    "PerformanceRenderer",
-    "get_performance_renderer",
-    "decimate_for_plot",
-    # Results panel
-    "ResultsPanel",
-    "StatisticsResult",
-    "StatCard",
-    "StatisticsTable",
-    # Streaming panel
-    "StreamingPanel",
-    "PlaybackState",
-    "PlaybackMode",
-    "TimelineSlider",
-    "MinimapWidget",
+    "ColorButton",
     # Config panel
     "ConfigPanel",
-    "ColorButton",
+    "DataDecimator",
+    # Performance module
+    "DecimationMethod",
+    "LODManager",
+    "MinimapWidget",
+    "PerformanceConfig",
+    "PerformanceRenderer",
+    "PlaybackMode",
+    "PlaybackState",
+    # Results panel
+    "ResultsPanel",
+    "StatCard",
+    "StatisticsResult",
+    "StatisticsTable",
+    "StreamingDataManager",
+    # Streaming panel
+    "StreamingPanel",
+    "TimelineSlider",
+    "decimate_for_plot",
+    "get_performance_renderer",
 ]

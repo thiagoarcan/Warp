@@ -22,12 +22,13 @@ from platform_base.ui.workers.operation_workers import (
     SmoothingWorker,
 )
 
+
 __all__ = [
-    'FileLoadWorker',
-    'BaseOperationWorker',
-    'CalculusWorker',
-    'InterpolationWorker',
-    'FilterWorker',
-    'SmoothingWorker',
-    'BatchOperationWorker',
+    "BaseOperationWorker",
+    "BatchOperationWorker",
+    "CalculusWorker",
+    "FileLoadWorker",
+    "FilterWorker",
+    "InterpolationWorker",
+    "SmoothingWorker",
 ]

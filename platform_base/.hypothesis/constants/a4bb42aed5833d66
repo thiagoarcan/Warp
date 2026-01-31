@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\processing\timebase.py
+# hypothesis_version: 6.151.4
+
+[1000000000.0, 'datetime64[ns]', 'timedelta64[ns]', 'timedelta64[s]']

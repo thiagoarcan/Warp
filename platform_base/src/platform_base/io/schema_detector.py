@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,7 +9,7 @@ class SeriesCandidate(BaseModel):
 
     name: str
     dtype: str
-    unit_hint: Optional[str] = None
+    unit_hint: str | None = None
 
 
 class SchemaMap(BaseModel):
@@ -26,12 +24,12 @@ class SchemaRules(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     timestamp_candidates: list[str] = Field(
-        default_factory=lambda: ["timestamp", "time", "datetime", "date", "datahora"]
+        default_factory=lambda: ["timestamp", "time", "datetime", "date", "datahora"],
     )
     min_series_columns: int = 1
 
 
-def _match_timestamp_column(columns: list[str], rules: SchemaRules) -> Optional[str]:
+def _match_timestamp_column(columns: list[str], rules: SchemaRules) -> str | None:
     candidates = {c.lower(): c for c in columns}
     for name in rules.timestamp_candidates:
         if name.lower() in candidates:

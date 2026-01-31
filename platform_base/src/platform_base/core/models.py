@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional, Any
 import hashlib
+from datetime import datetime
+from typing import Any
+
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict, Field
 from pint import Unit
+from pydantic import BaseModel, ConfigDict, Field
+
 
 DatasetID = str
 SeriesID = str
@@ -24,23 +26,23 @@ class SourceInfo(BaseModel):
     size_bytes: int
     checksum: str  # SHA256
     loaded_at: datetime = Field(default_factory=datetime.now)
-    
+
     @classmethod
-    def from_file(cls, filepath: str) -> "SourceInfo":
+    def from_file(cls, filepath: str) -> SourceInfo:
         """Cria SourceInfo a partir de um arquivo"""
         from pathlib import Path
         path_obj = Path(filepath)
-        
+
         # Calcular checksum
-        with open(filepath, 'rb') as f:
+        with open(filepath, "rb") as f:
             checksum = hashlib.sha256(f.read()).hexdigest()
-        
+
         return cls(
             filepath=str(path_obj.absolute()),
             filename=path_obj.name,
-            format=path_obj.suffix.lower().lstrip('.'),
+            format=path_obj.suffix.lower().lstrip("."),
             size_bytes=path_obj.stat().st_size,
-            checksum=checksum
+            checksum=checksum,
         )
 
 
@@ -48,7 +50,7 @@ class DatasetMetadata(BaseModel):
     """Metadata do dataset"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    description: Optional[str] = None
+    description: str | None = None
     tags: list[str] = Field(default_factory=list)
     custom: dict[str, Any] = Field(default_factory=dict)
     schema_confidence: float = 1.0
@@ -63,8 +65,8 @@ class SeriesMetadata(BaseModel):
 
     original_name: str
     source_column: str
-    original_unit: Optional[str] = None
-    description: Optional[str] = None
+    original_unit: str | None = None
+    description: str | None = None
     tags: list[str] = Field(default_factory=list)
     custom: dict[str, Any] = Field(default_factory=dict)
 
@@ -75,7 +77,7 @@ class InterpolationInfo(BaseModel):
 
     is_interpolated_mask: NDArray[np.bool_] = Field(alias="is_interpolated")
     method_used: NDArray[np.str_]
-    confidence: Optional[NDArray[np.float64]] = None
+    confidence: NDArray[np.float64] | None = None
 
     @property
     def is_interpolated(self) -> NDArray[np.bool_]:
@@ -92,7 +94,7 @@ class ResultMetadata(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
     duration_ms: float = 0.0
     platform_version: str = "2.0.0"
-    seed: Optional[int] = None
+    seed: int | None = None
 
     @property
     def params(self) -> dict[str, Any]:
@@ -106,9 +108,9 @@ class QualityMetrics(BaseModel):
     n_valid: int
     n_interpolated: int
     n_nan: int
-    error_estimate: Optional[float] = None
-    rmse: Optional[float] = None
-    mae: Optional[float] = None
+    error_estimate: float | None = None
+    rmse: float | None = None
+    mae: float | None = None
 
 
 class Lineage(BaseModel):
@@ -129,9 +131,9 @@ class Series(BaseModel):
     name: str
     unit: Unit
     values: NDArray[np.float64]
-    interpolation_info: Optional[InterpolationInfo] = None
+    interpolation_info: InterpolationInfo | None = None
     metadata: SeriesMetadata
-    lineage: Optional[Lineage] = None
+    lineage: Lineage | None = None
 
 
 class Dataset(BaseModel):
@@ -139,7 +141,7 @@ class Dataset(BaseModel):
 
     dataset_id: DatasetID
     version: int
-    parent_id: Optional[DatasetID]
+    parent_id: DatasetID | None
     source: SourceInfo
     t_seconds: NDArray[np.float64]
     t_datetime: NDArray[np.datetime64]
@@ -154,7 +156,7 @@ class TimeWindow(BaseModel):
 
     start: float  # segundos
     end: float  # segundos
-    
+
     @property
     def duration(self) -> float:
         return self.end - self.start
@@ -177,7 +179,7 @@ class DerivedResult(BaseModel):
 
     values: NDArray[np.float64]
     metadata: ResultMetadata
-    quality_metrics: Optional[QualityMetrics] = None
+    quality_metrics: QualityMetrics | None = None
 
 
 class InterpResult(DerivedResult):
@@ -188,7 +190,7 @@ class InterpResult(DerivedResult):
 class CalcResult(DerivedResult):
     """Resultado de cálculo matemático"""
     operation: str  # derivative, integral, area
-    order: Optional[int] = None  # para derivadas
+    order: int | None = None  # para derivadas
 
 
 class SyncResult(DerivedResult):
@@ -208,7 +210,7 @@ class DownsampleResult(DerivedResult):
 class SeriesSummary(BaseModel):
     """Resumo de série para UI"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
+
     series_id: SeriesID
     name: str
     unit: str

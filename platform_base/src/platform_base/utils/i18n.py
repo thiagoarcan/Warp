@@ -4,22 +4,21 @@ Sistema de Internacionalização (i18n) - Platform Base v2.0
 Sistema para localização da aplicação em português brasileiro.
 """
 
-from typing import Dict, Any
 import json
-from pathlib import Path
+
 
 # Dicionário de traduções pt-BR
-TRANSLATIONS_PT_BR: Dict[str, str] = {
+TRANSLATIONS_PT_BR: dict[str, str] = {
     # Aplicação principal
     "Platform Base": "Platform Base",
     "Time Series Analysis": "Análise de Séries Temporais",
     "Starting Platform Base v2.0...": "Iniciando Platform Base v2.0...",
-    
+
     # Menu principal
     "&File": "&Arquivo",
     "File": "Arquivo",
     "&Edit": "&Editar",
-    "Edit": "Editar", 
+    "Edit": "Editar",
     "&View": "&Visualizar",
     "View": "Visualizar",
     "&Analysis": "&Análise",
@@ -28,9 +27,9 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Tools": "Ferramentas",
     "&Help": "A&juda",
     "Help": "Ajuda",
-    
+
     # Submenu Arquivo
-    "&New Session": "&Nova Sessão", 
+    "&New Session": "&Nova Sessão",
     "&Open Session...": "&Abrir Sessão...",
     "&Save Session...": "&Salvar Sessão...",
     "&Load Data...": "&Carregar Dados...",
@@ -45,7 +44,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Import": "Importar",
     "Close": "Fechar",
     "Exit": "Sair",
-    
+
     # Submenu Editar
     "Undo": "Desfazer",
     "Redo": "Refazer",
@@ -55,7 +54,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Select All": "Selecionar Tudo",
     "Clear Selection": "Limpar Seleção",
     "Preferences": "Preferências",
-    
+
     # Submenu Visualizar
     "Data Panel": "Painel de Dados",
     "Visualization Panel": "Painel de Visualização",
@@ -64,7 +63,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Toolbar": "Barra de Ferramentas",
     "Status Bar": "Barra de Status",
     "Full Screen": "Tela Cheia",
-    
+
     # Submenu Análise
     "Mathematical Analysis": "Análise Matemática",
     "Statistical Analysis": "Análise Estatística",
@@ -74,19 +73,19 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Interpolation": "Interpolação",
     "Derivatives": "Derivadas",
     "Integrals": "Integrais",
-    
+
     # Submenu Ajuda
     "About": "Sobre",
     "User Guide": "Manual do Usuário",
     "Technical Documentation": "Documentação Técnica",
     "Keyboard Shortcuts": "Atalhos do Teclado",
     "Report Bug": "Reportar Bug",
-    
+
     # Temas
     "Light Theme": "Tema Claro",
-    "Dark Theme": "Tema Escuro", 
+    "Dark Theme": "Tema Escuro",
     "Auto Theme": "Tema Automático",
-    
+
     # Configurações
     "Platform Base Settings": "Configurações Platform Base",
     "&Settings...": "&Configurações...",
@@ -101,7 +100,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Default settings restored.": "Configurações padrão restauradas.",
     "Settings Error": "Erro de Configurações",
     "Failed to apply settings": "Falha ao aplicar configurações",
-    
+
     # Configurações Gerais
     "Appearance": "Aparência",
     "Auto": "Automático",
@@ -118,7 +117,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Exit:": "Saída:",
     "Remember window position and size": "Lembrar posição e tamanho da janela",
     "Window:": "Janela:",
-    
+
     # Configurações de Performance
     "Memory Management": "Gerenciamento de Memória",
     " MB": " MB",
@@ -134,7 +133,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Use Numba acceleration (requires restart)": "Usar aceleração Numba (requer reinicialização)",
     "Acceleration:": "Aceleração:",
     "Select Cache Directory": "Selecionar Diretório do Cache",
-    
+
     # Configurações de Logging
     "Logging Level": "Nível de Log",
     "Log Level:": "Nível de Log:",
@@ -147,34 +146,30 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Log Format": "Formato de Log",
     "Select Log File": "Selecionar Arquivo de Log",
     "Log Files (*.log);;Text Files (*.txt);;All Files (*)": "Arquivos de Log (*.log);;Arquivos de Texto (*.txt);;Todos os Arquivos (*)",
-    
+
     # Toolbar
     "Main": "Principal",
     "Load Data": "Carregar Dados",
-    
+
     # Painéis
     "Datasets & Series": "Conjuntos de Dados e Séries",
     "Data Information": "Informações dos Dados",
     "Summary": "Resumo",
     "Metadata": "Metadados",
     "Quality": "Qualidade",
-    
+
     # Botões gerais
     "OK": "OK",
     "Cancel": "Cancelar",
-    "Apply": "Aplicar",
-    "Close": "Fechar",
     "Yes": "Sim",
     "No": "Não",
     "Browse": "Procurar",
     "Load": "Carregar",
-    "Save": "Salvar",
     "Delete": "Excluir",
     "Remove": "Remover",
     "Add": "Adicionar",
-    "Edit": "Editar",
     "Refresh": "Atualizar",
-    
+
     # Dialog de Upload
     "Load Data Files": "Carregar Arquivos de Dados",
     "File Upload": "Carregamento de Arquivo",
@@ -186,7 +181,6 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Configuration": "Configuração",
     "Preview": "Visualização",
     "Progress": "Progresso",
-    "Load Data": "Carregar Dados",
     "Generate Preview": "Gerar Visualização",
     "Select a file to begin": "Selecione um arquivo para começar",
     "File selected. Configure options or generate preview.": "Arquivo selecionado. Configure as opções ou gere uma visualização.",
@@ -194,7 +188,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Data Preview:": "Visualização dos Dados:",
     "Load Error": "Erro de Carregamento",
     "Failed to load file": "Falha ao carregar arquivo",
-    
+
     # Configurações de arquivo
     "General Settings": "Configurações Gerais",
     "File Format": "Formato do Arquivo",
@@ -219,7 +213,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Use chunked loading": "Usar carregamento em blocos",
     "Performance:": "Performance:",
     "Chunk Size:": "Tamanho do Bloco:",
-    
+
     # Visualização de dados
     "Plot": "Gráfico",
     "2D Plot": "Gráfico 2D",
@@ -230,7 +224,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Show Grid": "Mostrar Grade",
     "Show Legend": "Mostrar Legenda",
     "Active Series": "Séries Ativas",
-    
+
     # Ferramentas de seleção
     "Selection Tools": "Ferramentas de Seleção",
     "Type": "Tipo",
@@ -239,11 +233,10 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Graphical": "Gráfica",
     "Conditional": "Condicional",
     "Replace": "Substituir",
-    "Add": "Adicionar",
     "Subtract": "Subtrair",
     "Intersect": "Interseção",
     "Clear": "Limpar",
-    
+
     # Análise matemática
     "Calculate Derivative": "Calcular Derivada",
     "Calculate Integral": "Calcular Integral",
@@ -258,7 +251,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "High-pass Filter": "Filtro Passa-Alta",
     "Band-pass Filter": "Filtro Passa-Banda",
     "Detect Outliers": "Detectar Outliers",
-    
+
     # Controles de visualização
     "Zoom to Selection": "Zoom na Seleção",
     "Reset Zoom": "Resetar Zoom",
@@ -271,13 +264,13 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Add Y Axis": "Adicionar Eixo Y",
     "Move to Y2": "Mover para Y2",
     "Select": "Selecionar",
-    
+
     # Gerenciamento de séries
     "Duplicate Series": "Duplicar Série",
     "Hide Series": "Ocultar Série",
     "Remove Series": "Remover Série",
     "Series Properties": "Propriedades da Série",
-    
+
     # Estatísticas
     "Statistics": "Estatísticas",
     "Count": "Contagem",
@@ -288,7 +281,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Median": "Mediana",
     "Skewness": "Assimetria",
     "Kurtosis": "Curtose",
-    
+
     # Seleção estatísticas
     "Selection Statistics": "Estatísticas da Seleção",
     "Total Points": "Total de Pontos",
@@ -300,7 +293,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Time Range": "Intervalo de Tempo",
     "Ranges": "Intervalos",
     "Total Duration": "Duração Total",
-    
+
     # Dialog de seleção condicional
     "Conditional Selection": "Seleção Condicional",
     "Selection Condition": "Condição de Seleção",
@@ -313,15 +306,15 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Apply Percentile": "Aplicar Percentil",
     "Selection Mode": "Modo de Seleção",
     "Apply Selection": "Aplicar Seleção",
-    
+
     # Formatos de exportação
     "PNG": "PNG",
-    "SVG": "SVG", 
+    "SVG": "SVG",
     "PDF": "PDF",
     "JPEG": "JPEG",
     "CSV": "CSV",
     "Excel": "Excel",
-    
+
     # Métodos de interpolação
     "Linear": "Linear",
     "Cubic Spline": "Spline Cúbica",
@@ -329,24 +322,24 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Moving Least Squares": "Mínimos Quadrados Móveis",
     "Gaussian Process": "Processo Gaussiano",
     "Spectral": "Espectral",
-    
+
     # Métodos de derivada
     "Finite Difference": "Diferença Finita",
     "Savitzky-Golay": "Savitzky-Golay",
     "Spline Derivative": "Derivada por Spline",
-    
+
     # Métodos de integral
     "Trapezoid": "Trapézio",
     "Simpson": "Simpson",
     "Cumulative": "Cumulativa",
-    
+
     # Métodos de reamostragem
     "LTTB": "LTTB",
     "MinMax": "MínMáx",
     "Adaptive": "Adaptativa",
     "Uniform": "Uniforme",
     "Peak Aware": "Consciente de Picos",
-    
+
     # Parâmetros de análise
     "Order": "Ordem",
     "Method": "Método",
@@ -354,18 +347,17 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Polynomial Order": "Ordem do Polinômio",
     "Target Points": "Pontos Alvo",
     "Apply smoothing": "Aplicar suavização",
-    
+
     # Mensagens de erro
     "Error": "Erro",
     "Warning": "Aviso",
     "Information": "Informação",
     "Failed to generate preview": "Falha ao gerar visualização",
     "Preview Error": "Erro de Visualização",
-    "Failed to load file": "Falha ao carregar arquivo",
     "File not found": "Arquivo não encontrado",
     "Invalid file format": "Formato de arquivo inválido",
     "No data available": "Nenhum dado disponível",
-    
+
     # Status e progresso
     "Ready": "Pronto",
     "Loading": "Carregando",
@@ -373,7 +365,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Completed": "Concluído",
     "Cancelled": "Cancelado",
     "Failed": "Falhou",
-    
+
     # Welcome screen
     "Welcome": "Bem-vindo",
     "Platform Base Visualization": "Visualização Platform Base",
@@ -388,53 +380,46 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Mouse wheel to zoom": "Roda do mouse para zoom",
     "Drag to pan": "Arrastar para panorâmica",
     "Right-click for context menu": "Clique direito para menu contextual",
-    
+
     # Tipos de dados
     "Dataset": "Conjunto de Dados",
     "Series": "Série",
     "Original": "Original",
     "Derived": "Derivada",
     "Loaded": "Carregado",
-    
+
     # Unidades de tempo
     "seconds": "segundos",
-    "minutes": "minutos", 
+    "minutes": "minutos",
     "hours": "horas",
     "days": "dias",
     "Time (s)": "Tempo (s)",
     "Value": "Valor",
-    
+
     # Dialog Sobre
     "About Platform Base": "Sobre Platform Base",
     "Logo": "Logo",
-    "Platform Base": "Platform Base",
     "Version 2.0.0": "Versão 2.0.0",
     "Time Series Analysis Tool": "Ferramenta de Análise de Séries Temporais",
-    "About": "Sobre",
     "Credits": "Créditos",
     "System": "Sistema",
     "License": "Licença",
     "Version": "Versão",
     "Build": "Build",
     "Copyright": "Copyright",
-    
+
     # Menu de contexto do gráfico
     "📊 Mathematical Analysis": "📊 Análise Matemática",
-    "Mathematical Analysis": "Análise Matemática",
     "📈 Calculate Derivative...": "📈 Calcular Derivada...",
     "📉 Calculate Integral...": "📉 Calcular Integral...",
     "📊 Show Statistics": "📊 Mostrar Estatísticas",
     "🌊 FFT Analysis": "🌊 Análise FFT",
     "🔗 Correlation Analysis": "🔗 Análise de Correlação",
     "🔧 Data Processing": "🔧 Processamento de Dados",
-    "Data Processing": "Processamento de Dados",
     "🌊 Smooth Data...": "🌊 Suavizar Dados...",
     "🎯 Interpolate Missing Data...": "🎯 Interpolar Dados Ausentes...",
     "📏 Resample Data...": "📏 Reamostrar Dados...",
     "🔍 Filters": "🔍 Filtros",
-    "Low-pass Filter": "Filtro Passa-Baixa",
-    "High-pass Filter": "Filtro Passa-Alta",
-    "Band-pass Filter": "Filtro Passa-Banda",
     "🎯 Detect Outliers": "🎯 Detectar Outliers",
     "👁️ Visualization": "👁️ Visualização",
     "🔍 Zoom to Selection": "🔍 Zoom na Seleção",
@@ -453,7 +438,7 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "👁️ Hide Series": "👁️ Ocultar Série",
     "🗑️ Remove Series": "🗑️ Remover Série",
     "⚙️ Series Properties...": "⚙️ Propriedades da Série...",
-    
+
     # Diálogos de análise matemática
     "Mathematical Analysis -": "Análise Matemática -",
     "Derivative Parameters": "Parâmetros da Derivada",
@@ -461,15 +446,13 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Smoothing Parameters": "Parâmetros de Suavização",
     "Interpolation Parameters": "Parâmetros de Interpolação",
     "Resampling Parameters": "Parâmetros de Reamostragem",
-    "Apply": "Aplicar",
     "Order:": "Ordem:",
     "Method:": "Método:",
-    "Apply smoothing": "Aplicar suavização",
     "Window size:": "Tamanho da janela:",
     "Window Size:": "Tamanho da Janela:",
     "Polynomial Order:": "Ordem Polinomial:",
     "Target Points:": "Pontos Alvo:",
-    
+
     # Métodos específicos
     "finite_diff": "Diferença Finita",
     "savitzky_golay": "Savitzky-Golay",
@@ -490,21 +473,13 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "minmax": "MínMáx",
     "adaptive": "Adaptativo",
     "uniform": "Uniforme",
-    
+
     # Estatísticas e propriedades
     "Statistics -": "Estatísticas -",
-    "Count": "Contagem",
-    "Mean": "Média",
-    "Std Dev": "Desvio Padrão",
-    "Min": "Mínimo",
-    "Max": "Máximo",
-    "Median": "Mediana",
     "Q25": "Q25",
     "Q75": "Q75",
-    "Skewness": "Assimetria",
-    "Kurtosis": "Curtose",
     "Failed to calculate statistics": "Falha ao calcular estatísticas",
-    
+
     # Mensagens de funcionalidades futuras
     "FFT analysis feature coming soon!": "Funcionalidade de análise FFT em breve!",
     "Correlation analysis feature coming soon!": "Funcionalidade de análise de correlação em breve!",
@@ -512,16 +487,12 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
     "Outlier detection feature coming soon!": "Detecção de outliers em breve!",
     "Copy to clipboard feature coming soon!": "Copiar para área de transferência em breve!",
     "Series properties dialog coming soon!": "Diálogo de propriedades da série em breve!",
-    
-    # Diálogos de confirmação
-    "Remove Series": "Remover Série",
     "Remove series": "Remover série",
-    "Add Annotation": "Adicionar Anotação",
     "Annotation text:": "Texto da anotação:",
 
     # Atalhos de teclado comuns
     "Ctrl+O": "Ctrl+O",
-    "Ctrl+S": "Ctrl+S", 
+    "Ctrl+S": "Ctrl+S",
     "Ctrl+Z": "Ctrl+Z",
     "Ctrl+Y": "Ctrl+Y",
     "Ctrl+C": "Ctrl+C",
@@ -535,15 +506,15 @@ TRANSLATIONS_PT_BR: Dict[str, str] = {
 # Classe para gerenciar traduções
 class I18n:
     """Sistema de internacionalização"""
-    
+
     def __init__(self, language: str = "pt-BR"):
         self.language = language
         self._translations = TRANSLATIONS_PT_BR if language == "pt-BR" else {}
-    
+
     def tr(self, text: str) -> str:
         """Traduz um texto para o idioma atual"""
         return self._translations.get(text, text)
-    
+
     def set_language(self, language: str):
         """Define o idioma da aplicação"""
         self.language = language
@@ -551,24 +522,24 @@ class I18n:
             self._translations = TRANSLATIONS_PT_BR
         else:
             self._translations = {}
-    
+
     def get_language(self) -> str:
         """Retorna o idioma atual"""
         return self.language
-    
+
     def add_translation(self, original: str, translation: str):
         """Adiciona uma tradução personalizada"""
         self._translations[original] = translation
-    
+
     def save_translations(self, filepath: str):
         """Salva as traduções em um arquivo JSON"""
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self._translations, f, ensure_ascii=False, indent=2)
-    
+
     def load_translations(self, filepath: str):
         """Carrega traduções de um arquivo JSON"""
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 self._translations.update(json.load(f))
         except (FileNotFoundError, json.JSONDecodeError):
             pass

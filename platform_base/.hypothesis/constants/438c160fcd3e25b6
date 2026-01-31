@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\AppData\Roaming\Python\Python312\site-packages\xlsxwriter\table.py
+# hypothesis_version: 6.151.4
+
+['None', 'autoFilter', 'autofilter', 'columns', 'count', 'custom_total', 'dataDxfId', 'displayName', 'format', 'formula', 'headerRowCount', 'header_row_count', 'id', 'name', 'range', 'ref', 'showColumnStripes', 'showFirstColumn', 'showLastColumn', 'showRowStripes', 'show_col_stripes', 'show_first_col', 'show_last_col', 'show_row_stripes', 'style', 'table', 'tableColumn', 'tableColumns', 'tableStyleInfo', 'total_function', 'total_string', 'totalsRowCount', 'totalsRowFormula', 'totalsRowFunction', 'totalsRowLabel', 'totalsRowShown', 'totals_row_shown', 'xmlns']

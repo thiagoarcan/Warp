@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\processing\interpolation.py
+# hypothesis_version: 6.151.4
+
+[0.0, 1e-10, 0.1, 0.5, 0.8, 1.0, 2.0, 2.5, 3.0, 100000.0, 100, 1000, '2.0.0', '<U32', 'degree', 'dt', 'duration_ms', 'gpr', 'gpr_subsampling', 'interpolation', 'interpolation_1m', 'kernel_type', 'length_scale', 'linear', 'matern', 'max_freq', 'max_train_points', 'method', 'min_freq', 'missing_package', 'mls', 'n_components', 'n_frequencies', 'n_points', 'n_restarts', 'noise_level', 'numba_not_available', 'original', 'rbf', 'resample_grid', 's', 'scikit-learn', 'seed', 'smoothing_spline', 'spline_cubic', 'supported', 'uncertainty_std', 'weight_radius']

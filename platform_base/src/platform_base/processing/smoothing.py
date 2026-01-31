@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import butter, filtfilt, medfilt, savgol_filter
+
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @dataclass

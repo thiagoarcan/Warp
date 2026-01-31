@@ -46,49 +46,44 @@ from platform_base.ui.undo_redo import (
     get_undo_manager,
 )
 
+
 __all__ = [
-    # State
-    'SessionState',
-    
-    # Panels
-    'OperationsPanel',
-    
+    "BaseCommand",
+    "CalculusDialog",
+    "DataOperationCommand",
+    "DerivativeDialog",
     # Export
-    'ExportDialog',
-    'show_export_dialog',
-    
+    "ExportDialog",
+    "FilterDialog",
+    "IntegralDialog",
+    "InterpolationDialog",
     # Operation Dialogs
-    'OperationDialogManager',
-    'get_operation_dialog_manager',
-    'show_interpolation_dialog',
-    'show_synchronization_dialog',
-    'show_calculus_dialog',
-    'show_derivative_dialog',
-    'show_integral_dialog',
-    'show_filter_dialog',
-    'show_smoothing_dialog',
-    'InterpolationDialog',
-    'SynchronizationDialog',
-    'CalculusDialog',
-    'DerivativeDialog',
-    'IntegralDialog',
-    'FilterDialog',
-    'SmoothingDialog',
-    
+    "OperationDialogManager",
     # Preview
-    'OperationPreviewDialog',
-    'PreviewCanvas',
-    'show_preview_dialog',
-    
+    "OperationPreviewDialog",
+    # Panels
+    "OperationsPanel",
     # Plot Sync
-    'PlotSyncManager',
-    'get_sync_manager',
-    
+    "PlotSyncManager",
+    "PreviewCanvas",
+    "SelectionCommand",
+    # State
+    "SessionState",
+    "SmoothingDialog",
+    "SynchronizationDialog",
     # Undo/Redo
-    'UndoRedoManager',
-    'get_undo_manager',
-    'BaseCommand',
-    'DataOperationCommand',
-    'SelectionCommand',
-    'ViewConfigCommand',
+    "UndoRedoManager",
+    "ViewConfigCommand",
+    "get_operation_dialog_manager",
+    "get_sync_manager",
+    "get_undo_manager",
+    "show_calculus_dialog",
+    "show_derivative_dialog",
+    "show_export_dialog",
+    "show_filter_dialog",
+    "show_integral_dialog",
+    "show_interpolation_dialog",
+    "show_preview_dialog",
+    "show_smoothing_dialog",
+    "show_synchronization_dialog",
 ]

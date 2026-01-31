@@ -6,13 +6,14 @@ with analysis tools and data manipulation options.
 """
 
 from .plot_context_menu import (
-    PlotContextMenu,
     MathAnalysisDialog,
+    PlotContextMenu,
     create_plot_context_menu,
 )
 
+
 __all__ = [
+    "MathAnalysisDialog",
     "PlotContextMenu",
-    "MathAnalysisDialog", 
     "create_plot_context_menu",
 ]
