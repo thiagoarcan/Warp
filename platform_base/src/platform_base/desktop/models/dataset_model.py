@@ -6,7 +6,9 @@ Provides model-view integration for dataset/series hierarchical data display.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
+import unicodedata
 
 import numpy as np
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal
@@ -19,6 +21,50 @@ if TYPE_CHECKING:
 
 
 logger = get_logger(__name__)
+
+
+def _safe_filename(path_str: str) -> str:
+    """
+    Extract safe filename from path, handling encoding issues.
+    
+    Args:
+        path_str: Path string (may have encoding issues)
+        
+    Returns:
+        Safe filename string for display
+    """
+    try:
+        # Try to get the filename from path
+        path = Path(path_str)
+        filename = path.stem  # Remove extension
+        
+        # Normalize unicode to NFC form
+        filename = unicodedata.normalize('NFC', filename)
+        
+        # Replace any problematic characters with safe alternatives
+        # Keep letters, numbers, spaces, and common punctuation
+        safe_chars = []
+        for char in filename:
+            if char.isalnum() or char in ' -_.()[]{}':
+                safe_chars.append(char)
+            elif unicodedata.category(char).startswith('L'):  # Letter category
+                safe_chars.append(char)
+            elif unicodedata.category(char).startswith('N'):  # Number category
+                safe_chars.append(char)
+            else:
+                # Try to keep the character, it might display correctly
+                safe_chars.append(char)
+        
+        result = ''.join(safe_chars).strip()
+        return result if result else path_str
+        
+    except Exception as e:
+        logger.warning("filename_encoding_error", path=path_str, error=str(e))
+        # Fallback: return the original string
+        try:
+            return path_str.encode('utf-8', errors='replace').decode('utf-8')
+        except Exception:
+            return "unnamed_file"
 
 
 class TreeItem:
@@ -201,6 +247,26 @@ class DatasetTreeModel(QAbstractItemModel):
                            dataset_id=item.dataset_id, visible=new_state)
                 return True
 
+        # BUG-007 FIX: Handle name editing (renaming)
+        if role == Qt.ItemDataRole.EditRole and index.column() == 0:
+            new_name = str(value).strip()
+            if not new_name:
+                return False  # Don't allow empty names
+            
+            # Store the display name in the item
+            item._custom_name = new_name
+            item.item_data[0] = new_name
+            
+            # Emit data changed
+            self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole])
+            
+            logger.debug("item_renamed",
+                        item_type=item.item_type,
+                        dataset_id=item.dataset_id,
+                        series_id=item.series_id,
+                        new_name=new_name)
+            return True
+
         return False
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
@@ -215,6 +281,8 @@ class DatasetTreeModel(QAbstractItemModel):
             item: TreeItem = index.internalPointer()
             if item.item_type in ("dataset", "series"):
                 base_flags |= Qt.ItemFlag.ItemIsUserCheckable
+                # BUG-007 FIX: Allow renaming via double-click
+                base_flags |= Qt.ItemFlag.ItemIsEditable
 
         return base_flags
 
@@ -280,9 +348,9 @@ class DatasetTreeModel(QAbstractItemModel):
                 try:
                     dataset = self.dataset_store.get_dataset(summary.dataset_id)
                     # Use filename for display, fallback to dataset_id
-                    from pathlib import Path
+                    # BUG-007 FIX: Use safe filename extraction with encoding handling
                     if hasattr(dataset, 'source') and dataset.source and hasattr(dataset.source, 'filename'):
-                        display_name = Path(dataset.source.filename).stem  # Remove extension
+                        display_name = _safe_filename(dataset.source.filename)
                     else:
                         display_name = summary.dataset_id
                 except Exception:

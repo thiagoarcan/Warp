@@ -710,20 +710,27 @@ class VizPanel(QWidget):
 
             elif plot_info["type"] == "3d" and isinstance(widget, Plot3DWidget):
                 # For 3D, need at least 3 series (x, y, z)
-                if len(plot_info["series"]) >= 2:
-                    # Get first three series for 3D plot
-                    series_list = list(plot_info["series"].values())
-                    x_data = series_list[0]["data"]
-                    y_data = series_list[1]["data"]
-                    z_data = series.values
-
-                    widget.plot_trajectory_3d(x_data, y_data, z_data, dataset.t_seconds)
-
+                # Store series data first
                 plot_info["series"][series_id] = {
                     "data": series.values,
                     "dataset_id": dataset_id,
                     "name": series.name,
                 }
+                
+                # When we have 3 series, create the 3D plot
+                if len(plot_info["series"]) >= 3:
+                    series_list = list(plot_info["series"].values())
+                    x_data = series_list[0]["data"]
+                    y_data = series_list[1]["data"]
+                    z_data = series_list[2]["data"]
+
+                    widget.plot_trajectory_3d(x_data, y_data, z_data, dataset.t_seconds)
+                    logger.info("3d_plot_rendered", series_count=len(plot_info["series"]))
+                elif len(plot_info["series"]) < 3:
+                    logger.info("3d_plot_waiting", 
+                               current=len(plot_info["series"]),
+                               needed=3,
+                               message=f"Adicione mais {3 - len(plot_info['series'])} série(s) para renderizar plot 3D")
 
             logger.debug("series_added_to_plot", plot_id=plot_id,
                         dataset_id=dataset_id, series_id=series_id)
