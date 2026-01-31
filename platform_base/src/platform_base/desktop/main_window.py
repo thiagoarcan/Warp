@@ -32,6 +32,7 @@ from platform_base.desktop.widgets.config_panel import ConfigPanel
 from platform_base.desktop.widgets.data_panel import DataPanel
 from platform_base.desktop.widgets.results_panel import ResultsPanel
 from platform_base.desktop.widgets.viz_panel import VizPanel
+from platform_base.ui.panels.operations_panel import OperationsPanel
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -125,6 +126,17 @@ class MainWindow(QMainWindow):
         self.config_dock.setWidget(self.config_panel)
         self.config_dock.setObjectName("ConfigPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
+
+        # Operations Panel (Right - tabbed with Config)
+        self.operations_panel = OperationsPanel(self.session_state)
+        self.operations_dock = QDockWidget(tr("Operations Panel"), self)
+        self.operations_dock.setWidget(self.operations_panel)
+        self.operations_dock.setObjectName("OperationsPanel")
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
+        
+        # Tabify operations with config panel
+        self.tabifyDockWidget(self.config_dock, self.operations_dock)
+        self.config_dock.raise_()  # Show config panel by default
 
         # Streaming Panel (Bottom - for playback controls)
         from platform_base.ui.panels.streaming_panel import StreamingPanel
@@ -250,6 +262,7 @@ class MainWindow(QMainWindow):
         # Panel visibility toggles
         view_menu.addAction(self.data_dock.toggleViewAction())
         view_menu.addAction(self.config_dock.toggleViewAction())
+        view_menu.addAction(self.operations_dock.toggleViewAction())
         view_menu.addAction(self.results_dock.toggleViewAction())
 
         view_menu.addSeparator()
@@ -433,6 +446,10 @@ class MainWindow(QMainWindow):
         
         # Operations Panel signals (BUG-004 FIX)
         self.operations_panel.operation_requested.connect(self._handle_operation_request)
+
+        # Operations panel signals
+        self.operations_panel.operation_requested.connect(self._handle_operation_request)
+        self.operations_panel.export_requested.connect(self._handle_export_request)
 
         logger.debug("signals_connected")
 
@@ -695,6 +712,103 @@ class MainWindow(QMainWindow):
     def _on_status_updated(self, message: str):
         """Handle status updates"""
         self.status_label.setText(message)
+
+    @pyqtSlot(str, dict)
+    def _handle_operation_request(self, operation_name: str, params: dict):
+        """
+        Handle operation request from OperationsPanel.
+        
+        This connects the UI to the processing backend.
+        """
+        logger.info("operation_requested", operation=operation_name, params=params)
+        
+        # Validate that we have data selected
+        selection = self.session_state.get_selected_series()
+        if not selection:
+            QMessageBox.warning(
+                self,
+                "No Data Selected",
+                "Please select a data series before performing this operation."
+            )
+            return
+        
+        try:
+            # Get the selected dataset and series
+            dataset_id = selection[0].dataset_id if hasattr(selection[0], 'dataset_id') else None
+            series_id = selection[0].series_id if hasattr(selection[0], 'series_id') else None
+            
+            if not dataset_id or not series_id:
+                # Try alternate selection format
+                if isinstance(selection, dict):
+                    dataset_id = selection.get('dataset_id')
+                    series_id = selection.get('series_id')
+            
+            if not dataset_id or not series_id:
+                QMessageBox.warning(
+                    self,
+                    "Invalid Selection",
+                    "Could not determine selected series. Please select a series from the data panel."
+                )
+                return
+            
+            # Start the processing operation
+            self.processing_manager.start_operation(
+                operation_type=operation_name,
+                dataset_id=dataset_id,
+                series_id=series_id,
+                params=params
+            )
+            
+            # Show feedback
+            self.status_label.setText(f"Processing: {operation_name}...")
+            self.progress_bar.setVisible(True)
+            
+            # Activate results panel to show results when complete
+            self.results_dock.raise_()
+            
+        except Exception as e:
+            logger.exception("operation_request_failed", operation=operation_name, error=str(e))
+            QMessageBox.critical(
+                self,
+                "Operation Failed",
+                f"Failed to start operation '{operation_name}':\\n{str(e)}"
+            )
+
+    @pyqtSlot(str, dict)
+    def _handle_export_request(self, format_type: str, options: dict):
+        """
+        Handle export request from OperationsPanel.
+        """
+        logger.info("export_requested", format=format_type, options=options)
+        
+        # Get output path from user
+        file_filters = {
+            'csv': "CSV Files (*.csv)",
+            'excel': "Excel Files (*.xlsx)",
+            'parquet': "Parquet Files (*.parquet)",
+            'hdf5': "HDF5 Files (*.h5 *.hdf5)",
+            'json': "JSON Files (*.json)",
+        }
+        
+        file_filter = file_filters.get(format_type, "All Files (*.*)")
+        
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            f"Export as {format_type.upper()}",
+            "",
+            file_filter
+        )
+        
+        if file_path:
+            self.status_label.setText(f"Exporting to {format_type}...")
+            logger.info("export_started", path=file_path, format=format_type)
+            
+            # TODO: Implement actual export via worker
+            QMessageBox.information(
+                self,
+                "Export",
+                f"Export to {file_path} will be implemented in next phase."
+            )
 
     def _update_memory_usage(self):
         """Update memory usage display"""

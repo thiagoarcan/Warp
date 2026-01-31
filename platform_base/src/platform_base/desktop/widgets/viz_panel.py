@@ -504,13 +504,16 @@ class VizPanel(QWidget):
         """Handle series visibility changes from data panel checkboxes"""
         # Update visibility in all active plots
         for plot_id, plot_info in self.active_plots.items():
-            series_key = f"{dataset_id}_{series_id}"
-            if series_key in plot_info.get("series", {}):
-                series_data = plot_info["series"][series_key]
-                if "plot_item" in series_data:
-                    series_data["plot_item"].setVisible(visible)
-                    logger.debug("series_visibility_updated",
-                               plot_id=plot_id, series_id=series_id, visible=visible)
+            # Check if series exists in plot (stored by series_id)
+            if series_id in plot_info.get("series", {}):
+                widget = plot_info["widget"]
+                # For 2D plots, toggle series visibility
+                if isinstance(widget, Plot2DWidget):
+                    if series_id in widget._series_data:
+                        plot_item = widget._series_data[series_id]["plot_item"]
+                        plot_item.setVisible(visible)
+                        logger.debug("series_visibility_updated",
+                                   plot_id=plot_id, series_id=series_id, visible=visible)
 
     @pyqtSlot()
     def _create_plot(self, plot_type: str):
