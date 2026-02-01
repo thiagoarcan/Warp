@@ -491,12 +491,86 @@ class ResultsPanel(QWidget):
     def _export_results(self):
         """Export results to file"""
         logger.info("results_export_requested")
-        # Export functionality to be implemented
+        
+        from PyQt6.QtWidgets import QFileDialog
+        from pathlib import Path
+        import json
+        import csv
+        
+        # Ask for file type
+        file_path, selected_filter = QFileDialog.getSaveFileName(
+            self,
+            "Export Results",
+            "",
+            "CSV Files (*.csv);;JSON Files (*.json);;All Files (*.*)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # Collect all results from table
+            results = []
+            for row in range(self.results_table.rowCount()):
+                item = self.results_table.item(row, 0)
+                result_data = item.data(Qt.ItemDataRole.UserRole)
+                if result_data:
+                    # Convert datetime to string for serialization
+                    result_copy = result_data.copy()
+                    if "timestamp" in result_copy and isinstance(result_copy["timestamp"], datetime):
+                        result_copy["timestamp"] = result_copy["timestamp"].isoformat()
+                    results.append(result_copy)
+            
+            # Export based on file extension
+            file_path_obj = Path(file_path)
+            
+            if file_path_obj.suffix == '.json' or "JSON" in selected_filter:
+                # Export as JSON
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(results, f, indent=2, default=str)
+                logger.info("results_exported_json", path=file_path, count=len(results))
+                
+            else:  # CSV by default
+                # Export as CSV
+                if not results:
+                    logger.warning("no_results_to_export")
+                    return
+                
+                with open(file_path, 'w', newline='', encoding='utf-8') as f:
+                    # Get all keys from all results
+                    all_keys = set()
+                    for result in results:
+                        all_keys.update(result.keys())
+                    
+                    fieldnames = sorted(all_keys)
+                    writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+                    
+                    writer.writeheader()
+                    for result in results:
+                        # Convert non-string values to strings
+                        row_data = {k: str(v) if not isinstance(v, (str, int, float)) else v 
+                                   for k, v in result.items()}
+                        writer.writerow(row_data)
+                
+                logger.info("results_exported_csv", path=file_path, count=len(results))
+            
+            self.log_widget.add_log_entry(
+                "info", 
+                f"Results exported to {file_path_obj.name} ({len(results)} entries)"
+            )
+            
+        except Exception as e:
+            logger.exception("results_export_failed", error=str(e))
+            self.log_widget.add_log_entry("error", f"Export failed: {str(e)}")
 
     def _poll_logs(self):
-        """Poll for new log entries"""
-        # This would integrate with the logging system
-        # For now, just a placeholder
+        """Poll for new log entries from the logging system"""
+        # This integrates with the centralized logging system
+        # For production, this could connect to a log aggregator or file
+        
+        # TODO: Implement log fetching from structured logger
+        # For now, this is a no-op as logs are already being added via signals
+        pass
 
     def _update_quality_metrics(self):
         """Update quality metrics display"""
