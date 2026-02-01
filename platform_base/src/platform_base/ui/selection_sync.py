@@ -483,3 +483,117 @@ def create_selection_sync_filter(view_types: list[str] | None = None,
         min_selection_size=min_size,
         max_selection_size=max_size,
     )
+
+# =============================================================================
+# SelectionSync - Simple synchronization class for tests
+# =============================================================================
+
+class SelectionSync(QObject):
+    """
+    Simple selection synchronization across multiple views.
+    
+    This is a simplified interface for synchronizing selections between views.
+    For more advanced use cases, use SelectionSynchronizer.
+    """
+    
+    # Signals
+    selection_changed = pyqtSignal(object)  # Selection or indices
+    sync_enabled_changed = pyqtSignal(bool)
+    view_registered = pyqtSignal(str)  # view_id
+    view_unregistered = pyqtSignal(str)  # view_id
+    
+    def __init__(self, parent: QObject | None = None):
+        super().__init__(parent)
+        
+        self._views: dict[str, Any] = {}
+        self._enabled = True
+        self._current_selection: set[int] | None = None
+    
+    def register_view(self, view: Any, view_id: str):
+        """
+        Register a view for synchronization.
+        
+        Args:
+            view: View object (must have set_selection method)
+            view_id: Unique identifier for the view
+        """
+        self._views[view_id] = view
+        self.view_registered.emit(view_id)
+        logger.debug("selection_sync_view_registered", view_id=view_id)
+    
+    def unregister_view(self, view_id: str):
+        """
+        Unregister a view from synchronization.
+        
+        Args:
+            view_id: Identifier of the view to unregister
+        """
+        if view_id in self._views:
+            del self._views[view_id]
+            self.view_unregistered.emit(view_id)
+            logger.debug("selection_sync_view_unregistered", view_id=view_id)
+    
+    def propagate_selection(self, source: str, indices: set[int]):
+        """
+        Propagate a selection from source view to all other views.
+        
+        Args:
+            source: ID of the source view
+            indices: Set of selected indices
+        """
+        if not self._enabled:
+            return
+        
+        self._current_selection = indices
+        
+        for view_id, view in self._views.items():
+            if view_id != source:
+                if hasattr(view, 'set_selection'):
+                    try:
+                        view.set_selection(indices)
+                    except Exception as e:
+                        logger.warning("selection_sync_propagate_failed",
+                                      view_id=view_id, error=str(e))
+        
+        self.selection_changed.emit(indices)
+        logger.debug("selection_sync_propagated",
+                    source=source,
+                    n_indices=len(indices),
+                    n_targets=len(self._views) - 1)
+    
+    def set_enabled(self, enabled: bool):
+        """
+        Enable or disable synchronization.
+        
+        Args:
+            enabled: True to enable, False to disable
+        """
+        self._enabled = enabled
+        self.sync_enabled_changed.emit(enabled)
+        logger.debug("selection_sync_enabled_changed", enabled=enabled)
+    
+    def is_enabled(self) -> bool:
+        """Check if synchronization is enabled."""
+        return self._enabled
+    
+    def get_views(self) -> dict[str, Any]:
+        """Return dictionary of registered views."""
+        return self._views.copy()
+    
+    def get_current_selection(self) -> set[int] | None:
+        """Return current selection indices."""
+        return self._current_selection
+    
+    def clear_selection(self):
+        """Clear current selection in all views."""
+        self._current_selection = None
+        
+        for view_id, view in self._views.items():
+            if hasattr(view, 'clear_selection'):
+                try:
+                    view.clear_selection()
+                except Exception as e:
+                    logger.warning("selection_sync_clear_failed",
+                                  view_id=view_id, error=str(e))
+        
+        self.selection_changed.emit(None)

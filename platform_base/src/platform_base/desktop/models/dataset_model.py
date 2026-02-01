@@ -6,9 +6,9 @@ Provides model-view integration for dataset/series hierarchical data display.
 
 from __future__ import annotations
 
+import unicodedata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-import unicodedata
 
 import numpy as np
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt, pyqtSignal

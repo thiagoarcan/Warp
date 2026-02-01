@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\plot_sync.py
+# hypothesis_version: 6.151.4
+
+['canvas', 'coordinates_changed', 'crosshair', 'figure', 'get_xlim', 'get_ylim', 'region', 'region_selected', 'set_selection_region', 'sync_crosshair', 'sync_region', 'sync_x', 'sync_y', 'xlim', 'xlim_changed', 'ylim', 'ylim_changed']

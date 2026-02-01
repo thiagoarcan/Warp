@@ -15,7 +15,6 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
-
 logger = get_logger(__name__)
 
 @dataclass
@@ -130,9 +129,10 @@ class TemporalSynchronizer(QObject):
         )
 
         with self._lock:
-            # Add to buffer
+            # Add to buffer - create buffer directly if not exists (avoid deadlock)
             if series_id not in self._buffers:
-                self.add_series(series_id)
+                self._buffers[series_id] = []
+                logger.debug("series_added_to_sync", series_id=series_id, offset=0.0)
 
             buffer = self._buffers[series_id]
             buffer.append(frame)

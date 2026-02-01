@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-
 try:
     import pyqtgraph as pg
     import scipy.stats
@@ -30,7 +29,6 @@ except ImportError:
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure
 from platform_base.viz.config import ColorScale, VizConfig
-
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
@@ -523,3 +521,315 @@ class StatisticalHeatmap(BaseFigure):
             width = kwargs.get("width", self.config.export_2d.default_width)
             height = kwargs.get("height", self.config.export_2d.default_height)
             self._widget.export_image(file_path, width, height)
+
+
+# =============================================================================
+# Simple Heatmap class for test compatibility
+# =============================================================================
+
+class Heatmap:
+    """
+    Simple Heatmap class for creating and manipulating heatmaps.
+    
+    This is a high-level interface that doesn't require a VizConfig.
+    """
+    
+    AVAILABLE_COLORMAPS = [
+        "viridis", "plasma", "inferno", "magma", "cividis",
+        "hot", "cool", "coolwarm", "jet", "rainbow",
+        "gray", "bone", "copper", "spring", "summer",
+        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn"
+    ]
+    
+    def __init__(self, data: np.ndarray = None, x_labels: list = None, 
+                 y_labels: list = None, normalize: bool = False,
+                 colormap: str = "viridis", title: str = "Heatmap",
+                 mask_nan: bool = False):
+        """
+        Initialize a Heatmap.
+        
+        Args:
+            data: 2D array of values
+            x_labels: Labels for x-axis (columns)
+            y_labels: Labels for y-axis (rows)
+            normalize: Whether to normalize data to [0, 1]
+            colormap: Colormap name
+            title: Heatmap title
+            mask_nan: Whether to mask NaN values
+        """
+        self._data = None
+        self._normalized_data = None
+        self._x_labels = x_labels
+        self._y_labels = y_labels
+        self._normalize = normalize
+        self._colormap = colormap
+        self._title = title
+        self._annotations = None
+        self._vmin = None
+        self._vmax = None
+        self._mask_nan = mask_nan
+        
+        if data is not None:
+            self.set_data(data)
+    
+    def set_data(self, data: np.ndarray) -> None:
+        """Set the heatmap data."""
+        self._data = np.asarray(data).copy()
+        
+        if self._normalize:
+            self._update_normalized_data()
+    
+    def get_data(self) -> np.ndarray:
+        """Get the original data."""
+        return self._data.copy() if self._data is not None else None
+    
+    def _update_normalized_data(self) -> None:
+        """Update normalized data cache."""
+        if self._data is None:
+            return
+        
+        data_min = np.nanmin(self._data)
+        data_max = np.nanmax(self._data)
+        
+        if data_max - data_min > 0:
+            self._normalized_data = (self._data - data_min) / (data_max - data_min)
+        else:
+            self._normalized_data = np.zeros_like(self._data)
+    
+    def get_normalized_data(self) -> np.ndarray:
+        """Get normalized data (0-1 range)."""
+        if self._normalized_data is None and self._data is not None:
+            self._update_normalized_data()
+        return self._normalized_data.copy() if self._normalized_data is not None else None
+    
+    def set_colormap(self, colormap: str) -> None:
+        """Set the colormap."""
+        if colormap in self.AVAILABLE_COLORMAPS:
+            self._colormap = colormap
+        else:
+            logger.warning(f"Unknown colormap: {colormap}. Using default.")
+    
+    def get_colormap(self) -> str:
+        """Get current colormap."""
+        return self._colormap
+    
+    @classmethod
+    def get_available_colormaps(cls) -> list:
+        """Get list of available colormaps."""
+        return cls.AVAILABLE_COLORMAPS.copy()
+    
+    def set_labels(self, x_labels: list = None, y_labels: list = None) -> None:
+        """Set axis labels."""
+        if x_labels is not None:
+            self._x_labels = x_labels
+        if y_labels is not None:
+            self._y_labels = y_labels
+    
+    def get_labels(self) -> tuple:
+        """Get axis labels."""
+        return (self._x_labels, self._y_labels)
+    
+    def set_title(self, title: str) -> None:
+        """Set heatmap title."""
+        self._title = title
+    
+    def get_title(self) -> str:
+        """Get heatmap title."""
+        return self._title
+    
+    def set_value_range(self, vmin: float = None, vmax: float = None) -> None:
+        """Set value range for colormap."""
+        self._vmin = vmin
+        self._vmax = vmax
+    
+    def get_value_range(self) -> tuple:
+        """Get value range."""
+        if self._data is None:
+            return (None, None)
+        
+        vmin = self._vmin if self._vmin is not None else np.nanmin(self._data)
+        vmax = self._vmax if self._vmax is not None else np.nanmax(self._data)
+        return (vmin, vmax)
+    
+    def set_annotations(self, show: bool = True, format_str: str = ".2f") -> None:
+        """Set annotation display."""
+        self._annotations = {"show": show, "format": format_str}
+    
+    def get_cell_value(self, row: int, col: int) -> float:
+        """Get value at specific cell."""
+        if self._data is None:
+            raise ValueError("No data set")
+        return float(self._data[row, col])
+    
+    def get_statistics(self) -> dict:
+        """Get basic statistics of the data."""
+        if self._data is None:
+            return {}
+        
+        return {
+            "min": float(np.nanmin(self._data)),
+            "max": float(np.nanmax(self._data)),
+            "mean": float(np.nanmean(self._data)),
+            "std": float(np.nanstd(self._data)),
+            "shape": self._data.shape,
+        }
+    
+    def resize(self, new_shape: tuple) -> None:
+        """Resize heatmap data using interpolation."""
+        if self._data is None:
+            return
+        
+        from scipy.ndimage import zoom
+        
+        current_shape = self._data.shape
+        zoom_factors = (new_shape[0] / current_shape[0], new_shape[1] / current_shape[1])
+        self._data = zoom(self._data, zoom_factors)
+        
+        if self._normalize:
+            self._update_normalized_data()
+    
+    def render(self) -> np.ndarray:
+        """Render heatmap to RGB array."""
+        if self._data is None:
+            return None
+        
+        # Use matplotlib for rendering if available
+        try:
+            import matplotlib.pyplot as plt
+            
+            cmap = plt.get_cmap(self._colormap)
+            normalized = self.get_normalized_data()
+            
+            # Apply colormap
+            rgba = cmap(normalized)
+            rgb = (rgba[:, :, :3] * 255).astype(np.uint8)
+            
+            return rgb
+        except ImportError:
+            # Fallback to grayscale
+            normalized = self.get_normalized_data()
+            gray = (normalized * 255).astype(np.uint8)
+            return np.stack([gray, gray, gray], axis=-1)
+    
+    def export(self, filepath: str, dpi: int = 100) -> None:
+        """Export heatmap to file."""
+        if self._data is None:
+            raise ValueError("No data to export")
+        
+        try:
+            import matplotlib.pyplot as plt
+            
+            fig, ax = plt.subplots(figsize=(10, 8))
+            
+            vmin, vmax = self.get_value_range()
+            im = ax.imshow(self._data, cmap=self._colormap, vmin=vmin, vmax=vmax, aspect='auto')
+            
+            plt.colorbar(im, ax=ax)
+            ax.set_title(self._title)
+            
+            if self._x_labels:
+                ax.set_xticks(range(len(self._x_labels)))
+                ax.set_xticklabels(self._x_labels, rotation=45, ha='right')
+            
+            if self._y_labels:
+                ax.set_yticks(range(len(self._y_labels)))
+                ax.set_yticklabels(self._y_labels)
+            
+            plt.tight_layout()
+            plt.savefig(filepath, dpi=dpi)
+            plt.close(fig)
+            
+            logger.info(f"Heatmap exported to {filepath}")
+        except ImportError:
+            logger.warning("matplotlib not available for export")
+
+
+def correlation_heatmap(data: np.ndarray, method: str = "pearson",
+                        labels: list = None) -> Heatmap:
+    """
+    Create a correlation heatmap.
+    
+    Args:
+        data: 2D array where each column is a variable
+        method: Correlation method ('pearson', 'spearman', 'kendall')
+        labels: Variable names
+        
+    Returns:
+        Heatmap instance with correlation matrix
+    """
+    if method == "pearson":
+        corr_matrix = np.corrcoef(data.T)
+    elif method == "spearman":
+        corr_matrix, _ = scipy.stats.spearmanr(data, axis=0)
+        if np.isscalar(corr_matrix):
+            corr_matrix = np.array([[1.0, corr_matrix], [corr_matrix, 1.0]])
+    elif method == "kendall":
+        n_vars = data.shape[1]
+        corr_matrix = np.zeros((n_vars, n_vars))
+        for i in range(n_vars):
+            for j in range(n_vars):
+                if i == j:
+                    corr_matrix[i, j] = 1.0
+                else:
+                    tau, _ = scipy.stats.kendalltau(data[:, i], data[:, j])
+                    corr_matrix[i, j] = tau
+    else:
+        raise ValueError(f"Unknown method: {method}")
+    
+    return Heatmap(
+        data=corr_matrix,
+        x_labels=labels,
+        y_labels=labels,
+        colormap="coolwarm",
+        title=f"Correlation Matrix ({method.capitalize()})"
+    )
+
+
+def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
+                        window_size: int = 256, overlap: float = 0.5,
+                        fs: float = None) -> Heatmap:
+    """
+    Create a spectrogram heatmap.
+    
+    Args:
+        signal: 1D signal array
+        sample_rate: Sampling rate in Hz (or use fs as alias)
+        window_size: FFT window size
+        overlap: Window overlap fraction
+        fs: Alias for sample_rate (for scipy compatibility)
+        
+    Returns:
+        Heatmap instance with spectrogram data
+    """
+    # Handle fs alias
+    if sample_rate is None and fs is not None:
+        sample_rate = fs
+    elif sample_rate is None:
+        sample_rate = 1000.0  # Default sample rate
+    
+    try:
+        from scipy.signal import spectrogram as scipy_spectrogram
+        
+        nperseg = window_size
+        noverlap = int(window_size * overlap)
+        
+        f, t, Sxx = scipy_spectrogram(signal, fs=sample_rate, 
+                                       nperseg=nperseg, noverlap=noverlap)
+        
+        # Convert to dB
+        Sxx_db = 10 * np.log10(Sxx + 1e-10)
+        
+        # Create labels
+        time_labels = [f"{ti:.2f}s" for ti in t[::max(1, len(t)//10)]]
+        freq_labels = [f"{fi:.0f}Hz" for fi in f[::max(1, len(f)//10)]]
+        
+        return Heatmap(
+            data=Sxx_db,
+            x_labels=time_labels,
+            y_labels=freq_labels,
+            colormap="viridis",
+            title="Spectrogram"
+        )
+    except ImportError:
+        logger.warning("scipy not available for spectrogram")
+        return Heatmap(title="Spectrogram (scipy required)")

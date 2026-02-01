@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\desktop\signal_hub.py
+# hypothesis_version: 6.151.4
+
+['dataset_loaded', 'error_occurred', 'operation_completed', 'operation_started', 'series_selected', 'signal_emitted']

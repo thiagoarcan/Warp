@@ -227,7 +227,7 @@ filterwarnings = [
     "ignore::UserWarning",
     "ignore:.*CUDA.*:UserWarning",
 ]
-# qt_api = "pyqt6"  # Temporarily disabled for CI without display
+qt_api = "pyqt6"
 
 # ============================================
 # COVERAGE - Code Coverage

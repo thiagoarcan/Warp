@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-
 try:
     import numba
     NUMBA_AVAILABLE = True
@@ -13,7 +12,6 @@ except ImportError:
     NUMBA_AVAILABLE = False
 
 from platform_base.utils.logging import get_logger
-
 
 if TYPE_CHECKING:
     from platform_base.viz.config import VizConfig
@@ -422,3 +420,162 @@ class BaseFigure(ABC):
         high_variance_indices = np.sort(high_variance_indices)
 
         return x[high_variance_indices], y[high_variance_indices]
+
+
+# =============================================================================
+# SeriesVisualizationData class for test compatibility
+# =============================================================================
+
+from dataclasses import dataclass, field
+from typing import Optional
+
+
+@dataclass
+class SeriesVisualizationData:
+    """
+    Data container for series visualization.
+    
+    This class encapsulates all the data needed to visualize a time series,
+    including original data, downsampled data for display, and visual properties.
+    """
+    
+    # Core data
+    series_id: str
+    name: str = ""
+    
+    # Data arrays - with aliases for compatibility
+    x_data: np.ndarray = None
+    y_data: np.ndarray = None
+    
+    # Alternative names for compatibility
+    t_seconds: np.ndarray = None  # Alias for x_data
+    values: np.ndarray = None     # Alias for y_data
+    dataset_id: str = ""          # For grouping with datasets
+    
+    # Display data (may be downsampled)
+    x_display: np.ndarray = None
+    y_display: np.ndarray = None
+    
+    # Visual properties
+    color: str = "#1f77b4"
+    line_width: float = 1.5
+    line_style: str = "solid"
+    marker: str = None
+    marker_size: float = 5.0
+    visible: bool = True
+    opacity: float = 1.0
+    
+    # Y-axis assignment
+    y_axis: int = 0  # 0 = primary, 1 = secondary
+    
+    # Statistics (computed on demand)
+    _stats: dict = field(default_factory=dict)
+    
+    def __post_init__(self):
+        """Initialize display data if not provided."""
+        # Handle aliases
+        if self.x_data is None and self.t_seconds is not None:
+            self.x_data = self.t_seconds
+        if self.y_data is None and self.values is not None:
+            self.y_data = self.values
+        
+        # Ensure t_seconds and values point to the same data
+        if self.t_seconds is None and self.x_data is not None:
+            self.t_seconds = self.x_data
+        if self.values is None and self.y_data is not None:
+            self.values = self.y_data
+        
+        if self.x_display is None and self.x_data is not None:
+            self.x_display = self.x_data
+        if self.y_display is None and self.y_data is not None:
+            self.y_display = self.y_data
+    
+    @property
+    def n_points(self) -> int:
+        """Number of data points."""
+        return len(self.y_data)
+    
+    @property
+    def n_display_points(self) -> int:
+        """Number of display points."""
+        return len(self.y_display) if self.y_display is not None else 0
+    
+    @property
+    def x_range(self) -> tuple:
+        """X data range (min, max)."""
+        return (float(np.nanmin(self.x_data)), float(np.nanmax(self.x_data)))
+    
+    @property
+    def y_range(self) -> tuple:
+        """Y data range (min, max)."""
+        return (float(np.nanmin(self.y_data)), float(np.nanmax(self.y_data)))
+    
+    def get_statistics(self) -> dict:
+        """Get computed statistics for the series."""
+        if not self._stats:
+            self._stats = {
+                "min": float(np.nanmin(self.y_data)),
+                "max": float(np.nanmax(self.y_data)),
+                "mean": float(np.nanmean(self.y_data)),
+                "std": float(np.nanstd(self.y_data)),
+                "median": float(np.nanmedian(self.y_data)),
+                "n_points": len(self.y_data),
+                "n_nan": int(np.isnan(self.y_data).sum()),
+            }
+        return self._stats
+    
+    def update_display_data(self, x_display: np.ndarray, y_display: np.ndarray) -> None:
+        """Update downsampled display data."""
+        self.x_display = x_display
+        self.y_display = y_display
+    
+    def set_color(self, color: str) -> None:
+        """Set series color."""
+        self.color = color
+    
+    def set_visible(self, visible: bool) -> None:
+        """Set series visibility."""
+        self.visible = visible
+    
+    def set_y_axis(self, axis: int) -> None:
+        """Set Y-axis assignment (0=primary, 1=secondary)."""
+        self.y_axis = axis
+    
+    def copy(self) -> "SeriesVisualizationData":
+        """Create a copy of this visualization data."""
+        return SeriesVisualizationData(
+            series_id=self.series_id,
+            name=self.name,
+            x_data=self.x_data.copy(),
+            y_data=self.y_data.copy(),
+            x_display=self.x_display.copy() if self.x_display is not None else None,
+            y_display=self.y_display.copy() if self.y_display is not None else None,
+            color=self.color,
+            line_width=self.line_width,
+            line_style=self.line_style,
+            marker=self.marker,
+            marker_size=self.marker_size,
+            visible=self.visible,
+            opacity=self.opacity,
+            y_axis=self.y_axis,
+        )
+    
+    @classmethod
+    def from_series(cls, series, color: str = None) -> "SeriesVisualizationData":
+        """
+        Create visualization data from a Series object.
+        
+        Args:
+            series: Series object with values, timestamps, name, series_id
+            color: Optional color override
+            
+        Returns:
+            SeriesVisualizationData instance
+        """
+        return cls(
+            series_id=getattr(series, 'series_id', str(id(series))),
+            name=getattr(series, 'name', 'Unknown'),
+            x_data=np.asarray(getattr(series, 'timestamps', np.arange(len(series.values)))),
+            y_data=np.asarray(series.values),
+            color=color or "#1f77b4",
+        )

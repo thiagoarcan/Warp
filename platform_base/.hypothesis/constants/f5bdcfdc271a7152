@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\panels\performance.py
+# hypothesis_version: 6.151.4
+
+[100, 1000, 5000, 10000, 100000, 1000000, 'DataDecimator', 'DecimationMethod', 'LODManager', 'PerformanceConfig', 'PerformanceRenderer', 'StreamingDataManager', 'avg_render_ms', 'decimate_for_plot', 'decimation', 'default', 'direct', 'lod', 'max_render_ms', 'min_render_ms', 'total_renders']

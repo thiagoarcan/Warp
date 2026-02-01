@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\__init__.py
+# hypothesis_version: 6.151.4
+
+['BaseCommand', 'CalculusDialog', 'DataOperationCommand', 'DerivativeDialog', 'ExportDialog', 'FilterDialog', 'IntegralDialog', 'InterpolationDialog', 'OperationsPanel', 'PlotSyncManager', 'PreviewCanvas', 'SelectionCommand', 'SessionState', 'SmoothingDialog', 'UndoRedoManager', 'ViewConfigCommand', 'get_sync_manager', 'get_undo_manager', 'show_calculus_dialog', 'show_export_dialog', 'show_filter_dialog', 'show_integral_dialog', 'show_preview_dialog']
