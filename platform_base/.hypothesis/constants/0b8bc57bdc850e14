@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\core\config.py
+# hypothesis_version: 6.151.4
+
+[0.5, 100, '.', '.platform.yaml', '.platform_config', 'PLATFORM_', '\\$\\{([^}]+)\\}', 'callbacks_count', 'config_keys', 'config_reload_failed', 'config_saved', 'config_source_added', 'config_source_loaded', 'config_value_set', 'dict', 'exists', 'format', 'json', 'last_loaded', 'merge', 'modified', 'path', 'platform.yaml', 'priority', 'project', 'runtime', 'schemas_registered', 'scope', 'sources', 'sources_count', 'system', 'toml', 'unknown', 'user', 'utf-8', 'watching', 'yaml']

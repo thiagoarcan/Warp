@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\state.py
+# hypothesis_version: 6.151.4
+
+[0.0, 100.0, 10000, '2d', 'Complete', 'Failed', 'OperationState', 'Selection', 'SelectionState', 'SessionState', 'ViewState', 'created_at', 'current_dataset', 'current_operation', 'current_view_type', 'downsampling_enabled', 'end', 'is_processing', 'layout_mode', 'loaded_datasets', 'operation_finished', 'operation_started', 'selected_series', 'selection', 'selection_updated', 'session_cleared', 'session_id', 'session_loaded', 'session_saved', 'show_interpolated', 'single', 'start', 'sync_views', 'time_range', 'unknown', 'utf-8', 'view', 'view_state_updated', 'view_type', 'w']

@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\core\crash_handler.py
+# hypothesis_version: 6.151.4
+
+[300, 1024, '%H:%M:%S', '%Y%m%d_%H%M%S', '(/home/[^/]+)', '=', 'CRASH REPORT', '[USER_PATH]', 'alive', 'app_version', 'crash_*.json', 'daemon', 'exception_message', 'exception_type', 'extra_info', 'ident', 'last_actions', 'memory_info', 'name', 'os_info', 'password: [REDACTED]', 'process_rss_mb', 'process_vms_mb', 'python_version', 'r', 'stack_trace', 'system_available_mb', 'system_percent', 'system_total_mb', 'thread_info', 'timestamp', 'token: [REDACTED]', 'unknown', 'utf-8', 'w']

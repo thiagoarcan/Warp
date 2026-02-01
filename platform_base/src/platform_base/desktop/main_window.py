@@ -803,12 +803,63 @@ class MainWindow(QMainWindow):
             self.status_label.setText(f"Exporting to {format_type}...")
             logger.info("export_started", path=file_path, format=format_type)
             
-            # TODO: Implement actual export via worker
-            QMessageBox.information(
-                self,
-                "Export",
-                f"Export to {file_path} will be implemented in next phase."
+            # Get current dataset and series selection
+            current_selection = self.session_state.get_active_selection() if hasattr(self.session_state, 'get_active_selection') else None
+            dataset_id = current_selection.get('dataset_id') if current_selection else None
+            series_ids = current_selection.get('series_ids') if current_selection else None
+            
+            if not dataset_id and hasattr(self.data_panel, 'get_selected_dataset_id'):
+                dataset_id = self.data_panel.get_selected_dataset_id()
+            
+            if not dataset_id:
+                QMessageBox.warning(
+                    self,
+                    "No Data Selected",
+                    "Please select a dataset or series to export."
+                )
+                self.status_label.setText("Export cancelled - no data selected")
+                return
+            
+            # Start export worker
+            from platform_base.desktop.workers.export_worker import DataExportWorker
+            
+            export_config = {
+                'delimiter': options.get('delimiter', ','),
+                'encoding': options.get('encoding', 'utf-8'),
+                'include_metadata': options.get('include_metadata', True),
+            }
+            
+            self.export_worker = DataExportWorker(
+                dataset_store=self.signal_hub.dataset_store if hasattr(self.signal_hub, 'dataset_store') else None,
+                dataset_id=dataset_id,
+                series_ids=series_ids,
+                output_path=file_path,
+                format_type=format_type,
+                export_config=export_config
             )
+            
+            # Connect worker signals
+            self.export_worker.progress.connect(self.progress_bar.setValue)
+            self.export_worker.status_updated.connect(self.status_label.setText)
+            self.export_worker.error.connect(lambda e: QMessageBox.critical(self, "Export Error", str(e)))
+            self.export_worker.finished.connect(self._on_export_finished)
+            
+            # Start export
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(0)
+            self.export_worker.start()
+
+    @pyqtSlot()
+    def _on_export_finished(self):
+        """Handle export completion"""
+        self.progress_bar.setVisible(False)
+        self.status_label.setText("Export completed successfully")
+        logger.info("export_completed")
+        QMessageBox.information(
+            self,
+            "Export Complete",
+            "Data exported successfully."
+        )
 
     def _update_memory_usage(self):
         """Update memory usage display"""

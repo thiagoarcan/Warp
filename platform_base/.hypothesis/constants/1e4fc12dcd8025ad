@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\desktop\selection\selection_manager.py
+# hypothesis_version: 6.151.4
+
+[0.0, ':', '__builtins__', 'abs', 'active_criteria', 'add', 'all', 'bottom', 'combined', 'condition', 'conditional', 'cos', 'e', 'end_time', 'exp', 'graphical', 'intersect', 'left', 'log', 'max', 'mean', 'median', 'min', 'mode', 'pi', 'region', 'replace', 'right', 'selected_mask', 'selection_applied', 'selection_cleared', 'selection_redone', 'selection_types', 'selection_undone', 'sin', 'sqrt', 'start_time', 'std', 'subtract', 'tan', 'temporal', 'top', 'total_series', 'type']

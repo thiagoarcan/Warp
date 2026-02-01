@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\viz\figures_3d.py
+# hypothesis_version: 6.151.4
+
+[0.02, 0.2, 0.3, 0.5, 0.7, 0.8, 1.0, 2.0, 5.0, 255, 256, 1000, 1080, 1920, '3D Figure', '3D Mesh', '3D Scatter', '3D Surface', '3D Trajectory', 'RdYlBu', 'RdYlGn', '_scalars', 'autumn', 'blue', 'bone', 'cividis', 'cmap', 'color', 'cool', 'coolwarm', 'copper', 'dark', 'density_cloud', 'gray', 'green', 'hot', 'ij', 'inferno', 'jet', 'jpg', 'line_width', 'magma', 'multi_series_surface', 'name', 'obj', 'opacity', 'plasma', 'plot3d_cleared', 'plot3d_export_failed', 'plot3d_exported', 'png', 'point_cloud_added', 'point_size', 'points', 'rainbow', 'red', 'scalars', 'show_edges', 'show_scalar_bar', 'spectral', 'spring', 'summer', 'surface', 'surface3d_rendered', 'surface_added', 'trajectory', 'trajectory_added', 'viridis', 'volume', 'volume_added', 'white', 'winter']

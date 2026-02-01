@@ -232,20 +232,40 @@ class VideoExportWorker(QThread):
 
         # Capture widget to pixmap
         try:
-            view_widget.grab()
-
-            # Convert to numpy array (simplified implementation)
-            # This would need proper conversion from QPixmap to cv2 format
-            frame = np.zeros((self.settings.resolution[1], self.settings.resolution[0], 3), dtype=np.uint8)
-
-            # TODO: Proper QPixmap to numpy conversion
-            # For now, create a placeholder frame with timestamp
-            height, width = frame.shape[:2]
-            cv2 = None
+            pixmap = view_widget.grab()
+            
+            # Convert QPixmap to numpy array via QImage
+            qimage = pixmap.toImage()
+            qimage = qimage.convertToFormat(qimage.Format.Format_RGB888)
+            
+            width = qimage.width()
+            height = qimage.height()
+            
+            # Get pointer to image data
+            ptr = qimage.bits()
+            ptr.setsize(height * width * 3)
+            
+            # Create numpy array from image data
+            frame = np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 3))
+            
+            # Resize to target resolution if needed
+            target_height, target_width = self.settings.resolution[1], self.settings.resolution[0]
+            if (width, height) != (target_width, target_height):
+                try:
+                    import cv2
+                    frame = cv2.resize(frame, (target_width, target_height))
+                except ImportError:
+                    # Fallback: simple nearest-neighbor resize using numpy
+                    y_indices = np.linspace(0, height - 1, target_height).astype(int)
+                    x_indices = np.linspace(0, width - 1, target_width).astype(int)
+                    frame = frame[np.ix_(y_indices, x_indices)]
+            
+            # Convert RGB to BGR for OpenCV
             try:
                 import cv2
-
-                # Add timestamp text
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                
+                # Add timestamp overlay
                 timestamp_text = f"Time: {self.synchronizer.sync_state.current_time_seconds:.2f}s"
                 cv2.putText(frame, timestamp_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             except ImportError:

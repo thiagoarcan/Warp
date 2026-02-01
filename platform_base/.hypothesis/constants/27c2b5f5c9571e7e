@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\analytics\__init__.py
+# hypothesis_version: 6.151.4
+
+['TelemetryConfig', 'TelemetryEvent', 'TelemetryEventType', 'TelemetryManager', 'TelemetryStats', 'track_error', 'track_feature', 'track_operation']

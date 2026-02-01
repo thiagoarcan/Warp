@@ -317,19 +317,69 @@ class BaseFigure(ABC):
         self._last_render_params = {}
 
     @abstractmethod
-    def render(self, data):
-        """Renderiza a visualização com os dados fornecidos"""
-        raise NotImplementedError
+    def render(self, data) -> None:
+        """
+        Renderiza a visualização com os dados fornecidos.
+        
+        Args:
+            data: Dados para renderização. Pode ser:
+                  - np.ndarray: Array de valores Y
+                  - tuple[np.ndarray, np.ndarray]: Arrays (X, Y)
+                  - SeriesVisualizationData: Dados de série completos
+                  - list[SeriesVisualizationData]: Múltiplas séries
+        
+        Note:
+            Este método deve ser implementado pelas subclasses.
+            A implementação deve:
+            1. Validar os dados de entrada
+            2. Aplicar downsampling se necessário via _apply_downsampling()
+            3. Renderizar usando o backend apropriado (pyqtgraph, matplotlib, etc.)
+            4. Atualizar o cache interno
+        """
+        pass  # Subclasses must implement
 
     @abstractmethod
-    def update_selection(self, selection_indices: np.ndarray):
-        """Atualiza visualização com nova seleção"""
-        raise NotImplementedError
+    def update_selection(self, selection_indices: np.ndarray) -> None:
+        """
+        Atualiza visualização com nova seleção.
+        
+        Args:
+            selection_indices: Array de índices dos pontos selecionados.
+                              Índices correspondem aos dados originais (não downsampled).
+        
+        Note:
+            Este método deve ser implementado pelas subclasses.
+            A implementação deve:
+            1. Validar os índices de seleção
+            2. Mapear índices para dados de display (se downsampled)
+            3. Destacar visualmente os pontos selecionados
+            4. Emitir signals de seleção se aplicável
+        """
+        pass  # Subclasses must implement
 
     @abstractmethod
-    def export(self, file_path: str, format: str, **kwargs):
-        """Exporta visualização para arquivo"""
-        raise NotImplementedError
+    def export(self, file_path: str, format: str, **kwargs) -> bool:
+        """
+        Exporta visualização para arquivo.
+        
+        Args:
+            file_path: Caminho do arquivo de destino
+            format: Formato de exportação ('png', 'svg', 'pdf', 'csv', 'json')
+            **kwargs: Argumentos específicos do formato:
+                     - dpi (int): Resolução para imagens raster (default: 150)
+                     - width (int): Largura em pixels
+                     - height (int): Altura em pixels
+                     - background (str): Cor de fundo
+                     - include_legend (bool): Incluir legenda
+        
+        Returns:
+            bool: True se exportação bem sucedida, False caso contrário
+        
+        Note:
+            Este método deve ser implementado pelas subclasses.
+            Formatos suportados dependem do backend de renderização.
+        """
+        pass  # Subclasses must implement
 
     def clear_cache(self):
         """Limpa cache interno"""

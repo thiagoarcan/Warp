@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\api\server.py
+# hypothesis_version: 6.151.4
+
+['*', '/datasets', '/datasets/upload', '2.0.0', 'Platform Base API', 'api_ready', 'dataset_id', 'method', 'n_series', 'name', 'series', 'series_id', 't_seconds', 'values']

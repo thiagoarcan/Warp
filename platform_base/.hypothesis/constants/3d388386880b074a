@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\core\config_manager.py
+# hypothesis_version: 6.151.4
+
+[0.0, 1.0, 30.0, 32.0, 256.0, 100, 120, 256, 300, 512, 1000, 1024, 2048, 3600, 10000, 1000000, ' -> ', '#2b2b2b', '%Y%m%d_%H%M%S', '.', '2.0.0', 'INFO', 'Unknown error', '^#[0-9a-fA-F]{6}$', '^(light|dark|auto)$', '^(opengl|software)$', '^[a-z]{2}$', 'backups', 'cache_hits', 'cache_misses', 'cache_size', 'config_backup_*.yaml', 'config_metrics_reset', 'dark', 'en', 'errors', 'loc', 'logging', 'logs/platform.log', 'moderate', 'msg', 'old_backup_removed', 'opengl', 'performance_metrics', 'platform', 'plugins', 'processing', 'schemas_registered', 'total_reloads', 'ui', 'validation_enabled', 'validation_errors', 'validation_time', 'visualization']

@@ -19,7 +19,6 @@ from PyQt6.QtCore import QObject, QPointF, QRectF, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -52,15 +51,30 @@ class SelectionCriteria:
     mode: SelectionMode = SelectionMode.REPLACE
 
     def matches_point(self, t: float, value: float, **kwargs) -> bool:
-        """Check if a point matches the selection criteria"""
-        raise NotImplementedError
+        """
+        Check if a point matches the selection criteria.
+        
+        Args:
+            t: Time value of the point
+            value: Y value of the point
+            **kwargs: Additional context (series_id, dataset_id, etc.)
+        
+        Returns:
+            bool: True if point matches selection criteria
+        
+        Note:
+            Subclasses (TemporalSelection, GraphicalSelection, ConditionalSelection)
+            override this method with specific matching logic.
+            Base implementation returns False (no match).
+        """
+        return False  # Base class - no match by default
 
 
 @dataclass
 class TemporalSelection(SelectionCriteria):
     """Time-based selection criteria"""
-    start_time: float
-    end_time: float
+    start_time: float = 0.0
+    end_time: float = 0.0
 
     def __post_init__(self):
         self.selection_type = SelectionType.TEMPORAL
@@ -78,27 +92,33 @@ class TemporalSelection(SelectionCriteria):
 @dataclass
 class GraphicalSelection(SelectionCriteria):
     """Graphical region-based selection"""
-    region: QRectF  # Rectangle in plot coordinates
+    region: QRectF | None = None  # Rectangle in plot coordinates
 
     def __post_init__(self):
         self.selection_type = SelectionType.GRAPHICAL
 
     def matches_point(self, t: float, value: float, **kwargs) -> bool:
+        if self.region is None:
+            return False
         return self.region.contains(QPointF(t, value))
 
     @property
     def time_range(self) -> tuple[float, float]:
+        if self.region is None:
+            return (0.0, 0.0)
         return self.region.left(), self.region.right()
 
     @property
     def value_range(self) -> tuple[float, float]:
+        if self.region is None:
+            return (0.0, 0.0)
         return self.region.bottom(), self.region.top()
 
 
 @dataclass
 class ConditionalSelection(SelectionCriteria):
     """Value-based conditional selection"""
-    condition: str  # Python expression string
+    condition: str = ""  # Python expression string
     compiled_condition: Callable | None = None
 
     def __post_init__(self):

@@ -12,7 +12,6 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -44,8 +43,32 @@ class BaseWorker(QThread):
 
         Subclasses must implement this method.
         Should periodically check is_cancelled and emit progress signals.
+        
+        Note:
+            This is an abstract method that MUST be overridden by subclasses.
+            The implementation should:
+            1. Execute the worker's main task
+            2. Periodically check self.is_cancelled for cancellation requests
+            3. Emit progress via self.emit_progress(percent, message)
+            4. Call self.emit_success() on completion or self.emit_error() on failure
+        
+        Example:
+            def run(self):
+                try:
+                    for i in range(100):
+                        if self.is_cancelled:
+                            return
+                        # Do work...
+                        self.emit_progress(i, f"Processing {i}%")
+                    self.emit_success("Completed successfully")
+                except Exception as e:
+                    self.emit_error(str(e))
         """
-        raise NotImplementedError("Subclasses must implement run() method")
+        # Base implementation - subclasses MUST override
+        logger.warning("base_worker_run_not_implemented", 
+                      worker_id=self.worker_id,
+                      message="Subclass must implement run() method")
+        self.emit_error("Worker run() method not implemented by subclass")
 
     def cancel(self):
         """Cancel the worker operation"""

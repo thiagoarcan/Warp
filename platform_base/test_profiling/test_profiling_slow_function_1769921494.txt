@@ -1,0 +1,12 @@
+         6 function calls in 0.101 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.100    0.100 c:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\tests\unit\test_profiling.py:50(slow_function)
+        1    0.100    0.100    0.100    0.100 {built-in method time.sleep}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        2    0.000    0.000    0.000    0.000 {built-in method time.perf_counter}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.sum}
+
+

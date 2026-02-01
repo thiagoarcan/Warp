@@ -720,12 +720,26 @@ class StreamFilter:
         Apply filter to data.
         
         Args:
-            data: Input signal array
+            data: Input signal array (1D numpy array of float values)
             
         Returns:
-            Filtered signal array
+            Filtered signal array (same shape as input)
+        
+        Note:
+            Subclasses (LowpassFilter, HighpassFilter, BandpassFilter, etc.)
+            must override this method with specific filter implementations.
+            Base implementation returns data unchanged.
+        
+        Example (subclass):
+            def apply(self, data: np.ndarray) -> np.ndarray:
+                if self._coefficients is None:
+                    return data
+                b, a = self._coefficients
+                return scipy.signal.filtfilt(b, a, data)
         """
-        raise NotImplementedError("Subclasses must implement apply()")
+        # Base implementation: return data unchanged (passthrough)
+        import numpy as np
+        return np.asarray(data)
     
     def reset(self):
         """Reset filter state."""

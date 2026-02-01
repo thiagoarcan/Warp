@@ -15,15 +15,22 @@ from .selection_manager import (
     SelectionType,
     TemporalSelection,
 )
-
+from .selection_widgets import (
+    ConditionalSelectionDialog,
+    SelectionStatisticsPanel,
+    SelectionToolbar,
+)
 
 __all__ = [
     "ConditionalSelection",
+    "ConditionalSelectionDialog",
     "GraphicalSelection",
     "SelectionCriteria",
     "SelectionManager",
     "SelectionMode",
     "SelectionState",
+    "SelectionStatisticsPanel",
+    "SelectionToolbar",
     "SelectionType",
     "TemporalSelection",
 ]

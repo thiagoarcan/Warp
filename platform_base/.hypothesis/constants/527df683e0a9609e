@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\core\auto_save.py
+# hypothesis_version: 6.151.4
+
+[300, 1800, 4096, '%Y%m%d_%H%M%S', '.json', 'Auto-save', 'Emergency save', 'backup_*.json', 'checksum', 'current_version', 'description', 'metadata.json', 'path', 'r', 'rb', 'size_bytes', 'timestamp', 'utf-8', 'version', 'w']

@@ -347,12 +347,37 @@ class SelectionSyncView:
 
     def apply_synced_selection(self, selection: Selection):
         """
-        Aplica seleção recebida via sincronização
+        Aplica seleção recebida via sincronização.
+        
+        Este método é chamado pelo SelectionSynchronizer quando uma seleção
+        de outra view precisa ser aplicada a esta view.
 
         Override este método para implementar como a view
         deve aplicar seleções recebidas de outras views.
+        
+        Args:
+            selection: Objeto Selection contendo os dados de seleção:
+                      - t_seconds: Array de timestamps selecionados
+                      - series: Dict de séries com dados selecionados
+                      - criteria: Critérios usados para a seleção
+                      - metadata: Metadados adicionais
+        
+        Example (subclass implementation):
+            def apply_synced_selection(self, selection: Selection):
+                # Highlight selected time range in plot
+                self.plot.highlight_range(
+                    selection.criteria.start_time,
+                    selection.criteria.end_time
+                )
+                # Update internal state
+                self.current_selection = selection
+                # Refresh visualization
+                self.update()
         """
-        raise NotImplementedError("Subclasses must implement apply_synced_selection")
+        # Default implementation: store selection and log
+        self.current_selection = selection
+        logger.debug("synced_selection_applied",
+                    n_points=selection.n_points if hasattr(selection, 'n_points') else 0)
 
     def clear_synced_selection(self):
         """

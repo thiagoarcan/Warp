@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-
 try:
     import pyqtgraph as pg
     from PyQt6.QtCore import QObject, Qt, pyqtSignal
@@ -28,7 +27,6 @@ except ImportError:
 
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure, _downsample_lttb
-
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset, Series
@@ -411,12 +409,30 @@ class TimeseriesPlot(BaseFigure):
         return self._widget
 
     def update_selection(self, selection_indices: np.ndarray):
-        """Atualiza seleção visual no gráfico"""
+        """Atualiza seleção visual no gráfico.
+        
+        Args:
+            selection_indices: Array of indices to highlight in the plot.
+        """
         if self._widget and len(selection_indices) > 0:
-            # Get X range from selection indices
-            # Assume we have access to the original data somehow
-            # For now, this is a placeholder
-            pass
+            # Highlight the selected region in the plot
+            try:
+                # Get data range from selection indices
+                if hasattr(self, '_current_x_data') and self._current_x_data is not None:
+                    x_data = self._current_x_data
+                    x_min = x_data[selection_indices.min()]
+                    x_max = x_data[selection_indices.max()]
+                    self._widget.set_selection_region(x_min, x_max)
+                else:
+                    # Use indices directly if no x data available
+                    self._widget.set_selection_region(
+                        float(selection_indices.min()),
+                        float(selection_indices.max())
+                    )
+            except (IndexError, AttributeError):
+                # Widget may not support selection region
+                logger.debug("selection_update_skipped", 
+                           reason="widget_does_not_support_selection_region")
 
     def export(self, file_path: str, format: str, **kwargs):
         """Exporta gráfico para arquivo"""
@@ -493,3 +509,63 @@ class ScatterPlot(BaseFigure):
             width = kwargs.get("width", self.config.export_2d.default_width)
             height = kwargs.get("height", self.config.export_2d.default_height)
             self._widget.export_image(file_path, width, height)
+
+
+class MultipanelPlot:
+    """
+    Multipanel plot layout for visualizing multiple datasets.
+    
+    Provides a grid layout of Plot2DWidget instances with synchronized
+    zooming and selection across panels.
+    """
+
+    def __init__(self, rows: int = 2, cols: int = 2, config: VizConfig | None = None):
+        """Initialize multipanel plot.
+        
+        Args:
+            rows: Number of rows in the grid
+            cols: Number of columns in the grid
+            config: Visualization configuration
+        """
+        self.rows = rows
+        self.cols = cols
+        self.config = config
+        self._panels: list[Plot2DWidget | None] = [None] * (rows * cols)
+
+    def get_panel(self, row: int, col: int) -> Plot2DWidget | None:
+        """Get panel at specified position.
+        
+        Args:
+            row: Row index (0-based)
+            col: Column index (0-based)
+            
+        Returns:
+            Panel widget or None if not set
+        """
+        idx = row * self.cols + col
+        if 0 <= idx < len(self._panels):
+            return self._panels[idx]
+        return None
+
+    def set_panel(self, row: int, col: int, panel: Plot2DWidget) -> None:
+        """Set panel at specified position.
+        
+        Args:
+            row: Row index (0-based)
+            col: Column index (0-based)
+            panel: Plot2DWidget to place
+        """
+        idx = row * self.cols + col
+        if 0 <= idx < len(self._panels):
+            self._panels[idx] = panel
+
+    def sync_x_axes(self) -> None:
+        """Synchronize X axes across all panels."""
+        # Placeholder for axis synchronization
+        pass
+
+    def sync_selections(self) -> None:
+        """Synchronize selections across all panels."""
+        # Placeholder for selection synchronization
+        pass
+

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import base64
+import copy
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import plotly.graph_objects as go
+import plotly.io as pio
 from dash import Input, Output, State, ctx, no_update
 from dash.exceptions import PreventUpdate
 
@@ -18,6 +20,21 @@ from platform_base.ui.export import export_selection, export_session
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def _get_custom_white_template() -> go.layout.Template:
+    """Get a customized plotly_white template with #ffffff backgrounds.
+    
+    Returns:
+        A plotly Template object based on plotly_white but with
+        plot_bgcolor and paper_bgcolor set to '#ffffff' instead of 'white'.
+    """
+    # Get a deep copy of the plotly_white template
+    template = copy.deepcopy(pio.templates["plotly_white"])
+    # Update the layout colors to use hex values
+    template.layout.plot_bgcolor = "#ffffff"
+    template.layout.paper_bgcolor = "#ffffff"
+    return template
 
 
 def _create_empty_figure(message: str = "No data to display") -> go.Figure:
@@ -84,6 +101,9 @@ def _create_timeseries_figure(
                     hovertemplate=f"{name} (interp)<br>t=%{{x:.2f}}s<br>value=%{{y:.4f}}<extra></extra>",
                 ))
 
+    # Use custom template with #ffffff backgrounds for consistency
+    custom_template = _get_custom_white_template()
+    
     fig.update_layout(
         title=title,
         xaxis_title="Time (seconds)",
@@ -96,7 +116,9 @@ def _create_timeseries_figure(
             "x": 1,
         },
         hovermode="x unified",
-        template="plotly_white",
+        template=custom_template,
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
     )
 
     return fig

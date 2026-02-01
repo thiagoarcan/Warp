@@ -21,7 +21,6 @@ from platform_base.core.protocols import PluginProtocol
 from platform_base.utils.errors import PluginError
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
@@ -446,6 +445,7 @@ class AdvancedPluginSandbox:
             import platform
             if platform.system() != "Windows":
                 import resource
+
                 # Memory limit (soft limit)
                 if self.resource_limits.max_memory_mb:
                     memory_bytes = int(self.resource_limits.max_memory_mb * 1024 * 1024)
@@ -841,8 +841,12 @@ class PluginRegistry:
         # Additional compatibility checks
         if manifest.trusted and not self._allow_untrusted_plugins:
             # If plugin claims to be trusted but we don't allow untrusted plugins,
-            # it's suspicious unless it's actually been verified
-            pass
+            # verify it's from a known trusted source (built-in plugins)
+            # For now, only built-in plugins are considered trusted
+            if not manifest.name.startswith("platform_base."):
+                check.add_warning(
+                    f"Plugin '{manifest.name}' claims to be trusted but is not a built-in plugin"
+                )
 
         # Warn about version downgrades
         if manifest.name in self._plugins:

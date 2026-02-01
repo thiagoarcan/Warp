@@ -2,7 +2,6 @@ import logging
 import sys
 from pathlib import Path
 
-
 try:
     import structlog
     STRUCTLOG_AVAILABLE = True
@@ -104,8 +103,26 @@ def configure_logging(level: str = "INFO", json_logs: bool = True) -> None:
     setup_logging(level, json_logs)
 
 
+class NamedStructLogger:
+    """Wrapper around structlog logger that adds a name attribute."""
+    
+    def __init__(self, logger, name: str):
+        self._logger = logger
+        self._name = name
+    
+    @property
+    def name(self) -> str:
+        """Return the logger name."""
+        return self._name
+    
+    def __getattr__(self, item):
+        """Forward all other attributes to the underlying logger."""
+        return getattr(self._logger, item)
+
+
 def get_logger(name: str | None = None):
     """Return a logger (structlog if available, stdlib otherwise)"""
+    logger_name = name or __name__
     if STRUCTLOG_AVAILABLE:
-        return structlog.get_logger(name)
-    return logging.getLogger(name or __name__)
+        return NamedStructLogger(structlog.get_logger(logger_name), logger_name)
+    return logging.getLogger(logger_name)

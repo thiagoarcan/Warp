@@ -22,14 +22,25 @@ from platform_base.core.models import (
     ViewData,
     ViewID,
 )
-from platform_base.utils.logging import get_logger
 
+# Re-export Selection for backward compatibility
+from platform_base.ui.selection import Selection
+from platform_base.utils.logging import get_logger
 
 if TYPE_CHECKING:
     from platform_base.core.dataset_store import DatasetStore
 
 
 logger = get_logger(__name__)
+
+# Export for easy access
+__all__ = [
+    'SelectionState',
+    'OperationState',
+    'ViewState',
+    'SessionState',
+    'Selection',
+]
 
 
 @dataclass

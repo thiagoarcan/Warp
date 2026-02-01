@@ -10,9 +10,8 @@ Provides UI components for advanced selection functionality:
 from __future__ import annotations
 
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QActionGroup, QFont
+from PyQt6.QtGui import QAction, QActionGroup, QFont
 from PyQt6.QtWidgets import (
-    QAction,
     QComboBox,
     QDialog,
     QDoubleSpinBox,
@@ -31,7 +30,6 @@ from PyQt6.QtWidgets import (
 
 from platform_base.desktop.selection import SelectionMode, SelectionType
 from platform_base.utils.logging import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -555,3 +553,7 @@ class SelectionPanel(QWidget):
     def update_undo_redo_state(self, can_undo: bool, can_redo: bool):
         """Update undo/redo button states"""
         self.toolbar.update_undo_redo_state(can_undo, can_redo)
+
+
+# Alias for backward compatibility
+SelectionStatisticsPanel = SelectionStatsWidget

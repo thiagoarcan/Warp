@@ -13,16 +13,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
 
 from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import (
-    QAccessible,
-    QAccessibleEvent,
-    QAction,
-    QColor,
-    QFont,
-    QKeySequence,
-    QPalette,
-    QShortcut,
-)
+from PyQt6.QtGui import QAction, QColor, QFont, QKeySequence, QPalette, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -51,6 +42,37 @@ from PyQt6.QtWidgets import (
     QTreeView,
     QWidget,
 )
+
+# QAccessible is in QtGui on some versions, QtWidgets on others
+# Try to import from both locations
+try:
+    from PyQt6.QtGui import QAccessible, QAccessibleEvent
+    HAS_QACCESSIBLE = True
+except ImportError:
+    try:
+        from PyQt6.QtWidgets import QAccessible, QAccessibleEvent
+        HAS_QACCESSIBLE = True
+    except ImportError:
+        # Create stub classes if QAccessible is not available
+        HAS_QACCESSIBLE = False
+        
+        class QAccessible:
+            """Stub class when QAccessible is not available."""
+            class Event:
+                NameChanged = 0
+                ValueChanged = 1
+                DescriptionChanged = 2
+                StateChanged = 3
+            
+            @staticmethod
+            def updateAccessibility(event):
+                pass
+        
+        class QAccessibleEvent:
+            """Stub class when QAccessibleEvent is not available."""
+            def __init__(self, widget, event_type):
+                self.widget = widget
+                self.event_type = event_type
 
 if TYPE_CHECKING:
     from platform_base.desktop.main_window import MainWindow

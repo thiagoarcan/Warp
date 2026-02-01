@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\selection.py
+# hypothesis_version: 6.151.4
+
+[-100, 100, '!=', '<', '<=', '==', '>', '>=', 'Empty selection', '__builtins__', 'condition_series', 'condition_string', 'conditional', 'empty', 'interactive', 'invalid_time_range', 'max', 'mean', 'median', 'min', 'original_points', 'point_indices', 'predicate_series', 'range_count', 's', 'selected_points', 'selection_method', 'selection_ratio', 'std', 't_reference', 'temporal', 'time_ranges', 'values']
