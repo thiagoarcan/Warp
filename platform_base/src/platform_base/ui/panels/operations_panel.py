@@ -414,6 +414,98 @@ class OperationsPanel(QWidget):
         outlier_layout.addRow(outlier_btn_layout)
 
         layout.addWidget(outlier_group)
+        
+        # === FFT ANALYSIS ===
+        fft_group = QGroupBox("📊 FFT Analysis")
+        fft_layout = QFormLayout(fft_group)
+        
+        self._fft_window = QComboBox()
+        self._fft_window.addItems(["hann", "hamming", "blackman", "bartlett", "none"])
+        self._fft_window.setToolTip("Window function for FFT")
+        fft_layout.addRow("Window:", self._fft_window)
+        
+        self._fft_detrend = QCheckBox("Remove Trend")
+        self._fft_detrend.setChecked(True)
+        self._fft_detrend.setToolTip("Remove linear trend before FFT")
+        fft_layout.addRow(self._fft_detrend)
+        
+        fft_btn = QPushButton("📊 Compute FFT")
+        fft_btn.clicked.connect(self._compute_fft)
+        fft_layout.addRow(fft_btn)
+        
+        layout.addWidget(fft_group)
+        
+        # === CORRELATION ANALYSIS ===
+        corr_group = QGroupBox("🔗 Correlation")
+        corr_layout = QFormLayout(corr_group)
+        
+        self._corr_mode = QComboBox()
+        self._corr_mode.addItems(["auto", "cross"])
+        self._corr_mode.setToolTip("Auto-correlation or cross-correlation")
+        corr_layout.addRow("Mode:", self._corr_mode)
+        
+        self._corr_normalize = QCheckBox("Normalize")
+        self._corr_normalize.setChecked(True)
+        self._corr_normalize.setToolTip("Normalize correlation to [-1, 1]")
+        corr_layout.addRow(self._corr_normalize)
+        
+        corr_btn = QPushButton("🔗 Compute Correlation")
+        corr_btn.clicked.connect(self._compute_correlation)
+        corr_layout.addRow(corr_btn)
+        
+        layout.addWidget(corr_group)
+        
+        # === DIGITAL FILTERS ===
+        filters_group = QGroupBox("🎛️ Digital Filters")
+        filters_layout = QFormLayout(filters_group)
+        
+        self._filter_type = QComboBox()
+        self._filter_type.addItems(["lowpass", "highpass", "bandpass", "bandstop"])
+        self._filter_type.setToolTip("Filter type")
+        self._filter_type.currentTextChanged.connect(self._on_filter_type_changed)
+        filters_layout.addRow("Type:", self._filter_type)
+        
+        self._filter_cutoff = QDoubleSpinBox()
+        self._filter_cutoff.setRange(0.1, 1000.0)
+        self._filter_cutoff.setValue(10.0)
+        self._filter_cutoff.setToolTip("Cutoff frequency (Hz)")
+        self._filter_cutoff_label = QLabel("Cutoff (Hz):")
+        filters_layout.addRow(self._filter_cutoff_label, self._filter_cutoff)
+        
+        self._filter_cutoff_high = QDoubleSpinBox()
+        self._filter_cutoff_high.setRange(0.1, 1000.0)
+        self._filter_cutoff_high.setValue(50.0)
+        self._filter_cutoff_high.setToolTip("High cutoff frequency (Hz)")
+        self._filter_cutoff_high_label = QLabel("High Cutoff (Hz):")
+        filters_layout.addRow(self._filter_cutoff_high_label, self._filter_cutoff_high)
+        self._filter_cutoff_high.setVisible(False)
+        self._filter_cutoff_high_label.setVisible(False)
+        
+        self._filter_order = QSpinBox()
+        self._filter_order.setRange(1, 10)
+        self._filter_order.setValue(4)
+        self._filter_order.setToolTip("Filter order (higher = sharper)")
+        filters_layout.addRow("Order:", self._filter_order)
+        
+        self._filter_method = QComboBox()
+        self._filter_method.addItems(["butter", "chebyshev1", "chebyshev2", "elliptic", "bessel"])
+        self._filter_method.setToolTip("Filter design method")
+        filters_layout.addRow("Method:", self._filter_method)
+        
+        filter_btn = QPushButton("🎛️ Apply Filter")
+        filter_btn.clicked.connect(self._apply_filter)
+        
+        filter_preview_btn = QPushButton("👁️ Preview")
+        filter_preview_btn.setObjectName("secondary")
+        filter_preview_btn.clicked.connect(self._preview_filter)
+        
+        filter_btn_layout = QHBoxLayout()
+        filter_btn_layout.addWidget(filter_preview_btn)
+        filter_btn_layout.addWidget(filter_btn)
+        filters_layout.addRow(filter_btn_layout)
+        
+        layout.addWidget(filters_group)
+        
         layout.addStretch()
 
         tab.setWidget(content)
@@ -742,6 +834,102 @@ class OperationsPanel(QWidget):
         self._add_to_history("remove_outliers", params)
         self.operation_requested.emit("remove_outliers", params)
         logger.info(f"outlier_removal_requested: {params}")
+
+    # === HANDLERS DE ANÁLISE AVANÇADA ===
+
+    def _compute_fft(self):
+        """Compute FFT analysis"""
+        window = self._fft_window.currentText()
+        if window == "none":
+            window = None
+        
+        params = {
+            "window": window,
+            "detrend": self._fft_detrend.isChecked(),
+        }
+        
+        logger.info("fft_requested", params=params)
+        self._add_to_history("fft", params)
+        self.operation_requested.emit("fft", params)
+
+    def _compute_correlation(self):
+        """Compute correlation analysis"""
+        params = {
+            "mode": self._corr_mode.currentText(),
+            "normalize": self._corr_normalize.isChecked(),
+        }
+        
+        logger.info("correlation_requested", params=params)
+        self._add_to_history("correlation", params)
+        self.operation_requested.emit("correlation", params)
+
+    def _on_filter_type_changed(self, filter_type: str):
+        """Handle filter type change to show/hide cutoff fields"""
+        is_band = filter_type in ("bandpass", "bandstop")
+        
+        self._filter_cutoff_high.setVisible(is_band)
+        self._filter_cutoff_high_label.setVisible(is_band)
+        
+        if is_band:
+            self._filter_cutoff_label.setText("Low Cutoff (Hz):")
+        else:
+            self._filter_cutoff_label.setText("Cutoff (Hz):")
+
+    def _apply_filter(self):
+        """Apply digital filter to signal"""
+        filter_type = self._filter_type.currentText()
+        
+        params = {
+            "filter_type": filter_type,
+            "filter_order": self._filter_order.value(),
+            "method": self._filter_method.currentText(),
+        }
+        
+        # Add cutoff frequencies based on filter type
+        if filter_type in ("bandpass", "bandstop"):
+            params["cutoff_frequency"] = (
+                self._filter_cutoff.value(),
+                self._filter_cutoff_high.value()
+            )
+        else:
+            params["cutoff_frequency"] = self._filter_cutoff.value()
+        
+        logger.info("filter_requested", params=params)
+        self._add_to_history(f"{filter_type}_filter", params)
+        self.operation_requested.emit("filter", params)
+
+    def _preview_filter(self):
+        """Preview digital filter effects"""
+        filter_type = self._filter_type.currentText()
+        
+        params = {
+            "filter_type": filter_type,
+            "filter_order": self._filter_order.value(),
+            "method": self._filter_method.currentText(),
+        }
+        
+        if filter_type in ("bandpass", "bandstop"):
+            params["cutoff_frequency"] = (
+                self._filter_cutoff.value(),
+                self._filter_cutoff_high.value()
+            )
+        else:
+            params["cutoff_frequency"] = self._filter_cutoff.value()
+        
+        logger.info(f"filter_preview_requested: {params}")
+        
+        series_data = self._get_selected_series_data()
+        if series_data is None or len(series_data) == 0:
+            QMessageBox.warning(self, "Aviso",
+                "Selecione uma série de dados para preview.")
+            return
+        
+        dialog = OperationPreviewDialog("filter", params, series_data, self)
+        if dialog.exec():
+            result = dialog.get_result()
+            if result is not None:
+                self._add_to_history(f"{filter_type}_filter", params)
+                self.operation_requested.emit("filter", params)
 
     # === HANDLERS DE EXPORT ===
 
