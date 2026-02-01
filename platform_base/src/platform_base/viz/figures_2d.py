@@ -351,12 +351,32 @@ class Plot2DWidget(QWidget):
         # Convert to sorted array
         selected_indices = np.array(sorted(selected_indices))
 
-        # Emit signal
+        # Emit signal with both indices and range for sync
         self.selection_changed.emit(selected_indices)
 
         logger.debug("selection_changed",
                     x_range=(x_min, x_max),
                     n_selected=len(selected_indices))
+    
+    def _update_selection_from_sync(self, xmin: float, xmax: float) -> None:
+        """Update selection region from external synchronization.
+        
+        Args:
+            xmin: Minimum X value for selection
+            xmax: Maximum X value for selection
+        """
+        if not self._brush_selection:
+            return
+        
+        # Temporarily block signals to avoid circular updates
+        self._brush_selection.blockSignals(True)
+        try:
+            self._brush_selection.setRegion((xmin, xmax))
+            self._brush_selection.setVisible(True)
+        finally:
+            self._brush_selection.blockSignals(False)
+        
+        logger.debug("selection_synced", xmin=xmin, xmax=xmax)
 
     def _on_range_changed(self):
         """Handler para mudança de range"""
@@ -560,12 +580,66 @@ class MultipanelPlot:
             self._panels[idx] = panel
 
     def sync_x_axes(self) -> None:
-        """Synchronize X axes across all panels."""
-        # Placeholder for axis synchronization
-        pass
+        """Synchronize X axes across all panels.
+        
+        Links X-axis ranges so that zooming/panning in one panel
+        affects all panels simultaneously.
+        """
+        # Get all valid panels
+        valid_panels = [p for p in self._panels if p is not None]
+        
+        if len(valid_panels) < 2:
+            logger.debug("sync_x_axes_skipped", reason="Less than 2 panels")
+            return
+        
+        # Use first panel as reference
+        reference_panel = valid_panels[0]
+        reference_view = reference_panel.plot_widget.getViewBox()
+        
+        # Link all other panels to reference
+        for panel in valid_panels[1:]:
+            try:
+                target_view = panel.plot_widget.getViewBox()
+                target_view.setXLink(reference_view)
+                logger.debug("panel_x_linked", panel=panel)
+            except Exception as e:
+                logger.error("failed_to_link_x_axis", error=str(e), panel=panel)
+        
+        logger.info("x_axes_synchronized", panel_count=len(valid_panels))
 
     def sync_selections(self) -> None:
-        """Synchronize selections across all panels."""
-        # Placeholder for selection synchronization
-        pass
+        """Synchronize selections across all panels.
+        
+        When a selection is made in one panel, the same selection
+        region is displayed in all other panels.
+        """
+        # Get all valid panels
+        valid_panels = [p for p in self._panels if p is not None]
+        
+        if len(valid_panels) < 2:
+            logger.debug("sync_selections_skipped", reason="Less than 2 panels")
+            return
+        
+        # Connect selection changed signals between panels
+        for source_panel in valid_panels:
+            if not hasattr(source_panel, '_brush_selection') or source_panel._brush_selection is None:
+                continue
+                
+            for target_panel in valid_panels:
+                if source_panel is target_panel:
+                    continue
+                    
+                if not hasattr(target_panel, '_brush_selection') or target_panel._brush_selection is None:
+                    continue
+                
+                try:
+                    # Connect source selection changes to update target
+                    source_panel.selection_changed.connect(
+                        lambda xmin, xmax, panel=target_panel: 
+                        panel._update_selection_from_sync(xmin, xmax)
+                    )
+                except Exception as e:
+                    logger.error("failed_to_sync_selections", error=str(e))
+        
+        logger.info("selections_synchronized", panel_count=len(valid_panels))
 

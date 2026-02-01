@@ -33,6 +33,7 @@ from platform_base.desktop.widgets.data_panel import DataPanel
 from platform_base.desktop.widgets.results_panel import ResultsPanel
 from platform_base.desktop.widgets.viz_panel import VizPanel
 from platform_base.ui.panels.operations_panel import OperationsPanel
+from platform_base.ui.undo_redo import get_undo_manager
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -62,6 +63,9 @@ class MainWindow(QMainWindow):
 
         self.session_state = session_state
         self.signal_hub = signal_hub
+
+        # Initialize undo/redo manager
+        self.undo_manager = get_undo_manager()
 
         # Initialize processing worker manager
         from platform_base.desktop.workers.processing_worker import (
@@ -450,6 +454,16 @@ class MainWindow(QMainWindow):
         # Operations panel signals
         self.operations_panel.operation_requested.connect(self._handle_operation_request)
         self.operations_panel.export_requested.connect(self._handle_export_request)
+
+        # Connect undo/redo manager signals to update menu actions
+        self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
+        self.undo_manager.can_redo_changed.connect(self.redo_action.setEnabled)
+        self.undo_manager.undo_text_changed.connect(
+            lambda text: self.undo_action.setText(f"&Undo {text}" if text else "&Undo")
+        )
+        self.undo_manager.redo_text_changed.connect(
+            lambda text: self.redo_action.setText(f"&Redo {text}" if text else "&Redo")
+        )
 
         logger.debug("signals_connected")
 
@@ -889,16 +903,26 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def _undo_operation(self):
         """Undo last operation"""
-        # Placeholder - will be implemented with QUndoStack in Sprint 4
-        self.status_label.setText("Undo - not yet implemented")
-        logger.info("undo_requested")
+        if self.undo_manager.can_undo():
+            undo_text = self.undo_manager.undo_text()
+            self.undo_manager.undo()
+            self.status_label.setText(f"Undo: {undo_text}")
+            logger.info("undo_executed", operation=undo_text)
+        else:
+            self.status_label.setText("Nothing to undo")
+            logger.debug("undo_requested_but_unavailable")
 
     @pyqtSlot()
     def _redo_operation(self):
         """Redo last undone operation"""
-        # Placeholder - will be implemented with QUndoStack in Sprint 4
-        self.status_label.setText("Redo - not yet implemented")
-        logger.info("redo_requested")
+        if self.undo_manager.can_redo():
+            redo_text = self.undo_manager.redo_text()
+            self.undo_manager.redo()
+            self.status_label.setText(f"Redo: {redo_text}")
+            logger.info("redo_executed", operation=redo_text)
+        else:
+            self.status_label.setText("Nothing to redo")
+            logger.debug("redo_requested_but_unavailable")
 
     @pyqtSlot()
     def _find_series(self):
