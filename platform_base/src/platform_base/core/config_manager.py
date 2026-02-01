@@ -23,7 +23,6 @@ from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-
 try:
     from pydantic import BaseModel, Field, validator
     PYDANTIC_AVAILABLE = True
@@ -32,11 +31,11 @@ except ImportError:
 
 import builtins
 
-from platform_base.core.config import ConfigChange, ConfigFormat, get_config_manager
+from platform_base.core.config import ConfigChange, ConfigFormat
 from platform_base.core.config import ConfigManager as BaseConfigManager
+from platform_base.core.config import get_config_manager
 from platform_base.utils.errors import ConfigError
 from platform_base.utils.logging import get_logger
-
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -49,7 +48,7 @@ logger = get_logger(__name__)
 if PYDANTIC_AVAILABLE:
     class LoggingConfig(BaseModel):
         """Schema para configuração de logging"""
-        level: str = Field(default="INFO", regex="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+        level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
         file_enabled: bool = True
         file_path: str = "logs/platform.log"
         max_file_size: int = Field(default=10*1024*1024, ge=1024)  # 10MB
@@ -57,14 +56,10 @@ if PYDANTIC_AVAILABLE:
         console_enabled: bool = True
         format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-        @validator("level")
-        def validate_level(self, v):
-            return v.upper()
-
     class UIConfig(BaseModel):
         """Schema para configuração de interface"""
-        theme: str = Field(default="dark", regex="^(light|dark|auto)$")
-        language: str = Field(default="en", regex="^[a-z]{2}$")
+        theme: str = Field(default="dark", pattern="^(light|dark|auto)$")
+        language: str = Field(default="en", pattern="^[a-z]{2}$")
         auto_save_interval: int = Field(default=300, ge=60)  # 5 minutos
         max_recent_files: int = Field(default=10, ge=1)
         window_geometry: dict[str, int] | None = None
@@ -81,18 +76,18 @@ if PYDANTIC_AVAILABLE:
 
     class VisualizationConfig(BaseModel):
         """Schema para configuração de visualização"""
-        default_renderer: str = Field(default="opengl", regex="^(opengl|software)$")
+        default_renderer: str = Field(default="opengl", pattern="^(opengl|software)$")
         max_points_plot: int = Field(default=1000000, ge=1000)
         enable_antialiasing: bool = True
         fps_limit: int = Field(default=60, ge=30, le=120)
-        background_color: str = Field(default="#2b2b2b", regex="^#[0-9a-fA-F]{6}$")
+        background_color: str = Field(default="#2b2b2b", pattern="^#[0-9a-fA-F]{6}$")
         grid_enabled: bool = True
 
     class PluginConfig(BaseModel):
         """Schema para configuração de plugins"""
         discovery_enabled: bool = True
         auto_load_trusted: bool = True
-        sandbox_level: str = Field(default="moderate", regex="^(strict|moderate|relaxed)$")
+        sandbox_level: str = Field(default="moderate", pattern="^(strict|moderate|relaxed)$")
         max_plugins: int = Field(default=50, ge=1)
         timeout_seconds: float = Field(default=30.0, ge=1.0)
         max_memory_mb: float = Field(default=256.0, ge=32.0)
