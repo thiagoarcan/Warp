@@ -15,7 +15,6 @@ from platform_base.core.models import Lineage, Series
 from platform_base.desktop.workers.base_worker import BaseWorker
 from platform_base.utils.logging import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -129,16 +128,33 @@ class CalculusWorker(BaseWorker):
             dataset = self.dataset_store.get_dataset(self.dataset_id)
             source_series = dataset.series[self.series_id]
 
-            self.emit_progress(20, "Loading calculus module...")
+            self.emit_progress(20, "Loading processing modules...")
 
-            # Import calculus module
-            from platform_base.processing.calculus import calculate_derivative, calculate_integral
+            # Import modules
+            from platform_base.processing.calculus import (
+                calculate_derivative,
+                calculate_integral,
+            )
+            from platform_base.processing.smoothing import smooth
 
             self.emit_progress(40, f"Computing {self.operation}...")
 
             # Perform operation based on type
             if "derivative" in self.operation:
-                order = int(self.operation.split("_")[1][0])  # derivative_1st -> 1
+                # Parse derivative order
+                order = 1
+                if "_1st" in self.operation or self.operation == "derivative":
+                    order = 1
+                elif "_2nd" in self.operation:
+                    order = 2
+                elif "_3rd" in self.operation:
+                    order = 3
+                else:
+                    # Try to extract order from operation name
+                    parts = self.operation.split("_")
+                    if len(parts) > 1 and parts[1] and parts[1][0].isdigit():
+                        order = int(parts[1][0])
+                        
                 result = calculate_derivative(
                     source_series.values,
                     dataset.t_seconds,
@@ -147,10 +163,10 @@ class CalculusWorker(BaseWorker):
                     smooth_first=self.parameters.get("apply_smoothing", False),
                     smooth_window=self.parameters.get("smooth_window", 5),
                 )
-                operation_name = f"{order}st derivative" if order == 1 else f"{order}nd derivative" if order == 2 else f"{order}rd derivative"
+                operation_name = f"{order}{'st' if order == 1 else 'nd' if order == 2 else 'rd'} derivative"
                 unit_suffix = f"/s^{order}"
 
-            elif self.operation in ["integral", "area_under_curve"]:
+            elif self.operation in ["integral", "area", "area_under_curve"]:
                 result = calculate_integral(
                     source_series.values,
                     dataset.t_seconds,
@@ -158,6 +174,57 @@ class CalculusWorker(BaseWorker):
                 )
                 operation_name = "integral"
                 unit_suffix = "*s"
+
+            elif self.operation in ["smoothing", "smooth"]:
+                # Handle smoothing operation
+                method = self.parameters.get("method", "savitzky_golay")
+                smooth_params = {
+                    "window_length": self.parameters.get("window_size", 11),
+                    "polyorder": self.parameters.get("polyorder", 3),
+                    "sigma": self.parameters.get("sigma", 1.0),
+                    "kernel_size": self.parameters.get("kernel_size", 5),
+                    "cutoff": self.parameters.get("cutoff", 0.1),
+                }
+                result_values = smooth(source_series.values, method, smooth_params)
+                
+                # Create result object similar to derivative/integral
+                from dataclasses import dataclass
+                @dataclass
+                class SmoothResult:
+                    values: np.ndarray
+                    class Metadata:
+                        duration_ms: float = 0.0
+                    metadata = Metadata()
+                    
+                result = SmoothResult(values=result_values)
+                operation_name = f"smoothed ({method})"
+                unit_suffix = ""
+
+            elif self.operation == "remove_outliers":
+                # Handle outlier removal
+                threshold = self.parameters.get("threshold", 3.0)
+                method = self.parameters.get("method", "zscore")
+                
+                values = source_series.values.copy()
+                if method == "zscore":
+                    mean = np.nanmean(values)
+                    std = np.nanstd(values)
+                    if std > 0:
+                        z_scores = np.abs((values - mean) / std)
+                        outlier_mask = z_scores > threshold
+                        values[outlier_mask] = np.nan
+                        
+                from dataclasses import dataclass
+                @dataclass
+                class OutlierResult:
+                    values: np.ndarray
+                    class Metadata:
+                        duration_ms: float = 0.0
+                    metadata = Metadata()
+                    
+                result = OutlierResult(values=values)
+                operation_name = "outliers removed"
+                unit_suffix = ""
 
             else:
                 raise ValueError(f"Unknown operation: {self.operation}")
@@ -312,6 +379,48 @@ class ProcessingWorkerManager:
         self.dataset_store = dataset_store
         self.signal_hub = signal_hub
         self.active_workers: dict[str, BaseWorker] = {}
+        self._operation_counter = 0
+
+    def start_operation(self, operation_type: str, params: dict[str, Any],
+                       dataset_id: str, series_id: str) -> str:
+        """
+        Start a processing operation (generic entry point).
+        
+        Args:
+            operation_type: Type of operation (derivative, integral, interpolation, etc.)
+            params: Operation parameters
+            dataset_id: Target dataset ID
+            series_id: Target series ID
+            
+        Returns:
+            operation_id: Unique ID for tracking the operation
+        """
+        self._operation_counter += 1
+        operation_id = f"op_{self._operation_counter}_{operation_type}"
+        
+        # Map operation type to appropriate worker
+        if operation_type == "interpolation":
+            method = params.get("method", "linear")
+            self.start_interpolation(operation_id, dataset_id, series_id, method, params)
+            
+        elif operation_type in ("derivative", "derivative_1st", "derivative_2nd", "derivative_3rd"):
+            self.start_calculus(operation_id, dataset_id, series_id, operation_type, params)
+            
+        elif operation_type in ("integral", "area", "area_under_curve"):
+            self.start_calculus(operation_id, dataset_id, series_id, "integral", params)
+            
+        elif operation_type in ("smoothing", "smooth", "filter"):
+            # Smoothing is handled by calculus worker
+            self.start_calculus(operation_id, dataset_id, series_id, "smoothing", params)
+            
+        elif operation_type == "remove_outliers":
+            self.start_calculus(operation_id, dataset_id, series_id, "remove_outliers", params)
+            
+        else:
+            logger.warning("unknown_operation_type", operation_type=operation_type)
+            raise ValueError(f"Unknown operation type: {operation_type}")
+            
+        return operation_id
 
     def start_interpolation(self, operation_id: str, dataset_id: str,
                           series_id: str, method: str, parameters: dict[str, Any]):

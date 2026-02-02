@@ -1,0 +1,161 @@
+         2313 function calls (2003 primitive calls) in 355.068 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.005    0.005  355.068  355.068 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\profiling\decorators.py:107(wrapper)
+        1  354.982  354.982  355.054  355.054 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\interpolation.py:351(interpolate)
+        3    0.046    0.015    0.046    0.015 {method 'astype' of 'numpy.ndarray' objects}
+        2    0.013    0.006    0.013    0.006 {method 'argsort' of 'numpy.ndarray' objects}
+        1    0.001    0.001    0.011    0.011 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\arraysetops.py:138(unique)
+        1    0.000    0.000    0.011    0.011 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:1025(argsort)
+        1    0.000    0.000    0.011    0.011 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:53(_wrapfunc)
+        1    0.007    0.007    0.010    0.010 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\arraysetops.py:323(_unique1d)
+        2    0.000    0.000    0.009    0.004 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:263(_proxy_to_logger)
+        2    0.000    0.000    0.009    0.004 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:192(_proxy_to_logger)
+        1    0.000    0.000    0.008    0.008 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:218(warning)
+        1    0.000    0.000    0.006    0.006 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1541(warning)
+        1    0.000    0.000    0.006    0.006 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1660(_log)
+        1    0.000    0.000    0.005    0.005 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1686(handle)
+        1    0.000    0.000    0.005    0.005 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1746(callHandlers)
+        3    0.000    0.000    0.005    0.002 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1011(handle)
+        3    0.000    0.000    0.005    0.002 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1148(emit)
+        3    0.001    0.000    0.003    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:892(__call__)
+     61/1    0.000    0.000    0.002    0.002 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:46(write)
+     61/1    0.000    0.000    0.002    0.002 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:175(write)
+     61/1    0.001    0.000    0.002    0.002 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:192(write_and_convert)
+        2    0.000    0.000    0.002    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:122(_process_event)
+        3    0.000    0.000    0.002    0.001 C:\ProgramData\anaconda3\Lib\logging\__init__.py:988(format)
+    95/35    0.000    0.000    0.002    0.000 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:208(write_plain_text)
+        1    0.002    0.002    0.002    0.002 {method 'copy' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.002    0.002 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:1100(format)
+       12    0.001    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:297(__call__)
+        2    0.001    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\logging\__init__.py:298(__init__)
+        1    0.001    0.001    0.001    0.001 {method 'flatten' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1645(makeRecord)
+       11    0.001    0.000    0.001    0.000 {built-in method time.sleep}
+        2    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\_pytest\logging.py:381(emit)
+        1    0.001    0.001    0.001    0.001 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\interpolation.py:107(_interp_mask)
+       65    0.001    0.000    0.001    0.000 {method 'write' of '_io.StringIO' objects}
+        1    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:206(debug)
+        2    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\_pytest\logging.py:134(format)
+  226/190    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+      122    0.000    0.000    0.000    0.000 {method 'finditer' of 're.Pattern' objects}
+       61    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:260(convert_osc)
+       12    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\core\registry.py:1211(_check_plugin_health)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:123(findCaller)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:417(makeLogRecord)
+        2    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:118(__getattr__)
+       30    0.000    0.000    0.000    0.000 {method 'write' of '_io.TextIOWrapper' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_frames.py:36(_find_first_app_frame_and_name)
+       91    0.000    0.000    0.000    0.000 {method 'flush' of '_io.TextIOWrapper' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:415(__getattr__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:349(bind)
+      121    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\tempfile.py:497(func_wrapper)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:707(__call__)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:690(format)
+       15    0.000    0.000    0.000    0.000 {method 'getvalue' of '_io.StringIO' objects}
+       22    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:492(__call__)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:547(stamper_iso_utc)
+        2    0.000    0.000    0.000    0.000 <frozen ntpath>:268(basename)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        2    0.000    0.000    0.000    0.000 <frozen ntpath>:236(split)
+       15    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:110(_pad)
+       30    0.000    0.000    0.000    0.000 {method 'write' of '_io.FileIO' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:2149(getLogger)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numba\core\serialize.py:30(_numba_unpickle)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:674(formatMessage)
+        2    0.000    0.000    0.000    0.000 <frozen ntpath>:257(splitext)
+      121    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\tempfile.py:489(__getattr__)
+       18    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+        6    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:877(_repr)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1377(getLogger)
+        2    0.000    0.000    0.000    0.000 <frozen genericpath>:133(_splitext)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\pydantic\main.py:243(__init__)
+       82    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\_pytest\logging.py:205(format)
+       33    0.000    0.000    0.000    0.000 {method 'pop' of 'dict' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1137(flush)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:366(__call__)
+        3    0.000    0.000    0.000    0.000 {method 'isoformat' of 'datetime.datetime' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:668(usesTime)
+    96/62    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:28(__getattr__)
+        3    0.000    0.000    0.000    0.000 {method 'join' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:447(usesTime)
+        8    0.000    0.000    0.000    0.000 {method 'startswith' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 <frozen ntpath>:179(splitroot)
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\interpolation.py:49(_build_metadata)
+      126    0.000    0.000    0.000    0.000 {built-in method builtins.hasattr}
+        2    0.000    0.000    0.000    0.000 {built-in method _asyncio.current_task}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:414(__call__)
+       34    0.000    0.000    0.000    0.000 {method 'groups' of 're.Match' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:522(now)
+       34    0.000    0.000    0.000    0.000 {method 'span' of 're.Match' objects}
+        3    0.000    0.000    0.000    0.000 {built-in method builtins.sorted}
+        1    0.000    0.000    0.000    0.000 {built-in method numpy.empty}
+      155    0.000    0.000    0.000    0.000 {built-in method builtins.isinstance}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:964(columns)
+        5    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:234(_acquireLock)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:129(getLevelName)
+        4    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+        4    0.000    0.000    0.000    0.000 {built-in method now}
+        4    0.000    0.000    0.000    0.000 {built-in method builtins.repr}
+        6    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:975(release)
+        5    0.000    0.000    0.000    0.000 {method 'replace' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 {method 'update' of 'dict' objects}
+        4    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:831(filter)
+        6    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:601(_figure_out_exc_info)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:712(__call__)
+       12    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
+        7    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+        6    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:968(acquire)
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:123(get_logger)
+        3    0.000    0.000    0.000    0.000 {method 'find' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 {built-in method nt.getpid}
+        6    0.000    0.000    0.000    0.000 {method 'rfind' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:243(_releaseLock)
+        4    0.000    0.000    0.000    0.000 {built-in method time.perf_counter}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\threading.py:1483(current_thread)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:113(get_logger)
+       30    0.000    0.000    0.000    0.000 <frozen codecs>:327(reset)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:462(format)
+        7    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.RLock' objects}
+       93    0.000    0.000    0.000    0.000 {method 'flush' of '_io._IOBase' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_log_levels.py:61(add_log_level)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:455(_format)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:154(wrap_logger)
+        6    0.000    0.000    0.000    0.000 {built-in method nt.fspath}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\threading.py:1180(name)
+        4    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:383(getMessage)
+        2    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 <frozen ntpath>:35(_get_bothseps)
+       34    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\colorama\ansitowin32.py:214(convert_ansi)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1517(debug)
+       18    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:909(<genexpr>)
+        2    0.000    0.000    0.000    0.000 {method 'copy' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\arraysetops.py:125(_unpack_tuple)
+        1    0.000    0.000    0.000    0.000 {built-in method sys._getframe}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1790(isEnabledFor)
+       30    0.000    0.000    0.000    0.000 <frozen codecs>:276(reset)
+        2    0.000    0.000    0.000    0.000 {built-in method time.time}
+        1    0.000    0.000    0.000    0.000 {method 'get' of '_contextvars.ContextVar' objects}
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_log_levels.py:49(map_method_name)
+        2    0.000    0.000    0.000    0.000 {built-in method numpy.asanyarray}
+        7    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\typing.py:2173(cast)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\multiarray.py:346(where)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\arraysetops.py:133(_unique_dispatcher)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:376(finalized_bind)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:51(__init__)
+        3    0.000    0.000    0.000    0.000 <string>:2(__init__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\multiprocessing\process.py:37(current_process)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:322(__init__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:1198(remove_processors_meta)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:1021(_argsort_dispatcher)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\multiprocessing\process.py:189(name)
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:109(__init__)
+
+

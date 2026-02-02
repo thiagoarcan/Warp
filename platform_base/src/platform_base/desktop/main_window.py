@@ -159,14 +159,6 @@ class MainWindow(QMainWindow):
         self.results_dock.setObjectName("ResultsPanel")
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
 
-        # Operations Panel (Right - below Config Panel)
-        from platform_base.ui.panels.operations_panel import OperationsPanel
-        self.operations_panel = OperationsPanel()
-        self.operations_dock = QDockWidget(tr("Operations"), self)
-        self.operations_dock.setWidget(self.operations_panel)
-        self.operations_dock.setObjectName("OperationsPanel")
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
-
         # Stack operations panel below config panel
         self.splitDockWidget(self.config_dock, self.operations_dock, Qt.Orientation.Vertical)
 
@@ -448,10 +440,7 @@ class MainWindow(QMainWindow):
         self.signal_hub.error_occurred.connect(self._on_error_occurred)
         self.signal_hub.status_updated.connect(self._on_status_updated)
 
-        # Operations Panel signals (BUG-004 FIX)
-        self.operations_panel.operation_requested.connect(self._handle_operation_request)
-
-        # Operations panel signals
+        # Operations panel signals (BUG-004 FIX)
         self.operations_panel.operation_requested.connect(self._handle_operation_request)
         self.operations_panel.export_requested.connect(self._handle_export_request)
 
@@ -1169,47 +1158,6 @@ class MainWindow(QMainWindow):
                 logger.debug("streaming_panel_updated", total_frames=total_frames)
             except Exception as e:
                 logger.exception("streaming_panel_update_failed", error=str(e))
-
-    @pyqtSlot(str, dict)
-    def _handle_operation_request(self, operation_name: str, params: dict):
-        """
-        Handle operation request from OperationsPanel (BUG-004 FIX).
-        
-        Args:
-            operation_name: Name of the operation (derivative, integral, etc.)
-            params: Operation parameters
-        """
-        logger.info("operation_requested", operation=operation_name, params=params)
-
-        # Get currently selected series
-        selection = self.session_state.selection
-        if not selection.dataset_id or not selection.series_ids:
-            QMessageBox.warning(
-                self,
-                "No Selection",
-                "Please select a series in the Data Panel before performing operations.",
-            )
-            return
-
-        try:
-            # Use processing worker manager to handle the operation
-            self.processing_manager.start_operation(
-                operation_name,
-                params,
-                selection.dataset_id,
-                selection.series_ids[0] if selection.series_ids else None,
-            )
-
-            # Update status
-            self.status_label.setText(f"Processing: {operation_name}...")
-
-        except Exception as e:
-            logger.exception("operation_start_failed", operation=operation_name, error=str(e))
-            QMessageBox.critical(
-                self,
-                "Operation Failed",
-                f"Failed to start {operation_name}:\\n{e}",
-            )
 
     def closeEvent(self, event):
         """Handle window close event"""

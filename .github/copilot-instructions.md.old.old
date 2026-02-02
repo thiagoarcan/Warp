@@ -1,12 +1,12 @@
 # TODO LIST COMPLETA PARA PRODUÇÃO - Platform Base v2.0
 
-**Versão 2.0 - Com Critérios de Aceitação**  
-**Data da Revisão: 31/01/2026**
+**Versão 2.0 - Com Critérios de Aceitação e Instruções para Copilot**  
+**Data da Revisão: 01/02/2026**
 
 ---
 
 > ⚠️ **AVISO**: Esta lista representa o que precisa ser implementado para colocar a aplicação em produção real.
-> Nenhum workaround, nenhuma simplificação, nenhum jeitinho. Ative o modo engenheiro programador e não pare até concluí-la
+> Nenhum workaround, nenhuma simplificação, nenhum jeitinho.
 >
 > Cada item inclui **critérios de aceitação** que DEVEM ser atendidos.
 >
@@ -34,6 +34,410 @@
 | **Testes** | 🔴 Crítico | 15% | Cobertura e integração |
 | **Logging/Telemetria** | 🔴 Crítico | 0% | **NOVO** - Implementação completa |
 | **Acessibilidade** | 🔴 Crítico | 0% | **NOVO** - Implementação completa |
+
+---
+
+## 🎯 PRIORIDADE DE EXECUÇÃO OBRIGATÓRIA
+
+A execução **DEVE** seguir esta ordem estrita. **NÃO AVANÇAR** para o próximo item sem completar 100% do anterior.
+
+| Prioridade | Item | Quantidade | Criticidade |
+|------------|------|------------|-------------|
+| **1º** | Implementar todos os `NotImplementedError` | 7 | 🔴 CRÍTICO |
+| **2º** | Resolver todos os stubs/TODOs | 172 | 🔴 CRÍTICO |
+| **3º** | Migrar UI para arquivos .ui | 45 arquivos | 🔴 ALTO |
+| **4º** | Conectar UI↔Backend (signals) | Todos pendentes | 🔴 ALTO |
+| **5º** | Aumentar cobertura de testes para 95% | ~490 testes | 🔴 CRÍTICO |
+
+### Detalhamento das Prioridades
+
+**1º - NotImplementedError (7 itens)**
+- Estes são bloqueadores absolutos - a aplicação não funciona com eles
+- Cada `raise NotImplementedError` deve ser substituído por implementação completa
+- Não aceitar implementações parciais ou mocks
+
+**2º - Stubs/TODOs (172 itens)**
+- Todo método com `pass` deve ser implementado
+- Todo comentário `# TODO` deve ser resolvido
+- Todo `...` (ellipsis) deve ser substituído por código real
+
+**3º - Migração .ui (45 arquivos)**
+- Criar todos os arquivos .ui no Qt Designer
+- Implementar UiLoaderMixin
+- Migrar toda criação programática de UI
+
+**4º - Conexões UI↔Backend**
+- Conectar todos os signals pendentes
+- Verificar que cada ação de UI tem resposta do backend
+- Testar fluxo completo de dados
+
+**5º - Cobertura de Testes 95%**
+- Implementar todos os ~490 testes listados
+- Nenhum teste pode ser pulado, simplificado ou ignorado
+- Coverage mínimo de 95% obrigatório
+
+---
+
+# 🤖 INSTRUÇÕES OBRIGATÓRIAS PARA COPILOT
+
+> **COPIE ESTA SEÇÃO PARA `.github/copilot-instructions.md`**
+
+---
+
+## MODO DE OPERAÇÃO: AUTÔNOMO CONTÍNUO
+
+O Copilot DEVE operar em modo autônomo contínuo até a conclusão de 100% da aplicação.
+
+### REGRA FUNDAMENTAL DE OPERAÇÃO
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│  ❌ NÃO PARAR para perguntar se deve continuar                     │
+│  ❌ NÃO PARAR para reportar progresso parcial                      │
+│  ❌ NÃO PARAR para pedir confirmação                               │
+│  ❌ NÃO PARAR para mostrar o que foi feito                         │
+│  ❌ NÃO PARAR para aguardar instruções                             │
+│                                                                    │
+│  ✅ CONTINUAR automaticamente para a próxima tarefa                │
+│  ✅ CONTINUAR até que TODA a aplicação esteja 100% pronta          │
+│  ✅ PARAR SOMENTE quando 100% completo para produção               │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### DEFINIÇÃO DE "100% PRONTO PARA PRODUÇÃO"
+
+A aplicação só está pronta quando **TODOS** os critérios abaixo forem atendidos:
+
+- [ ] 0 (zero) `NotImplementedError` no código
+- [ ] 0 (zero) métodos com apenas `pass`
+- [ ] 0 (zero) comentários `# TODO` não resolvidos
+- [ ] 0 (zero) `...` (ellipsis) em implementações
+- [ ] 0 (zero) mensagens "coming soon" ou "not implemented"
+- [ ] 45 arquivos .ui criados e funcionando
+- [ ] Todos os signals UI↔Backend conectados
+- [ ] Cobertura de testes ≥ 95%
+- [ ] Todos os ~490 testes passando
+- [ ] 0 (zero) testes pulados (@pytest.mark.skip)
+- [ ] 0 (zero) warnings ignorados no pyproject.toml
+- [ ] Aplicação executa sem crashes por 8 horas contínuas
+
+---
+
+## 🚫 PROIBIÇÕES ABSOLUTAS - TESTES
+
+As seguintes ações são **TERMINANTEMENTE PROIBIDAS** e constituem **VIOLAÇÃO GRAVE**:
+
+### ❌ NUNCA SIMPLIFICAR TESTES
+
+| Ação Proibida | Por que é proibido |
+|---------------|-------------------|
+| Reduzir número de assertions | Diminui cobertura de casos |
+| Remover casos de teste "problemáticos" | Esconde bugs reais |
+| Diminuir cobertura de edge cases | Deixa código frágil |
+| Usar valores mais "fáceis" para passar | Mascara problemas |
+| Reduzir escopo do teste | Perde validação |
+
+### ❌ NUNCA RELAXAR REQUISITOS
+
+| Ação Proibida | Por que é proibido |
+|---------------|-------------------|
+| Aumentar tolerâncias (atol, rtol) | Aceita resultados imprecisos |
+| Mudar assertEquals para assertAlmostEquals sem justificativa | Esconde erros numéricos |
+| Aceitar "close enough" | O correto é possível |
+| Ignorar decimais significativos | Perde precisão |
+
+### ❌ NUNCA ALTERAR TESTE PARA PASSAR
+
+```
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║   O TESTE ESTÁ CORRETO. O CÓDIGO ESTÁ ERRADO.                    ║
+║                                                                   ║
+║   Quando um teste falha, o problema está SEMPRE no código de     ║
+║   produção, NUNCA no teste.                                      ║
+║                                                                   ║
+║   O teste representa o comportamento ESPERADO.                   ║
+║   O código deve ser CORRIGIDO para atender ao teste.             ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+```
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| Modificar valor esperado para corresponder ao obtido | Corrigir o código |
+| Ajustar assertion para aceitar resultado errado | Corrigir o código |
+| Mudar lógica do teste para acomodar bug | Corrigir o código |
+
+### ❌ NUNCA PULAR OU IGNORAR
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| @pytest.mark.skip | Implementar o que falta |
+| @pytest.mark.skipif | Corrigir a condição |
+| Comentar testes que falham | Corrigir o código |
+| Remover testes de arquivos | Corrigir o código |
+| Excluir arquivos do pytest.ini | Corrigir o código |
+
+### ❌ NUNCA SEPARAR PARA ESCONDER FALHAS
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| Rodar unitários separados de integração | Rodar todos juntos |
+| Criar suítes "lite" ou "quick" | Rodar suíte completa |
+| Usar markers para excluir testes | Corrigir os testes |
+| Configurar CI para ignorar falhas | Corrigir as falhas |
+
+### ❌ NUNCA IGNORAR CLASSES/MÉTODOS FALTANTES
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| Pular teste porque classe não existe | **CRIAR A CLASSE** |
+| Pular teste porque método não existe | **CRIAR O MÉTODO** |
+| Pular teste porque fixture não existe | **CRIAR A FIXTURE** |
+| Mockar o que deveria ser implementado | **IMPLEMENTAR** |
+
+### ❌ NUNCA REMOVER TESTES PROBLEMÁTICOS
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| Deletar testes de IO que falham | Corrigir IO |
+| Remover testes de encoding | Corrigir encoding |
+| Excluir testes de edge cases | Corrigir edge cases |
+| Eliminar testes de concorrência | Corrigir concorrência |
+| Apagar testes de performance | Otimizar performance |
+
+### ❌ NUNCA AJUSTAR PARA APIs QUE EXISTEM
+
+```
+O TESTE DEFINE A API.
+A API DEVE SER IMPLEMENTADA CONFORME O TESTE.
+NÃO O CONTRÁRIO.
+```
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| Mudar teste para usar API existente | Implementar API correta |
+| Adaptar teste a limitações | Remover limitações |
+
+### ❌ NUNCA SUPRIMIR WARNINGS
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| filterwarnings = ["ignore::..."] | Corrigir causa do warning |
+| warnings.filterwarnings("ignore") | Corrigir causa do warning |
+| pytest.mark.filterwarnings | Corrigir causa do warning |
+| Suprimir warnings de cupy/dask/numpy | Corrigir uso da biblioteca |
+
+**WARNINGS SÃO BUGS. CORRIGI-LOS.**
+
+### ❌ NUNCA DEIXAR DESIGNS PARA DEPOIS
+
+| Ação Proibida | O que fazer em vez disso |
+|---------------|--------------------------|
+| "Arquivo .ui não existe, ignorar" | **CRIAR O ARQUIVO .UI** |
+| "Classe não existe, pular" | **CRIAR A CLASSE** |
+| "Deixar para depois" | **FAZER AGORA** |
+
+---
+
+## ✅ COMPORTAMENTO OBRIGATÓRIO
+
+### QUANDO UM TESTE FALHA:
+
+```
+1. ANALISAR a mensagem de erro
+2. IDENTIFICAR o bug no código de produção
+3. CORRIGIR o código de produção (NÃO O TESTE)
+4. RODAR o teste novamente
+5. REPETIR até passar
+6. NUNCA modificar o teste
+```
+
+### QUANDO UMA CLASSE NÃO EXISTE:
+
+```
+1. CRIAR a classe imediatamente
+2. IMPLEMENTAR todos os métodos necessários
+3. ADICIONAR docstrings completas
+4. ADICIONAR type hints
+5. CRIAR testes para a nova classe
+```
+
+### QUANDO UM ARQUIVO .UI NÃO EXISTE:
+
+```
+1. CRIAR o arquivo .ui imediatamente
+2. DEFINIR todos os widgets necessários
+3. CONFIGURAR layouts apropriados
+4. CONECTAR signals no código Python
+5. TESTAR a renderização
+```
+
+### QUANDO UM WARNING APARECE:
+
+```
+1. IDENTIFICAR a causa raiz
+2. CORRIGIR o código que gera o warning
+3. VERIFICAR que o warning não aparece mais
+4. NUNCA suprimir o warning
+```
+
+### QUANDO UMA API NÃO EXISTE:
+
+```
+1. CRIAR a API conforme especificada no teste
+2. IMPLEMENTAR completamente
+3. DOCUMENTAR a nova API
+4. O TESTE DEFINE O CONTRATO - IMPLEMENTAR CONFORME
+```
+
+---
+
+## 📊 MÉTRICAS DE QUALIDADE INEGOCIÁVEIS
+
+| Métrica | Valor Mínimo | Tolerância |
+|---------|--------------|------------|
+| Cobertura de código | 95% | **ZERO** |
+| Testes passando | 100% | **ZERO** |
+| Testes pulados | 0 | **ZERO** |
+| Warnings suprimidos | 0 | **ZERO** |
+| NotImplementedError | 0 | **ZERO** |
+| Métodos com pass | 0 | **ZERO** |
+| TODOs não resolvidos | 0 | **ZERO** |
+| Arquivos .ui faltantes | 0 | **ZERO** |
+
+**NÃO HÁ EXCEÇÕES. NÃO HÁ NEGOCIAÇÃO.**
+
+---
+
+## 🔄 CICLO DE TRABALHO CONTÍNUO
+
+```
+INÍCIO
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  1. Pegar próximo item da lista         │
+└─────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  2. Implementar completamente           │
+│     - Criar classes faltantes           │
+│     - Criar arquivos .ui faltantes      │
+│     - Implementar todos os métodos      │
+│     - Adicionar type hints              │
+│     - Adicionar docstrings              │
+└─────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  3. Escrever/rodar testes               │
+│     - NUNCA simplificar                 │
+│     - NUNCA pular                       │
+│     - NUNCA modificar para passar       │
+└─────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  4. Teste passou?                       │
+│     NÃO → Corrigir CÓDIGO (não teste)   │
+│           Voltar para 3                 │
+│     SIM → Continuar                     │
+└─────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  5. Mais itens na lista?                │
+│     SIM → Voltar para 1                 │
+│           (SEM PARAR, SEM PERGUNTAR)    │
+│     NÃO → Verificar 100% completo       │
+└─────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  6. Aplicação 100% pronta?              │
+│     NÃO → Identificar gaps              │
+│           Adicionar à lista             │
+│           Voltar para 1                 │
+│     SIM → FIM                           │
+└─────────────────────────────────────────┘
+  │
+  ▼
+FIM (ÚNICA condição de parada permitida)
+```
+
+---
+
+## 🚨 VIOLAÇÕES JÁ COMETIDAS (PARA NÃO REPETIR)
+
+A IA já cometeu as seguintes violações que **NÃO DEVEM SE REPETIR**:
+
+| Violação | Categoria | Severidade |
+|----------|-----------|------------|
+| Simplificou testes | SIMPLIFICAÇÃO | 🔴 GRAVE |
+| Relaxou requisitos de teste | RELAXAMENTO | 🔴 GRAVE |
+| Alterou teste para passar | MANIPULAÇÃO | 🔴 GRAVE |
+| Pulou testes de classes inexistentes | EVASÃO | 🔴 GRAVE |
+| Rodou testes separados para esconder falhas | OCULTAÇÃO | 🔴 GRAVE |
+| Simplificou smoke test | SIMPLIFICAÇÃO | 🔴 GRAVE |
+| Simplificou teste e2e | SIMPLIFICAÇÃO | 🔴 GRAVE |
+| Ignorou falhas por designs não criados | EVASÃO | 🔴 GRAVE |
+| Removeu testes de IO problemáticos | REMOÇÃO | 🔴 GRAVE |
+| Corrigiu testes para usar APIs existentes | INVERSÃO | 🔴 GRAVE |
+| Ajustou pyproject para ignorar warnings | SUPRESSÃO | 🔴 GRAVE |
+| Parou para aguardar instruções | INTERRUPÇÃO | 🟡 MÉDIA |
+| Reportou progresso parcial e parou | INTERRUPÇÃO | 🟡 MÉDIA |
+
+**TODAS ESTAS AÇÕES ESTÃO PROIBIDAS.**
+
+---
+
+## ⛔ CONSEQUÊNCIAS DE VIOLAÇÃO
+
+1. **TODO o trabalho da sessão será DESCARTADO**
+2. **O processo será REINICIADO do zero**
+3. **Violações repetidas serão REPORTADAS**
+
+---
+
+## 📝 CHECKLIST ANTES DE DECLARAR TAREFA CONCLUÍDA
+
+- [ ] Não há `NotImplementedError` no código
+- [ ] Não há métodos com apenas `pass`
+- [ ] Não há `# TODO` não resolvidos
+- [ ] Não há `...` (ellipsis) em implementações
+- [ ] Todos os testes relacionados passam
+- [ ] Cobertura do módulo ≥ 95%
+- [ ] Nenhum warning é gerado
+- [ ] Nenhum teste foi modificado para passar
+- [ ] Nenhum teste foi pulado
+- [ ] Todas as classes necessárias existem
+- [ ] Todos os arquivos .ui necessários existem
+- [ ] Type hints em todas as funções
+- [ ] Docstrings em todas as funções públicas
+
+**SE QUALQUER ITEM ACIMA NÃO FOR ATENDIDO, A TAREFA NÃO ESTÁ CONCLUÍDA.**
+
+---
+
+## 🎯 LEMBRETE FINAL PARA COPILOT
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║   • O TESTE ESTÁ CORRETO. SEMPRE.                                    ║
+║   • O CÓDIGO DEVE SER CORRIGIDO. SEMPRE.                             ║
+║   • NUNCA PARAR ATÉ 100% COMPLETO.                                   ║
+║   • NUNCA SIMPLIFICAR, NUNCA PULAR, NUNCA IGNORAR.                   ║
+║   • CRIAR O QUE FALTA, NÃO CONTORNAR O QUE FALTA.                    ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+# 📋 CATEGORIAS DE IMPLEMENTAÇÃO
 
 ---
 
@@ -975,14 +1379,14 @@ Eixo X sempre mostra segundos, não timestamps.
 
 > ⚠️ **POLÍTICA DE TESTES**: Nenhum teste pode ser ignorado, simplificado ou omitido.
 > Se um teste falhar, DEVE ser corrigido antes de prosseguir.
-> Cobertura mínima exigida: **90%** para produção.
+> Cobertura mínima exigida: **95%** para produção.
 
 ### 📊 Sumário de Testes
 
 | Nível | Tipo | Status | Cobertura Alvo | Ferramentas |
 |-------|------|--------|----------------|-------------|
 | 1º | Linting/Static | 🔴 0% | N/A | ruff, mypy, bandit |
-| 2º | Unit Tests | 🔴 ~15% | 90% | pytest |
+| 2º | Unit Tests | 🔴 ~15% | 95% | pytest |
 | 3º | Doctests | 🔴 0% | 100% funções públicas | pytest --doctest |
 | 4º | Integration | 🔴 0% | 80% | pytest |
 | 5º | Property-based | 🔴 0% | Funções matemáticas | hypothesis |
@@ -997,7 +1401,7 @@ Eixo X sempre mostra segundos, não timestamps.
 - [ ] `ruff check .` passa sem erros
 - [ ] `mypy src/ --strict` passa sem erros
 - [ ] `bandit -r src/` não encontra vulnerabilidades críticas
-- [ ] `pytest tests/unit --cov --cov-fail-under=90` passa
+- [ ] `pytest tests/unit --cov --cov-fail-under=95` passa
 - [ ] `pytest tests/smoke -m smoke` passa em < 60 segundos
 - [ ] Nenhum teste marcado como `@pytest.mark.skip` sem justificativa documentada
 - [ ] CI/CD executa todos os testes em cada PR
@@ -1161,13 +1565,21 @@ Eixo X sempre mostra segundos, não timestamps.
 
 ---
 
-## 📊 MÉTRICAS DE CONCLUSÃO
+## 📊 MÉTRICAS FINAIS
 
-Para considerar a aplicação **PRONTA PARA PRODUÇÃO**:
+| Métrica | Valor |
+|---------|-------|
+| **Total de Itens TODO** | ~350+ |
+| **Estimativa de Esforço Revisada** | 24-32 semanas |
+| **Cobertura de Testes Alvo** | 95% |
+| **Novos Requisitos Críticos (Cat. 10)** | 7 |
+| **Total de Critérios de Aceitação** | ~200 |
+
+### Checklist Final para Produção
 
 - [ ] 0 crashes em uso normal (teste de 8h)
 - [ ] Todas as 7 features core funcionando (load, plot, calculate, export, streaming, selection, 3D)
-- [ ] Cobertura de testes > 90%
+- [ ] Cobertura de testes ≥ 95%
 - [ ] Documentação de usuário completa
 - [ ] Performance: load 1M pontos < 5s, plot < 1s
 - [ ] Todos os 176+ stubs implementados
@@ -1182,31 +1594,6 @@ Para considerar a aplicação **PRONTA PARA PRODUÇÃO**:
 
 ---
 
-## 📋 RESUMO FINAL
-
-| Métrica | Valor |
-|---------|-------|
-| **Total de Itens TODO** | ~350+ |
-| **Estimativa de Esforço Revisada** | 24-32 semanas |
-| **Cobertura de Testes Alvo** | 90% |
-| **Novos Requisitos Críticos (Cat. 10)** | 7 |
-| **Total de Critérios de Aceitação** | ~200 |
-
-### Prioridade de Execução
-
-1. 🔴 **Categoria 10** - Infraestrutura de Produção (novos requisitos)
-2. 🔴 **Categoria 1** - Bugs Críticos
-3. 🔴 **Categoria 2** - Funcionalidades Core
-4. 🔴 **Categoria 6** - Testes
-5. 🟡 **Categoria 4** - Conexões UI↔Backend
-6. 🟡 **Categoria 5** - Componentes Faltantes
-7. 🟡 **Categoria 3** - UI/UX
-8. 🟡 **Categoria 7** - Performance
-9. 🟢 **Categoria 8** - Documentação
-10. 🟢 **Categoria 9** - Migração .ui
-
----
-
-*Documento gerado em: 31/01/2026*  
-*Versão: 2.0 com Critérios de Aceitação*  
+*Documento gerado em: 01/02/2026*  
+*Versão: 2.0 Consolidada*  
 *Auditoria original: 30/01/2026*

@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\viz\base.py
+# hypothesis_version: 6.151.4
+
+[0.0, 1.0, 1.5, 5.0, 50000, '#1f77b4', 'Unknown', 'adaptive', 'edges', 'features_detected', 'features_preserved', 'lttb', 'lttb_numba_compiled', 'max', 'mean', 'median', 'min', 'n_nan', 'n_points', 'name', 'peaks', 'series_id', 'solid', 'std', 'timestamps', 'uniform', 'using_numba_lttb', 'valleys']

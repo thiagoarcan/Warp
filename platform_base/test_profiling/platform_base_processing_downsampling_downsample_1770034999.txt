@@ -1,0 +1,95 @@
+         29281 function calls (29279 primitive calls) in 0.210 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.210    0.210 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\profiling\decorators.py:107(wrapper)
+        1    0.000    0.000    0.210    0.210 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py:486(downsample)
+        1    0.094    0.094    0.208    0.208 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py:111(_lttb_downsample)
+     1994    0.005    0.000    0.085    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:3385(mean)
+     1994    0.034    0.000    0.080    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\_methods.py:101(_mean)
+     1994    0.017    0.000    0.018    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\_methods.py:67(_count_reduce_items)
+     2998    0.017    0.000    0.017    0.000 {method 'append' of 'list' objects}
+     1996    0.017    0.000    0.017    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     1995    0.007    0.000    0.007    0.000 {built-in method builtins.min}
+     3988    0.005    0.000    0.005    0.000 {built-in method builtins.issubclass}
+     2021    0.004    0.000    0.004    0.000 {built-in method builtins.len}
+     1994    0.003    0.000    0.003    0.000 {built-in method builtins.hasattr}
+     2017    0.003    0.000    0.003    0.000 {built-in method builtins.isinstance}
+        2    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:263(_proxy_to_logger)
+        2    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:192(_proxy_to_logger)
+        2    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:122(_process_event)
+        2    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:892(__call__)
+        1    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:212(info)
+       13    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:297(__call__)
+     1995    0.000    0.000    0.000    0.000 {built-in method numpy.core._multiarray_umath.normalize_axis_index}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:206(debug)
+     1995    0.000    0.000    0.000    0.000 {built-in method numpy.asanyarray}
+     1994    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:3380(_mean_dispatcher)
+        2    0.000    0.000    0.000    0.000 {method 'astype' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\function_base.py:1324(diff)
+        3    0.000    0.000    0.000    0.000 {built-in method numpy.array}
+       77    0.000    0.000    0.000    0.000 {method 'write' of '_io.StringIO' objects}
+       15    0.000    0.000    0.000    0.000 {method 'getvalue' of '_io.StringIO' objects}
+        2    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:118(__getattr__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:71(_wrapreduction)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+      6/4    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:492(__call__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:415(__getattr__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:547(stamper_iso_utc)
+       15    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:110(_pad)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\pydantic\main.py:243(__init__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:349(bind)
+        9    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:877(_repr)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2421(all)
+        3    0.000    0.000    0.000    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2177(sum)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:707(__call__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:2149(getLogger)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:366(__call__)
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py:42(_build_metadata)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1377(getLogger)
+        2    0.000    0.000    0.000    0.000 {method 'isoformat' of 'datetime.datetime' objects}
+        2    0.000    0.000    0.000    0.000 {method 'join' of 'str' objects}
+       22    0.000    0.000    0.000    0.000 {method 'pop' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:522(now)
+       15    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+        6    0.000    0.000    0.000    0.000 {built-in method builtins.repr}
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:123(get_logger)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:414(__call__)
+        2    0.000    0.000    0.000    0.000 {built-in method builtins.sorted}
+        4    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:601(_figure_out_exc_info)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:113(get_logger)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:964(columns)
+        3    0.000    0.000    0.000    0.000 {built-in method now}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:712(__call__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:234(_acquireLock)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:154(wrap_logger)
+        6    0.000    0.000    0.000    0.000 {built-in method time.perf_counter}
+        2    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:243(_releaseLock)
+        2    0.000    0.000    0.000    0.000 {method 'replace' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1529(info)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_log_levels.py:61(add_log_level)
+        2    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 {method 'update' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+       17    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:909(<genexpr>)
+        2    0.000    0.000    0.000    0.000 {method 'copy' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1790(isEnabledFor)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1517(debug)
+        1    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.RLock' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_log_levels.py:49(map_method_name)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:376(finalized_bind)
+        1    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\function_base.py:1320(_diff_dispatcher)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:322(__init__)
+        2    0.000    0.000    0.000    0.000 <string>:2(__init__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2172(_sum_dispatcher)
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:109(__init__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\typing.py:2173(cast)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2416(_all_dispatcher)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:51(__init__)
+
+

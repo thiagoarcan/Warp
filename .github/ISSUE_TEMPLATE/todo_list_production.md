@@ -1,1890 +1,740 @@
-# TODO LIST COMPLETA PARA PRODUÇÃO - Platform Base v2.0
+# TODO LIST - TESTES PARA 95% DE COBERTURA
 
-**Versão 2.0 - Com Critérios de Aceitação e Instruções para Copilot**  
-**Data da Revisão: 01/02/2026**
-
----
-
-> ⚠️ **AVISO**: Esta lista representa o que precisa ser implementado para colocar a aplicação em produção real.
-> Nenhum workaround, nenhuma simplificação, nenhum jeitinho.
->
-> Cada item inclui **critérios de aceitação** que DEVEM ser atendidos.
->
-> **Estado Atual Estimado**: ~20% funcional  
-> **TODOs/Stubs identificados no código**: 176+  
-> **Componentes UI a migrar para .ui**: 60 classes → ~45 arquivos .ui  
-> **Data da Auditoria Original**: 30/01/2026
+**Platform Base v2.0**  
+**Data: 02 de Fevereiro de 2026**  
+**Meta: Cobertura mínima de 95%**
 
 ---
 
-## 📊 SUMÁRIO EXECUTIVO
+## ⚡ ESTRATÉGIAS DE OTIMIZAÇÃO
 
-| Módulo | Status | Funcional | A Implementar |
-|--------|--------|-----------|---------------|
-| **Visualização 2D** | 🟡 Parcial | 40% | Cores, Legenda, Multi-eixo, Seleção |
-| **Visualização 3D** | 🔴 Crítico | 10% | Toda implementação de renderização |
-| **Cálculos** | 🟡 Parcial | 60% | Conexão UI↔Backend |
-| **Streaming** | 🔴 Crítico | 5% | Implementação completa |
-| **Exportação** | 🔴 Crítico | 20% | Todas as funcionalidades |
-| **Menu de Contexto** | 🔴 Crítico | 5% | Todas as ações |
-| **Undo/Redo** | 🔴 Crítico | 0% | Sistema completo |
-| **Seleção de Dados** | 🟡 Parcial | 30% | Sincronização, Multi-seleção |
-| **Configurações** | 🟡 Parcial | 50% | Persistência, Temas |
-| **Results Panel** | 🔴 Crítico | 10% | Exibição de resultados |
-| **Testes** | 🔴 Crítico | 15% | Cobertura e integração |
-| **Logging/Telemetria** | 🔴 Crítico | 0% | **NOVO** - Implementação completa |
-| **Acessibilidade** | 🔴 Crítico | 0% | **NOVO** - Implementação completa |
+| Técnica | Comando | Ganho |
+|---------|---------|-------|
+| **Paralelização** | `pytest -n auto` (pytest-xdist) | 3-4x mais rápido |
+| **Cache de testes** | `pytest --cache-show` | Pula testes inalterados |
+| **Execução incremental** | `pytest --lf` (last failed) | Foca em falhas |
+| **Sampling (mutação)** | `mutmut run --runner="pytest -x"` | Fail-fast |
+| **Fuzzing em background** | Execução paralela separada | Não bloqueia |
+| **CI paralelo** | GitHub Actions matrix | Múltiplos jobs |
 
 ---
 
-## 🎯 PRIORIDADE DE EXECUÇÃO OBRIGATÓRIA
+## 📋 SUMÁRIO DE EXECUÇÃO (OTIMIZADO)
 
-A execução **DEVE** seguir esta ordem estrita em **3 FASES SEQUENCIAIS**.  
-**NÃO AVANÇAR** para a próxima fase sem completar 100% da fase anterior.
+| # | Categoria | Sequencial | **Otimizado** | Técnica | Status |
+|---|-----------|------------|---------------|---------|--------|
+| 1 | Análise Estática | 30 min | **5 min** | Paralelo (4 ferramentas simultâneas) | ⬜ |
+| 2 | Testes de Documentação | 1 hora | **10 min** | `pytest -n auto --doctest-modules` | ⬜ |
+| 3 | Testes Unitários | 2 horas | **15 min** | `pytest -n 8` (8 workers) | ⬜ |
+| 4 | Property-based Testing | 1.5 horas | **20 min** | `--hypothesis-seed` + cache | ⬜ |
+| 5 | Testes de Contrato/Schema | 1 hora | **8 min** | Paralelo + Pydantic v2 | ⬜ |
+| 6 | Testes de Integração | 2 horas | **25 min** | `pytest -n 4` (menos paralelo, mais I/O) | ⬜ |
+| 7 | Testes de Snapshot/Golden | 1 hora | **5 min** | Comparação hash rápida | ⬜ |
+| 8 | Testes de Concorrência | 1.5 horas | **15 min** | Timeout curto + sampling | ⬜ |
+| 9 | Cobertura | 30 min | **0 min** | Executado junto com unitários | ⬜ |
+| 10 | Testes de Performance | 45 min | **10 min** | `--benchmark-disable-gc` + warmup | ⬜ |
+| 11 | Testes de Mutação | 4 horas | **45 min** | `mutmut -n 8` + sampling 20% | ⬜ |
+| 12 | Fuzzing | 8 horas | **30 min** | Sampling + corpus reuse (CI: 4h bg) | ⬜ |
+| 13 | Testes de Configuração | 2 horas | **15 min** | GitHub Actions matrix paralelo | ⬜ |
 
-```
-╔═══════════════════════════════════════════════════════════════════════╗
-║                                                                       ║
-║   FASE 1: IMPLEMENTAÇÃO COMPLETA DA APLICAÇÃO                        ║
-║   ──────────────────────────────────────────────                     ║
-║   Concluir 100% de toda a funcionalidade antes de qualquer teste     ║
-║                                                                       ║
-║   FASE 2: MIGRAÇÃO COMPLETA PARA .UI                                 ║
-║   ──────────────────────────────────────────────                     ║
-║   Migrar 100% da UI antes de iniciar testes                          ║
-║                                                                       ║
-║   FASE 3: TESTES COMPLETOS                                           ║
-║   ──────────────────────────────────────────────                     ║
-║   Somente após Fases 1 e 2 100% concluídas                           ║
-║                                                                       ║
-╚═══════════════════════════════════════════════════════════════════════╝
-```
+### Comparação de Tempo
 
----
+| Modo | Tempo Total |
+|------|-------------|
+| Sequencial (original) | ~25 horas |
+| **Otimizado (local)** | **~3 horas** |
+| **CI paralelo (GitHub Actions)** | **~45 min** |
 
-### 📦 FASE 1: IMPLEMENTAÇÃO COMPLETA DA APLICAÇÃO
-
-> **OBJETIVO**: Aplicação 100% funcional antes de qualquer teste formal.
-> **NÃO INICIAR FASE 2** até que todos os itens abaixo estejam completos.
-
-| Ordem | Item | Quantidade | Criticidade |
-|-------|------|------------|-------------|
-| **1.1** | Implementar todos os `NotImplementedError` | 7 | 🔴 CRÍTICO |
-| **1.2** | Resolver todos os stubs/TODOs | 172 | 🔴 CRÍTICO |
-| **1.3** | Conectar UI↔Backend (signals) | Todos pendentes | 🔴 CRÍTICO |
-| **1.4** | Implementar Categoria 10 (Infraestrutura) | 7 módulos | 🔴 CRÍTICO |
-| **1.5** | Corrigir todos os Bugs (Categoria 1) | 7 bugs | 🔴 CRÍTICO |
-| **1.6** | Implementar funcionalidades (Categoria 2) | 9 features | 🔴 ALTO |
-| **1.7** | Implementar melhorias UI/UX (Categoria 3) | 4 itens | 🟡 MÉDIO |
-| **1.8** | Adicionar componentes faltantes (Categoria 5) | 3 componentes | 🔴 ALTO |
-| **1.9** | Implementar otimizações (Categoria 7) | 3 itens | 🟡 MÉDIO |
-| **1.10** | Criar documentação (Categoria 8) | 2 tipos | 🟢 BAIXO |
-
-#### Checklist de Conclusão da Fase 1
-
-```
-[ ] 0 (zero) NotImplementedError no código
-[ ] 0 (zero) métodos com apenas `pass`
-[ ] 0 (zero) comentários `# TODO` não resolvidos
-[ ] 0 (zero) `...` (ellipsis) em implementações
-[ ] 0 (zero) mensagens "coming soon" ou "not implemented"
-[ ] Todos os signals UI↔Backend conectados
-[ ] Logging estruturado implementado
-[ ] Crash reporting implementado
-[ ] Auto-save implementado
-[ ] Validação de integridade implementada
-[ ] Limites de memória implementados
-[ ] Acessibilidade implementada
-[ ] Streaming/Playback funcional
-[ ] Undo/Redo funcional
-[ ] Exportação completa funcional
-[ ] Gráficos 3D funcionais
-[ ] Aplicação executa sem erros de import
-[ ] Aplicação abre e fecha sem crashes
-```
-
-**SÓ AVANÇAR PARA FASE 2 QUANDO TODOS OS ITENS ACIMA ESTIVEREM ✓**
+**Redução**: 88% local, 97% em CI
 
 ---
 
-### 🎨 FASE 2: MIGRAÇÃO COMPLETA PARA .UI
+## 1. ANÁLISE ESTÁTICA
 
-> **OBJETIVO**: 100% da UI migrada para arquivos .ui do Qt Designer.
-> **NÃO INICIAR FASE 3** até que todos os itens abaixo estejam completos.
+### 1.1 Type Checking (mypy)
 
-| Ordem | Item | Quantidade | Criticidade |
-|-------|------|------------|-------------|
-| **2.1** | Criar infraestrutura UiLoaderMixin | 1 | 🔴 CRÍTICO |
-| **2.2** | Migrar MainWindows | 2 arquivos | 🔴 CRÍTICO |
-| **2.3** | Migrar Diálogos | 16 arquivos | 🔴 ALTO |
-| **2.4** | Migrar Painéis | 11 arquivos | 🔴 ALTO |
-| **2.5** | Migrar Widgets de Configuração | 10 arquivos | 🟡 MÉDIO |
-| **2.6** | Migrar Widgets de Seleção | 5 arquivos | 🟡 MÉDIO |
-| **2.7** | Migrar Widgets de Streaming | 4 arquivos | 🟡 MÉDIO |
-| **2.8** | Configurar Promoted Widgets (Viz) | 6 widgets | 🟡 MÉDIO |
-| **2.9** | Migrar Menus/Toolbars | 3 arquivos | 🟢 BAIXO |
-| **2.10** | Migrar Frames | 3 arquivos | 🟢 BAIXO |
+**Comando**: `mypy src/platform_base --strict`
 
-#### Checklist de Conclusão da Fase 2
+| # | Tarefa | Arquivo/Módulo | Status |
+|---|--------|----------------|--------|
+| 1.1.1 | [ ] Configurar mypy.ini com strict mode | `mypy.ini` | ⬜ |
+| 1.1.2 | [ ] Verificar tipos em `core/models.py` | `core/` | ⬜ |
+| 1.1.3 | [ ] Verificar tipos em `processing/calculus.py` | `processing/` | ⬜ |
+| 1.1.4 | [ ] Verificar tipos em `processing/interpolation.py` | `processing/` | ⬜ |
+| 1.1.5 | [ ] Verificar tipos em `processing/downsampling.py` | `processing/` | ⬜ |
+| 1.1.6 | [ ] Verificar tipos em `processing/synchronization.py` | `processing/` | ⬜ |
+| 1.1.7 | [ ] Verificar tipos em `io/loader.py` | `io/` | ⬜ |
+| 1.1.8 | [ ] Verificar tipos em `io/export.py` | `io/` | ⬜ |
+| 1.1.9 | [ ] Verificar tipos em `desktop/main_window.py` | `desktop/` | ⬜ |
+| 1.1.10 | [ ] Verificar tipos em `desktop/signal_hub.py` | `desktop/` | ⬜ |
+| 1.1.11 | [ ] Verificar tipos em `desktop/session_state.py` | `desktop/` | ⬜ |
+| 1.1.12 | [ ] Verificar tipos em `desktop/workers/` | `desktop/workers/` | ⬜ |
+| 1.1.13 | [ ] Verificar tipos em `ui/panels/` | `ui/panels/` | ⬜ |
+| 1.1.14 | [ ] Verificar tipos em `ui/undo_redo.py` | `ui/` | ⬜ |
+| 1.1.15 | [ ] Resolver todos os erros de tipo | Global | ⬜ |
 
-```
-[ ] 45 arquivos .ui criados
-[ ] UiLoaderMixin funcional e documentado
-[ ] 100% dos diálogos carregados de .ui
-[ ] 100% dos painéis carregados de .ui
-[ ] Promoted widgets configurados para gráficos
-[ ] Build process compila .ui automaticamente
-[ ] Nenhuma criação programática de UI restante
-[ ] Aplicação abre e renderiza corretamente
-[ ] Todas as funcionalidades da Fase 1 ainda funcionam
-```
-
-**SÓ AVANÇAR PARA FASE 3 QUANDO TODOS OS ITENS ACIMA ESTIVEREM ✓**
+**Critério de Aceitação**: 0 erros de mypy com `--strict`
 
 ---
 
-### 🧪 FASE 3: TESTES COMPLETOS
+### 1.2 Linting (ruff)
 
-> **OBJETIVO**: Cobertura de 95% com todos os ~490 testes passando.
-> **ESTA FASE SÓ INICIA APÓS FASES 1 E 2 100% CONCLUÍDAS.**
+**Comando**: `ruff check src/platform_base --fix`
 
-| Ordem | Item | Quantidade | Criticidade |
-|-------|------|------------|-------------|
-| **3.1** | Configurar Linting (ruff, mypy, bandit) | 3 configs | 🔴 CRÍTICO |
-| **3.2** | Criar e executar Unit Tests | ~250 testes | 🔴 CRÍTICO |
-| **3.3** | Criar e executar Doctests | ~50 testes | 🟡 MÉDIO |
-| **3.4** | Criar e executar Integration Tests | ~40 testes | 🔴 ALTO |
-| **3.5** | Criar e executar Property-based Tests | ~15 testes | 🟡 MÉDIO |
-| **3.6** | Criar e executar GUI/Functional Tests | ~60 testes | 🔴 ALTO |
-| **3.7** | Criar e executar Performance Tests | ~30 testes | 🟡 MÉDIO |
-| **3.8** | Criar e executar E2E Tests | ~20 testes | 🔴 ALTO |
-| **3.9** | Criar e executar Stress Tests | ~15 testes | 🟢 BAIXO |
-| **3.10** | Criar e executar Smoke Tests | ~10 testes | 🔴 CRÍTICO |
+| # | Tarefa | Regra | Status |
+|---|--------|-------|--------|
+| 1.2.1 | [ ] Configurar ruff.toml com regras completas | `ruff.toml` | ⬜ |
+| 1.2.2 | [ ] Habilitar regras E (pycodestyle errors) | E | ⬜ |
+| 1.2.3 | [ ] Habilitar regras W (pycodestyle warnings) | W | ⬜ |
+| 1.2.4 | [ ] Habilitar regras F (pyflakes) | F | ⬜ |
+| 1.2.5 | [ ] Habilitar regras I (isort) | I | ⬜ |
+| 1.2.6 | [ ] Habilitar regras N (pep8-naming) | N | ⬜ |
+| 1.2.7 | [ ] Habilitar regras D (pydocstyle) | D | ⬜ |
+| 1.2.8 | [ ] Habilitar regras UP (pyupgrade) | UP | ⬜ |
+| 1.2.9 | [ ] Habilitar regras B (flake8-bugbear) | B | ⬜ |
+| 1.2.10 | [ ] Habilitar regras C4 (flake8-comprehensions) | C4 | ⬜ |
+| 1.2.11 | [ ] Habilitar regras SIM (flake8-simplify) | SIM | ⬜ |
+| 1.2.12 | [ ] Corrigir todos os erros de linting | Global | ⬜ |
 
-#### Checklist de Conclusão da Fase 3
-
-```
-[ ] ruff check . passa sem erros
-[ ] mypy src/ --strict passa sem erros
-[ ] bandit -r src/ sem vulnerabilidades críticas
-[ ] Cobertura de código ≥ 95%
-[ ] 100% dos testes passando
-[ ] 0 (zero) testes pulados (@pytest.mark.skip)
-[ ] 0 (zero) warnings suprimidos
-[ ] Nenhum teste modificado para passar
-[ ] CI/CD pipeline configurado e funcional
-[ ] Coverage report HTML gerado
-```
+**Critério de Aceitação**: 0 erros de ruff
 
 ---
 
-### 📋 RESUMO DAS FASES
+### 1.3 Segurança (bandit)
 
-| Fase | Descrição | Itens | Pré-requisito |
-|------|-----------|-------|---------------|
-| **FASE 1** | Implementação Completa | ~200 itens | Nenhum |
-| **FASE 2** | Migração .ui | 45 arquivos | Fase 1 = 100% |
-| **FASE 3** | Testes | ~490 testes | Fases 1+2 = 100% |
+**Comando**: `bandit -r src/platform_base -ll`
 
-```
-FASE 1 ────────────────► FASE 2 ────────────────► FASE 3
-(Implementação)          (Migração .ui)           (Testes)
-     │                        │                       │
-     │                        │                       │
-     ▼                        ▼                       ▼
-100% funcional          100% migrado            95% cobertura
-antes de migrar         antes de testar         490 testes OK
+| # | Tarefa | Severidade | Status |
+|---|--------|------------|--------|
+| 1.3.1 | [ ] Configurar .bandit com exclusões válidas | `.bandit` | ⬜ |
+| 1.3.2 | [ ] Verificar B101 (assert statements) | LOW | ⬜ |
+| 1.3.3 | [ ] Verificar B102 (exec statements) | HIGH | ⬜ |
+| 1.3.4 | [ ] Verificar B301 (pickle usage) | MEDIUM | ⬜ |
+| 1.3.5 | [ ] Verificar B403 (import pickle) | LOW | ⬜ |
+| 1.3.6 | [ ] Verificar B608 (SQL injection) | HIGH | ⬜ |
+| 1.3.7 | [ ] Verificar B701 (jinja2 autoescape) | HIGH | ⬜ |
+| 1.3.8 | [ ] Corrigir todas as vulnerabilidades HIGH | Global | ⬜ |
+| 1.3.9 | [ ] Corrigir todas as vulnerabilidades MEDIUM | Global | ⬜ |
+| 1.3.10 | [ ] Documentar exceções justificadas | `SECURITY.md` | ⬜ |
+
+**Critério de Aceitação**: 0 vulnerabilidades HIGH/MEDIUM
+
+---
+
+### 1.4 Código Morto (vulture)
+
+**Comando**: `vulture src/platform_base --min-confidence 80`
+
+| # | Tarefa | Módulo | Status |
+|---|--------|--------|--------|
+| 1.4.1 | [ ] Instalar vulture | `pip install vulture` | ⬜ |
+| 1.4.2 | [ ] Criar whitelist.py para falsos positivos | `vulture_whitelist.py` | ⬜ |
+| 1.4.3 | [ ] Identificar funções não utilizadas em `core/` | `core/` | ⬜ |
+| 1.4.4 | [ ] Identificar funções não utilizadas em `processing/` | `processing/` | ⬜ |
+| 1.4.5 | [ ] Identificar funções não utilizadas em `io/` | `io/` | ⬜ |
+| 1.4.6 | [ ] Identificar funções não utilizadas em `desktop/` | `desktop/` | ⬜ |
+| 1.4.7 | [ ] Identificar funções não utilizadas em `ui/` | `ui/` | ⬜ |
+| 1.4.8 | [ ] Identificar variáveis não utilizadas | Global | ⬜ |
+| 1.4.9 | [ ] Identificar imports não utilizados | Global | ⬜ |
+| 1.4.10 | [ ] Remover ou documentar código morto | Global | ⬜ |
+
+**Critério de Aceitação**: < 5% de código morto reportado
+
+---
+
+## 2. TESTES DE DOCUMENTAÇÃO (Doctests)
+
+**Comando**: `pytest --doctest-modules src/platform_base`
+
+| # | Tarefa | Arquivo | Exemplos | Status |
+|---|--------|---------|----------|--------|
+| 2.1 | [ ] Adicionar doctests em `calculus.py` | `processing/calculus.py` | 10 | ⬜ |
+| 2.2 | [ ] Adicionar doctests em `interpolation.py` | `processing/interpolation.py` | 8 | ⬜ |
+| 2.3 | [ ] Adicionar doctests em `downsampling.py` | `processing/downsampling.py` | 6 | ⬜ |
+| 2.4 | [ ] Adicionar doctests em `synchronization.py` | `processing/synchronization.py` | 5 | ⬜ |
+| 2.5 | [ ] Adicionar doctests em `smoothing.py` | `processing/smoothing.py` | 5 | ⬜ |
+| 2.6 | [ ] Adicionar doctests em `loader.py` | `io/loader.py` | 4 | ⬜ |
+| 2.7 | [ ] Adicionar doctests em `validator.py` | `io/validator.py` | 4 | ⬜ |
+| 2.8 | [ ] Adicionar doctests em `models.py` | `core/models.py` | 8 | ⬜ |
+| 2.9 | [ ] Adicionar doctests em `units.py` | `core/units.py` | 5 | ⬜ |
+| 2.10 | [ ] Adicionar doctests em `i18n.py` | `utils/i18n.py` | 3 | ⬜ |
+| 2.11 | [ ] Adicionar doctests em `validation.py` | `utils/validation.py` | 5 | ⬜ |
+| 2.12 | [ ] Adicionar doctests em `serialization.py` | `utils/serialization.py` | 4 | ⬜ |
+
+**Critério de Aceitação**: 100% dos doctests passando, ~67 exemplos
+
+### Exemplo de Doctest Esperado
+
+```python
+def derivative(t: np.ndarray, y: np.ndarray, order: int = 1) -> np.ndarray:
+    """
+    Calcula a derivada numérica de uma série temporal.
+    
+    Args:
+        t: Array de timestamps
+        y: Array de valores
+        order: Ordem da derivada (1, 2 ou 3)
+    
+    Returns:
+        Array com valores da derivada
+    
+    Examples:
+        >>> import numpy as np
+        >>> t = np.array([0.0, 1.0, 2.0, 3.0])
+        >>> y = np.array([0.0, 1.0, 4.0, 9.0])  # y = t²
+        >>> dy = derivative(t, y, order=1)
+        >>> np.allclose(dy, [1.0, 2.0, 4.0, 6.0], atol=0.5)
+        True
+    """
 ```
 
 ---
 
-### ⚠️ REGRAS CRÍTICAS DE TRANSIÇÃO ENTRE FASES
+## 3. TESTES UNITÁRIOS
 
-1. **NUNCA** iniciar Fase 2 com qualquer `NotImplementedError` restante
-2. **NUNCA** iniciar Fase 2 com qualquer método `pass` restante
-3. **NUNCA** iniciar Fase 3 com qualquer arquivo .ui faltante
-4. **NUNCA** iniciar Fase 3 se a aplicação não executar sem erros
-5. **NUNCA** voltar para fase anterior para "ajustar" algo
-6. Se um problema for descoberto, **CORRIGIR NA FASE ATUAL** antes de avançar
+**Comando**: `pytest tests/unit/ -v --cov=src/platform_base`
 
----
+### 3.1 Casos Normais (Happy Path)
 
-# 🤖 INSTRUÇÕES OBRIGATÓRIAS PARA COPILOT
+| # | Tarefa | Arquivo de Teste | Casos | Status |
+|---|--------|------------------|-------|--------|
+| 3.1.1 | [ ] Testar derivative() com dados lineares | `test_calculus.py` | 5 | ⬜ |
+| 3.1.2 | [ ] Testar integral() com dados constantes | `test_calculus.py` | 5 | ⬜ |
+| 3.1.3 | [ ] Testar interpolate_linear() | `test_interpolation.py` | 5 | ⬜ |
+| 3.1.4 | [ ] Testar interpolate_spline() | `test_interpolation.py` | 5 | ⬜ |
+| 3.1.5 | [ ] Testar lttb_downsample() | `test_downsampling.py` | 5 | ⬜ |
+| 3.1.6 | [ ] Testar synchronize() | `test_synchronization.py` | 5 | ⬜ |
+| 3.1.7 | [ ] Testar load_csv() | `test_loader.py` | 5 | ⬜ |
+| 3.1.8 | [ ] Testar load_xlsx() | `test_loader.py` | 5 | ⬜ |
+| 3.1.9 | [ ] Testar export_csv() | `test_export.py` | 5 | ⬜ |
+| 3.1.10 | [ ] Testar SignalHub signals | `test_signal_hub.py` | 10 | ⬜ |
 
-> **COPIE ESTA SEÇÃO PARA `.github/copilot-instructions.md`**
+### 3.2 Casos de Borda (Edge Cases)
 
----
+| # | Tarefa | Arquivo de Teste | Casos | Status |
+|---|--------|------------------|-------|--------|
+| 3.2.1 | [ ] Testar derivative() com 2 pontos | `test_calculus.py` | 3 | ⬜ |
+| 3.2.2 | [ ] Testar derivative() com NaN | `test_calculus.py` | 3 | ⬜ |
+| 3.2.3 | [ ] Testar integral() com array vazio | `test_calculus.py` | 2 | ⬜ |
+| 3.2.4 | [ ] Testar interpolate() com 1 ponto | `test_interpolation.py` | 2 | ⬜ |
+| 3.2.5 | [ ] Testar downsample() para tamanho maior | `test_downsampling.py` | 2 | ⬜ |
+| 3.2.6 | [ ] Testar load_csv() com arquivo vazio | `test_loader.py` | 2 | ⬜ |
+| 3.2.7 | [ ] Testar load_csv() com encoding errado | `test_loader.py` | 2 | ⬜ |
+| 3.2.8 | [ ] Testar export() sem permissão de escrita | `test_export.py` | 2 | ⬜ |
+| 3.2.9 | [ ] Testar Series com valores extremos (1e308) | `test_models.py` | 2 | ⬜ |
+| 3.2.10 | [ ] Testar TimeWindow com start > end | `test_models.py` | 2 | ⬜ |
 
-## MODO DE OPERAÇÃO: AUTÔNOMO CONTÍNUO
+### 3.3 Testes de Exceção
 
-O Copilot DEVE operar em modo autônomo contínuo até a conclusão de 100% da aplicação.
+| # | Tarefa | Arquivo de Teste | Exceção | Status |
+|---|--------|------------------|---------|--------|
+| 3.3.1 | [ ] `derivative()` com array 0 elementos | `test_calculus.py` | `ValueError` | ⬜ |
+| 3.3.2 | [ ] `derivative()` com order=0 | `test_calculus.py` | `ValueError` | ⬜ |
+| 3.3.3 | [ ] `derivative()` com order=4 | `test_calculus.py` | `ValueError` | ⬜ |
+| 3.3.4 | [ ] `integral()` com method inválido | `test_calculus.py` | `ValueError` | ⬜ |
+| 3.3.5 | [ ] `load_csv()` arquivo não existe | `test_loader.py` | `FileNotFoundError` | ⬜ |
+| 3.3.6 | [ ] `load_csv()` arquivo corrompido | `test_loader.py` | `LoaderError` | ⬜ |
+| 3.3.7 | [ ] `interpolate()` com t não monotônico | `test_interpolation.py` | `ValueError` | ⬜ |
+| 3.3.8 | [ ] `synchronize()` com séries vazias | `test_sync.py` | `ValueError` | ⬜ |
+| 3.3.9 | [ ] `Dataset` com series_id duplicado | `test_models.py` | `ValueError` | ⬜ |
+| 3.3.10 | [ ] `export()` formato não suportado | `test_export.py` | `ValueError` | ⬜ |
 
-### REGRA FUNDAMENTAL DE OPERAÇÃO
+### 3.4 Testes Parametrizados
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│  ❌ NÃO PARAR para perguntar se deve continuar                     │
-│  ❌ NÃO PARAR para reportar progresso parcial                      │
-│  ❌ NÃO PARAR para pedir confirmação                               │
-│  ❌ NÃO PARAR para mostrar o que foi feito                         │
-│  ❌ NÃO PARAR para aguardar instruções                             │
-│                                                                    │
-│  ✅ CONTINUAR automaticamente para a próxima tarefa                │
-│  ✅ CONTINUAR até que TODA a aplicação esteja 100% pronta          │
-│  ✅ PARAR SOMENTE quando 100% completo para produção               │
-└────────────────────────────────────────────────────────────────────┘
-```
+| # | Tarefa | Arquivo de Teste | Parâmetros | Status |
+|---|--------|------------------|------------|--------|
+| 3.4.1 | [ ] `derivative()` com orders [1,2,3] | `test_calculus.py` | 3 | ⬜ |
+| 3.4.2 | [ ] `derivative()` com methods ['finite_diff', 'savgol', 'spline'] | `test_calculus.py` | 3 | ⬜ |
+| 3.4.3 | [ ] `integral()` com methods ['trapezoid', 'simpson', 'cumulative'] | `test_calculus.py` | 3 | ⬜ |
+| 3.4.4 | [ ] `interpolate()` com methods ['linear', 'spline', 'akima', 'pchip'] | `test_interpolation.py` | 4 | ⬜ |
+| 3.4.5 | [ ] `load()` com formats ['csv', 'xlsx', 'parquet'] | `test_loader.py` | 3 | ⬜ |
+| 3.4.6 | [ ] `export()` com formats ['csv', 'xlsx', 'parquet', 'hdf5'] | `test_export.py` | 4 | ⬜ |
+| 3.4.7 | [ ] `smooth()` com methods ['gaussian', 'savgol', 'moving_avg'] | `test_smoothing.py` | 3 | ⬜ |
+| 3.4.8 | [ ] `downsample()` com ratios [2, 5, 10, 100] | `test_downsampling.py` | 4 | ⬜ |
+| 3.4.9 | [ ] SignalHub com signal_types [10 tipos] | `test_signal_hub.py` | 10 | ⬜ |
+| 3.4.10 | [ ] Units com conversions [15 conversões] | `test_units.py` | 15 | ⬜ |
 
-### DEFINIÇÃO DE "100% PRONTO PARA PRODUÇÃO"
-
-A aplicação só está pronta quando **TODAS AS 3 FASES** forem concluídas:
-
-#### FASE 1 - Implementação (deve estar 100% antes da Fase 2)
-- [ ] 0 (zero) `NotImplementedError` no código
-- [ ] 0 (zero) métodos com apenas `pass`
-- [ ] 0 (zero) comentários `# TODO` não resolvidos
-- [ ] 0 (zero) `...` (ellipsis) em implementações
-- [ ] 0 (zero) mensagens "coming soon" ou "not implemented"
-- [ ] Todos os signals UI↔Backend conectados
-- [ ] Aplicação executa sem crashes
-
-#### FASE 2 - Migração .ui (deve estar 100% antes da Fase 3)
-- [ ] 45 arquivos .ui criados e funcionando
-- [ ] 0 (zero) criação programática de UI restante
-- [ ] UiLoaderMixin implementado e funcional
-- [ ] Aplicação renderiza corretamente após migração
-
-#### FASE 3 - Testes (conclusão final)
-- [ ] Cobertura de testes ≥ 95%
-- [ ] Todos os ~490 testes passando
-- [ ] 0 (zero) testes pulados (@pytest.mark.skip)
-- [ ] 0 (zero) warnings ignorados no pyproject.toml
-- [ ] Aplicação executa sem crashes por 8 horas contínuas
-
----
-
-## 🚫 PROIBIÇÕES ABSOLUTAS - TESTES
-
-As seguintes ações são **TERMINANTEMENTE PROIBIDAS** e constituem **VIOLAÇÃO GRAVE**:
-
-### ❌ NUNCA SIMPLIFICAR TESTES
-
-| Ação Proibida | Por que é proibido |
-|---------------|-------------------|
-| Reduzir número de assertions | Diminui cobertura de casos |
-| Remover casos de teste "problemáticos" | Esconde bugs reais |
-| Diminuir cobertura de edge cases | Deixa código frágil |
-| Usar valores mais "fáceis" para passar | Mascara problemas |
-| Reduzir escopo do teste | Perde validação |
-
-### ❌ NUNCA RELAXAR REQUISITOS
-
-| Ação Proibida | Por que é proibido |
-|---------------|-------------------|
-| Aumentar tolerâncias (atol, rtol) | Aceita resultados imprecisos |
-| Mudar assertEquals para assertAlmostEquals sem justificativa | Esconde erros numéricos |
-| Aceitar "close enough" | O correto é possível |
-| Ignorar decimais significativos | Perde precisão |
-
-### ❌ NUNCA ALTERAR TESTE PARA PASSAR
-
-```
-╔═══════════════════════════════════════════════════════════════════╗
-║                                                                   ║
-║   O TESTE ESTÁ CORRETO. O CÓDIGO ESTÁ ERRADO.                    ║
-║                                                                   ║
-║   Quando um teste falha, o problema está SEMPRE no código de     ║
-║   produção, NUNCA no teste.                                      ║
-║                                                                   ║
-║   O teste representa o comportamento ESPERADO.                   ║
-║   O código deve ser CORRIGIDO para atender ao teste.             ║
-║                                                                   ║
-╚═══════════════════════════════════════════════════════════════════╝
-```
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| Modificar valor esperado para corresponder ao obtido | Corrigir o código |
-| Ajustar assertion para aceitar resultado errado | Corrigir o código |
-| Mudar lógica do teste para acomodar bug | Corrigir o código |
-
-### ❌ NUNCA PULAR OU IGNORAR
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| @pytest.mark.skip | Implementar o que falta |
-| @pytest.mark.skipif | Corrigir a condição |
-| Comentar testes que falham | Corrigir o código |
-| Remover testes de arquivos | Corrigir o código |
-| Excluir arquivos do pytest.ini | Corrigir o código |
-
-### ❌ NUNCA SEPARAR PARA ESCONDER FALHAS
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| Rodar unitários separados de integração | Rodar todos juntos |
-| Criar suítes "lite" ou "quick" | Rodar suíte completa |
-| Usar markers para excluir testes | Corrigir os testes |
-| Configurar CI para ignorar falhas | Corrigir as falhas |
-
-### ❌ NUNCA IGNORAR CLASSES/MÉTODOS FALTANTES
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| Pular teste porque classe não existe | **CRIAR A CLASSE** |
-| Pular teste porque método não existe | **CRIAR O MÉTODO** |
-| Pular teste porque fixture não existe | **CRIAR A FIXTURE** |
-| Mockar o que deveria ser implementado | **IMPLEMENTAR** |
-
-### ❌ NUNCA REMOVER TESTES PROBLEMÁTICOS
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| Deletar testes de IO que falham | Corrigir IO |
-| Remover testes de encoding | Corrigir encoding |
-| Excluir testes de edge cases | Corrigir edge cases |
-| Eliminar testes de concorrência | Corrigir concorrência |
-| Apagar testes de performance | Otimizar performance |
-
-### ❌ NUNCA AJUSTAR PARA APIs QUE EXISTEM
-
-```
-O TESTE DEFINE A API.
-A API DEVE SER IMPLEMENTADA CONFORME O TESTE.
-NÃO O CONTRÁRIO.
-```
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| Mudar teste para usar API existente | Implementar API correta |
-| Adaptar teste a limitações | Remover limitações |
-
-### ❌ NUNCA SUPRIMIR WARNINGS
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| filterwarnings = ["ignore::..."] | Corrigir causa do warning |
-| warnings.filterwarnings("ignore") | Corrigir causa do warning |
-| pytest.mark.filterwarnings | Corrigir causa do warning |
-| Suprimir warnings de cupy/dask/numpy | Corrigir uso da biblioteca |
-
-**WARNINGS SÃO BUGS. CORRIGI-LOS.**
-
-### ❌ NUNCA DEIXAR DESIGNS PARA DEPOIS
-
-| Ação Proibida | O que fazer em vez disso |
-|---------------|--------------------------|
-| "Arquivo .ui não existe, ignorar" | **CRIAR O ARQUIVO .UI** |
-| "Classe não existe, pular" | **CRIAR A CLASSE** |
-| "Deixar para depois" | **FAZER AGORA** |
+**Critério de Aceitação**: 100% dos testes unitários passando (~250 testes)
 
 ---
 
-## ✅ COMPORTAMENTO OBRIGATÓRIO
+## 4. PROPERTY-BASED TESTING (Hypothesis)
 
-### QUANDO UM TESTE FALHA:
+**Comando**: `pytest tests/property/ -v --hypothesis-show-statistics`
 
-```
-1. ANALISAR a mensagem de erro
-2. IDENTIFICAR o bug no código de produção
-3. CORRIGIR o código de produção (NÃO O TESTE)
-4. RODAR o teste novamente
-5. REPETIR até passar
-6. NUNCA modificar o teste
-```
+| # | Tarefa | Arquivo de Teste | Propriedade | Status |
+|---|--------|------------------|-------------|--------|
+| 4.1 | [ ] `derivative` + `integral` ≈ original | `test_prop_calculus.py` | Inversa | ⬜ |
+| 4.2 | [ ] `derivative` de constante ≈ 0 | `test_prop_calculus.py` | Zero | ⬜ |
+| 4.3 | [ ] `derivative` de linear = constante | `test_prop_calculus.py` | Linear | ⬜ |
+| 4.4 | [ ] `integral` preserva monoticidade | `test_prop_calculus.py` | Monotonic | ⬜ |
+| 4.5 | [ ] `interpolate` passa pelos pontos originais | `test_prop_interp.py` | Passthrough | ⬜ |
+| 4.6 | [ ] `interpolate` preserva range | `test_prop_interp.py` | Bounded | ⬜ |
+| 4.7 | [ ] `downsample(n)` retorna exatamente n pontos | `test_prop_downsample.py` | Size | ⬜ |
+| 4.8 | [ ] `downsample` preserva primeiro e último | `test_prop_downsample.py` | Endpoints | ⬜ |
+| 4.9 | [ ] `synchronize` alinha timestamps | `test_prop_sync.py` | Alignment | ⬜ |
+| 4.10 | [ ] `load` → `export` → `load` = original | `test_prop_io.py` | Roundtrip | ⬜ |
+| 4.11 | [ ] `Series.values` sempre tem len == timestamps | `test_prop_models.py` | Consistency | ⬜ |
+| 4.12 | [ ] `TimeWindow.duration` sempre >= 0 | `test_prop_models.py` | NonNegative | ⬜ |
+| 4.13 | [ ] `smooth` não aumenta amplitude | `test_prop_smooth.py` | Bounded | ⬜ |
+| 4.14 | [ ] `units.convert` é reversível | `test_prop_units.py` | Reversible | ⬜ |
+| 4.15 | [ ] `undo` + `redo` restaura estado | `test_prop_undo.py` | Inverse | ⬜ |
 
-### QUANDO UMA CLASSE NÃO EXISTE:
+**Critério de Aceitação**: Todas as propriedades verificadas com 100+ exemplos cada
 
-```
-1. CRIAR a classe imediatamente
-2. IMPLEMENTAR todos os métodos necessários
-3. ADICIONAR docstrings completas
-4. ADICIONAR type hints
-5. CRIAR testes para a nova classe
-```
+### Exemplo de Property Test
 
-### QUANDO UM ARQUIVO .UI NÃO EXISTE:
+```python
+from hypothesis import given, strategies as st
+import numpy as np
 
-```
-1. CRIAR o arquivo .ui imediatamente
-2. DEFINIR todos os widgets necessários
-3. CONFIGURAR layouts apropriados
-4. CONECTAR signals no código Python
-5. TESTAR a renderização
-```
-
-### QUANDO UM WARNING APARECE:
-
-```
-1. IDENTIFICAR a causa raiz
-2. CORRIGIR o código que gera o warning
-3. VERIFICAR que o warning não aparece mais
-4. NUNCA suprimir o warning
-```
-
-### QUANDO UMA API NÃO EXISTE:
-
-```
-1. CRIAR a API conforme especificada no teste
-2. IMPLEMENTAR completamente
-3. DOCUMENTAR a nova API
-4. O TESTE DEFINE O CONTRATO - IMPLEMENTAR CONFORME
+@given(
+    t=st.lists(st.floats(0, 100), min_size=10, max_size=1000).map(sorted).map(np.array),
+    y=st.lists(st.floats(-1e6, 1e6), min_size=10, max_size=1000).map(np.array)
+)
+def test_derivative_integral_inverse(t, y):
+    """Integral da derivada deve aproximar original (menos constante)"""
+    if len(t) != len(y):
+        y = y[:len(t)]
+    dy = derivative(t, y)
+    y_reconstructed = integral(t, dy) + y[0]
+    assert np.allclose(y, y_reconstructed, rtol=0.1)
 ```
 
 ---
 
-## 📊 MÉTRICAS DE QUALIDADE INEGOCIÁVEIS
+## 5. TESTES DE CONTRATO/SCHEMA
 
-| Métrica | Valor Mínimo | Tolerância |
-|---------|--------------|------------|
-| Cobertura de código | 95% | **ZERO** |
-| Testes passando | 100% | **ZERO** |
-| Testes pulados | 0 | **ZERO** |
-| Warnings suprimidos | 0 | **ZERO** |
-| NotImplementedError | 0 | **ZERO** |
-| Métodos com pass | 0 | **ZERO** |
-| TODOs não resolvidos | 0 | **ZERO** |
-| Arquivos .ui faltantes | 0 | **ZERO** |
+**Comando**: `pytest tests/contract/ -v`
 
-**NÃO HÁ EXCEÇÕES. NÃO HÁ NEGOCIAÇÃO.**
+### 5.1 Validação Pydantic
+
+| # | Tarefa | Model | Validações | Status |
+|---|--------|-------|------------|--------|
+| 5.1.1 | [ ] Validar `Dataset` schema | `Dataset` | 8 | ⬜ |
+| 5.1.2 | [ ] Validar `Series` schema | `Series` | 6 | ⬜ |
+| 5.1.3 | [ ] Validar `TimeWindow` schema | `TimeWindow` | 4 | ⬜ |
+| 5.1.4 | [ ] Validar `SelectionState` schema | `SelectionState` | 5 | ⬜ |
+| 5.1.5 | [ ] Validar `SourceInfo` schema | `SourceInfo` | 5 | ⬜ |
+| 5.1.6 | [ ] Validar `SeriesMetadata` schema | `SeriesMetadata` | 4 | ⬜ |
+| 5.1.7 | [ ] Validar `DataQualityMetrics` schema | `DataQualityMetrics` | 6 | ⬜ |
+| 5.1.8 | [ ] Validar `InterpolationResult` schema | `InterpolationResult` | 5 | ⬜ |
+| 5.1.9 | [ ] Validar `SyncResult` schema | `SyncResult` | 5 | ⬜ |
+| 5.1.10 | [ ] Validar `ExportConfig` schema | `ExportConfig` | 4 | ⬜ |
+
+### 5.2 Contratos de API Interna
+
+| # | Tarefa | Função/Método | Contrato | Status |
+|---|--------|---------------|----------|--------|
+| 5.2.1 | [ ] `derivative()` input/output contract | `calculus.py` | Types | ⬜ |
+| 5.2.2 | [ ] `integral()` input/output contract | `calculus.py` | Types | ⬜ |
+| 5.2.3 | [ ] `interpolate()` input/output contract | `interpolation.py` | Types | ⬜ |
+| 5.2.4 | [ ] `load_file()` return contract | `loader.py` | Dataset | ⬜ |
+| 5.2.5 | [ ] `export_data()` input contract | `export.py` | Types | ⬜ |
+| 5.2.6 | [ ] `SignalHub.emit_*()` contracts | `signal_hub.py` | Signals | ⬜ |
+| 5.2.7 | [ ] `ProcessingWorker.run()` contract | `workers/` | Result | ⬜ |
+| 5.2.8 | [ ] `SessionState.save/load` contract | `session_state.py` | JSON | ⬜ |
+
+**Critério de Aceitação**: 100% dos schemas validados, 0 violações de contrato
 
 ---
 
-## 🔄 CICLO DE TRABALHO CONTÍNUO (3 FASES)
+## 6. TESTES DE INTEGRAÇÃO
 
-```
-INÍCIO
-  │
-  ▼
-╔═══════════════════════════════════════════════════════════════════════╗
-║                      FASE 1: IMPLEMENTAÇÃO                            ║
-╚═══════════════════════════════════════════════════════════════════════╝
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  1.1 Pegar próximo item de implementação│
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  1.2 Implementar completamente          │
-│     - Resolver NotImplementedError      │
-│     - Resolver stubs/TODOs              │
-│     - Conectar signals                  │
-│     - Criar classes faltantes           │
-│     - Adicionar type hints              │
-│     - Adicionar docstrings              │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  1.3 Item funciona sem erros?           │
-│     NÃO → Corrigir e voltar para 1.2    │
-│     SIM → Continuar                     │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  1.4 Mais itens de implementação?       │
-│     SIM → Voltar para 1.1               │
-│           (SEM PARAR, SEM PERGUNTAR)    │
-│     NÃO → Verificar Fase 1 completa     │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  1.5 FASE 1 100% completa?              │
-│     - 0 NotImplementedError?            │
-│     - 0 métodos com pass?               │
-│     - 0 TODOs?                          │
-│     - Aplicação executa sem erros?      │
-│                                         │
-│     NÃO → Identificar gaps              │
-│           Voltar para 1.1               │
-│     SIM → AVANÇAR PARA FASE 2           │
-└─────────────────────────────────────────┘
-  │
-  ▼
-╔═══════════════════════════════════════════════════════════════════════╗
-║                      FASE 2: MIGRAÇÃO .UI                             ║
-╚═══════════════════════════════════════════════════════════════════════╝
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  2.1 Pegar próximo componente UI        │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  2.2 Criar arquivo .ui                  │
-│     - Definir todos os widgets          │
-│     - Configurar layouts                │
-│     - Configurar promoted widgets       │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  2.3 Conectar .ui ao código Python      │
-│     - Implementar loader                │
-│     - Conectar signals                  │
-│     - Remover criação programática      │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  2.4 Componente renderiza corretamente? │
-│     NÃO → Corrigir e voltar para 2.2    │
-│     SIM → Continuar                     │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  2.5 Mais componentes para migrar?      │
-│     SIM → Voltar para 2.1               │
-│           (SEM PARAR, SEM PERGUNTAR)    │
-│     NÃO → Verificar Fase 2 completa     │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  2.6 FASE 2 100% completa?              │
-│     - 45 arquivos .ui criados?          │
-│     - 0 criação programática de UI?     │
-│     - Aplicação renderiza corretamente? │
-│     - Funcionalidades Fase 1 OK?        │
-│                                         │
-│     NÃO → Identificar gaps              │
-│           Voltar para 2.1               │
-│     SIM → AVANÇAR PARA FASE 3           │
-└─────────────────────────────────────────┘
-  │
-  ▼
-╔═══════════════════════════════════════════════════════════════════════╗
-║                      FASE 3: TESTES                                   ║
-╚═══════════════════════════════════════════════════════════════════════╝
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.1 Configurar linting e ferramentas   │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.2 Pegar próxima categoria de teste   │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.3 Escrever testes                    │
-│     - NUNCA simplificar                 │
-│     - NUNCA pular                       │
-│     - NUNCA modificar para passar       │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.4 Executar testes                    │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.5 Teste passou?                      │
-│     NÃO → Corrigir CÓDIGO (não teste)   │
-│           Voltar para 3.4               │
-│     SIM → Continuar                     │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.6 Mais categorias de teste?          │
-│     SIM → Voltar para 3.2               │
-│           (SEM PARAR, SEM PERGUNTAR)    │
-│     NÃO → Verificar Fase 3 completa     │
-└─────────────────────────────────────────┘
-  │
-  ▼
-┌─────────────────────────────────────────┐
-│  3.7 FASE 3 100% completa?              │
-│     - Cobertura ≥ 95%?                  │
-│     - 100% testes passando?             │
-│     - 0 testes pulados?                 │
-│     - 0 warnings suprimidos?            │
-│                                         │
-│     NÃO → Identificar gaps              │
-│           Voltar para 3.2               │
-│     SIM → APLICAÇÃO PRONTA              │
-└─────────────────────────────────────────┘
-  │
-  ▼
-╔═══════════════════════════════════════════════════════════════════════╗
-║                      FIM - APLICAÇÃO 100% PRONTA                      ║
-║                      (ÚNICA condição de parada)                       ║
-╚═══════════════════════════════════════════════════════════════════════╝
+**Comando**: `pytest tests/integration/ -v`
+
+### 6.1 Integração de Componentes
+
+| # | Tarefa | Componentes | Status |
+|---|--------|-------------|--------|
+| 6.1.1 | [ ] Loader → Dataset → Series | IO → Core | ⬜ |
+| 6.1.2 | [ ] Dataset → Calculus → Result | Core → Processing | ⬜ |
+| 6.1.3 | [ ] Dataset → Interpolation → Dataset | Core → Processing | ⬜ |
+| 6.1.4 | [ ] Dataset → Downsample → Dataset | Core → Processing | ⬜ |
+| 6.1.5 | [ ] Dataset → Export → File | Core → IO | ⬜ |
+| 6.1.6 | [ ] SignalHub → Workers → Results | Desktop → Processing | ⬜ |
+| 6.1.7 | [ ] SessionState → Save → Load → SessionState | Desktop → IO | ⬜ |
+| 6.1.8 | [ ] OperationsPanel → Signal → Worker → Result | UI → Desktop | ⬜ |
+| 6.1.9 | [ ] DataPanel → Selection → VizPanel | UI → Desktop | ⬜ |
+| 6.1.10 | [ ] StreamingPanel → Timer → VizPanel | UI → Desktop | ⬜ |
+
+### 6.2 Integração de Pipeline Completo
+
+| # | Tarefa | Pipeline | Status |
+|---|--------|----------|--------|
+| 6.2.1 | [ ] CSV → Load → Interpolate → Derivative → Export CSV | Full | ⬜ |
+| 6.2.2 | [ ] XLSX → Load → Smooth → Downsample → Export XLSX | Full | ⬜ |
+| 6.2.3 | [ ] Parquet → Load → Sync → Calculate → Export Parquet | Full | ⬜ |
+| 6.2.4 | [ ] Multiple Files → Load → Combine → Analyze → Export | Full | ⬜ |
+| 6.2.5 | [ ] Load → Stream → Filter → Visualize | Streaming | ⬜ |
+
+### 6.3 Integração GUI (com pytest-qt)
+
+| # | Tarefa | Componentes GUI | Status |
+|---|--------|-----------------|--------|
+| 6.3.1 | [ ] MainWindow inicializa corretamente | MainWindow | ⬜ |
+| 6.3.2 | [ ] Menu File → Open executa loader | Menu → IO | ⬜ |
+| 6.3.3 | [ ] DataPanel checkbox → VizPanel visibility | Panel → Panel | ⬜ |
+| 6.3.4 | [ ] OperationsPanel button → Calculation | Panel → Processing | ⬜ |
+| 6.3.5 | [ ] Context Menu → Action execution | Menu → Action | ⬜ |
+| 6.3.6 | [ ] Streaming controls → Playback | Panel → Timer | ⬜ |
+| 6.3.7 | [ ] Undo/Redo menu → State change | Menu → UndoStack | ⬜ |
+| 6.3.8 | [ ] Export dialog → File creation | Dialog → IO | ⬜ |
+
+**Critério de Aceitação**: 100% dos testes de integração passando (~40 testes)
+
+---
+
+## 7. TESTES DE SNAPSHOT/GOLDEN
+
+**Comando**: `pytest tests/snapshot/ -v --snapshot-update` (primeira vez)
+
+| # | Tarefa | Arquivo Golden | Tipo | Status |
+|---|--------|----------------|------|--------|
+| 7.1 | [ ] Snapshot de derivative() output | `golden/derivative_linear.npy` | NumPy | ⬜ |
+| 7.2 | [ ] Snapshot de integral() output | `golden/integral_sine.npy` | NumPy | ⬜ |
+| 7.3 | [ ] Snapshot de interpolate() output | `golden/interpolate_spline.npy` | NumPy | ⬜ |
+| 7.4 | [ ] Snapshot de downsample() output | `golden/downsample_lttb.npy` | NumPy | ⬜ |
+| 7.5 | [ ] Snapshot de load_csv() Dataset | `golden/dataset_sample.json` | JSON | ⬜ |
+| 7.6 | [ ] Snapshot de export_csv() output | `golden/export_sample.csv` | CSV | ⬜ |
+| 7.7 | [ ] Snapshot de SessionState serializado | `golden/session_state.json` | JSON | ⬜ |
+| 7.8 | [ ] Snapshot de SyncResult | `golden/sync_result.json` | JSON | ⬜ |
+| 7.9 | [ ] Snapshot de DataQualityMetrics | `golden/quality_metrics.json` | JSON | ⬜ |
+| 7.10 | [ ] Snapshot de InterpolationResult | `golden/interp_result.json` | JSON | ⬜ |
+
+**Critério de Aceitação**: 100% dos snapshots correspondem às referências
+
+### Exemplo de Snapshot Test
+
+```python
+def test_derivative_snapshot(snapshot):
+    """Verifica que derivative produz resultado consistente"""
+    t = np.linspace(0, 10, 100)
+    y = np.sin(t)
+    result = derivative(t, y)
+    snapshot.assert_match(result.tolist(), 'derivative_sine')
 ```
 
 ---
 
-## 🚨 VIOLAÇÕES JÁ COMETIDAS (PARA NÃO REPETIR)
+## 8. TESTES DE CONCORRÊNCIA
 
-A IA já cometeu as seguintes violações que **NÃO DEVEM SE REPETIR**:
+**Comando**: `pytest tests/concurrency/ -v -n auto`
 
-| Violação | Categoria | Severidade |
-|----------|-----------|------------|
-| Simplificou testes | SIMPLIFICAÇÃO | 🔴 GRAVE |
-| Relaxou requisitos de teste | RELAXAMENTO | 🔴 GRAVE |
-| Alterou teste para passar | MANIPULAÇÃO | 🔴 GRAVE |
-| Pulou testes de classes inexistentes | EVASÃO | 🔴 GRAVE |
-| Rodou testes separados para esconder falhas | OCULTAÇÃO | 🔴 GRAVE |
-| Simplificou smoke test | SIMPLIFICAÇÃO | 🔴 GRAVE |
-| Simplificou teste e2e | SIMPLIFICAÇÃO | 🔴 GRAVE |
-| Ignorou falhas por designs não criados | EVASÃO | 🔴 GRAVE |
-| Removeu testes de IO problemáticos | REMOÇÃO | 🔴 GRAVE |
-| Corrigiu testes para usar APIs existentes | INVERSÃO | 🔴 GRAVE |
-| Ajustou pyproject para ignorar warnings | SUPRESSÃO | 🔴 GRAVE |
-| Parou para aguardar instruções | INTERRUPÇÃO | 🟡 MÉDIA |
-| Reportou progresso parcial e parou | INTERRUPÇÃO | 🟡 MÉDIA |
+### 8.1 Testes Async
 
-**TODAS ESTAS AÇÕES ESTÃO PROIBIDAS.**
+| # | Tarefa | Componente | Cenário | Status |
+|---|--------|------------|---------|--------|
+| 8.1.1 | [ ] Múltiplos workers simultâneos | Workers | 5 workers | ⬜ |
+| 8.1.2 | [ ] Load + Process em paralelo | IO + Processing | 2 threads | ⬜ |
+| 8.1.3 | [ ] Export enquanto processa | IO + Processing | 2 threads | ⬜ |
+| 8.1.4 | [ ] Streaming + Calculation | UI + Processing | 2 threads | ⬜ |
+| 8.1.5 | [ ] Múltiplos signals simultâneos | SignalHub | 10 signals | ⬜ |
 
----
+### 8.2 Race Conditions
 
-## ⛔ CONSEQUÊNCIAS DE VIOLAÇÃO
+| # | Tarefa | Componente | Cenário | Status |
+|---|--------|------------|---------|--------|
+| 8.2.1 | [ ] SessionState access from multiple threads | SessionState | 4 threads | ⬜ |
+| 8.2.2 | [ ] DatasetStore concurrent add/remove | DatasetStore | 4 threads | ⬜ |
+| 8.2.3 | [ ] SignalHub emit during connect/disconnect | SignalHub | 4 threads | ⬜ |
+| 8.2.4 | [ ] UndoStack push during undo | UndoStack | 2 threads | ⬜ |
+| 8.2.5 | [ ] Worker cancel during execution | Workers | 2 threads | ⬜ |
+| 8.2.6 | [ ] Cache write during read | Cache | 4 threads | ⬜ |
+| 8.2.7 | [ ] VizPanel update during series add | VizPanel | 2 threads | ⬜ |
+| 8.2.8 | [ ] StreamingPanel seek during play | StreamingPanel | 2 threads | ⬜ |
 
-1. **TODO o trabalho da sessão será DESCARTADO**
-2. **O processo será REINICIADO do zero**
-3. **Violações repetidas serão REPORTADAS**
+**Critério de Aceitação**: 0 deadlocks, 0 race conditions detectadas
 
----
+### Exemplo de Concurrency Test
 
-## 📝 CHECKLIST ANTES DE DECLARAR TAREFA CONCLUÍDA
+```python
+import threading
+import pytest
 
-- [ ] Não há `NotImplementedError` no código
-- [ ] Não há métodos com apenas `pass`
-- [ ] Não há `# TODO` não resolvidos
-- [ ] Não há `...` (ellipsis) em implementações
-- [ ] Todos os testes relacionados passam
-- [ ] Cobertura do módulo ≥ 95%
-- [ ] Nenhum warning é gerado
-- [ ] Nenhum teste foi modificado para passar
-- [ ] Nenhum teste foi pulado
-- [ ] Todas as classes necessárias existem
-- [ ] Todos os arquivos .ui necessários existem
-- [ ] Type hints em todas as funções
-- [ ] Docstrings em todas as funções públicas
-
-**SE QUALQUER ITEM ACIMA NÃO FOR ATENDIDO, A TAREFA NÃO ESTÁ CONCLUÍDA.**
-
----
-
-## 🎯 LEMBRETE FINAL PARA COPILOT
-
-```
-╔═══════════════════════════════════════════════════════════════════════╗
-║                                                                       ║
-║   EXECUÇÃO EM 3 FASES SEQUENCIAIS OBRIGATÓRIAS:                      ║
-║                                                                       ║
-║   FASE 1: Implementar TUDO primeiro                                  ║
-║           (NotImplementedError, stubs, TODOs, signals)               ║
-║                     ↓                                                 ║
-║   FASE 2: Migrar TODA a UI para .ui                                  ║
-║           (45 arquivos, só após Fase 1 = 100%)                       ║
-║                     ↓                                                 ║
-║   FASE 3: Criar e rodar TODOS os testes                              ║
-║           (490 testes, só após Fases 1+2 = 100%)                     ║
-║                                                                       ║
-║   ─────────────────────────────────────────────────────────────────  ║
-║                                                                       ║
-║   • O TESTE ESTÁ CORRETO. SEMPRE.                                    ║
-║   • O CÓDIGO DEVE SER CORRIGIDO. SEMPRE.                             ║
-║   • NUNCA PARAR ATÉ 100% COMPLETO.                                   ║
-║   • NUNCA SIMPLIFICAR, NUNCA PULAR, NUNCA IGNORAR.                   ║
-║   • CRIAR O QUE FALTA, NÃO CONTORNAR O QUE FALTA.                    ║
-║   • NUNCA AVANÇAR DE FASE SEM 100% DA FASE ANTERIOR.                 ║
-║                                                                       ║
-╚═══════════════════════════════════════════════════════════════════════╝
+def test_session_state_thread_safety():
+    """Verifica que SessionState é thread-safe"""
+    state = SessionState()
+    errors = []
+    
+    def writer():
+        for i in range(100):
+            try:
+                state.set_selection(f"dataset_{i}", [f"series_{i}"])
+            except Exception as e:
+                errors.append(e)
+    
+    threads = [threading.Thread(target=writer) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    
+    assert len(errors) == 0, f"Thread safety violated: {errors}"
 ```
 
 ---
 
-# 📋 CATEGORIAS DE IMPLEMENTAÇÃO
+## 9. COBERTURA (Coverage)
+
+**Comando**: `pytest tests/ --cov=src/platform_base --cov-report=html --cov-fail-under=95`
+
+| # | Módulo | Cobertura Atual | Meta | Status |
+|---|--------|-----------------|------|--------|
+| 9.1 | [ ] `core/` | ~92% | 95% | ⬜ |
+| 9.2 | [ ] `processing/` | ~98% | 95% | ✅ |
+| 9.3 | [ ] `io/` | ~95% | 95% | ✅ |
+| 9.4 | [ ] `desktop/` | ~85% | 95% | ⬜ |
+| 9.5 | [ ] `ui/` | ~80% | 95% | ⬜ |
+| 9.6 | [ ] `viz/` | ~75% | 95% | ⬜ |
+| 9.7 | [ ] `utils/` | ~90% | 95% | ⬜ |
+| 9.8 | [ ] `caching/` | ~88% | 95% | ⬜ |
+| 9.9 | [ ] `streaming/` | ~82% | 95% | ⬜ |
+| 9.10 | [ ] **TOTAL** | ~87% | **95%** | ⬜ |
+
+### Arquivos que Precisam de Mais Cobertura
+
+| Arquivo | Cobertura | Linhas Faltando |
+|---------|-----------|-----------------|
+| `desktop/main_window.py` | 78% | 250 |
+| `desktop/widgets/viz_panel.py` | 72% | 200 |
+| `ui/panels/streaming_panel.py` | 75% | 150 |
+| `viz/figures_3d.py` | 65% | 180 |
+| `desktop/menus/plot_context_menu.py` | 80% | 200 |
+
+**Critério de Aceitação**: Cobertura global ≥ 95%
 
 ---
 
-## 🔴 CATEGORIA 10: INFRAESTRUTURA DE PRODUÇÃO (NOVOS REQUISITOS)
+## 10. TESTES DE PERFORMANCE/BENCHMARK
 
-> Esta categoria contém requisitos essenciais para produção que estavam ausentes na auditoria original.
+**Comando**: `pytest tests/performance/ -v --benchmark-autosave`
 
----
+| # | Tarefa | Função | Baseline | Meta | Status |
+|---|--------|--------|----------|------|--------|
+| 10.1 | [ ] `derivative()` 10K pontos | `derivative` | 2ms | <5ms | ⬜ |
+| 10.2 | [ ] `derivative()` 100K pontos | `derivative` | 15ms | <50ms | ⬜ |
+| 10.3 | [ ] `derivative()` 1M pontos | `derivative` | 150ms | <500ms | ⬜ |
+| 10.4 | [ ] `integral()` 1M pontos | `integral` | 100ms | <500ms | ⬜ |
+| 10.5 | [ ] `interpolate_linear()` 100K pontos | `interpolate` | 50ms | <200ms | ⬜ |
+| 10.6 | [ ] `interpolate_spline()` 100K pontos | `interpolate` | 200ms | <500ms | ⬜ |
+| 10.7 | [ ] `lttb_downsample()` 1M→10K | `downsample` | 500ms | <1s | ⬜ |
+| 10.8 | [ ] `synchronize()` 3 séries 100K | `sync` | 1s | <2s | ⬜ |
+| 10.9 | [ ] `load_csv()` 10MB | `load` | 500ms | <2s | ⬜ |
+| 10.10 | [ ] `load_xlsx()` 10MB | `load` | 2s | <5s | ⬜ |
+| 10.11 | [ ] `export_csv()` 1M rows | `export` | 1s | <3s | ⬜ |
+| 10.12 | [ ] `smooth_gaussian()` 100K | `smooth` | 20ms | <100ms | ⬜ |
+| 10.13 | [ ] VizPanel render 100K pontos | `render` | 100ms | <200ms | ⬜ |
+| 10.14 | [ ] VizPanel render 1M pontos | `render` | 300ms | <500ms | ⬜ |
+| 10.15 | [ ] SessionState save 10 datasets | `save` | 200ms | <500ms | ⬜ |
 
-### 10.1 Logging Estruturado para Debugging em Produção
-
-**Arquivo**: `utils/logging.py`, `core/logger.py`  
-**Status**: ESTRUTURA BÁSICA - PRECISA EXPANSÃO SIGNIFICATIVA
-
-#### Problema
-
-O sistema atual usa logging básico do Python sem estruturação adequada para diagnóstico em produção. Logs não são facilmente pesquisáveis, não há correlação entre eventos, e informações críticas de contexto estão ausentes.
-
-#### TODO
-
-- [ ] Implementar logger estruturado com JSON output
-- [ ] Adicionar correlation_id para rastrear operações através de componentes
-- [ ] Implementar log levels dinâmicos (configuráveis em runtime)
-- [ ] Adicionar context managers para logging automático de operações
-- [ ] Implementar sanitização de dados sensíveis nos logs
-- [ ] Criar rotating file handler com compressão
-- [ ] Adicionar métricas de timing automáticas para operações longas
-- [ ] Implementar log aggregation para múltiplas sessões
-- [ ] Criar interface visual para visualização de logs (LogViewer)
-- [ ] Adicionar export de logs para análise externa
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Logs em formato JSON válido com campos: `timestamp`, `level`, `message`, `correlation_id`, `component`, `duration_ms`
-- [ ] Correlation ID propagado através de todas as operações relacionadas (load → process → display)
-- [ ] Dados sensíveis (paths completos, dados do usuário) automaticamente mascarados
-- [ ] Rotação automática quando arquivo atinge 10MB, mantendo últimos 5 arquivos comprimidos
-- [ ] Alteração de log level via UI sem reiniciar aplicação
-- [ ] Operações > 100ms automaticamente logadas com duração
-- [ ] LogViewer integrado mostrando logs em tempo real com filtros por level/component
-- [ ] Export para CSV/JSON funcional com filtros de data/level
+**Critério de Aceitação**: 100% dos benchmarks dentro da meta
 
 ---
 
-### 10.2 Telemetria de Uso (Opcional)
+## 11. TESTES DE MUTAÇÃO
 
-**Arquivo**: `analytics/telemetry.py`, `analytics/metrics.py`  
-**Status**: NÃO IMPLEMENTADO
+**Comando**: `mutmut run --paths-to-mutate=src/platform_base/processing/`
 
-#### Problema
+### 11.1 Mutação em Módulos Críticos
 
-Sem telemetria, não há como priorizar melhorias baseadas em uso real, identificar gargalos de UX, ou entender quais features são mais/menos utilizadas.
+| # | Tarefa | Módulo | Mutantes | Kill Rate Meta | Status |
+|---|--------|--------|----------|----------------|--------|
+| 11.1.1 | [ ] Mutar `calculus.py` | `processing/` | ~100 | >90% | ⬜ |
+| 11.1.2 | [ ] Mutar `interpolation.py` | `processing/` | ~80 | >90% | ⬜ |
+| 11.1.3 | [ ] Mutar `downsampling.py` | `processing/` | ~60 | >90% | ⬜ |
+| 11.1.4 | [ ] Mutar `synchronization.py` | `processing/` | ~50 | >90% | ⬜ |
+| 11.1.5 | [ ] Mutar `smoothing.py` | `processing/` | ~40 | >90% | ⬜ |
+| 11.1.6 | [ ] Mutar `loader.py` | `io/` | ~70 | >85% | ⬜ |
+| 11.1.7 | [ ] Mutar `validator.py` | `io/` | ~50 | >85% | ⬜ |
+| 11.1.8 | [ ] Mutar `models.py` | `core/` | ~60 | >85% | ⬜ |
 
-#### TODO
+### 11.2 Análise de Mutantes Sobreviventes
 
-- [ ] Criar sistema de telemetria opt-in com consentimento explícito
-- [ ] Implementar coleta de métricas de uso (features utilizadas, frequência)
-- [ ] Adicionar tracking de performance (tempos de operação, tamanhos de arquivo)
-- [ ] Implementar tracking de erros anônimos
-- [ ] Criar dashboard local de estatísticas de uso
-- [ ] Implementar export de telemetria para análise
-- [ ] Adicionar configuração granular de o que é coletado
-- [ ] Implementar data retention policy (auto-delete após N dias)
+| # | Tarefa | Status |
+|---|--------|--------|
+| 11.2.1 | [ ] Identificar mutantes sobreviventes | ⬜ |
+| 11.2.2 | [ ] Criar testes para matar mutantes | ⬜ |
+| 11.2.3 | [ ] Documentar mutantes equivalentes | ⬜ |
+| 11.2.4 | [ ] Atingir kill rate > 90% em processing/ | ⬜ |
+| 11.2.5 | [ ] Atingir kill rate > 85% em io/ | ⬜ |
 
-#### ✓ Critérios de Aceitação
-
-- [ ] Diálogo de consentimento no primeiro uso com explicação clara do que é coletado
-- [ ] Opção de opt-out a qualquer momento via Settings com efeito imediato
-- [ ] Nenhum dado identificável pessoalmente coletado (apenas métricas agregadas)
-- [ ] Dashboard local mostrando: features mais usadas, tempo médio por operação, erros frequentes
-- [ ] Dados armazenados localmente por padrão (sem envio externo sem consentimento adicional)
-- [ ] Auto-delete de dados > 30 dias configurável
-- [ ] Lista completa do que é coletado visível nas configurações
-
----
-
-### 10.3 Crash Reporting Automático
-
-**Arquivo**: `core/crash_handler.py`, `utils/error_reporter.py`  
-**Status**: NÃO IMPLEMENTADO
-
-#### Problema
-
-Crashes silenciosos ou não reportados dificultam diagnóstico. Usuários frequentemente não sabem reportar problemas adequadamente, e informações de contexto são perdidas.
-
-#### TODO
-
-- [ ] Implementar global exception handler para PyQt6
-- [ ] Criar crash dump com informações de sistema e estado da aplicação
-- [ ] Implementar diálogo de crash recovery amigável
-- [ ] Adicionar captura de screenshots no momento do crash (opcional)
-- [ ] Implementar auto-save de emergência antes do crash
-- [ ] Criar sistema de crash reports locais para análise
-- [ ] Adicionar opção de envio de crash report (opt-in)
-- [ ] Implementar análise de padrões de crash localmente
-- [ ] Criar mecanismo de recuperação pós-crash
-
-#### ✓ Critérios de Aceitação
-
-- [ ] 100% dos crashes capturados pelo handler (nenhum crash silencioso)
-- [ ] Crash dump inclui: stack trace, versão do app, OS, RAM disponível, últimas 10 ações do usuário
-- [ ] Diálogo amigável aparece após crash com opções: Reiniciar, Ver Detalhes, Enviar Report
-- [ ] Auto-save de emergência salva sessão atual em < 2 segundos antes do crash
-- [ ] Crash reports armazenados em pasta dedicada com últimos 20 reports
-- [ ] Recuperação pós-crash oferece restaurar última sessão salva automaticamente
-- [ ] Crash report sanitiza paths e dados sensíveis antes de qualquer envio
+**Critério de Aceitação**: Kill rate ≥ 85% global, ≥ 90% em `processing/`
 
 ---
 
-### 10.4 Backup Automático de Sessão (Auto-Save)
+## 12. FUZZING
 
-**Arquivo**: `core/session_manager.py`, `core/auto_save.py`  
-**Status**: PARCIAL - APENAS SAVE MANUAL IMPLEMENTADO
+**Comando**: `python -m atheris tests/fuzz/fuzz_loader.py` (execução prolongada)
 
-#### Problema
+| # | Tarefa | Target | Duração | Status |
+|---|--------|--------|---------|--------|
+| 12.1 | [ ] Fuzz `load_csv()` com dados aleatórios | `io/loader.py` | 2h | ⬜ |
+| 12.2 | [ ] Fuzz `load_xlsx()` com dados aleatórios | `io/loader.py` | 2h | ⬜ |
+| 12.3 | [ ] Fuzz `derivative()` com arrays extremos | `processing/calculus.py` | 1h | ⬜ |
+| 12.4 | [ ] Fuzz `interpolate()` com timestamps inválidos | `processing/interpolation.py` | 1h | ⬜ |
+| 12.5 | [ ] Fuzz JSON deserialization | `core/models.py` | 1h | ⬜ |
+| 12.6 | [ ] Fuzz `validate_file()` | `io/validator.py` | 1h | ⬜ |
 
-Perda de trabalho em caso de crash, fechamento acidental, ou falha de energia. Usuários precisam lembrar de salvar manualmente.
+**Critério de Aceitação**: 0 crashes não tratados após 8h de fuzzing
 
-#### TODO
+### Exemplo de Fuzzer
 
-- [ ] Implementar auto-save periódico configurável (padrão: 5 minutos)
-- [ ] Criar backup incremental (apenas mudanças)
-- [ ] Implementar versionamento de backups (manter últimas N versões)
-- [ ] Adicionar indicador visual de status de auto-save
-- [ ] Implementar recuperação de sessão após crash/fechamento
-- [ ] Criar limpeza automática de backups antigos
-- [ ] Adicionar backup antes de operações destrutivas
-- [ ] Implementar sincronização em background (não bloquear UI)
-- [ ] Criar diálogo de recuperação no startup
+```python
+import atheris
+import sys
 
-#### ✓ Critérios de Aceitação
+with atheris.instrument_imports():
+    from platform_base.io.loader import load_csv
 
-- [ ] Auto-save executa a cada 5 minutos (configurável de 1-30 min)
-- [ ] Save em background não causa lag perceptível na UI (< 100ms de freeze)
-- [ ] Indicador na status bar mostra: último save, próximo save, status (saving/saved/error)
-- [ ] Mantém últimas 5 versões de backup com timestamps
-- [ ] Ao reabrir após crash, diálogo oferece: Recuperar Última Sessão, Abrir Backup Específico, Começar Nova
-- [ ] Backups > 7 dias automaticamente deletados
-- [ ] Backup forçado antes de qualquer operação que modifique > 50% dos dados
+def fuzz_csv_loader(data):
+    """Fuzz test para CSV loader"""
+    try:
+        # Criar arquivo temporário com dados fuzzed
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='wb', suffix='.csv', delete=False) as f:
+            f.write(data)
+            f.flush()
+            try:
+                load_csv(f.name)
+            except (ValueError, IOError):
+                pass  # Exceções esperadas
+    except Exception as e:
+        if not isinstance(e, (ValueError, IOError, UnicodeDecodeError)):
+            raise  # Crash inesperado
 
----
-
-### 10.5 Validação de Integridade de Arquivos Carregados
-
-**Arquivo**: `io/validator.py`, `io/integrity_checker.py`  
-**Status**: VALIDAÇÃO BÁSICA - INSUFICIENTE
-
-#### Problema
-
-Arquivos corrompidos, truncados, ou malformados podem causar crashes ou resultados incorretos sem aviso adequado ao usuário.
-
-#### TODO
-
-- [ ] Implementar verificação de checksum para arquivos carregados
-- [ ] Adicionar detecção de arquivos truncados
-- [ ] Implementar validação de schema para CSV/XLSX
-- [ ] Criar detecção de encoding incorreto
-- [ ] Implementar detecção de dados corrompidos (NaN excessivos, outliers extremos)
-- [ ] Adicionar verificação de consistência temporal (timestamps válidos)
-- [ ] Implementar relatório de qualidade de dados pré-carregamento
-- [ ] Criar opções de reparo automático para problemas comuns
-- [ ] Adicionar quarentena para arquivos suspeitos
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Verificação de integridade executa antes de qualquer processamento
-- [ ] Arquivos truncados (EOF inesperado) detectados com mensagem clara
-- [ ] Encoding detectado automaticamente com fallback e aviso se ambíguo
-- [ ] Relatório de qualidade mostra: % NaN, range de valores, gaps temporais, duplicatas
-- [ ] Opção de reparo automático para: remover linhas com NaN, interpolar gaps pequenos, remover duplicatas
-- [ ] Arquivos com > 20% de dados inválidos marcados como suspeitos com confirmação do usuário
-- [ ] Log de todas as validações e reparos aplicados para auditoria
+if __name__ == "__main__":
+    atheris.Setup(sys.argv, fuzz_csv_loader)
+    atheris.Fuzz()
+```
 
 ---
 
-### 10.6 Limites de Memória com Warnings ao Usuário
+## 13. TESTES DE CONFIGURAÇÃO/AMBIENTE
 
-**Arquivo**: `core/memory_manager.py`, `utils/resource_monitor.py`  
-**Status**: NÃO IMPLEMENTADO
+**Comando**: `tox` ou `nox`
 
-#### Problema
+### 13.1 Múltiplas Versões Python
 
-Carregar arquivos muito grandes pode consumir toda a RAM disponível, causando crashes ou travamentos do sistema operacional.
+| # | Tarefa | Python Version | Status |
+|---|--------|----------------|--------|
+| 13.1.1 | [ ] Testar com Python 3.12 | 3.12 | ⬜ |
+| 13.1.2 | [ ] Testar com Python 3.13 | 3.13 | ⬜ |
+| 13.1.3 | [ ] Testar com Python 3.14-dev | 3.14 | ⬜ |
 
-#### TODO
+### 13.2 Múltiplos Sistemas Operacionais
 
-- [ ] Implementar monitoramento contínuo de uso de memória
-- [ ] Adicionar estimativa de memória necessária antes de carregar arquivo
-- [ ] Criar warnings em níveis configuráveis (60%, 80%, 95%)
-- [ ] Implementar sugestões de ações quando memória alta
-- [ ] Adicionar garbage collection forçado em situações críticas
-- [ ] Implementar offloading de dados não visíveis para disco
-- [ ] Criar limite hard de memória configurável
-- [ ] Adicionar indicador de memória na status bar
-- [ ] Implementar modo de baixa memória automático
+| # | Tarefa | OS | Status |
+|---|--------|---|--------|
+| 13.2.1 | [ ] Testar em Windows 11 | Windows | ⬜ |
+| 13.2.2 | [ ] Testar em Ubuntu 22.04 | Linux | ⬜ |
+| 13.2.3 | [ ] Testar em macOS 14 | macOS | ⬜ |
 
-#### ✓ Critérios de Aceitação
+### 13.3 Configuração de tox.ini
 
-- [ ] Indicador de memória sempre visível na status bar (MB usados / MB disponíveis)
-- [ ] Warning amarelo em 60% de uso, vermelho em 80%, crítico em 95%
-- [ ] Antes de carregar arquivo > 100MB, estimativa de memória necessária exibida com confirmação
-- [ ] Em 80% de uso, sugestões aparecem: fechar datasets não usados, reduzir decimação, salvar e reiniciar
-- [ ] Em 95% de uso, auto-save forçado + oferece descarregar datasets menos recentes
-- [ ] Modo de baixa memória: decimação agressiva automática, desabilita undo history, limita cache
-- [ ] Limite hard configurável (padrão: 80% da RAM total) com bloqueio de novas operações se atingido
+```ini
+[tox]
+envlist = py312, py313, lint, type
 
----
+[testenv]
+deps = 
+    pytest
+    pytest-cov
+    pytest-qt
+    hypothesis
+commands = pytest tests/ --cov=src/platform_base
 
-### 10.7 Acessibilidade (a11y) - Keyboard Navigation e Screen Readers
+[testenv:lint]
+deps = ruff
+commands = ruff check src/
 
-**Arquivo**: `ui/accessibility.py`, `utils/a11y_helpers.py`  
-**Status**: NÃO IMPLEMENTADO
+[testenv:type]
+deps = mypy
+commands = mypy src/platform_base --strict
+```
 
-#### Problema
-
-A aplicação não é utilizável por pessoas com deficiências visuais ou motoras. Não há suporte a screen readers ou navegação completa por teclado.
-
-#### TODO
-
-- [ ] Implementar navegação completa por teclado (Tab order lógico)
-- [ ] Adicionar atalhos de teclado para todas as ações principais
-- [ ] Implementar suporte a screen readers (accessible names/descriptions)
-- [ ] Criar modo de alto contraste
-- [ ] Adicionar suporte a zoom de interface (não apenas dados)
-- [ ] Implementar descrições de gráficos para screen readers
-- [ ] Adicionar feedback sonoro para ações (opcional)
-- [ ] Criar skip links para navegação rápida
-- [ ] Implementar ARIA labels em todos os componentes custom
-- [ ] Testar com NVDA, JAWS, e VoiceOver
-
-#### ✓ Critérios de Aceitação
-
-- [ ] 100% das funcionalidades acessíveis apenas com teclado
-- [ ] Tab order segue fluxo visual lógico: menu → toolbar → data panel → viz panel → results
-- [ ] Todos os botões, inputs, e controles têm accessible name descritivo
-- [ ] Atalhos documentados e acessíveis via Help → Keyboard Shortcuts
-- [ ] Modo alto contraste atende WCAG 2.1 AA (contraste mínimo 4.5:1)
-- [ ] Zoom de interface de 100% a 200% sem perda de funcionalidade
-- [ ] Gráficos têm descrição textual alternativa: tipo, eixos, range, tendência geral
-- [ ] Teste com NVDA passa sem erros críticos de navegação
-- [ ] Focus indicators visíveis em todos os elementos interativos
+**Critério de Aceitação**: Todos os testes passam em Python 3.12+ e Windows/Linux
 
 ---
 
-## 🔴 CATEGORIA 1: BUGS CRÍTICOS (ALTA PRIORIDADE)
+## 📊 RESUMO FINAL
+
+### Totais de Testes por Categoria
+
+| Categoria | Testes Estimados |
+|-----------|------------------|
+| Análise Estática | ~50 verificações |
+| Doctests | ~67 exemplos |
+| Unitários | ~250 testes |
+| Property-based | ~15 propriedades × 100 exemplos |
+| Contrato/Schema | ~50 validações |
+| Integração | ~40 testes |
+| Snapshot | ~10 comparações |
+| Concorrência | ~15 cenários |
+| Performance | ~15 benchmarks |
+| Mutação | ~500 mutantes |
+| Fuzzing | ~8 horas contínuas |
+| Config/Ambiente | ~6 combinações |
+
+### Ordem de Execução Recomendada
+
+```
+1. Análise Estática (30 min)
+   └── Deve passar 100% antes de continuar
+
+2. Doctests (1 hora)
+   └── Valida documentação e exemplos
+
+3. Unitários (2 horas)
+   └── Base da pirâmide de testes
+
+4. Property-based (1.5 horas)
+   └── Encontra edge cases automaticamente
+
+5. Contrato/Schema (1 hora)
+   └── Valida interfaces entre componentes
+
+6. Integração (2 horas)
+   └── Valida fluxos completos
+
+7. Snapshot (1 hora)
+   └── Detecta regressões de output
+
+8. Concorrência (1.5 horas)
+   └── Valida thread-safety
+
+9. Cobertura (30 min)
+   └── Meta: ≥95%
+
+10. Performance (45 min)
+    └── Valida SLAs de tempo
+
+11. Mutação (4 horas)
+    └── Valida qualidade dos testes
+
+12. Fuzzing (8 horas - background)
+    └── Encontra crashes inesperados
+
+13. Config/Ambiente (2 horas)
+    └── Valida portabilidade
+```
+
+### Critérios Globais de Sucesso
+
+| Critério | Valor |
+|----------|-------|
+| Cobertura de código | ≥ 95% |
+| Testes passando | 100% |
+| Erros mypy | 0 |
+| Erros ruff | 0 |
+| Vulnerabilidades bandit HIGH | 0 |
+| Kill rate mutação | ≥ 85% |
+| Benchmarks dentro da meta | 100% |
+| Race conditions | 0 |
+| Crashes de fuzzing | 0 |
 
 ---
 
-### BUG-001: Sistema de Cores no Gráfico 2D
-
-**Arquivo**: `desktop/widgets/viz_panel.py`  
-**Status**: PARCIALMENTE IMPLEMENTADO - QUEBRADO
-
-#### Problema
-
-O índice de série para seleção de cor não incrementa corretamente. Apenas 2 cores funcionam (primeira e segunda série). O método `add_series()` usa `series_index` mas quem chama passa sempre o mesmo valor.
-
-#### TODO
-
-- [ ] Corrigir incremento de series_index em `_add_series_to_plot()`
-- [ ] Garantir que cada série receba índice único baseado na ordem de adição
-- [ ] Testar com 10+ séries para verificar ciclo de cores
-- [ ] Adicionar cor à legenda corretamente
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Ao adicionar 10 séries sequencialmente, cada uma recebe cor diferente da paleta
-- [ ] Cores ciclam corretamente após esgotar paleta (série 11 = cor 1)
-- [ ] Legenda mostra cor correspondente a cada série
-- [ ] Remover série do meio não afeta cores das outras séries
-- [ ] Teste automatizado com 15 séries passa sem cores duplicadas adjacentes
-
----
-
-### BUG-002: Legenda Mostrando "valor" em vez do Nome do Arquivo
-
-**Arquivo**: `desktop/widgets/viz_panel.py`  
-**Status**: NÃO IMPLEMENTADO
-
-#### Problema
-
-A legenda mostra texto genérico em vez do nome real da série/arquivo. O parâmetro `name` no `add_series()` recebe `series_id` quando deveria receber `series.name`.
-
-#### TODO
-
-- [ ] Passar `series.name` (nome original do arquivo) para `add_series()`
-- [ ] Atualizar legenda quando nome mudar
-- [ ] Adicionar tooltip com path completo do arquivo
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Legenda exibe nome do arquivo sem extensão (ex: `dados_2024` não `dados_2024.csv`)
-- [ ] Nomes longos (> 25 chars) são truncados com `...` e tooltip mostra nome completo
-- [ ] Hover sobre item da legenda mostra tooltip com path completo
-- [ ] Renomear série via context menu atualiza legenda imediatamente
-- [ ] Séries calculadas mostram nome descritivo (ex: `Derivada de dados_2024`)
-
----
-
-### BUG-003: Menu de Contexto (Click Direito) - Ações Não Funcionam
-
-**Arquivo**: `desktop/menus/plot_context_menu.py`  
-**Status**: STUBS - NÃO IMPLEMENTADO
-
-#### Problema
-
-6 métodos são apenas `pass` - ações do menu não fazem nada.
-
-#### TODO
-
-- [ ] Implementar `_toggle_grid()` - conectar com `plot.showGrid()`
-- [ ] Implementar `_toggle_legend()` - conectar com `plot.legend`
-- [ ] Implementar `_clear_selection()` - limpar seleção visual
-- [ ] Implementar `_select_all()` - selecionar todos os pontos
-- [ ] Implementar `_invert_selection()` - inverter seleção atual
-- [ ] Implementar `_hide_series()` - ocultar série específica
-- [ ] Implementar `_apply_lowpass_filter()` - não é apenas "coming soon"
-- [ ] Implementar `_apply_highpass_filter()` - não é apenas "coming soon"
-- [ ] Implementar `_apply_bandpass_filter()` - não é apenas "coming soon"
-- [ ] Implementar `_detect_outliers()` - não é apenas "coming soon"
-- [ ] Implementar `_copy_to_clipboard()` - copiar dados/imagem
-
-#### ✓ Critérios de Aceitação
-
-- [ ] `_toggle_grid()`: Grid aparece/desaparece; estado persiste na sessão; atalho `G` funciona
-- [ ] `_toggle_legend()`: Legenda aparece/desaparece; posição mantida; atalho `L` funciona
-- [ ] `_clear_selection()`: Toda seleção visual removida; signal emitido; atalho `Escape` funciona
-- [ ] `_select_all()`: Todos os pontos da série ativa selecionados; count exibido na status bar
-- [ ] `_invert_selection()`: Pontos selecionados ↔ não selecionados; funciona com seleção parcial
-- [ ] `_hide_series()`: Série oculta do gráfico mas permanece no data panel; checkbox desmarcado
-- [ ] `_apply_lowpass_filter()`: Diálogo com cutoff frequency; preview antes de aplicar; nova série criada
-- [ ] `_copy_to_clipboard()`: Opções: dados como CSV, imagem PNG, ou imagem SVG
-
----
-
-### BUG-004: Cálculos (Derivada, Integral, Área) Não Conectados à UI
-
-**Arquivos**: `ui/panels/operations_panel.py`, `desktop/workers/processing_worker.py`  
-**Status**: BACKEND EXISTE - UI NÃO CONECTADA
-
-#### Problema
-
-Os cálculos estão implementados em `processing/calculus.py`. A UI emite signals (`operation_requested`). NINGUÉM ESCUTA esses signals no desktop app.
-
-#### TODO
-
-- [ ] Criar conexão entre `OperationsPanel.operation_requested` e `ProcessingWorker`
-- [ ] No `MainWindow`, conectar signals do `operations_panel`
-- [ ] Implementar handler para receber resultado do worker
-- [ ] Exibir resultado no `ResultsPanel`
-- [ ] Adicionar série calculada ao gráfico
-- [ ] Implementar validação de dados antes do cálculo
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Clicar em "Calcular Derivada" com série selecionada inicia cálculo em < 100ms
-- [ ] Progress bar aparece durante cálculo; cancelável para operações > 2s
-- [ ] Resultado aparece no ResultsPanel com: valor, método usado, tempo de cálculo
-- [ ] Nova série "Derivada de [nome]" adicionada automaticamente ao gráfico
-- [ ] Erro claro se nenhuma série selecionada: "Selecione uma série primeiro"
-- [ ] Erro claro se dados insuficientes: "Mínimo de 3 pontos necessários"
-- [ ] Worker executa em thread separada (UI não trava durante cálculo)
-
----
-
-### BUG-005: Checkboxes de Séries Não Funcionam
-
-**Arquivo**: `desktop/widgets/data_panel.py`  
-**Status**: UI EXISTE - LÓGICA NÃO IMPLEMENTADA
-
-#### Problema
-
-Checkboxes existem na árvore de dados. Marcar/desmarcar não afeta o gráfico.
-
-#### TODO
-
-- [ ] Conectar checkbox state change com `viz_panel`
-- [ ] Implementar show/hide série baseado em checkbox
-- [ ] Persistir estado dos checkboxes na sessão
-- [ ] Implementar "Select All" / "Deselect All"
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Desmarcar checkbox oculta série do gráfico em < 50ms
-- [ ] Remarcar checkbox restaura série na mesma cor e posição de eixo Y
-- [ ] Estado dos checkboxes salvo na sessão e restaurado ao reabrir
-- [ ] Botão "Select All" marca todos os checkboxes e exibe todas as séries
-- [ ] Botão "Deselect All" desmarca todos e oculta todas as séries
-- [ ] Checkbox pai (dataset) controla todos os filhos (séries)
-
----
-
-### BUG-006: Gráficos 3D Não Renderizam
-
-**Arquivo**: `desktop/widgets/viz_panel.py`, `viz/figures_3d.py`  
-**Status**: ESTRUTURA EXISTE - RENDERIZAÇÃO QUEBRADA
-
-#### Problema
-
-PyVista é importado mas plots não aparecem. Falta conversão correta de dados para formato 3D.
-
-#### TODO
-
-- [ ] Implementar `plot_trajectory_3d()` completamente
-- [ ] Adicionar tratamento de erro quando < 3 séries selecionadas
-- [ ] Implementar controles de câmera 3D
-- [ ] Adicionar colormap selection
-- [ ] Implementar exportação de modelo 3D
-- [ ] Testar com diferentes tamanhos de dados
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Trajetória 3D renderiza corretamente com 3 séries selecionadas (X, Y, Z)
-- [ ] Erro claro se < 3 séries: "Selecione exatamente 3 séries para X, Y, Z"
-- [ ] Controles de câmera: rotação com mouse drag, zoom com scroll, reset com `R`
-- [ ] Dropdown de colormap com 10+ opções (viridis, plasma, jet, etc.)
-- [ ] Export para STL/OBJ/PLY funcional
-- [ ] Performance: 100K pontos renderiza em < 3s; 1M pontos em < 10s
-
----
-
-### BUG-007: Nomes de Arquivo Exibidos Incorretamente
-
-**Arquivo**: `desktop/widgets/data_panel.py`  
-**Status**: PARCIALMENTE IMPLEMENTADO
-
-#### Problema
-
-Path completo em vez de apenas filename. Encoding issues em nomes com caracteres especiais.
-
-#### TODO
-
-- [ ] Usar `Path(file).name` para exibição
-- [ ] Adicionar tooltip com path completo
-- [ ] Tratar encoding de nomes de arquivo
-- [ ] Permitir renomear séries
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Árvore mostra apenas filename, não path completo
-- [ ] Tooltip no hover mostra path completo
-- [ ] Nomes com acentos (é, ã, ç) exibidos corretamente
-- [ ] Nomes com caracteres especiais (日本語, emoji) exibidos corretamente
-- [ ] Double-click em nome permite edição inline; Enter confirma, Escape cancela
-
----
-
-## 🔴 CATEGORIA 2: FUNCIONALIDADES NÃO IMPLEMENTADAS
-
----
-
-### 2.1 Sistema de Streaming/Playback
-
-**Arquivos**: `ui/panels/streaming_panel.py`, `streaming/`  
-**Status**: UI EXISTE - 95% NÃO IMPLEMENTADO
-
-#### TODO
-
-- [ ] Implementar `_connect_signals()` no `StreamingPanel`
-- [ ] Criar engine de playback com timer QTimer
-- [ ] Implementar `_play()`, `_pause()`, `_stop()`, `_seek()`
-- [ ] Sincronizar posição com gráfico (janela deslizante)
-- [ ] Implementar controle de velocidade (0.5x, 1x, 2x, etc.)
-- [ ] Implementar loop e modo reverso
-- [ ] Adicionar timeline interativa com drag
-- [ ] Implementar minimap com overview dos dados
-- [ ] Conectar filtros de streaming
-- [ ] Implementar buffer de dados para performance
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Play inicia playback; gráfico mostra janela deslizante de N segundos
-- [ ] Pause congela na posição atual; Play retoma do mesmo ponto
-- [ ] Stop para e volta ao início
-- [ ] Slider de velocidade: 0.25x, 0.5x, 1x, 2x, 4x, 8x, 16x
-- [ ] Drag na timeline move posição; gráfico atualiza em < 50ms
-- [ ] Minimap mostra overview com indicador de posição atual
-- [ ] Loop: ao chegar no fim, volta ao início automaticamente
-- [ ] Atalhos: Space=Play/Pause, Left/Right=±1s, Home=início, End=fim
-
----
-
-### 2.2 Results Panel - Exibição de Resultados
-
-**Arquivo**: `desktop/widgets/results_panel.py`  
-**Status**: UI EXISTE - NÃO FUNCIONA
-
-#### TODO
-
-- [ ] Implementar `_poll_logs()` para mostrar logs em tempo real
-- [ ] Implementar `_export_results()` - não é apenas log
-- [ ] Conectar `ResultsPanel` com operações completadas
-- [ ] Exibir estatísticas de qualidade dos dados
-- [ ] Mostrar métricas de cálculos (área, integral, etc.)
-- [ ] Implementar tabela de resultados com sorting
-- [ ] Adicionar gráficos de qualidade
-- [ ] Permitir copiar resultados para clipboard
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Logs aparecem em tempo real com cores por level (INFO=azul, WARN=amarelo, ERROR=vermelho)
-- [ ] Ao completar cálculo, resultado aparece em tabela com: operação, resultado, timestamp
-- [ ] Tabela sortable por qualquer coluna
-- [ ] Estatísticas de dados: count, min, max, mean, std, % NaN
-- [ ] Gráfico de qualidade: histograma de valores
-- [ ] Botão Export gera CSV com todos os resultados
-- [ ] Ctrl+C com célula selecionada copia valor
-
----
-
-### 2.3 Sistema de Undo/Redo
-
-**Arquivo**: `ui/undo_redo.py`  
-**Status**: ESTRUTURA - 0% IMPLEMENTADO
-
-#### TODO
-
-- [ ] Implementar classe `Command` base funcional (não apenas pass)
-- [ ] Implementar `execute()` e `undo()` para cada tipo de operação
-- [ ] Implementar `CommandStack` com limite de memória
-- [ ] Conectar todas as operações com sistema de commands
-- [ ] Adicionar shortcuts Ctrl+Z / Ctrl+Y
-- [ ] Implementar redo queue
-- [ ] Persistir history entre sessões (opcional)
-- [ ] Mostrar histórico visual de operações
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Ctrl+Z desfaz última operação; estado visual atualiza imediatamente
-- [ ] Ctrl+Y refaz operação desfeita
-- [ ] Suporte a undo/redo para: adicionar série, remover série, aplicar filtro, calcular
-- [ ] Stack limitado a 50 operações ou 100MB de memória (o que vier primeiro)
-- [ ] Operações agrupadas quando < 1s entre elas (ex: múltiplos deletes)
-- [ ] Menu Edit mostra "Undo [nome da operação]" e "Redo [nome da operação]"
-- [ ] Painel de histórico mostra lista de operações com possibilidade de voltar a qualquer ponto
-
----
-
-### 2.4 Exportação de Dados
-
-**Arquivo**: `ui/export_dialog.py`, `desktop/workers/export_worker.py`  
-**Status**: PARCIAL - MUITAS FEATURES FALTANDO
-
-#### TODO
-
-- [ ] Implementar exportação de sessão completa
-- [ ] Implementar exportação de gráfico como imagem (PNG, SVG, PDF)
-- [ ] Implementar exportação de animação/vídeo
-- [ ] Adicionar opções de compressão
-- [ ] Implementar exportação seletiva (só séries marcadas)
-- [ ] Adicionar metadados nos arquivos exportados
-- [ ] Implementar batch export (múltiplos arquivos)
-- [ ] Suportar exportação para formatos científicos (MAT, NetCDF)
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Export CSV: delimitador configurável, encoding UTF-8/Latin1, com/sem header
-- [ ] Export XLSX: múltiplas séries em abas separadas ou mesma aba
-- [ ] Export PNG: resolução configurável (72-600 DPI), tamanho em pixels/cm
-- [ ] Export SVG: vetorial, editável em Illustrator/Inkscape
-- [ ] Export PDF: qualidade vetorial, metadados (título, autor, data)
-- [ ] Export MAT: compatível com MATLAB R2019b+
-- [ ] Export sessão: arquivo `.warp` próprio com todos os dados e configurações
-- [ ] Batch export: selecionar múltiplos datasets, escolher formato, exportar todos
-
----
-
-### 2.5 Sistema de Seleção Multi-View
-
-**Arquivos**: `ui/selection_sync.py`, `ui/multi_view_sync.py`  
-**Status**: ESTRUTURA - MAIORIA NÃO IMPLEMENTADA
-
-#### TODO
-
-- [ ] Implementar `apply_synced_selection()` - raise NotImplementedError atual
-- [ ] Implementar sincronização de seleção entre gráficos
-- [ ] Implementar brush selection (arrastar para selecionar)
-- [ ] Implementar lasso selection
-- [ ] Implementar box selection
-- [ ] Sincronizar zoom entre gráficos
-- [ ] Sincronizar crosshair entre gráficos
-- [ ] Implementar linked views (X-axis sync)
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Seleção em gráfico A reflete instantaneamente em gráfico B (se linked)
-- [ ] Brush selection: arrastar horizontalmente seleciona range temporal
-- [ ] Box selection: arrastar retângulo seleciona pontos dentro da área
-- [ ] Lasso selection: desenhar forma livre seleciona pontos dentro
-- [ ] Zoom em gráfico A aplica mesmo zoom em gráfico B (se sync habilitado)
-- [ ] Crosshair mostra posição em todos os gráficos sincronizados
-- [ ] Toggle para habilitar/desabilitar sync por gráfico
-
----
-
-### 2.6 Plot Sync - Sincronização de Gráficos
-
-**Arquivo**: `ui/plot_sync.py`  
-**Status**: ESTRUTURA - 5 MÉTODOS COM `pass`
-
-#### TODO
-
-- [ ] Implementar `_on_y_range_changed()` (linha 228)
-- [ ] Implementar `_on_x_range_changed()` (linha 252)
-- [ ] Implementar `_on_crosshair_moved()` (linha 274)
-- [ ] Implementar `_on_selection_changed()` (linha 297)
-- [ ] Implementar `_sync_widget()` completamente (linha 339)
-- [ ] Adicionar opção de desativar sincronização
-- [ ] Implementar sincronização de apenas X ou apenas Y
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Alterar range Y em gráfico master altera range Y em todos os slaves
-- [ ] Alterar range X sincroniza apenas se "Sync X" habilitado
-- [ ] Crosshair move em sync com < 16ms de latência (60fps)
-- [ ] Seleção temporal propagada para todos os gráficos sincronizados
-- [ ] Checkbox "Sync X" e "Sync Y" independentes por gráfico
-- [ ] Desabilitar sync não afeta estado atual, apenas para propagação futura
-
----
-
-### 2.7 Video Export
-
-**Arquivo**: `ui/video_export.py`  
-**Status**: ESTRUTURA - TODO EXPLÍCITO NO CÓDIGO
-
-#### TODO
-
-- [ ] Implementar `_frame_to_numpy()` corretamente (linha 229)
-- [ ] Implementar `_finalize_export()` (linha 239 - apenas pass)
-- [ ] Integrar com moviepy para geração de vídeo
-- [ ] Suportar GIF animado
-- [ ] Adicionar opções de qualidade/fps
-- [ ] Implementar progress tracking
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Export MP4 com codec H.264 funcional
-- [ ] Export GIF animado com palette optimization
-- [ ] FPS configurável: 15, 24, 30, 60
-- [ ] Resolução configurável: 720p, 1080p, 4K
-- [ ] Qualidade configurável: baixa (rápido), média, alta (lento)
-- [ ] Progress bar mostra: frame atual / total frames, tempo estimado restante
-- [ ] Preview de 5 segundos antes de exportar vídeo completo
-
----
-
-### 2.8 Eixo Datetime
-
-**Status**: NÃO IMPLEMENTADO
-
-#### Problema
-
-Eixo X sempre mostra segundos, não timestamps.
-
-#### TODO
-
-- [ ] Criar `DateTimeAxis` customizado para pyqtgraph
-- [ ] Implementar formatação de datetime no eixo
-- [ ] Suportar diferentes formatos (ISO, locale, etc.)
-- [ ] Implementar zoom com datetime awareness
-- [ ] Sincronizar seleção temporal com datetime
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Eixo X detecta automaticamente se dados são datetime e formata apropriadamente
-- [ ] Zoom adapta formato: anos → meses → dias → horas → minutos → segundos
-- [ ] Formato configurável: ISO 8601, locale do sistema, custom
-- [ ] Seleção de range mostra datetime de início e fim na status bar
-- [ ] Tooltip mostra datetime preciso (até milissegundos se disponível)
-
----
-
-### 2.9 Multi-Y Axis
-
-**Arquivo**: `desktop/widgets/viz_panel.py`  
-**Status**: ESTRUTURA EXISTE - NÃO FUNCIONA
-
-#### TODO
-
-- [ ] Corrigir `add_secondary_y_axis()` para funcionar
-- [ ] Implementar `_move_selected_to_y2()` (linha 617 - apenas comentário)
-- [ ] Permitir até 4 eixos Y
-- [ ] Colorir eixos conforme séries
-- [ ] Implementar auto-range para cada eixo
-- [ ] Adicionar indicador visual de qual eixo cada série usa
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Botão "Add Y Axis" cria segundo eixo Y à direita
-- [ ] Drag-drop de série para eixo Y2 move série para segundo eixo
-- [ ] Até 4 eixos Y suportados (Y1 esquerda, Y2 direita, Y3 esquerda externa, Y4 direita externa)
-- [ ] Cor do eixo Y corresponde à cor da série (ou primeira série se múltiplas)
-- [ ] Auto-range independente por eixo
-- [ ] Indicador na legenda mostra qual eixo Y cada série usa
-
----
-
-## 🟡 CATEGORIA 3: MELHORIAS DE UI/UX
-
----
-
-### 3.1 Temas
-
-**Status**: NÃO IMPLEMENTADO
-
-#### TODO
-
-- [ ] Implementar tema claro (atual)
-- [ ] Implementar tema escuro
-- [ ] Adicionar seletor de tema nas configurações
-- [ ] Persistir tema selecionado
-- [ ] Aplicar tema em todos os componentes
-- [ ] Suportar tema do sistema operacional
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Tema claro: fundo branco, texto preto, acentos em azul
-- [ ] Tema escuro: fundo #1E1E1E, texto #E0E0E0, acentos em azul claro
-- [ ] Mudança de tema aplica instantaneamente sem reiniciar
-- [ ] Gráficos respeitam tema (fundo, grid, texto)
-- [ ] Opção "Seguir Sistema" detecta tema do OS e acompanha mudanças
-- [ ] Tema salvo em configurações e restaurado ao abrir
-
----
-
-### 3.2 Internacionalização (i18n)
-
-**Arquivo**: `utils/i18n.py`  
-**Status**: ESTRUTURA - 1 TODO + muitas traduções faltando
-
-#### TODO
-
-- [ ] Completar traduções PT-BR
-- [ ] Adicionar suporte a EN
-- [ ] Implementar seletor de idioma
-- [ ] Traduzir mensagens de erro
-- [ ] Traduzir tooltips
-- [ ] Adicionar suporte a ES (opcional)
-
-#### ✓ Critérios de Aceitação
-
-- [ ] 100% das strings de UI traduzidas para PT-BR e EN
-- [ ] Mensagens de erro traduzidas e culturalmente apropriadas
-- [ ] Tooltips traduzidos
-- [ ] Mudança de idioma aplica sem reiniciar (ou com aviso de reinício necessário)
-- [ ] Formato de números respeita locale (1.000,50 vs 1,000.50)
-- [ ] Formato de datas respeita locale (DD/MM/YYYY vs MM/DD/YYYY)
-
----
-
-### 3.3 Tooltips e Help
-
-**Status**: PARCIAL
-
-#### TODO
-
-- [ ] Adicionar tooltips em todos os botões
-- [ ] Implementar help contextual (F1)
-- [ ] Criar documentação inline
-- [ ] Adicionar "What's This?" mode
-
-#### ✓ Critérios de Aceitação
-
-- [ ] 100% dos botões e controles têm tooltip descritivo
-- [ ] F1 abre ajuda contextual para o elemento focado
-- [ ] Shift+F1 ativa modo "What's This?" - cursor muda, clique mostra ajuda
-- [ ] Tooltips aparecem após 500ms de hover, desaparecem após 5s
-- [ ] Ajuda contextual inclui link para documentação online
-
----
-
-### 3.4 Keyboard Shortcuts
-
-**Status**: PARCIAL
-
-#### TODO
-
-- [ ] Documentar todos os shortcuts existentes
-- [ ] Adicionar shortcuts faltantes (ver lista abaixo)
-- [ ] Permitir customização de shortcuts
-- [ ] Mostrar shortcuts em tooltips
-
-**Shortcuts a implementar:**
-
-- [ ] `Ctrl+D` - Duplicar série
-- [ ] `Delete` - Remover série selecionada
-- [ ] `Ctrl+A` - Selecionar tudo
-- [ ] `Ctrl+Shift+A` - Desselecionar tudo
-- [ ] `F5` - Atualizar dados
-- [ ] `F11` - Fullscreen
-- [ ] `Space` - Play/Pause streaming
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Help → Keyboard Shortcuts mostra lista completa de atalhos
-- [ ] Tooltips incluem shortcut quando aplicável (ex: "Salvar (Ctrl+S)")
-- [ ] Settings → Shortcuts permite customizar qualquer atalho
-- [ ] Conflitos de atalho detectados e avisados
-- [ ] Atalhos desabilitados quando não aplicáveis (ex: Delete sem seleção)
-
----
-
-## 🟡 CATEGORIA 4: CONEXÕES UI↔BACKEND FALTANTES
-
----
-
-### 4.1 Operations Panel → Processing
-
-**Problema**: UI emite signals que ninguém escuta
-
-#### TODO
-
-- [ ] Em `MainWindow.__init__`, adicionar:
-  ```python
-  self.operations_panel = OperationsPanel(...)
-  self.operations_panel.operation_requested.connect(self._handle_operation)
-  ```
-- [ ] Implementar `_handle_operation(operation, params)`:
-  - Validar dados selecionados
-  - Criar worker apropriado
-  - Conectar `worker.finished` → `ResultsPanel`
-  - Conectar `worker.error` → `StatusBar`
-- [ ] Conectar `OperationsPanel` ao desktop app (não apenas ui app)
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Clicar em qualquer botão de operação no OperationsPanel inicia o cálculo
-- [ ] Signal `operation_requested` conectado a handler no MainWindow
-- [ ] Handler valida seleção, cria worker, e gerencia resultado
-- [ ] Resultado aparece no ResultsPanel E como nova série no gráfico
-
----
-
-### 4.2 Data Panel → Viz Panel
-
-**Problema**: Selecionar série não plota automaticamente
-
-#### TODO
-
-- [ ] Conectar `data_panel.series_double_clicked` → `viz_panel.add_series`
-- [ ] Conectar `data_panel.checkbox_changed` → `viz_panel.toggle_series`
-- [ ] Implementar drag & drop de série para gráfico
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Double-click em série adiciona ao gráfico ativo
-- [ ] Checkbox toggle mostra/oculta série no gráfico
-- [ ] Drag série do DataPanel e drop no gráfico adiciona série
-- [ ] Drop em área vazia cria novo gráfico com a série
-
----
-
-### 4.3 Config Panel → Todos os Componentes
-
-**Problema**: Mudanças de config não afetam componentes
-
-#### TODO
-
-- [ ] Conectar config changes com `viz_panel` (cores, grid, etc.)
-- [ ] Conectar config changes com `streaming panel`
-- [ ] Conectar config changes com `performance settings`
-- [ ] Implementar botões "Apply" e "Reset"
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Mudar interpolation method no ConfigPanel afeta próximo cálculo
-- [ ] Mudar decimation settings afeta renderização imediatamente
-- [ ] Mudar streaming window size afeta playback
-- [ ] Botão Apply aplica mudanças; Reset reverte para valores salvos
-- [ ] Mudanças não salvas indicadas com `*` no título do painel
-
----
-
-## 🔴 CATEGORIA 5: COMPONENTES DO DESKTOP APP FALTANTES
-
----
-
-### 5.1 Operations Panel no Desktop App
-
-**Problema**: Existe em `ui/panels/operations_panel.py` mas não está no desktop app
-
-#### TODO
-
-- [ ] Adicionar `OperationsPanel` ao `desktop/main_window.py`
-- [ ] Criar dock widget para operations
-- [ ] Conectar com `session_state`
-- [ ] Conectar com `signal_hub`
-
-#### ✓ Critérios de Aceitação
-
-- [ ] OperationsPanel visível como dock widget no lado direito
-- [ ] Dock é redimensionável e pode ser destacado (floating)
-- [ ] Estado do dock salvo na sessão (posição, tamanho, visibilidade)
-- [ ] Operações refletem seleção atual do session_state
-
----
-
-### 5.2 Streaming Panel no Desktop App
-
-**Problema**: Existe em `ui/panels/streaming_panel.py` mas não está no desktop app
-
-#### TODO
-
-- [ ] Adicionar `StreamingPanel` ao desktop app
-- [ ] Integrar controles na toolbar ou dock
-- [ ] Conectar com `viz_panel` para atualização de janela
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Controles de streaming visíveis na toolbar inferior
-- [ ] Play/Pause/Stop funcionam e atualizam gráfico
-- [ ] Timeline mostra posição atual e permite seek
-- [ ] Controle de velocidade acessível
-
----
-
-### 5.3 Preview Dialog para Operações
-
-**Arquivo**: `ui/operation_preview.py`  
-**Status**: EXISTE - NÃO CONECTADO
-
-#### TODO
-
-- [ ] Integrar `OperationPreviewDialog` no fluxo de operações
-- [ ] Mostrar preview antes de aplicar operação
-- [ ] Implementar comparação before/after
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Checkbox "Show Preview" nas operações (default: on)
-- [ ] Preview mostra: gráfico before, gráfico after, diff highlights
-- [ ] Botões: Apply, Cancel, Apply Without Preview (for next time)
-- [ ] Preview renderiza em < 1s para datasets de até 100K pontos
-
----
-
-## 🔴 CATEGORIA 6: TESTES E QUALIDADE (PIRÂMIDE COMPLETA)
-
-> ⚠️ **POLÍTICA DE TESTES**: Nenhum teste pode ser ignorado, simplificado ou omitido.
-> Se um teste falhar, DEVE ser corrigido antes de prosseguir.
-> Cobertura mínima exigida: **95%** para produção.
-
-### 📊 Sumário de Testes
-
-| Nível | Tipo | Status | Cobertura Alvo | Ferramentas |
-|-------|------|--------|----------------|-------------|
-| 1º | Linting/Static | 🔴 0% | N/A | ruff, mypy, bandit |
-| 2º | Unit Tests | 🔴 ~15% | 95% | pytest |
-| 3º | Doctests | 🔴 0% | 100% funções públicas | pytest --doctest |
-| 4º | Integration | 🔴 0% | 80% | pytest |
-| 5º | Property-based | 🔴 0% | Funções matemáticas | hypothesis |
-| 6º | GUI/Functional | 🔴 0% | Fluxos críticos | pytest-qt |
-| 7º | Performance | 🔴 0% | Baselines definidos | pytest-benchmark |
-| 8º | E2E | 🔴 0% | Cenários principais | pytest-qt |
-| 9º | Load/Stress | 🔴 0% | Limites definidos | locust, pytest |
-| 10º | Smoke Tests | 🔴 0% | 100% | pytest -m smoke |
-
-### ✓ Critérios de Aceitação Globais para Testes
-
-- [ ] `ruff check .` passa sem erros
-- [ ] `mypy src/ --strict` passa sem erros
-- [ ] `bandit -r src/` não encontra vulnerabilidades críticas
-- [ ] `pytest tests/unit --cov --cov-fail-under=95` passa
-- [ ] `pytest tests/smoke -m smoke` passa em < 60 segundos
-- [ ] Nenhum teste marcado como `@pytest.mark.skip` sem justificativa documentada
-- [ ] CI/CD executa todos os testes em cada PR
-- [ ] Coverage report HTML gerado e acessível
-
-### Resumo de Testes a Criar
-
-| Categoria | Arquivos | Testes | Prioridade |
-|-----------|----------|--------|------------|
-| Linting Config | 3 | N/A | 🔴 CRÍTICA |
-| Unit Tests | 25 | ~250 | 🔴 CRÍTICA |
-| Doctests | 8 | ~50 | 🟡 MÉDIA |
-| Integration | 5 | ~40 | 🔴 ALTA |
-| Property-based | 2 | ~15 | 🟡 MÉDIA |
-| GUI/Functional | 4 | ~60 | 🔴 ALTA |
-| Performance | 4 | ~30 | 🟡 MÉDIA |
-| E2E | 3 | ~20 | 🔴 ALTA |
-| Stress | 3 | ~15 | 🟢 BAIXA |
-| Smoke | 1 | ~10 | 🔴 CRÍTICA |
-| **TOTAL** | **58** | **~490** | - |
-
----
-
-## 🟡 CATEGORIA 7: PERFORMANCE E OTIMIZAÇÃO
-
----
-
-### 7.1 Decimação de Dados para Visualização
-
-**Arquivo**: `processing/downsampling.py`, `ui/panels/performance.py`  
-**Status**: IMPLEMENTADO NO BACKEND - NÃO CONECTADO
-
-#### TODO
-
-- [ ] Conectar adaptive decimation com `viz_panel`
-- [ ] Implementar LOD (Level of Detail) baseado em zoom
-- [ ] Adicionar indicador de decimação no gráfico
-- [ ] Permitir desativar decimação
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Dados > 10K pontos automaticamente decimados para renderização
-- [ ] Zoom in aumenta resolução na região visível
-- [ ] Indicador mostra: "Exibindo 5.000 de 1.000.000 pontos"
-- [ ] Checkbox "Show All Points" desabilita decimação (com warning de performance)
-- [ ] LOD: zoom out = menos pontos, zoom in = mais pontos, transição suave
-
----
-
-### 7.2 Caching
-
-**Arquivo**: `caching/disk.py`, `caching/memory.py`  
-**Status**: ESTRUTURA - PARCIALMENTE IMPLEMENTADO
-
-#### TODO
-
-- [ ] Implementar cache de arquivos carregados
-- [ ] Implementar cache de cálculos
-- [ ] Adicionar invalidação de cache
-- [ ] Implementar limite de memória
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Segundo load do mesmo arquivo é 10x mais rápido (cache hit)
-- [ ] Recalcular derivada com mesmos parâmetros retorna cache
-- [ ] Modificar dados invalida cache dependente automaticamente
-- [ ] Cache limitado a 500MB; LRU eviction quando cheio
-- [ ] Cache stats visíveis em Settings: hits, misses, size
-
----
-
-### 7.3 Lazy Loading
-
-**Status**: NÃO IMPLEMENTADO
-
-#### TODO
-
-- [ ] Implementar carregamento sob demanda para arquivos grandes
-- [ ] Carregar apenas janela visível do gráfico
-- [ ] Implementar virtual scrolling para listas grandes
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Arquivos > 100MB carregam header em < 1s, dados sob demanda
-- [ ] Scroll no gráfico carrega dados necessários em < 100ms
-- [ ] Lista com 10.000 séries renderiza em < 500ms (virtual scroll)
-- [ ] Indicador de loading durante carregamento sob demanda
-
----
-
-## 📝 CATEGORIA 8: DOCUMENTAÇÃO
-
----
-
-### 8.1 Documentação de Usuário
-
-#### TODO
-
-- [ ] Manual de uso completo
-- [ ] Tutoriais em vídeo
-- [ ] FAQ
-- [ ] Troubleshooting guide
-
-#### ✓ Critérios de Aceitação
-
-- [ ] Manual cobre 100% das funcionalidades com screenshots
-- [ ] Quick Start guide permite usar features principais em < 15 min
-- [ ] FAQ com 20+ perguntas frequentes
-- [ ] Troubleshooting cobre erros comuns com soluções passo-a-passo
-- [ ] Documentação disponível offline dentro da aplicação
-
----
-
-### 8.2 Documentação de Desenvolvedor
-
-#### TODO
-
-- [ ] API reference completa
-- [ ] Architecture overview
-- [ ] Contributing guide
-- [ ] Plugin development guide
-
-#### ✓ Critérios de Aceitação
-
-- [ ] API reference gerada automaticamente de docstrings (Sphinx)
-- [ ] Diagrama de arquitetura atualizado
-- [ ] Contributing guide com setup de ambiente em < 10 passos
-- [ ] Plugin guide com exemplo funcional de análise custom
-
----
-
-## 🎨 CATEGORIA 9: MIGRAÇÃO COMPLETA PARA Qt Designer (.ui)
-
-> **IMPORTANTE**: Atualmente a aplicação tem 2 arquivos .ui criados mas **NÃO SÃO USADOS**.
-> O código Python cria toda a UI programaticamente.
-
-### Estado Atual
-
-| Categoria | Quantidade | .ui Existentes | A Criar |
-|-----------|------------|----------------|---------|
-| MainWindows | 2 | 1 (não usado) | 2 |
-| Diálogos | 16 | 0 | 16 |
-| Painéis | 11 | 1 (não usado) | 11 |
-| Widgets Config | 10 | 0 | 10 |
-| Widgets Seleção | 5 | 0 | 5 |
-| Widgets Streaming | 4 | 0 | 4 |
-| Widgets Viz | 6 | 0 | (promoted) |
-| Menus/Toolbars | 3 | 0 | 3 |
-| Frames | 3 | 0 | 3 |
-| **TOTAL** | **60** | **2** | **~45** |
-
-### ✓ Critérios de Aceitação da Migração
-
-- [ ] 100% dos diálogos carregados de arquivos .ui
-- [ ] 100% dos painéis principais carregados de arquivos .ui
-- [ ] `UiLoaderMixin` funcional e documentado
-- [ ] Promoted widgets configurados para gráficos
-- [ ] Nenhuma regressão visual após migração
-- [ ] Build process compila .ui automaticamente
-- [ ] Testes de regressão passam após cada migração
-
----
-
-## 📊 MÉTRICAS FINAIS
-
-| Métrica | Valor |
-|---------|-------|
-| **Total de Itens TODO** | ~350+ |
-| **Estimativa de Esforço Revisada** | 24-32 semanas |
-| **Cobertura de Testes Alvo** | 95% |
-| **Novos Requisitos Críticos (Cat. 10)** | 7 |
-| **Total de Critérios de Aceitação** | ~200 |
-
-### Resumo por Fase
-
-| Fase | Itens | Estimativa |
-|------|-------|------------|
-| **FASE 1** - Implementação | ~200 itens | 12-16 semanas |
-| **FASE 2** - Migração .ui | 45 arquivos | 4-6 semanas |
-| **FASE 3** - Testes | ~490 testes | 8-10 semanas |
-
-### Checklist Final para Produção
-
-#### ✓ FASE 1 Concluída
-- [ ] 0 crashes em uso normal
-- [ ] Todas as 7 features core funcionando (load, plot, calculate, export, streaming, selection, 3D)
-- [ ] Todos os 176+ stubs implementados
-- [ ] 0 "coming soon" messages
-- [ ] 0 `pass` statements em handlers de UI
-- [ ] Logging estruturado funcional
-- [ ] Crash reporting funcional
-- [ ] Auto-save funcional
-- [ ] Validação de integridade funcional
-- [ ] Limites de memória com warnings
-- [ ] Navegação por teclado 100% funcional
-
-#### ✓ FASE 2 Concluída
-- [ ] 45 arquivos .ui criados
-- [ ] 100% da UI carregada de arquivos .ui
-- [ ] 0 criação programática de UI
-- [ ] Aplicação renderiza corretamente
-- [ ] Nenhuma regressão funcional
-
-#### ✓ FASE 3 Concluída
-- [ ] Cobertura de testes ≥ 95%
-- [ ] ~490 testes passando
-- [ ] 0 testes pulados
-- [ ] 0 warnings suprimidos
-- [ ] Performance: load 1M pontos < 5s, plot < 1s
-- [ ] Documentação de usuário completa
-- [ ] Aplicação executa sem crashes por 8 horas contínuas
-
----
-
-*Documento gerado em: 01/02/2026*  
-*Versão: 2.0 Consolidada*  
-*Auditoria original: 30/01/2026*
+*TODO List gerada em: 02/02/2026*  
+*Baseada em: RELATORIO_TESTES_COMPLETO.md*  
+*Meta: 95% de cobertura*

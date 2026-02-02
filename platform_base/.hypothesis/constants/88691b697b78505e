@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\analytics\telemetry.py
+# hypothesis_version: 6.151.4
+
+[0.0, 3600, 'collect_errors', 'collect_file_stats', 'collect_performance', 'csv', 'data', 'duration_ms', 'duration_seconds', 'enabled', 'error_type', 'event_type', 'feature', 'format', 'id', 'json', 'load', 'message_hash', 'operation', 'r', 'retention_days', 'session_id', 'size_bytes', 'success', 'telemetry.db', 'timestamp', 'unknown', 'utf-8', 'w']

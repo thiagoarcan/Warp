@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\core\structured_logger.py
+# hypothesis_version: 6.151.4
+
+[100.0, 1000, 1024, '\x1b[0m', '\x1b[31m', '\x1b[32m', '\x1b[33m', '\x1b[35m', '\x1b[36m', '(/home/[^/]+)', 'CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'WARNING', 'Z', '[EMAIL]', '[REDACTED]', '[USER_PATH]', 'a', 'api_key', 'api_key: [REDACTED]', 'auth', 'component', 'correlation_id', 'credential', 'csv', 'duration_ms', 'error', 'error_type', 'extra', 'json', 'level', 'message', 'operation', 'password', 'password: [REDACTED]', 'platform_base.log', 'r', 'rb', 'secret', 'secret: [REDACTED]', 'threshold', 'timestamp', 'token', 'token: [REDACTED]', 'utf-8', 'value', 'w', 'wb']

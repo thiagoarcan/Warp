@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\io\validator.py
+# hypothesis_version: 6.151.4
+
+[b'\n', b'\r\n', 0.0, 0.01, 0.25, 0.7, 0.75, 0.95, 5.0, 100, 1000, 65536, 100000, '%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f', '%d/%m/%Y', '%d/%m/%Y %H:%M:%S', '%m/%d/%Y', '%m/%d/%Y %H:%M:%S', '.csv', '.txt', '.xls', '.xlsx', '__index__', 'checksum_md5', 'checksum_sha256', 'coerce', 'column', 'column_count', 'confidence', 'count', 'duplicate_rows', 'encoding', 'encoding_confidence', 'encoding_uncertain', 'file_truncated', 'is_truncated', 'issues', 'linear', 'md5', 'missing_ratio', 'nan_percent', 'outlier_count', 'path', 'quality_check_failed', 'raise', 'rb', 'row_count', 'series_high_missing', 'sha256', 'size_bytes', 'suggestions', 'temporal_gaps', 'timestamp_duplicates', 'timestamp_nan', 'unknown', 'utf-8', 'value_range']
