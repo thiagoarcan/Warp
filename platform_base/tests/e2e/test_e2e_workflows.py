@@ -18,7 +18,7 @@ class TestUserWorkflowAnalysis:
         """Complete user workflow: Load → Visualize → Calculate → Export."""
         from platform_base.io.loader import load
         from platform_base.processing.calculus import derivative, integral
-        
+
         # User loads data file
         csv_file = tmp_path / "sensor_data.csv"
         t = np.linspace(0, 100, 1000)
@@ -38,8 +38,8 @@ class TestUserWorkflowAnalysis:
         accel_result = derivative(series.values, dataset.t_seconds, order=1)
         assert accel_result is not None
         
-        # Step 4: Calculate integral (position)
-        position_result = integral(series.values, dataset.t_seconds)
+        # Step 4: Calculate cumulative integral (position)
+        position_result = integral(series.values, dataset.t_seconds, method="cumulative")
         assert position_result is not None
         
         # Step 5: Export results
@@ -61,7 +61,7 @@ class TestUserWorkflowAnalysis:
         """Workflow: Load multiple files → Compare → Export comparison."""
         from platform_base.io.loader import load
         from platform_base.processing.synchronization import synchronize
-        
+
         # Create multiple test files (e.g., different sensors)
         files = []
         for i in range(3):
@@ -87,15 +87,15 @@ class TestUserWorkflowAnalysis:
         synced = synchronize(series_dict, time_dict, method="common_grid_interpolate", params={})
         
         # Verify synchronization
-        assert len(synced.synced_data) == 3
-        lengths = [len(v) for v in synced.synced_data.values()]
+        assert len(synced.synced_series) == 3
+        lengths = [len(v) for v in synced.synced_series.values()]
         assert len(set(lengths)) == 1  # All same length after sync
         
         # Export comparison
         output = tmp_path / "comparison.csv"
         df_compare = pd.DataFrame({
-            "time": synced.common_time,
-            **synced.synced_data
+            "time": synced.t_common,
+            **synced.synced_series
         })
         df_compare.to_csv(output, index=False)
         assert output.exists()
@@ -104,7 +104,7 @@ class TestUserWorkflowAnalysis:
         """Workflow: Load → Check quality → Clean → Interpolate → Analyze."""
         from platform_base.io.loader import load
         from platform_base.processing.interpolation import interpolate
-        
+
         # Create noisy data with gaps
         csv_file = tmp_path / "noisy_data.csv"
         t = np.linspace(0, 100, 1000)
@@ -138,28 +138,41 @@ class TestDataStreamingWorkflow:
     
     def test_streaming_playback_workflow(self):
         """Workflow: Load time series → Stream/playback → Apply filters in real-time."""
-        from platform_base.streaming.filters import LowpassFilter
-        
+        from platform_base.streaming.filters import FilterAction, QualityFilter
+
         # Generate time series data
         t = np.linspace(0, 10, 1000)
-        # Signal with noise
-        signal = np.sin(2 * np.pi * t) + 0.2 * np.sin(20 * np.pi * t)
+        # Signal with noise and some outliers
+        signal = np.sin(2 * np.pi * t) + 0.1 * np.random.randn(len(t))
+        # Add outlier
+        signal[500] = 100.0
         
-        # Simulate streaming - process in chunks
-        chunk_size = 100
-        filter_obj = LowpassFilter(cutoff=5.0, fs=100.0)
+        # Create QualityFilter with correct API
+        filter_obj = QualityFilter(
+            name="quality_filter",
+            outlier_method="zscore",
+            outlier_threshold=3.0,
+            window_size=20
+        )
         
-        filtered_chunks = []
-        for i in range(0, len(signal), chunk_size):
-            chunk = signal[i:i+chunk_size]
-            filtered_chunk = filter_obj.apply(chunk)
-            filtered_chunks.append(filtered_chunk)
+        # Simulate streaming - process point by point
+        filtered_values = []
+        for i in range(len(signal)):
+            result = filter_obj.apply(t[i], signal[i])
+            if result.action == FilterAction.PASS:
+                filtered_values.append(signal[i])
+            elif result.action == FilterAction.INTERPOLATE and result.value is not None:
+                filtered_values.append(result.value)
+            elif result.action == FilterAction.BLOCK and filtered_values:
+                # For blocked values, keep last valid or use NaN
+                filtered_values.append(filtered_values[-1] if filtered_values else np.nan)
+            else:
+                filtered_values.append(np.nan)
         
-        # Combine chunks
-        filtered_full = np.concatenate(filtered_chunks)
-        
-        # High frequency should be attenuated
-        assert len(filtered_full) <= len(signal)
+        # Verify filtering worked
+        assert len(filtered_values) == len(signal)
+        # Verify QualityFilter efficiency is tracked
+        assert filter_obj.get_efficiency() > 0
 
 
 class TestExportWorkflows:
@@ -168,7 +181,7 @@ class TestExportWorkflows:
     def test_export_multiple_formats_workflow(self, tmp_path):
         """Workflow: Process data → Export to multiple formats."""
         from platform_base.io.loader import load
-        
+
         # Create source data
         csv_file = tmp_path / "source.csv"
         t = np.linspace(0, 10, 100)
@@ -204,26 +217,51 @@ class TestExportWorkflows:
     
     def test_export_with_metadata_workflow(self, tmp_path):
         """Workflow: Add metadata → Export with embedded metadata."""
-        from platform_base.core.models import Dataset, Series
-        
+        from datetime import datetime
+
+        from platform_base.core.models import (
+            Dataset,
+            DatasetMetadata,
+            Series,
+            SeriesMetadata,
+            SourceInfo,
+        )
+        from platform_base.processing.units import parse_unit
+
         # Create dataset with metadata
         t = np.linspace(0, 10, 100)
         y = np.sin(t)
         
+        series_meta = SeriesMetadata(
+            original_name="Test Signal",
+            source_column="value",
+            original_unit="m/s",
+            description="IMU-001 sensor in Engine Room"
+        )
         series = Series(
             series_id="test",
             name="Test Signal",
             values=y,
-            unit="m/s",
-            metadata={"sensor": "IMU-001", "location": "Engine Room"}
+            unit=parse_unit("m/s"),
+            metadata=series_meta
         )
         
         dataset = Dataset(
             dataset_id="test_ds",
-            name="Test Dataset",
+            version=1,
+            parent_id=None,
+            source=SourceInfo(
+                filepath="test.csv",
+                filename="test.csv",
+                format="csv",
+                size_bytes=1000,
+                checksum="abc123"
+            ),
             series={"test": series},
             t_seconds=t,
-            metadata={"project": "Sea Trial", "vessel": "Ship-123"}
+            t_datetime=np.array([np.datetime64('2020-01-01') + np.timedelta64(int(s), 's') for s in t]),
+            metadata=DatasetMetadata(description="Test Dataset"),
+            created_at=datetime.now()
         )
         
         # Export with metadata
@@ -238,8 +276,8 @@ class TestExportWorkflows:
         metadata_file = tmp_path / "metadata.json"
         import json
         metadata_file.write_text(json.dumps({
-            "dataset": dataset.metadata,
-            "series": series.metadata
+            "dataset": {"description": dataset.metadata.description},
+            "series": {"original_name": series.metadata.original_name}
         }))
         
         assert output.exists()
@@ -251,12 +289,12 @@ class TestInteractiveAnalysisWorkflow:
     
     def test_iterative_parameter_tuning_workflow(self, tmp_path):
         """Workflow: Load → Try different parameters → Select best → Export."""
-        from platform_base.processing.interpolation import interpolate
         from platform_base.io.loader import load
-        
-        # Create test data
+        from platform_base.processing.interpolation import interpolate
+
+        # Create test data with enough points (minimum 10 required)
         csv_file = tmp_path / "data.csv"
-        t = np.array([0, 1, 2, 5, 6, 7, 10])  # Irregular spacing
+        t = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15])  # Irregular spacing with 13 points
         y = np.sin(t)
         df = pd.DataFrame({"time": t, "value": y})
         df.to_csv(csv_file, index=False)
@@ -266,7 +304,7 @@ class TestInteractiveAnalysisWorkflow:
         series = list(dataset.series.values())[0]
         
         # Try different interpolation methods
-        methods = ["linear", "spline_cubic", "pchip"]
+        methods = ["linear", "spline_cubic", "smoothing_spline"]
         results = {}
         
         for method in methods:
@@ -276,16 +314,18 @@ class TestInteractiveAnalysisWorkflow:
             # Calculate some metric (e.g., smoothness)
             if len(result.values) > 1:
                 smoothness = np.mean(np.abs(np.diff(result.values)))
-                results[method].smoothness = smoothness
+                results[method] = {"result": result, "smoothness": smoothness}
+            else:
+                results[method] = {"result": result, "smoothness": float('inf')}
         
         # Select best (e.g., smoothest)
-        best_method = min(results.keys(), key=lambda k: getattr(results[k], 'smoothness', float('inf')))
+        best_method = min(results.keys(), key=lambda k: results[k]["smoothness"])
         
         # Export best result
         output = tmp_path / f"result_{best_method}.csv"
         df_result = pd.DataFrame({
             "time": dataset.t_seconds,
-            "value": results[best_method].values
+            "value": results[best_method]["result"].values
         })
         df_result.to_csv(output, index=False)
         
@@ -294,7 +334,7 @@ class TestInteractiveAnalysisWorkflow:
     def test_anomaly_detection_workflow(self, tmp_path):
         """Workflow: Load → Detect anomalies → Mark → Export."""
         from platform_base.io.loader import load
-        
+
         # Create data with anomalies
         csv_file = tmp_path / "sensor_with_anomalies.csv"
         t = np.linspace(0, 100, 1000)
@@ -341,7 +381,7 @@ class TestBatchProcessingWorkflow:
         """Workflow: Load multiple files → Process all → Export results."""
         from platform_base.io.loader import load
         from platform_base.processing.calculus import derivative
-        
+
         # Create batch of files
         input_dir = tmp_path / "input"
         input_dir.mkdir()
