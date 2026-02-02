@@ -59,7 +59,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
         "tooltip": "Exportar dados ou gráfico",
         "shortcut": "file.export",
     },
-    
+
     # Edit toolbar buttons
     "btn_undo": {
         "tooltip": "Desfazer última ação",
@@ -85,7 +85,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
         "tooltip": "Duplicar série selecionada",
         "shortcut": "edit.duplicate",
     },
-    
+
     # View toolbar buttons
     "btn_zoom_in": {
         "tooltip": "Aumentar zoom do gráfico",
@@ -115,7 +115,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
         "tooltip": "Atualizar visualização",
         "shortcut": "view.refresh",
     },
-    
+
     # Playback controls
     "btn_play": {
         "tooltip": "Iniciar reprodução dos dados",
@@ -143,7 +143,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
     "slider_position": {
         "tooltip": "Posição atual na linha do tempo (arraste para navegar)",
     },
-    
+
     # Analysis controls
     "btn_derivative": {
         "tooltip": "Calcular derivada da série selecionada",
@@ -167,7 +167,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
     "spin_cutoff": {
         "tooltip": "Frequência de corte do filtro em Hz",
     },
-    
+
     # Selection controls
     "btn_select_all": {
         "tooltip": "Selecionar todos os pontos da série",
@@ -181,7 +181,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
         "tooltip": "Inverter seleção atual",
         "shortcut": "select.invert",
     },
-    
+
     # Data panel
     "tree_datasets": {
         "tooltip": "Lista de conjuntos de dados carregados\\nDuplo-clique para plotar\\nArraste para o gráfico",
@@ -195,7 +195,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
     "btn_rename_series": {
         "tooltip": "Renomear série selecionada (duplo-clique)",
     },
-    
+
     # Config panel
     "combo_interpolation": {
         "tooltip": "Método de interpolação para cálculos\\n- Linear: interpolação linear simples\\n- Cubic: spline cúbica (mais suave)\\n- Zero: mantém valor anterior",
@@ -212,7 +212,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
     "combo_language": {
         "tooltip": "Idioma da interface",
     },
-    
+
     # Results panel
     "table_results": {
         "tooltip": "Resultados de cálculos e análises\\nDuplo-clique para copiar valor",
@@ -223,7 +223,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
     "btn_clear_results": {
         "tooltip": "Limpar todos os resultados",
     },
-    
+
     # 3D view
     "btn_3d_reset_camera": {
         "tooltip": "Resetar posição da câmera para vista padrão",
@@ -234,7 +234,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
     "combo_colormap": {
         "tooltip": "Mapa de cores para visualização 3D",
     },
-    
+
     # Status bar
     "label_memory": {
         "tooltip": "Uso de memória da aplicação\\nClique para detalhes",
@@ -258,29 +258,29 @@ class TooltipManager:
     - Rich text tooltips
     - Centralized configuration
     """
-    
+
     _instance: TooltipManager | None = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         self._initialized = True
         self._config = TooltipConfig()
         self._shortcut_manager: ShortcutManager | None = None
-        
+
         logger.debug("tooltip_manager_initialized")
-    
+
     def set_shortcut_manager(self, manager: ShortcutManager):
         """Set shortcut manager for tooltip hints."""
         self._shortcut_manager = manager
-    
+
     def get_tooltip(self, widget_id: str) -> str:
         """
         Get formatted tooltip for a widget.
@@ -294,9 +294,9 @@ class TooltipManager:
         tooltip_def = TOOLTIPS.get(widget_id)
         if tooltip_def is None:
             return ""
-        
+
         tooltip = tooltip_def.get("tooltip", "")
-        
+
         # Add shortcut hint if available
         if self._config.show_shortcuts and self._shortcut_manager:
             shortcut_id = tooltip_def.get("shortcut")
@@ -305,13 +305,13 @@ class TooltipManager:
                 if binding:
                     shortcut_hint = f" ({binding.key_sequence})"
                     tooltip += shortcut_hint
-        
+
         # Format as rich text if enabled
         if self._config.rich_text and "\n" in tooltip:
             tooltip = tooltip.replace("\n", "<br>")
-        
+
         return tooltip
-    
+
     def apply_tooltip(self, widget: QWidget, widget_id: str):
         """
         Apply tooltip to a widget.
@@ -323,7 +323,7 @@ class TooltipManager:
         tooltip = self.get_tooltip(widget_id)
         if tooltip:
             widget.setToolTip(tooltip)
-    
+
     def apply_all_tooltips(self, parent: QWidget, mappings: dict[str, QWidget]):
         """
         Apply tooltips to multiple widgets.
@@ -334,7 +334,7 @@ class TooltipManager:
         """
         for widget_id, widget in mappings.items():
             self.apply_tooltip(widget, widget_id)
-    
+
     def register_tooltip(self, widget_id: str, tooltip: str, shortcut: str | None = None):
         """
         Register a custom tooltip.
@@ -349,7 +349,7 @@ class TooltipManager:
         }
         if shortcut:
             TOOLTIPS[widget_id]["shortcut"] = shortcut
-    
+
     @property
     def config(self) -> TooltipConfig:
         """Get tooltip configuration."""
@@ -366,10 +366,10 @@ class RichTooltip(QLabel):
     - Delayed show/hide
     - Position adjustment
     """
-    
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent, Qt.WindowType.ToolTip)
-        
+
         self.setWordWrap(True)
         self.setTextFormat(Qt.TextFormat.RichText)
         self.setStyleSheet("""
@@ -380,18 +380,18 @@ class RichTooltip(QLabel):
                 font-size: 12px;
             }
         """)
-        
+
         self._show_timer = QTimer(self)
         self._hide_timer = QTimer(self)
         self._show_timer.setSingleShot(True)
         self._hide_timer.setSingleShot(True)
-        
+
         self._show_timer.timeout.connect(self._do_show)
         self._hide_timer.timeout.connect(self.hide)
-        
+
         self._pending_text = ""
         self._pending_pos = QPoint()
-    
+
     def show_tooltip(
         self,
         text: str,
@@ -410,48 +410,48 @@ class RichTooltip(QLabel):
         """
         self._pending_text = text
         self._pending_pos = pos
-        
+
         self._hide_timer.stop()
         self._show_timer.start(delay_ms)
-        
+
         if duration_ms > 0:
             self._hide_timer.start(delay_ms + duration_ms)
-    
+
     def _do_show(self):
         """Actually show the tooltip."""
         self.setText(self._pending_text)
         self.adjustSize()
-        
+
         # Adjust position to stay on screen
         pos = self._adjust_position(self._pending_pos)
         self.move(pos)
         self.show()
-    
+
     def _adjust_position(self, pos: QPoint) -> QPoint:
         """Adjust position to keep tooltip on screen."""
         screen = QApplication.screenAt(pos)
         if screen is None:
             screen = QApplication.primaryScreen()
-        
+
         screen_rect = screen.availableGeometry()
-        
+
         x = pos.x()
         y = pos.y() + 20  # Offset below cursor
-        
+
         # Adjust horizontal
         if x + self.width() > screen_rect.right():
             x = screen_rect.right() - self.width()
         if x < screen_rect.left():
             x = screen_rect.left()
-        
+
         # Adjust vertical
         if y + self.height() > screen_rect.bottom():
             y = pos.y() - self.height() - 5  # Show above cursor
         if y < screen_rect.top():
             y = screen_rect.top()
-        
+
         return QPoint(x, y)
-    
+
     def cancel(self):
         """Cancel pending tooltip."""
         self._show_timer.stop()
@@ -466,7 +466,7 @@ class TooltipEventFilter(QObject):
     Installs on parent widget to handle tooltip events
     for all child widgets.
     """
-    
+
     def __init__(
         self,
         tooltip_manager: TooltipManager,
@@ -475,19 +475,19 @@ class TooltipEventFilter(QObject):
         super().__init__(parent)
         self._manager = tooltip_manager
         self._rich_tooltip = RichTooltip()
-    
+
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         """Handle tooltip events."""
         if not isinstance(obj, QWidget):
             return False
-        
+
         if event.type() == QEvent.Type.ToolTip:
             # Check if we have rich tooltip for this widget
             widget_name = obj.objectName()
             if widget_name and widget_name in TOOLTIPS:
                 tooltip_def = TOOLTIPS[widget_name]
                 tooltip = tooltip_def.get("tooltip", "")
-                
+
                 # Use rich tooltip if multiline
                 if "\n" in tooltip or "<" in tooltip:
                     enter_event = event
@@ -495,14 +495,14 @@ class TooltipEventFilter(QObject):
                         pos = enter_event.globalPosition().toPoint()
                     else:
                         pos = obj.mapToGlobal(QPoint(0, 0))
-                    
+
                     formatted = self._manager.get_tooltip(widget_name)
                     self._rich_tooltip.show_tooltip(formatted, pos)
                     return True
-        
+
         elif event.type() == QEvent.Type.Leave:
             self._rich_tooltip.cancel()
-        
+
         return False
 
 
@@ -516,13 +516,13 @@ def apply_standard_tooltips(window: QWidget):
         window: Main window widget
     """
     manager = TooltipManager()
-    
+
     # Find all widgets with object names matching our tooltips
     for widget_id in TOOLTIPS:
         widget = window.findChild(QWidget, widget_id)
         if widget:
             manager.apply_tooltip(widget, widget_id)
-    
+
     logger.debug("standard_tooltips_applied", count=len(TOOLTIPS))
 
 

@@ -38,7 +38,7 @@ class BackupInfo:
     size_bytes: int
     checksum: str
     description: str = ""
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -49,7 +49,7 @@ class BackupInfo:
             'checksum': self.checksum,
             'description': self.description,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> BackupInfo:
         """Create from dictionary."""
@@ -65,7 +65,7 @@ class BackupInfo:
 
 class AutoSaveStatus:
     """Status of auto-save system."""
-    
+
     def __init__(self):
         self.last_save: datetime | None = None
         self.next_save: datetime | None = None
@@ -81,10 +81,10 @@ class AutoSaveManager:
     Provides periodic auto-save, versioned backups, and
     recovery capabilities.
     """
-    
+
     _instance: AutoSaveManager | None = None
     _lock = threading.Lock()
-    
+
     def __new__(cls) -> AutoSaveManager:
         if cls._instance is None:
             with cls._lock:
@@ -92,11 +92,11 @@ class AutoSaveManager:
                     cls._instance = super().__new__(cls)
                     cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         self._initialized = True
         self._backup_dir: Path | None = None
         self._interval_seconds = 300  # 5 minutes
@@ -110,7 +110,7 @@ class AutoSaveManager:
         self._enabled = False
         self._current_version = 0
         self._lock = threading.Lock()
-    
+
     def initialize(
         self,
         backup_dir: str | Path,
@@ -129,19 +129,19 @@ class AutoSaveManager:
         """
         self._backup_dir = Path(backup_dir)
         self._backup_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self._interval_seconds = max(60, min(1800, interval_minutes * 60))
         self._max_versions = max(1, max_versions)
         self._retention_days = max(1, retention_days)
-        
+
         # Load backup metadata
         self._load_metadata()
-    
+
     def _load_metadata(self) -> None:
         """Load backup metadata from file."""
         if self._backup_dir is None:
             return
-        
+
         metadata_path = self._backup_dir / "metadata.json"
         if metadata_path.exists():
             try:
@@ -150,16 +150,16 @@ class AutoSaveManager:
                     self._current_version = data.get('current_version', 0)
             except Exception:
                 pass
-    
+
     def _save_metadata(self) -> None:
         """Save backup metadata to file."""
         if self._backup_dir is None:
             return
-        
+
         metadata_path = self._backup_dir / "metadata.json"
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump({'current_version': self._current_version}, f)
-    
+
     def set_save_callback(self, callback: Callable[[Path], bool]) -> None:
         """
         Set callback for saving session.
@@ -168,7 +168,7 @@ class AutoSaveManager:
             callback: Function that saves to given path, returns True on success
         """
         self._save_callback = callback
-    
+
     def set_load_callback(self, callback: Callable[[Path], bool]) -> None:
         """
         Set callback for loading session.
@@ -177,7 +177,7 @@ class AutoSaveManager:
             callback: Function that loads from given path, returns True on success
         """
         self._load_callback = callback
-    
+
     def set_status_callback(self, callback: Callable[[AutoSaveStatus], None]) -> None:
         """
         Set callback for status updates.
@@ -186,7 +186,7 @@ class AutoSaveManager:
             callback: Function called when status changes
         """
         self._status_callback = callback
-    
+
     def set_interval(self, minutes: int) -> None:
         """
         Change auto-save interval.
@@ -195,62 +195,62 @@ class AutoSaveManager:
             minutes: Interval in minutes (1-30)
         """
         self._interval_seconds = max(60, min(1800, minutes * 60))
-        
+
         # Restart timer if running
         if self._enabled:
             self.stop()
             self.start()
-    
+
     def mark_unsaved(self) -> None:
         """Mark that there are unsaved changes."""
         self._status.unsaved_changes = True
         self._notify_status()
-    
+
     def mark_saved(self) -> None:
         """Mark that changes have been saved."""
         self._status.unsaved_changes = False
         self._notify_status()
-    
+
     def start(self) -> None:
         """Start auto-save timer."""
         if self._enabled:
             return
-        
+
         self._enabled = True
         self._schedule_next_save()
-    
+
     def stop(self) -> None:
         """Stop auto-save timer."""
         self._enabled = False
-        
+
         if self._timer:
             self._timer.cancel()
             self._timer = None
-    
+
     def _schedule_next_save(self) -> None:
         """Schedule the next auto-save."""
         if not self._enabled:
             return
-        
+
         self._status.next_save = datetime.now() + timedelta(seconds=self._interval_seconds)
         self._notify_status()
-        
+
         self._timer = threading.Timer(self._interval_seconds, self._auto_save)
         self._timer.daemon = True
         self._timer.start()
-    
+
     def _auto_save(self) -> None:
         """Perform automatic save."""
         if not self._enabled:
             return
-        
+
         try:
             self.save_backup(description="Auto-save")
         except Exception as e:
             self._status.last_error = str(e)
         finally:
             self._schedule_next_save()
-    
+
     def _notify_status(self) -> None:
         """Notify status callback."""
         if self._status_callback:
@@ -258,7 +258,7 @@ class AutoSaveManager:
                 self._status_callback(self._status)
             except Exception:
                 pass
-    
+
     def save_backup(
         self,
         description: str = "",
@@ -276,31 +276,31 @@ class AutoSaveManager:
         """
         if self._backup_dir is None or self._save_callback is None:
             return None
-        
+
         if not force and not self._status.unsaved_changes:
             return None
-        
+
         with self._lock:
             self._status.is_saving = True
             self._notify_status()
-            
+
             try:
                 # Increment version
                 self._current_version += 1
-                
+
                 # Create backup filename
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"backup_{timestamp}_v{self._current_version}.warp"
                 backup_path = self._backup_dir / filename
-                
+
                 # Save using callback
                 if not self._save_callback(backup_path):
                     self._current_version -= 1
                     return None
-                
+
                 # Calculate checksum
                 checksum = self._calculate_checksum(backup_path)
-                
+
                 # Create backup info
                 info = BackupInfo(
                     path=backup_path,
@@ -310,33 +310,33 @@ class AutoSaveManager:
                     checksum=checksum,
                     description=description,
                 )
-                
+
                 # Save info file
                 info_path = backup_path.with_suffix('.json')
                 with open(info_path, 'w', encoding='utf-8') as f:
                     json.dump(info.to_dict(), f, indent=2)
-                
+
                 # Update status
                 self._status.last_save = datetime.now()
                 self._status.unsaved_changes = False
                 self._status.last_error = None
-                
+
                 # Save metadata
                 self._save_metadata()
-                
+
                 # Cleanup old backups
                 self._cleanup_old_backups()
-                
+
                 return info
-                
+
             except Exception as e:
                 self._status.last_error = str(e)
                 raise
-            
+
             finally:
                 self._status.is_saving = False
                 self._notify_status()
-    
+
     def _calculate_checksum(self, path: Path) -> str:
         """Calculate MD5 checksum of file."""
         hash_md5 = hashlib.md5()
@@ -344,15 +344,15 @@ class AutoSaveManager:
             for chunk in iter(lambda: f.read(4096), b''):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
-    
+
     def _cleanup_old_backups(self) -> None:
         """Remove old backups exceeding limits."""
         if self._backup_dir is None:
             return
-        
+
         # Get all backups
         backups = self.get_backups()
-        
+
         # Remove by version count
         for old_backup in backups[self._max_versions:]:
             try:
@@ -362,7 +362,7 @@ class AutoSaveManager:
                     info_path.unlink()
             except Exception:
                 pass
-        
+
         # Remove by age
         cutoff = datetime.now() - timedelta(days=self._retention_days)
         for backup in backups:
@@ -374,7 +374,7 @@ class AutoSaveManager:
                         info_path.unlink()
                 except Exception:
                     pass
-    
+
     def get_backups(self) -> list[BackupInfo]:
         """
         Get list of available backups.
@@ -384,7 +384,7 @@ class AutoSaveManager:
         """
         if self._backup_dir is None:
             return []
-        
+
         backups = []
         for info_path in self._backup_dir.glob("backup_*.json"):
             try:
@@ -395,9 +395,9 @@ class AutoSaveManager:
                         backups.append(BackupInfo.from_dict(data))
             except Exception:
                 continue
-        
+
         return sorted(backups, key=lambda b: b.timestamp, reverse=True)
-    
+
     def restore_backup(self, backup: BackupInfo | Path) -> bool:
         """
         Restore from a backup.
@@ -410,19 +410,19 @@ class AutoSaveManager:
         """
         if self._load_callback is None:
             return False
-        
+
         path = backup.path if isinstance(backup, BackupInfo) else Path(backup)
-        
+
         if not path.exists():
             return False
-        
+
         return self._load_callback(path)
-    
+
     def get_latest_backup(self) -> BackupInfo | None:
         """Get the most recent backup."""
         backups = self.get_backups()
         return backups[0] if backups else None
-    
+
     def emergency_save(self) -> bool:
         """
         Perform emergency save (for crash situations).
@@ -435,7 +435,7 @@ class AutoSaveManager:
             return result is not None
         except Exception:
             return False
-    
+
     def save_before_operation(self, operation_name: str) -> BackupInfo | None:
         """
         Save backup before a destructive operation.
@@ -450,12 +450,12 @@ class AutoSaveManager:
             description=f"Before: {operation_name}",
             force=True,
         )
-    
+
     @property
     def status(self) -> AutoSaveStatus:
         """Get current auto-save status."""
         return self._status
-    
+
     @property
     def is_enabled(self) -> bool:
         """Check if auto-save is enabled."""

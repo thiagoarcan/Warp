@@ -573,7 +573,7 @@ class Figure3D:
     This class provides a simple interface for creating 3D visualizations
     without requiring a VizConfig.
     """
-    
+
     def __init__(self, title: str = "3D Figure", background: str = "white"):
         """
         Initialize a 3D figure.
@@ -586,24 +586,24 @@ class Figure3D:
         self.background = background
         self._plotter = None
         self._meshes = []
-        
+
         if PYVISTA_AVAILABLE:
             try:
                 self._plotter = pv.Plotter(off_screen=True)
                 self._plotter.set_background(background)
             except Exception as e:
                 logger.warning(f"Could not create plotter: {e}")
-    
+
     def add_trajectory(self, x: np.ndarray, y: np.ndarray, z: np.ndarray,
                        colormap: str = "viridis", color_values: np.ndarray = None,
                        line_width: float = 2.0, **kwargs):
         """Add a 3D trajectory to the figure."""
         if not PYVISTA_AVAILABLE or self._plotter is None:
             return None
-        
+
         points = np.column_stack([x, y, z])
         spline = pv.Spline(points, n_points=len(points))
-        
+
         if color_values is not None:
             spline["scalars"] = color_values
             self._plotter.add_mesh(spline, scalars="scalars", cmap=colormap,
@@ -611,20 +611,20 @@ class Figure3D:
         else:
             self._plotter.add_mesh(spline, cmap=colormap, line_width=line_width,
                                    render_lines_as_tubes=True)
-        
+
         self._meshes.append(spline)
         return spline
-    
+
     def add_scatter(self, x: np.ndarray, y: np.ndarray, z: np.ndarray,
                     point_size: float = 5.0, color: str = "blue",
                     colormap: str = None, scalars: np.ndarray = None, **kwargs):
         """Add a 3D scatter plot."""
         if not PYVISTA_AVAILABLE or self._plotter is None:
             return None
-        
+
         points = np.column_stack([x, y, z])
         cloud = pv.PolyData(points)
-        
+
         if scalars is not None and colormap:
             cloud["scalars"] = scalars
             self._plotter.add_mesh(cloud, scalars="scalars", cmap=colormap,
@@ -632,72 +632,72 @@ class Figure3D:
         else:
             self._plotter.add_mesh(cloud, color=color, point_size=point_size,
                                    render_points_as_spheres=True)
-        
+
         self._meshes.append(cloud)
         return cloud
-    
+
     def add_surface(self, x: np.ndarray, y: np.ndarray, z: np.ndarray,
                     colormap: str = "viridis", opacity: float = 0.8, **kwargs):
         """Add a 3D surface."""
         if not PYVISTA_AVAILABLE or self._plotter is None:
             return None
-        
+
         grid = pv.StructuredGrid(x, y, z)
         self._plotter.add_mesh(grid, cmap=colormap, opacity=opacity)
         self._meshes.append(grid)
         return grid
-    
+
     def add_mesh(self, vertices: np.ndarray, faces: np.ndarray,
                  color: str = "gray", opacity: float = 1.0, **kwargs):
         """Add a 3D mesh."""
         if not PYVISTA_AVAILABLE or self._plotter is None:
             return None
-        
+
         # Convert faces to VTK format
         n_faces = len(faces)
         vtk_faces = np.zeros(n_faces * 4, dtype=np.int64)
         for i, face in enumerate(faces):
             vtk_faces[i*4] = 3
             vtk_faces[i*4+1:i*4+4] = face
-        
+
         mesh = pv.PolyData(vertices, vtk_faces)
         self._plotter.add_mesh(mesh, color=color, opacity=opacity)
         self._meshes.append(mesh)
         return mesh
-    
+
     def set_camera_position(self, position: tuple, focal_point: tuple = None, up: tuple = None):
         """Set camera position."""
         if self._plotter is not None:
             self._plotter.camera_position = position
-    
+
     def show_axes(self, show: bool = True):
         """Show/hide axes."""
         if self._plotter is not None:
             if show:
                 self._plotter.add_axes()
-    
+
     def show_grid(self, show: bool = True):
         """Show/hide grid."""
         if self._plotter is not None:
             if show:
                 self._plotter.show_grid()
-    
+
     def show_bounding_box(self, show: bool = True):
         """Show/hide bounding box."""
         if self._plotter is not None and self._meshes:
             if show:
                 self._plotter.add_bounding_box()
-    
+
     def set_lighting(self, ambient: float = 0.3, diffuse: float = 0.7, specular: float = 0.2):
         """Set lighting parameters."""
         if self._plotter is not None:
             pass  # PyVista handles lighting differently
-    
+
     def export_image(self, filepath: str, resolution: tuple = (1920, 1080)):
         """Export to image file."""
         if self._plotter is not None:
             self._plotter.screenshot(filepath, window_size=resolution)
-    
+
     def export_stl(self, filepath: str):
         """Export to STL format."""
         if self._meshes:
@@ -705,7 +705,7 @@ class Figure3D:
             for mesh in self._meshes[1:]:
                 combined = combined.merge(mesh)
             combined.save(filepath)
-    
+
     def export_obj(self, filepath: str):
         """Export to OBJ format."""
         if self._meshes:
@@ -713,21 +713,21 @@ class Figure3D:
             for mesh in self._meshes[1:]:
                 combined = combined.merge(mesh)
             combined.save(filepath)
-    
+
     def animate_rotation(self, filepath: str, n_frames: int = 60, fps: int = 30):
         """Create rotation animation."""
         if self._plotter is None:
             return
-        
+
         # This would need moviepy or similar for actual animation
         logger.info(f"Animation export requested: {filepath}, {n_frames} frames at {fps} fps")
-    
+
     def clear(self):
         """Clear all meshes."""
         self._meshes.clear()
         if self._plotter is not None:
             self._plotter.clear()
-    
+
     def close(self):
         """Close the figure."""
         if self._plotter is not None:

@@ -176,7 +176,9 @@ class TestUploadDialog:
     def test_dialog_title(self, upload_dialog):
         """Test dialog has correct title."""
         title = upload_dialog.windowTitle()
-        assert "Load" in title or "Data" in title
+        # Aceita títulos em inglês ou português
+        assert ("Load" in title or "Data" in title or 
+                "Carregar" in title or "Arquivos" in title)
     
     def test_dialog_initial_state(self, upload_dialog):
         """Test dialog initial state."""
@@ -327,14 +329,24 @@ class TestUploadDialogMethods:
     
     def test_update_format_ui_excel(self, upload_dialog):
         """Test UI update for Excel format."""
+        # Forçar o diálogo a estar visível antes de fazer chamadas
+        upload_dialog.show()
         upload_dialog._update_format_ui("Excel")
+        
+        # Processar eventos para atualizar a UI
+        upload_dialog.setVisible(True)
         
         assert upload_dialog.excel_group.isVisible()
         assert not upload_dialog.hdf5_group.isVisible()
     
     def test_update_format_ui_hdf5(self, upload_dialog):
         """Test UI update for HDF5 format."""
+        # Forçar o diálogo a estar visível antes de fazer chamadas
+        upload_dialog.show()
         upload_dialog._update_format_ui("HDF5")
+        
+        # Processar eventos para atualizar a UI
+        upload_dialog.setVisible(True)
         
         assert upload_dialog.hdf5_group.isVisible()
         assert not upload_dialog.excel_group.isVisible()

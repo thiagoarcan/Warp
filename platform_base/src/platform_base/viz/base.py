@@ -488,24 +488,24 @@ class SeriesVisualizationData:
     This class encapsulates all the data needed to visualize a time series,
     including original data, downsampled data for display, and visual properties.
     """
-    
+
     # Core data
     series_id: str
     name: str = ""
-    
+
     # Data arrays - with aliases for compatibility
     x_data: np.ndarray = None
     y_data: np.ndarray = None
-    
+
     # Alternative names for compatibility
     t_seconds: np.ndarray = None  # Alias for x_data
     values: np.ndarray = None     # Alias for y_data
     dataset_id: str = ""          # For grouping with datasets
-    
+
     # Display data (may be downsampled)
     x_display: np.ndarray = None
     y_display: np.ndarray = None
-    
+
     # Visual properties
     color: str = "#1f77b4"
     line_width: float = 1.5
@@ -514,13 +514,13 @@ class SeriesVisualizationData:
     marker_size: float = 5.0
     visible: bool = True
     opacity: float = 1.0
-    
+
     # Y-axis assignment
     y_axis: int = 0  # 0 = primary, 1 = secondary
-    
+
     # Statistics (computed on demand)
     _stats: dict = field(default_factory=dict)
-    
+
     def __post_init__(self):
         """Initialize display data if not provided."""
         # Handle aliases
@@ -528,38 +528,38 @@ class SeriesVisualizationData:
             self.x_data = self.t_seconds
         if self.y_data is None and self.values is not None:
             self.y_data = self.values
-        
+
         # Ensure t_seconds and values point to the same data
         if self.t_seconds is None and self.x_data is not None:
             self.t_seconds = self.x_data
         if self.values is None and self.y_data is not None:
             self.values = self.y_data
-        
+
         if self.x_display is None and self.x_data is not None:
             self.x_display = self.x_data
         if self.y_display is None and self.y_data is not None:
             self.y_display = self.y_data
-    
+
     @property
     def n_points(self) -> int:
         """Number of data points."""
         return len(self.y_data)
-    
+
     @property
     def n_display_points(self) -> int:
         """Number of display points."""
         return len(self.y_display) if self.y_display is not None else 0
-    
+
     @property
     def x_range(self) -> tuple:
         """X data range (min, max)."""
         return (float(np.nanmin(self.x_data)), float(np.nanmax(self.x_data)))
-    
+
     @property
     def y_range(self) -> tuple:
         """Y data range (min, max)."""
         return (float(np.nanmin(self.y_data)), float(np.nanmax(self.y_data)))
-    
+
     def get_statistics(self) -> dict:
         """Get computed statistics for the series."""
         if not self._stats:
@@ -573,24 +573,24 @@ class SeriesVisualizationData:
                 "n_nan": int(np.isnan(self.y_data).sum()),
             }
         return self._stats
-    
+
     def update_display_data(self, x_display: np.ndarray, y_display: np.ndarray) -> None:
         """Update downsampled display data."""
         self.x_display = x_display
         self.y_display = y_display
-    
+
     def set_color(self, color: str) -> None:
         """Set series color."""
         self.color = color
-    
+
     def set_visible(self, visible: bool) -> None:
         """Set series visibility."""
         self.visible = visible
-    
+
     def set_y_axis(self, axis: int) -> None:
         """Set Y-axis assignment (0=primary, 1=secondary)."""
         self.y_axis = axis
-    
+
     def copy(self) -> "SeriesVisualizationData":
         """Create a copy of this visualization data."""
         return SeriesVisualizationData(
@@ -609,7 +609,7 @@ class SeriesVisualizationData:
             opacity=self.opacity,
             y_axis=self.y_axis,
         )
-    
+
     @classmethod
     def from_series(cls, series, color: str = None) -> "SeriesVisualizationData":
         """

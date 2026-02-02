@@ -51,7 +51,7 @@ class TelemetryEvent:
     timestamp: datetime
     data: dict[str, Any] = field(default_factory=dict)
     session_id: str = ""
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -60,7 +60,7 @@ class TelemetryEvent:
             'data': self.data,
             'session_id': self.session_id,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TelemetryEvent:
         """Create from dictionary."""
@@ -81,7 +81,7 @@ class TelemetryConfig:
     collect_errors: bool = True
     collect_file_stats: bool = True
     retention_days: int = 30
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -92,7 +92,7 @@ class TelemetryConfig:
             'collect_file_stats': self.collect_file_stats,
             'retention_days': self.retention_days,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TelemetryConfig:
         """Create from dictionary."""
@@ -119,10 +119,10 @@ class TelemetryManager:
     Handles opt-in telemetry collection, storage, and analysis.
     All data is stored locally by default.
     """
-    
+
     _instance: TelemetryManager | None = None
     _lock = threading.Lock()
-    
+
     def __new__(cls) -> TelemetryManager:
         if cls._instance is None:
             with cls._lock:
@@ -130,11 +130,11 @@ class TelemetryManager:
                     cls._instance = super().__new__(cls)
                     cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         self._initialized = True
         self._config = TelemetryConfig()
         self._db_path: Path | None = None
@@ -143,7 +143,7 @@ class TelemetryManager:
         self._conn: sqlite3.Connection | None = None
         self._listeners: list[Callable[[TelemetryEvent], None]] = []
         self._lock = threading.Lock()
-    
+
     def initialize(self, data_dir: str | Path) -> None:
         """
         Initialize telemetry storage.
@@ -153,26 +153,26 @@ class TelemetryManager:
         """
         data_path = Path(data_dir)
         data_path.mkdir(parents=True, exist_ok=True)
-        
+
         self._db_path = data_path / "telemetry.db"
         self._config_path = data_path / "telemetry_config.json"
-        
+
         # Load config
         if self._config_path.exists():
             with open(self._config_path, 'r', encoding='utf-8') as f:
                 self._config = TelemetryConfig.from_dict(json.load(f))
-        
+
         # Initialize database
         self._init_database()
-    
+
     def _init_database(self) -> None:
         """Initialize SQLite database."""
         if self._db_path is None:
             return
-        
+
         self._conn = sqlite3.connect(str(self._db_path), check_same_thread=False)
         cursor = self._conn.cursor()
-        
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -183,33 +183,33 @@ class TelemetryManager:
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp)
         """)
-        
+
         self._conn.commit()
-    
+
     def _save_config(self) -> None:
         """Save configuration to file."""
         if self._config_path:
             with open(self._config_path, 'w', encoding='utf-8') as f:
                 json.dump(self._config.to_dict(), f, indent=2)
-    
+
     @property
     def config(self) -> TelemetryConfig:
         """Get current configuration."""
         return self._config
-    
+
     @property
     def is_enabled(self) -> bool:
         """Check if telemetry is enabled."""
         return self._config.enabled
-    
+
     def set_consent(self, enabled: bool) -> None:
         """
         Set user consent for telemetry.
@@ -219,7 +219,7 @@ class TelemetryManager:
         """
         self._config.enabled = enabled
         self._save_config()
-    
+
     def configure(
         self,
         collect_feature_usage: bool | None = None,
@@ -248,9 +248,9 @@ class TelemetryManager:
             self._config.collect_file_stats = collect_file_stats
         if retention_days is not None:
             self._config.retention_days = retention_days
-        
+
         self._save_config()
-    
+
     def start_session(self) -> str:
         """
         Start a new telemetry session.
@@ -259,13 +259,13 @@ class TelemetryManager:
             Session ID
         """
         self._session_id = hashlib.md5(
-            f"{time.time()}-{id(self)}".encode()
+            f"{time.time()}-{id(self)}".encode(), usedforsecurity=False
         ).hexdigest()[:16]
         self._session_start = datetime.now()
-        
+
         self.track_event(TelemetryEventType.SESSION_START)
         return self._session_id
-    
+
     def end_session(self) -> None:
         """End the current session."""
         if self._session_start:
@@ -274,10 +274,10 @@ class TelemetryManager:
                 TelemetryEventType.SESSION_END,
                 {'duration_seconds': duration}
             )
-        
+
         self._session_id = ""
         self._session_start = None
-    
+
     def track_event(
         self,
         event_type: TelemetryEventType,
@@ -292,7 +292,7 @@ class TelemetryManager:
         """
         if not self._config.enabled:
             return
-        
+
         # Check if this type of event should be collected
         if event_type == TelemetryEventType.FEATURE_USED:
             if not self._config.collect_feature_usage:
@@ -306,29 +306,29 @@ class TelemetryManager:
         elif event_type in (TelemetryEventType.FILE_LOADED, TelemetryEventType.FILE_EXPORTED):
             if not self._config.collect_file_stats:
                 return
-        
+
         event = TelemetryEvent(
             event_type=event_type,
             timestamp=datetime.now(),
             data=data or {},
             session_id=self._session_id,
         )
-        
+
         # Store event
         self._store_event(event)
-        
+
         # Notify listeners
         for listener in self._listeners:
             try:
                 listener(event)
             except Exception:
                 pass
-    
+
     def _store_event(self, event: TelemetryEvent) -> None:
         """Store event in database."""
         if self._conn is None:
             return
-        
+
         with self._lock:
             cursor = self._conn.cursor()
             cursor.execute(
@@ -344,7 +344,7 @@ class TelemetryManager:
                 )
             )
             self._conn.commit()
-    
+
     def track_feature(self, feature_name: str, **extra: Any) -> None:
         """
         Track feature usage.
@@ -357,7 +357,7 @@ class TelemetryManager:
             TelemetryEventType.FEATURE_USED,
             {'feature': feature_name, **extra}
         )
-    
+
     def track_operation(
         self,
         operation_name: str,
@@ -383,7 +383,7 @@ class TelemetryManager:
                 **extra,
             }
         )
-    
+
     def track_error(
         self,
         error_type: str,
@@ -399,8 +399,8 @@ class TelemetryManager:
             **extra: Additional data
         """
         # Hash error message for anonymity
-        message_hash = hashlib.md5(error_message.encode()).hexdigest()[:8]
-        
+        message_hash = hashlib.md5(error_message.encode(), usedforsecurity=False).hexdigest()[:8]
+
         self.track_event(
             TelemetryEventType.ERROR_OCCURRED,
             {
@@ -409,7 +409,7 @@ class TelemetryManager:
                 **extra,
             }
         )
-    
+
     def track_file_operation(
         self,
         operation: str,  # 'load' or 'export'
@@ -431,7 +431,7 @@ class TelemetryManager:
             if operation == 'load'
             else TelemetryEventType.FILE_EXPORTED
         )
-        
+
         self.track_event(
             event_type,
             {
@@ -440,7 +440,7 @@ class TelemetryManager:
                 'duration_ms': duration_ms,
             }
         )
-    
+
     def get_stats(self, days: int = 30) -> TelemetryStats:
         """
         Get aggregated statistics.
@@ -453,26 +453,26 @@ class TelemetryManager:
         """
         if self._conn is None:
             return TelemetryStats()
-        
+
         cutoff = (datetime.now() - timedelta(days=days)).isoformat()
         cursor = self._conn.cursor()
-        
+
         stats = TelemetryStats()
-        
+
         # Total sessions
         cursor.execute(
             "SELECT COUNT(DISTINCT session_id) FROM events WHERE timestamp > ?",
             (cutoff,)
         )
         stats.total_sessions = cursor.fetchone()[0]
-        
+
         # Total events
         cursor.execute(
             "SELECT COUNT(*) FROM events WHERE timestamp > ?",
             (cutoff,)
         )
         stats.total_events = cursor.fetchone()[0]
-        
+
         # Features used
         cursor.execute(
             """
@@ -486,7 +486,7 @@ class TelemetryManager:
             data = json.loads(row[0])
             features[data.get('feature', 'unknown')] += 1
         stats.features_used = dict(features)
-        
+
         # Average operation times
         cursor.execute(
             """
@@ -503,13 +503,13 @@ class TelemetryManager:
             if op not in operation_times:
                 operation_times[op] = []
             operation_times[op].append(duration)
-        
+
         stats.avg_operation_time = {
             op: sum(times) / len(times)
             for op, times in operation_times.items()
             if times
         }
-        
+
         # Error counts
         cursor.execute(
             """
@@ -523,20 +523,20 @@ class TelemetryManager:
             data = json.loads(row[0])
             errors[data.get('error_type', 'unknown')] += 1
         stats.error_counts = dict(errors)
-        
+
         # File counts
         cursor.execute(
             "SELECT COUNT(*) FROM events WHERE event_type = 'FILE_LOADED' AND timestamp > ?",
             (cutoff,)
         )
         stats.files_loaded = cursor.fetchone()[0]
-        
+
         cursor.execute(
             "SELECT COUNT(*) FROM events WHERE event_type = 'FILE_EXPORTED' AND timestamp > ?",
             (cutoff,)
         )
         stats.files_exported = cursor.fetchone()[0]
-        
+
         # Total usage time
         cursor.execute(
             """
@@ -550,9 +550,9 @@ class TelemetryManager:
             data = json.loads(row[0])
             total_seconds += data.get('duration_seconds', 0)
         stats.total_usage_time_hours = total_seconds / 3600
-        
+
         return stats
-    
+
     def cleanup_old_data(self) -> int:
         """
         Remove data older than retention period.
@@ -562,11 +562,11 @@ class TelemetryManager:
         """
         if self._conn is None:
             return 0
-        
+
         cutoff = (
             datetime.now() - timedelta(days=self._config.retention_days)
         ).isoformat()
-        
+
         with self._lock:
             cursor = self._conn.cursor()
             cursor.execute(
@@ -575,9 +575,9 @@ class TelemetryManager:
             )
             deleted = cursor.rowcount
             self._conn.commit()
-        
+
         return deleted
-    
+
     def export_data(
         self,
         output_path: str | Path,
@@ -597,10 +597,10 @@ class TelemetryManager:
         """
         if self._conn is None:
             return 0
-        
+
         output_path = Path(output_path)
         cursor = self._conn.cursor()
-        
+
         if days:
             cutoff = (datetime.now() - timedelta(days=days)).isoformat()
             cursor.execute(
@@ -609,9 +609,9 @@ class TelemetryManager:
             )
         else:
             cursor.execute("SELECT * FROM events ORDER BY timestamp")
-        
+
         rows = cursor.fetchall()
-        
+
         if format == "json":
             data = []
             for row in rows:
@@ -622,10 +622,10 @@ class TelemetryManager:
                     'session_id': row[3],
                     'data': json.loads(row[4]) if row[4] else {},
                 })
-            
+
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-        
+
         elif format == "csv":
             import csv
             with open(output_path, 'w', encoding='utf-8', newline='') as f:
@@ -633,18 +633,18 @@ class TelemetryManager:
                 writer.writerow(['id', 'event_type', 'timestamp', 'session_id', 'data'])
                 for row in rows:
                     writer.writerow(row)
-        
+
         return len(rows)
-    
+
     def add_listener(self, callback: Callable[[TelemetryEvent], None]) -> None:
         """Add event listener."""
         self._listeners.append(callback)
-    
+
     def remove_listener(self, callback: Callable[[TelemetryEvent], None]) -> None:
         """Remove event listener."""
         if callback in self._listeners:
             self._listeners.remove(callback)
-    
+
     def close(self) -> None:
         """Close database connection."""
         if self._conn:

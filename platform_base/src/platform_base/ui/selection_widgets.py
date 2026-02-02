@@ -833,58 +833,58 @@ class SelectionSync(QWidget):
     Permite que seleções feitas em uma view sejam refletidas em outras
     views conectadas.
     """
-    
+
     # Signals
     sync_enabled = pyqtSignal(bool)
     selection_synced = pyqtSignal(object)  # Selection
     views_changed = pyqtSignal()
-    
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        
+
         self._views: list[QWidget] = []
         self._sync_enabled = True
         self._current_selection: Selection | None = None
-        
+
         self._setup_ui()
-    
+
     def _setup_ui(self):
         """Setup the UI components."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
-        
+
         # Enable/Disable sync
         controls_layout = QHBoxLayout()
-        
+
         self.sync_checkbox = QPushButton("Sync Enabled")
         self.sync_checkbox.setCheckable(True)
         self.sync_checkbox.setChecked(True)
         self.sync_checkbox.clicked.connect(self._on_sync_toggled)
         controls_layout.addWidget(self.sync_checkbox)
-        
+
         controls_layout.addStretch()
-        
+
         layout.addLayout(controls_layout)
-        
+
         # Views list
         views_group = QGroupBox("Synchronized Views")
         views_layout = QVBoxLayout(views_group)
-        
+
         self.views_list = QListWidget()
         views_layout.addWidget(self.views_list)
-        
+
         layout.addWidget(views_group)
-        
+
         # Status
         self.status_label = QLabel("No selection")
         layout.addWidget(self.status_label)
-    
+
     def _on_sync_toggled(self, checked: bool):
         """Handle sync toggle."""
         self._sync_enabled = checked
         self.sync_checkbox.setText("Sync Enabled" if checked else "Sync Disabled")
         self.sync_enabled.emit(checked)
-    
+
     def add_view(self, view: QWidget, name: str = None):
         """
         Add a view to sync.
@@ -894,13 +894,13 @@ class SelectionSync(QWidget):
             name: Display name for the view
         """
         self._views.append(view)
-        
+
         item = QListWidgetItem(name or f"View {len(self._views)}")
         item.setCheckState(Qt.CheckState.Checked)
         self.views_list.addItem(item)
-        
+
         self.views_changed.emit()
-    
+
     def remove_view(self, view: QWidget):
         """
         Remove a view from sync.
@@ -913,7 +913,7 @@ class SelectionSync(QWidget):
             self._views.remove(view)
             self.views_list.takeItem(idx)
             self.views_changed.emit()
-    
+
     def sync_selection(self, selection: Selection):
         """
         Sync a selection to all views.
@@ -923,26 +923,26 @@ class SelectionSync(QWidget):
         """
         if not self._sync_enabled:
             return
-        
+
         self._current_selection = selection
-        
+
         # Update status
         if selection:
             self.status_label.setText(f"Synced: {selection.n_points} points")
         else:
             self.status_label.setText("No selection")
-        
+
         # Emit to connected views
         self.selection_synced.emit(selection)
-    
+
     def get_views(self) -> list[QWidget]:
         """Return list of synced views."""
         return self._views.copy()
-    
+
     def is_sync_enabled(self) -> bool:
         """Check if sync is enabled."""
         return self._sync_enabled
-    
+
     def set_sync_enabled(self, enabled: bool):
         """Enable or disable sync."""
         self._sync_enabled = enabled
@@ -960,27 +960,27 @@ class SelectionToolbar(QWidget):
     
     Provides quick access to different selection modes and operations.
     """
-    
+
     # Signals
     mode_changed = pyqtSignal(str)
     clear_requested = pyqtSignal()
     select_all_requested = pyqtSignal()
     invert_requested = pyqtSignal()
-    
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        
+
         self._current_mode = 'single'
         self._mode_buttons: dict[str, QPushButton] = {}
-        
+
         self._setup_ui()
-    
+
     def _setup_ui(self):
         """Setup the toolbar UI."""
         layout = QHBoxLayout(self)
         layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(4)
-        
+
         # Selection mode buttons
         modes = [
             ('single', 'Single', 'Select single point'),
@@ -988,7 +988,7 @@ class SelectionToolbar(QWidget):
             ('lasso', 'Lasso', 'Freeform lasso selection'),
             ('range', 'Range', 'Select time range'),
         ]
-        
+
         for mode_id, label, tooltip in modes:
             btn = QPushButton(label)
             btn.setCheckable(True)
@@ -996,38 +996,38 @@ class SelectionToolbar(QWidget):
             btn.clicked.connect(lambda checked, m=mode_id: self._on_mode_clicked(m))
             self._mode_buttons[mode_id] = btn
             layout.addWidget(btn)
-        
+
         # Set default mode
         self._mode_buttons['single'].setChecked(True)
-        
+
         layout.addStretch()
-        
+
         # Action buttons
         self.clear_btn = QPushButton("Clear")
         self.clear_btn.clicked.connect(self.clear_requested.emit)
         layout.addWidget(self.clear_btn)
-        
+
         self.select_all_btn = QPushButton("All")
         self.select_all_btn.clicked.connect(self.select_all_requested.emit)
         layout.addWidget(self.select_all_btn)
-        
+
         self.invert_btn = QPushButton("Invert")
         self.invert_btn.clicked.connect(self.invert_requested.emit)
         layout.addWidget(self.invert_btn)
-    
+
     def _on_mode_clicked(self, mode: str):
         """Handle mode button click."""
         # Uncheck all other buttons
         for m, btn in self._mode_buttons.items():
             btn.setChecked(m == mode)
-        
+
         self._current_mode = mode
         self.mode_changed.emit(mode)
-    
+
     def get_mode(self) -> str:
         """Get current selection mode."""
         return self._current_mode
-    
+
     def set_mode(self, mode: str):
         """
         Set current selection mode.
@@ -1037,11 +1037,11 @@ class SelectionToolbar(QWidget):
         """
         if mode in self._mode_buttons:
             self._on_mode_clicked(mode)
-    
+
     def get_mode_buttons(self) -> dict[str, QPushButton]:
         """Return dictionary of mode buttons."""
         return self._mode_buttons.copy()
-    
+
     def enable_mode(self, mode: str, enabled: bool = True):
         """Enable or disable a specific mode."""
         if mode in self._mode_buttons:
@@ -1058,56 +1058,56 @@ class SelectionInfo(QWidget):
     
     Shows count, statistics, and metadata about selected data.
     """
-    
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        
+
         self._selected_count = 0
         self._total_count = 0
         self._stats: dict = {}
-        
+
         self._setup_ui()
-    
+
     def _setup_ui(self):
         """Setup the info display UI."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
-        
+
         # Count display
         count_layout = QHBoxLayout()
         self.count_label = QLabel("Selection:")
         count_layout.addWidget(self.count_label)
-        
+
         self.count_value = QLabel("0 / 0 points")
         count_layout.addWidget(self.count_value)
         count_layout.addStretch()
-        
+
         layout.addLayout(count_layout)
-        
+
         # Percentage bar (simple text-based)
         self.percentage_label = QLabel("0%")
         layout.addWidget(self.percentage_label)
-        
+
         # Statistics group
         stats_group = QGroupBox("Statistics")
         stats_layout = QFormLayout(stats_group)
-        
+
         self.min_label = QLabel("-")
         stats_layout.addRow("Min:", self.min_label)
-        
+
         self.max_label = QLabel("-")
         stats_layout.addRow("Max:", self.max_label)
-        
+
         self.mean_label = QLabel("-")
         stats_layout.addRow("Mean:", self.mean_label)
-        
+
         self.std_label = QLabel("-")
         stats_layout.addRow("Std:", self.std_label)
-        
+
         layout.addWidget(stats_group)
-        
+
         layout.addStretch()
-    
+
     def update_count(self, selected: int, total: int):
         """
         Update selection count display.
@@ -1118,12 +1118,12 @@ class SelectionInfo(QWidget):
         """
         self._selected_count = selected
         self._total_count = total
-        
+
         self.count_value.setText(f"{selected:,} / {total:,} points")
-        
+
         percentage = (selected / total * 100) if total > 0 else 0
         self.percentage_label.setText(f"{percentage:.1f}%")
-    
+
     def show_stats(self, stats: dict):
         """
         Display statistics for selected data.
@@ -1132,29 +1132,29 @@ class SelectionInfo(QWidget):
             stats: Dictionary with 'min', 'max', 'mean', 'std' keys
         """
         self._stats = stats
-        
+
         self.min_label.setText(f"{stats.get('min', 0):.4g}")
         self.max_label.setText(f"{stats.get('max', 0):.4g}")
         self.mean_label.setText(f"{stats.get('mean', 0):.4g}")
         self.std_label.setText(f"{stats.get('std', 0):.4g}")
-    
+
     def clear(self):
         """Clear all displayed information."""
         self._selected_count = 0
         self._total_count = 0
         self._stats = {}
-        
+
         self.count_value.setText("0 / 0 points")
         self.percentage_label.setText("0%")
         self.min_label.setText("-")
         self.max_label.setText("-")
         self.mean_label.setText("-")
         self.std_label.setText("-")
-    
+
     def get_count(self) -> tuple[int, int]:
         """Return (selected, total) counts."""
         return self._selected_count, self._total_count
-    
+
     def get_stats(self) -> dict:
         """Return current statistics."""
         return self._stats.copy()

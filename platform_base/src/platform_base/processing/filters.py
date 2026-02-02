@@ -74,64 +74,64 @@ def apply_filter(
     # Validate inputs
     if len(values) < 2:
         raise ValidationError("Filtering requires at least 2 data points")
-    
+
     if sampling_rate <= 0:
         raise ValidationError(f"Sampling rate must be positive, got {sampling_rate}")
-    
+
     if filter_order < 1:
         raise ValidationError(f"Filter order must be at least 1, got {filter_order}")
-    
+
     # Remove NaN values
     clean_values = values[~np.isnan(values)]
-    
+
     if len(clean_values) < 2 * filter_order:
         raise ValidationError(
             f"Not enough valid data points for filter order {filter_order} "
             f"(need at least {2 * filter_order})"
         )
-    
+
     # Normalize cutoff frequencies to Nyquist frequency
     nyquist_freq = sampling_rate / 2
-    
+
     if filter_type in ("lowpass", "highpass"):
         if isinstance(cutoff_frequency, tuple):
             raise ValidationError(
                 f"{filter_type} filter requires single cutoff frequency, got tuple"
             )
-        
+
         if cutoff_frequency <= 0 or cutoff_frequency >= nyquist_freq:
             raise ValidationError(
                 f"Cutoff frequency must be between 0 and Nyquist frequency "
                 f"({nyquist_freq} Hz), got {cutoff_frequency} Hz"
             )
-        
+
         normalized_cutoff = cutoff_frequency / nyquist_freq
-        
+
     elif filter_type in ("bandpass", "bandstop"):
         if not isinstance(cutoff_frequency, tuple) or len(cutoff_frequency) != 2:
             raise ValidationError(
                 f"{filter_type} filter requires tuple of (low, high) frequencies"
             )
-        
+
         low_freq, high_freq = cutoff_frequency
-        
+
         if low_freq >= high_freq:
             raise ValidationError(
                 f"Low frequency must be less than high frequency, "
                 f"got {low_freq} >= {high_freq}"
             )
-        
+
         if low_freq <= 0 or high_freq >= nyquist_freq:
             raise ValidationError(
                 f"Frequencies must be between 0 and Nyquist frequency "
                 f"({nyquist_freq} Hz), got ({low_freq}, {high_freq})"
             )
-        
+
         normalized_cutoff = (low_freq / nyquist_freq, high_freq / nyquist_freq)
-    
+
     else:
         raise ValidationError(f"Unknown filter type: {filter_type}")
-    
+
     # Design filter
     try:
         if method == "butter":
@@ -150,10 +150,10 @@ def apply_filter(
             b, a = signal.bessel(filter_order, normalized_cutoff, btype=filter_type, norm='phase')
         else:
             raise ValidationError(f"Unknown filter method: {method}")
-    
+
     except Exception as e:
         raise ValidationError(f"Filter design failed: {str(e)}")
-    
+
     # Apply filter
     try:
         if zero_phase:
@@ -162,10 +162,10 @@ def apply_filter(
         else:
             # Standard filtering (may have phase shift)
             filtered_values = signal.lfilter(b, a, clean_values)
-    
+
     except Exception as e:
         raise ValidationError(f"Filter application failed: {str(e)}")
-    
+
     logger.info(
         "filter_applied",
         filter_type=filter_type,
@@ -175,7 +175,7 @@ def apply_filter(
         n_points=len(values),
         zero_phase=zero_phase,
     )
-    
+
     return FilterResult(
         filtered_values=filtered_values,
         original_values=clean_values,

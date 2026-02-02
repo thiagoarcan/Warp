@@ -46,28 +46,28 @@ class ThemeColors:
     foreground: str = "#212529"
     primary: str = "#0D6EFD"
     secondary: str = "#6C757D"
-    
+
     # Cores de estado
     success: str = "#198754"
     warning: str = "#FFC107"
     error: str = "#DC3545"
     info: str = "#0DCAF0"
-    
+
     # Cores de superfície
     surface: str = "#F8F9FA"
     surface_variant: str = "#E9ECEF"
     border: str = "#DEE2E6"
-    
+
     # Cores de texto
     text_primary: str = "#212529"
     text_secondary: str = "#6C757D"
     text_disabled: str = "#ADB5BD"
-    
+
     # Cores de gráfico
     plot_background: str = "#FFFFFF"
     plot_foreground: str = "#212529"
     plot_grid: str = "#E9ECEF"
-    
+
     # Palette de séries (para gráficos)
     series_colors: list[str] = field(default_factory=lambda: [
         "#0D6EFD",  # Azul
@@ -92,24 +92,24 @@ DARK_THEME = ThemeColors(
     foreground="#E0E0E0",
     primary="#58A6FF",
     secondary="#8B949E",
-    
+
     success="#3FB950",
     warning="#D29922",
     error="#F85149",
     info="#58A6FF",
-    
+
     surface="#252526",
     surface_variant="#2D2D2D",
     border="#404040",
-    
+
     text_primary="#E0E0E0",
     text_secondary="#8B949E",
     text_disabled="#6E7681",
-    
+
     plot_background="#1E1E1E",
     plot_foreground="#E0E0E0",
     plot_grid="#404040",
-    
+
     series_colors=[
         "#58A6FF",  # Azul claro
         "#F85149",  # Vermelho
@@ -144,7 +144,7 @@ def get_system_theme() -> ThemeMode:
         return ThemeMode.LIGHT if value else ThemeMode.DARK
     except Exception:
         pass
-    
+
     try:
         # macOS
         import subprocess
@@ -157,7 +157,7 @@ def get_system_theme() -> ThemeMode:
             return ThemeMode.DARK
     except Exception:
         pass
-    
+
     # Default to light
     return ThemeMode.LIGHT
 
@@ -176,46 +176,46 @@ class ThemeManager(QObject):
         theme_changed: Emitido quando o tema muda
         colors_changed: Emitido quando as cores mudam
     """
-    
+
     theme_changed = pyqtSignal(ThemeMode)
     colors_changed = pyqtSignal(ThemeColors)
-    
+
     _instance: ThemeManager | None = None
     _initialized: bool = False
-    
+
     def __init__(self):
         super().__init__()
-        
+
         # Estado atual
         self._current_mode = ThemeMode.LIGHT
         self._current_colors = LIGHT_THEME
         self._custom_colors: dict[str, str] = {}
-        
+
         # Settings para persistência
         self._settings = QSettings("PlatformBase", "Theme")
-        
+
         # Carrega configurações salvas
         self._load_settings()
-        
+
         logger.debug("theme_manager_initialized")
-    
+
     @property
     def current_mode(self) -> ThemeMode:
         """Retorna modo de tema atual."""
         return self._current_mode
-    
+
     @property
     def colors(self) -> ThemeColors:
         """Retorna cores do tema atual."""
         return self._current_colors
-    
+
     @property
     def is_dark(self) -> bool:
         """Verifica se o tema atual é escuro."""
         if self._current_mode == ThemeMode.SYSTEM:
             return get_system_theme() == ThemeMode.DARK
         return self._current_mode == ThemeMode.DARK
-    
+
     def set_theme(self, mode: ThemeMode):
         """
         Define o tema da aplicação.
@@ -224,7 +224,7 @@ class ThemeManager(QObject):
             mode: Modo de tema a aplicar
         """
         self._current_mode = mode
-        
+
         # Determina cores baseado no modo
         if mode == ThemeMode.SYSTEM:
             system_mode = get_system_theme()
@@ -233,22 +233,22 @@ class ThemeManager(QObject):
             self._current_colors = DARK_THEME
         else:
             self._current_colors = LIGHT_THEME
-        
+
         # Aplica cores customizadas
         self._apply_custom_colors()
-        
+
         # Aplica o tema
         self._apply_theme()
-        
+
         # Salva configuração
         self._save_settings()
-        
+
         # Emite signals
         self.theme_changed.emit(mode)
         self.colors_changed.emit(self._current_colors)
-        
+
         logger.info("theme_changed", mode=mode.name, is_dark=self.is_dark)
-    
+
     def set_custom_color(self, key: str, color: str):
         """
         Define uma cor customizada.
@@ -262,12 +262,12 @@ class ThemeManager(QObject):
         self._apply_theme()
         self._save_settings()
         self.colors_changed.emit(self._current_colors)
-    
+
     def reset_custom_colors(self):
         """Remove todas as cores customizadas."""
         self._custom_colors.clear()
         self.set_theme(self._current_mode)  # Reaplica tema base
-    
+
     def get_color(self, key: str) -> str:
         """
         Retorna cor do tema atual.
@@ -279,7 +279,7 @@ class ThemeManager(QObject):
             Valor da cor em hex
         """
         return getattr(self._current_colors, key, "#000000")
-    
+
     def get_qcolor(self, key: str) -> QColor:
         """
         Retorna QColor do tema atual.
@@ -291,68 +291,68 @@ class ThemeManager(QObject):
             QColor object
         """
         return QColor(self.get_color(key))
-    
+
     def _apply_custom_colors(self):
         """Aplica cores customizadas ao tema atual."""
         for key, color in self._custom_colors.items():
             if hasattr(self._current_colors, key):
                 setattr(self._current_colors, key, color)
-    
+
     def _apply_theme(self):
         """Aplica o tema à aplicação."""
         app = QApplication.instance()
         if not app:
             return
-        
+
         # Cria paleta
         palette = self._create_palette()
         app.setPalette(palette)
-        
+
         # Aplica stylesheet global
         stylesheet = self._create_stylesheet()
         app.setStyleSheet(stylesheet)
-        
+
         logger.debug("theme_applied")
-    
+
     def _create_palette(self) -> QPalette:
         """Cria QPalette baseada no tema atual."""
         colors = self._current_colors
         palette = QPalette()
-        
+
         # Window
         palette.setColor(QPalette.ColorRole.Window, QColor(colors.background))
         palette.setColor(QPalette.ColorRole.WindowText, QColor(colors.foreground))
-        
+
         # Base (input fields, lists)
         palette.setColor(QPalette.ColorRole.Base, QColor(colors.surface))
         palette.setColor(QPalette.ColorRole.AlternateBase, QColor(colors.surface_variant))
-        
+
         # Text
         palette.setColor(QPalette.ColorRole.Text, QColor(colors.text_primary))
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(colors.text_disabled))
-        
+
         # Button
         palette.setColor(QPalette.ColorRole.Button, QColor(colors.surface))
         palette.setColor(QPalette.ColorRole.ButtonText, QColor(colors.text_primary))
-        
+
         # Highlight (selection)
         palette.setColor(QPalette.ColorRole.Highlight, QColor(colors.primary))
         palette.setColor(QPalette.ColorRole.HighlightedText, QColor("#FFFFFF"))
-        
+
         # Disabled states
         palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(colors.text_disabled))
         palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor(colors.text_disabled))
-        
+
         # Links
         palette.setColor(QPalette.ColorRole.Link, QColor(colors.primary))
         palette.setColor(QPalette.ColorRole.LinkVisited, QColor(colors.secondary))
-        
+
         return palette
-    
+
     def _create_stylesheet(self) -> str:
         """Cria stylesheet CSS baseada no tema atual."""
         colors = self._current_colors
-        
+
         return f"""
             /* Global */
             QWidget {{
@@ -643,7 +643,7 @@ class ThemeManager(QObject):
                 padding: 4px 8px;
             }}
         """
-    
+
     def _darken_color(self, hex_color: str, percent: int) -> str:
         """Escurece uma cor hex por uma porcentagem."""
         color = QColor(hex_color)
@@ -651,7 +651,7 @@ class ThemeManager(QObject):
         l = max(0, l - percent / 100)
         color.setHslF(h, s, l, a)
         return color.name()
-    
+
     def _lighten_color(self, hex_color: str, percent: int) -> str:
         """Clareia uma cor hex por uma porcentagem."""
         color = QColor(hex_color)
@@ -659,7 +659,7 @@ class ThemeManager(QObject):
         l = min(1, l + percent / 100)
         color.setHslF(h, s, l, a)
         return color.name()
-    
+
     def _load_settings(self):
         """Carrega configurações salvas."""
         mode_str = self._settings.value("mode", "LIGHT")
@@ -667,17 +667,17 @@ class ThemeManager(QObject):
             self._current_mode = ThemeMode[mode_str]
         except KeyError:
             self._current_mode = ThemeMode.LIGHT
-        
+
         # Carrega cores customizadas
         custom_json = self._settings.value("custom_colors", "{}")
         try:
             self._custom_colors = json.loads(custom_json)
         except json.JSONDecodeError:
             self._custom_colors = {}
-        
+
         # Aplica tema carregado
         self.set_theme(self._current_mode)
-    
+
     def _save_settings(self):
         """Salva configurações."""
         self._settings.setValue("mode", self._current_mode.name)

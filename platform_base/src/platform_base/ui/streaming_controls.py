@@ -535,7 +535,7 @@ class StreamingControls(QWidget):
     Provides basic play/pause/stop functionality and timeline control.
     For more advanced features, use StreamingControlWidget.
     """
-    
+
     # Signals
     playback_started = pyqtSignal()
     playback_paused = pyqtSignal()
@@ -543,53 +543,53 @@ class StreamingControls(QWidget):
     position_changed = pyqtSignal(float)  # position in seconds
     speed_changed = pyqtSignal(float)     # speed multiplier
     window_size_changed = pyqtSignal(float)  # window size in seconds
-    
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        
+
         self._is_playing = False
         self._current_position = 0.0
         self._total_duration = 0.0
         self._playback_speed = 1.0
         self._window_size = 10.0
-        
+
         # Timer for playback
         self._timer = QTimer()
         self._timer.timeout.connect(self._on_tick)
-        
+
         self._setup_ui()
-        
+
         logger.debug("streaming_controls_initialized")
-    
+
     def _setup_ui(self):
         """Setup the UI components."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
-        
+
         # Playback buttons
         buttons_layout = QHBoxLayout()
-        
+
         self.play_btn = QPushButton("▶ Play")
         self.play_btn.clicked.connect(self.play)
         buttons_layout.addWidget(self.play_btn)
-        
+
         self.pause_btn = QPushButton("⏸ Pause")
         self.pause_btn.clicked.connect(self.pause)
         self.pause_btn.setEnabled(False)
         buttons_layout.addWidget(self.pause_btn)
-        
+
         self.stop_btn = QPushButton("⏹ Stop")
         self.stop_btn.clicked.connect(self.stop)
         buttons_layout.addWidget(self.stop_btn)
-        
+
         layout.addLayout(buttons_layout)
-        
+
         # Timeline slider
         self.timeline = QSlider(Qt.Orientation.Horizontal)
         self.timeline.setRange(0, 1000)
         self.timeline.valueChanged.connect(self._on_timeline_changed)
         layout.addWidget(self.timeline)
-        
+
         # Position and duration labels
         time_layout = QHBoxLayout()
         self.position_label = QLabel("0:00.0")
@@ -598,7 +598,7 @@ class StreamingControls(QWidget):
         self.duration_label = QLabel("/ 0:00.0")
         time_layout.addWidget(self.duration_label)
         layout.addLayout(time_layout)
-        
+
         # Speed control
         speed_layout = QHBoxLayout()
         speed_layout.addWidget(QLabel("Speed:"))
@@ -611,7 +611,7 @@ class StreamingControls(QWidget):
         speed_layout.addWidget(self.speed_spinbox)
         speed_layout.addStretch()
         layout.addLayout(speed_layout)
-        
+
         # Window size control
         window_layout = QHBoxLayout()
         window_layout.addWidget(QLabel("Window:"))
@@ -623,22 +623,22 @@ class StreamingControls(QWidget):
         window_layout.addWidget(self.window_spinbox)
         window_layout.addStretch()
         layout.addLayout(window_layout)
-    
+
     def _on_tick(self):
         """Timer tick - advance playback."""
         if not self._is_playing:
             return
-        
+
         # Advance position based on speed
         step = (self._timer.interval() / 1000.0) * self._playback_speed
         new_position = self._current_position + step
-        
+
         if new_position >= self._total_duration:
             new_position = self._total_duration
             self.stop()
-        
+
         self.seek(new_position)
-    
+
     def _on_timeline_changed(self, value: int):
         """Handle timeline slider change."""
         if self._total_duration > 0:
@@ -646,11 +646,11 @@ class StreamingControls(QWidget):
             self._current_position = position
             self._update_position_label()
             self.position_changed.emit(position)
-    
+
     def _update_position_label(self):
         """Update the position label."""
         self.position_label.setText(self._format_time(self._current_position))
-    
+
     def _update_timeline(self):
         """Update timeline slider position."""
         if self._total_duration > 0:
@@ -658,14 +658,14 @@ class StreamingControls(QWidget):
             self.timeline.blockSignals(True)
             self.timeline.setValue(value)
             self.timeline.blockSignals(False)
-    
+
     @staticmethod
     def _format_time(seconds: float) -> str:
         """Format seconds as M:SS.s"""
         minutes = int(seconds // 60)
         secs = seconds % 60
         return f"{minutes}:{secs:04.1f}"
-    
+
     def play(self):
         """Start playback."""
         if not self._is_playing:
@@ -675,7 +675,7 @@ class StreamingControls(QWidget):
             self.pause_btn.setEnabled(True)
             self.playback_started.emit()
             logger.debug("streaming_play")
-    
+
     def pause(self):
         """Pause playback."""
         if self._is_playing:
@@ -685,7 +685,7 @@ class StreamingControls(QWidget):
             self.pause_btn.setEnabled(False)
             self.playback_paused.emit()
             logger.debug("streaming_pause")
-    
+
     def stop(self):
         """Stop playback and reset position."""
         self._is_playing = False
@@ -697,11 +697,11 @@ class StreamingControls(QWidget):
         self.pause_btn.setEnabled(False)
         self.playback_stopped.emit()
         logger.debug("streaming_stop")
-    
+
     def is_playing(self) -> bool:
         """Check if playback is active."""
         return self._is_playing
-    
+
     def seek(self, position: float):
         """
         Seek to a specific position.
@@ -713,11 +713,11 @@ class StreamingControls(QWidget):
         self._update_position_label()
         self._update_timeline()
         self.position_changed.emit(self._current_position)
-    
+
     def get_position(self) -> float:
         """Get current position in seconds."""
         return self._current_position
-    
+
     def set_duration(self, duration: float):
         """
         Set total duration.
@@ -728,11 +728,11 @@ class StreamingControls(QWidget):
         self._total_duration = max(0.0, duration)
         self.duration_label.setText(f"/ {self._format_time(self._total_duration)}")
         logger.debug("streaming_duration_set", duration=duration)
-    
+
     def get_duration(self) -> float:
         """Get total duration in seconds."""
         return self._total_duration
-    
+
     def set_speed(self, speed: float):
         """
         Set playback speed.
@@ -746,11 +746,11 @@ class StreamingControls(QWidget):
         self.speed_spinbox.blockSignals(False)
         self.speed_changed.emit(self._playback_speed)
         logger.debug("streaming_speed_set", speed=self._playback_speed)
-    
+
     def get_speed(self) -> float:
         """Get current playback speed."""
         return self._playback_speed
-    
+
     def set_window_size(self, size: float):
         """
         Set visualization window size.
@@ -764,11 +764,11 @@ class StreamingControls(QWidget):
         self.window_spinbox.blockSignals(False)
         self.window_size_changed.emit(self._window_size)
         logger.debug("streaming_window_size_set", size=self._window_size)
-    
+
     def get_window_size(self) -> float:
         """Get current window size in seconds."""
         return self._window_size
-    
+
     def step_forward(self, step: float = 1.0):
         """
         Step forward by given amount.
@@ -777,7 +777,7 @@ class StreamingControls(QWidget):
             step: Step size in seconds
         """
         self.seek(self._current_position + step)
-    
+
     def step_backward(self, step: float = 1.0):
         """
         Step backward by given amount.
@@ -786,7 +786,7 @@ class StreamingControls(QWidget):
             step: Step size in seconds
         """
         self.seek(self._current_position - step)
-    
+
     def set_range(self, start: float, end: float):
         """
         Set playback range.

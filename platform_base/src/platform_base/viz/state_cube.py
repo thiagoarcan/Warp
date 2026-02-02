@@ -48,7 +48,7 @@ class StateCube3D(BaseFigure):
         # Create a placeholder figure for export
         fig = go.Figure()
         fig.update_layout(title=self.config.title)
-        
+
         if format == "html":
             fig.write_html(str(path))
         else:

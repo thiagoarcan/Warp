@@ -42,7 +42,7 @@ class Orchestrator:
         and positional args (when param names don't match dep names).
         """
         dep_values = [results.get(dep, inputs.get(dep)) for dep in task.deps]
-        
+
         # Get function signature
         try:
             sig = inspect.signature(task.func)
@@ -51,11 +51,11 @@ class Orchestrator:
             # Fallback to kwargs for functions without inspectable signature
             kwargs = {dep: results.get(dep, inputs.get(dep)) for dep in task.deps}
             return task.func(**kwargs)
-        
+
         # Check if param names match dep names
         deps_set = set(task.deps)
         params_match = all(p in deps_set for p in param_names if p not in ('args', 'kwargs'))
-        
+
         if params_match:
             # Use kwargs when parameter names match dependency names
             kwargs = {dep: results.get(dep, inputs.get(dep)) for dep in task.deps}

@@ -716,7 +716,7 @@ class VizPanel(QWidget):
                     "dataset_id": dataset_id,
                     "name": series.name,
                 }
-                
+
                 # When we have 3 series, create the 3D plot
                 if len(plot_info["series"]) >= 3:
                     series_list = list(plot_info["series"].values())

@@ -233,21 +233,21 @@ class VideoExportWorker(QThread):
         # Capture widget to pixmap
         try:
             pixmap = view_widget.grab()
-            
+
             # Convert QPixmap to numpy array via QImage
             qimage = pixmap.toImage()
             qimage = qimage.convertToFormat(qimage.Format.Format_RGB888)
-            
+
             width = qimage.width()
             height = qimage.height()
-            
+
             # Get pointer to image data
             ptr = qimage.bits()
             ptr.setsize(height * width * 3)
-            
+
             # Create numpy array from image data
             frame = np.frombuffer(ptr, dtype=np.uint8).reshape((height, width, 3))
-            
+
             # Resize to target resolution if needed
             target_height, target_width = self.settings.resolution[1], self.settings.resolution[0]
             if (width, height) != (target_width, target_height):
@@ -259,12 +259,12 @@ class VideoExportWorker(QThread):
                     y_indices = np.linspace(0, height - 1, target_height).astype(int)
                     x_indices = np.linspace(0, width - 1, target_width).astype(int)
                     frame = frame[np.ix_(y_indices, x_indices)]
-            
+
             # Convert RGB to BGR for OpenCV
             try:
                 import cv2
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                
+
                 # Add timestamp overlay
                 timestamp_text = f"Time: {self.synchronizer.sync_state.current_time_seconds:.2f}s"
                 cv2.putText(frame, timestamp_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
@@ -686,23 +686,23 @@ def export_animation(frames: list, output_path: str, fps: int = 30,
     try:
         import cv2
         import numpy as np
-        
+
         if not frames:
             return False
-        
+
         height, width = frames[0].shape[:2]
-        
+
         codec_map = {
             "mp4": cv2.VideoWriter_fourcc(*"mp4v"),
             "avi": cv2.VideoWriter_fourcc(*"XVID"),
             "mov": cv2.VideoWriter_fourcc(*"mp4v"),
             "webm": cv2.VideoWriter_fourcc(*"VP80"),
         }
-        
+
         fourcc = codec_map.get(format, cv2.VideoWriter_fourcc(*"mp4v"))
-        
+
         writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-        
+
         for frame in frames:
             # Convert RGB to BGR if needed
             if len(frame.shape) == 3 and frame.shape[2] == 3:
@@ -710,10 +710,10 @@ def export_animation(frames: list, output_path: str, fps: int = 30,
             else:
                 frame_bgr = frame
             writer.write(frame_bgr)
-        
+
         writer.release()
         return True
-        
+
     except ImportError:
         logger.warning("OpenCV not available for video export")
         return False
@@ -729,7 +729,7 @@ class VideoExport:
     This provides a high-level interface for video export without requiring
     the full streaming infrastructure.
     """
-    
+
     def __init__(self, width: int = 1920, height: int = 1080, fps: int = 30,
                  format: str = "mp4", quality: str = "medium"):
         """
@@ -752,73 +752,73 @@ class VideoExport:
         self._metadata = {}
         self._progress_callback = None
         self._is_recording = False
-    
+
     @property
     def width(self) -> int:
         return self._width
-    
+
     @property
     def height(self) -> int:
         return self._height
-    
+
     @property
     def fps(self) -> int:
         return self._fps
-    
+
     @property
     def format(self) -> str:
         return self._format
-    
+
     @property
     def frame_count(self) -> int:
         return len(self._frames)
-    
+
     @property
     def duration(self) -> float:
         """Duration in seconds."""
         return len(self._frames) / self._fps if self._fps > 0 else 0.0
-    
+
     def set_resolution(self, width: int, height: int) -> None:
         """Set video resolution."""
         self._width = width
         self._height = height
-    
+
     def set_fps(self, fps: int) -> None:
         """Set frames per second."""
         self._fps = fps
-    
+
     def set_format(self, format: str) -> None:
         """Set output format."""
         if format in AVAILABLE_FORMATS:
             self._format = format
         else:
             logger.warning(f"Unknown format: {format}")
-    
+
     def set_quality(self, quality: str) -> None:
         """Set quality preset."""
         self._quality = quality
-    
+
     def set_output_path(self, path: str) -> None:
         """Set output file path."""
         self._output_path = path
-    
+
     def set_metadata(self, **kwargs) -> None:
         """Set video metadata."""
         self._metadata.update(kwargs)
-    
+
     def set_progress_callback(self, callback) -> None:
         """Set progress callback function."""
         self._progress_callback = callback
-    
+
     def start_recording(self) -> None:
         """Start recording frames."""
         self._frames = []
         self._is_recording = True
-    
+
     def stop_recording(self) -> None:
         """Stop recording frames."""
         self._is_recording = False
-    
+
     def add_frame(self, frame) -> None:
         """
         Add a frame to the video.
@@ -836,7 +836,7 @@ class VideoExport:
         elif hasattr(frame, 'bits'):
             # QImage
             frame = self._qimage_to_numpy(frame)
-        
+
         # Resize if needed
         if frame.shape[1] != self._width or frame.shape[0] != self._height:
             try:
@@ -844,22 +844,22 @@ class VideoExport:
                 frame = cv2.resize(frame, (self._width, self._height))
             except ImportError:
                 pass
-        
+
         self._frames.append(frame)
-    
+
     def _qimage_to_numpy(self, qimage):
         """Convert QImage to numpy array."""
         import numpy as np
-        
+
         width = qimage.width()
         height = qimage.height()
-        
+
         ptr = qimage.bits()
         ptr.setsize(height * width * 4)
         arr = np.array(ptr).reshape(height, width, 4)
-        
+
         return arr[:, :, :3]  # RGB only
-    
+
     def export(self, output_path: str = None) -> bool:
         """
         Export video to file.
@@ -874,13 +874,13 @@ class VideoExport:
         if not path:
             logger.error("No output path specified")
             return False
-        
+
         if not self._frames:
             logger.error("No frames to export")
             return False
-        
+
         return export_animation(self._frames, path, self._fps, self._format)
-    
+
     def render_frame(self, plot_widget, timestamp: float = None) -> None:
         """
         Render current state of plot widget as a frame.
@@ -890,7 +890,7 @@ class VideoExport:
             timestamp: Optional timestamp to show on frame
         """
         import numpy as np
-        
+
         try:
             # Capture from pyqtgraph widget
             if hasattr(plot_widget, 'grab'):
@@ -905,7 +905,7 @@ class VideoExport:
                 self.add_frame(img)
         except Exception as e:
             logger.warning(f"Could not render frame: {e}")
-    
+
     def preview(self) -> None:
         """Show preview of first frame."""
         if self._frames:
@@ -918,11 +918,11 @@ class VideoExport:
                 plt.show()
             except ImportError:
                 logger.info("matplotlib not available for preview")
-    
+
     def clear(self) -> None:
         """Clear all frames."""
         self._frames = []
-    
+
     def get_settings(self) -> dict:
         """Get current export settings."""
         return {
@@ -935,7 +935,7 @@ class VideoExport:
             "duration": self.duration,
             "output_path": self._output_path,
         }
-    
+
     @staticmethod
     def from_figure_sequence(figures: list, output_path: str, fps: int = 30,
                              format: str = "mp4") -> bool:
@@ -952,7 +952,7 @@ class VideoExport:
             True if successful
         """
         import numpy as np
-        
+
         frames = []
         for fig in figures:
             try:
@@ -963,5 +963,5 @@ class VideoExport:
                 frames.append(frame)
             except Exception as e:
                 logger.warning(f"Could not convert figure: {e}")
-        
+
         return export_animation(frames, output_path, fps, format)

@@ -127,7 +127,7 @@ class DateTimeAxisItem(pg.AxisItem):
     
     Automaticamente adapta o formato baseado no nível de zoom.
     """
-    
+
     def __init__(
         self,
         orientation: str = "bottom",
@@ -146,61 +146,61 @@ class DateTimeAxisItem(pg.AxisItem):
             custom_format: Formato strftime customizado
         """
         super().__init__(orientation, **kwargs)
-        
+
         self._epoch = epoch or datetime(1970, 1, 1)
         self._format_mode = format_mode
         self._custom_format = custom_format
         self._current_zoom_level = ZoomLevel.SECONDS
-        
+
         # Cache para performance
         self._format_cache: dict[float, str] = {}
         self._cache_zoom_level: ZoomLevel | None = None
-        
+
         logger.debug("datetime_axis_created", 
                     epoch=self._epoch.isoformat(),
                     format_mode=format_mode.name)
-    
+
     @property
     def epoch(self) -> datetime:
         """Retorna datetime de referência."""
         return self._epoch
-    
+
     @epoch.setter
     def epoch(self, value: datetime):
         """Define datetime de referência."""
         self._epoch = value
         self._clear_cache()
         self.update()
-    
+
     @property
     def format_mode(self) -> DateTimeFormat:
         """Retorna modo de formatação."""
         return self._format_mode
-    
+
     @format_mode.setter
     def format_mode(self, value: DateTimeFormat):
         """Define modo de formatação."""
         self._format_mode = value
         self._clear_cache()
         self.update()
-    
+
     @property
     def custom_format(self) -> str | None:
         """Retorna formato customizado."""
         return self._custom_format
-    
+
     @custom_format.setter
     def custom_format(self, value: str | None):
         """Define formato customizado."""
         self._custom_format = value
         self._clear_cache()
         self.update()
-    
+
     def _clear_cache(self):
         """Limpa cache de formatação."""
         self._format_cache.clear()
         self._cache_zoom_level = None
-    
+
     def tickStrings(self, values: Sequence[float], scale: float, spacing: float) -> list[str]:
         """
         Gera strings para os ticks do eixo.
@@ -215,24 +215,24 @@ class DateTimeAxisItem(pg.AxisItem):
         """
         if not values:
             return []
-        
+
         # Detecta nível de zoom baseado no spacing
         visible_range = spacing * 10  # Estimativa do range visível
         zoom_level = detect_zoom_level(visible_range)
-        
+
         # Atualiza cache se nível de zoom mudou
         if zoom_level != self._cache_zoom_level:
             self._clear_cache()
             self._cache_zoom_level = zoom_level
             self._current_zoom_level = zoom_level
-        
+
         # Formata valores
         strings = []
         for value in values:
             strings.append(self._format_timestamp(value, zoom_level))
-        
+
         return strings
-    
+
     def _format_timestamp(self, timestamp: float, zoom_level: ZoomLevel) -> str:
         """
         Formata timestamp para string.
@@ -248,10 +248,10 @@ class DateTimeAxisItem(pg.AxisItem):
         cache_key = (timestamp, zoom_level)
         if timestamp in self._format_cache:
             return self._format_cache[timestamp]
-        
+
         try:
             dt = timestamp_to_datetime(timestamp, self._epoch)
-            
+
             if self._format_mode == DateTimeFormat.CUSTOM and self._custom_format:
                 formatted = dt.strftime(self._custom_format)
             elif self._format_mode == DateTimeFormat.RELATIVE:
@@ -261,15 +261,15 @@ class DateTimeAxisItem(pg.AxisItem):
             else:  # ISO ou default
                 fmt = ZOOM_FORMATS.get(zoom_level, "%H:%M:%S")
                 formatted = dt.strftime(fmt)
-            
+
             # Cache result
             self._format_cache[timestamp] = formatted
             return formatted
-            
+
         except (ValueError, OverflowError) as e:
             logger.warning("timestamp_format_error", timestamp=timestamp, error=str(e))
             return f"{timestamp:.2f}"
-    
+
     def _format_relative(self, timestamp: float) -> str:
         """
         Formata timestamp como tempo relativo (HH:MM:SS.mmm).
@@ -285,18 +285,18 @@ class DateTimeAxisItem(pg.AxisItem):
             timestamp = abs(timestamp)
         else:
             sign = ""
-        
+
         hours = int(timestamp // 3600)
         minutes = int((timestamp % 3600) // 60)
         seconds = timestamp % 60
-        
+
         if hours > 0:
             return f"{sign}{hours:02d}:{minutes:02d}:{seconds:05.2f}"
         elif minutes > 0:
             return f"{sign}{minutes:02d}:{seconds:05.2f}"
         else:
             return f"{sign}{seconds:.3f}s"
-    
+
     def tickValues(self, minVal: float, maxVal: float, size: int) -> list[tuple[float, list[float]]]:
         """
         Gera valores dos ticks baseado no range.
@@ -312,15 +312,15 @@ class DateTimeAxisItem(pg.AxisItem):
         # Detecta nível de zoom
         visible_range = maxVal - minVal
         zoom_level = detect_zoom_level(visible_range)
-        
+
         # Define espaçamento baseado no nível de zoom
         spacing = self._get_tick_spacing(zoom_level, visible_range)
-        
+
         # Gera ticks
         ticks = self._generate_ticks(minVal, maxVal, spacing)
-        
+
         return [(spacing, ticks)]
-    
+
     def _get_tick_spacing(self, zoom_level: ZoomLevel, visible_range: float) -> float:
         """
         Calcula espaçamento entre ticks baseado no zoom.
@@ -343,13 +343,13 @@ class DateTimeAxisItem(pg.AxisItem):
             ZoomLevel.SECONDS: 1,                  # 1 segundo
             ZoomLevel.MILLISECONDS: 0.1,           # 100ms
         }
-        
+
         base_spacing = spacing_map.get(zoom_level, 1)
-        
+
         # Ajusta para ter ~5-10 ticks visíveis
         target_ticks = 7
         actual_ticks = visible_range / base_spacing
-        
+
         if actual_ticks > 15:
             # Muito ticks, aumenta espaçamento
             multipliers = [1, 2, 5, 10, 15, 30, 60]
@@ -364,9 +364,9 @@ class DateTimeAxisItem(pg.AxisItem):
                 if visible_range / (base_spacing / div) >= 3:
                     return base_spacing / div
             return base_spacing / 10
-        
+
         return base_spacing
-    
+
     def _generate_ticks(self, minVal: float, maxVal: float, spacing: float) -> list[float]:
         """
         Gera valores de ticks no range especificado.
@@ -381,17 +381,17 @@ class DateTimeAxisItem(pg.AxisItem):
         """
         if spacing <= 0:
             return []
-        
+
         # Alinha primeiro tick com o espaçamento
         first_tick = np.ceil(minVal / spacing) * spacing
         last_tick = np.floor(maxVal / spacing) * spacing
-        
+
         # Gera ticks
         n_ticks = int((last_tick - first_tick) / spacing) + 1
         n_ticks = min(n_ticks, 100)  # Limita para evitar memory issues
-        
+
         ticks = [first_tick + i * spacing for i in range(n_ticks)]
-        
+
         return ticks
 
 
@@ -401,7 +401,7 @@ class DateTimePlotWidget(pg.PlotWidget):
     
     Wrapper conveniente para criar plots com DateTimeAxisItem.
     """
-    
+
     def __init__(
         self,
         epoch: datetime | None = None,
@@ -425,32 +425,32 @@ class DateTimePlotWidget(pg.PlotWidget):
             format_mode=format_mode,
             custom_format=custom_format,
         )
-        
+
         # Inicializa PlotWidget com eixo customizado
         super().__init__(axisItems={"bottom": self._datetime_axis}, **kwargs)
-        
+
         # Configurações adicionais
         self.setLabel("bottom", "Time")
-        
+
         logger.debug("datetime_plot_widget_created")
-    
+
     @property
     def datetime_axis(self) -> DateTimeAxisItem:
         """Retorna o eixo de data/hora."""
         return self._datetime_axis
-    
+
     def set_epoch(self, epoch: datetime):
         """Define datetime de referência."""
         self._datetime_axis.epoch = epoch
-    
+
     def set_format_mode(self, mode: DateTimeFormat):
         """Define modo de formatação."""
         self._datetime_axis.format_mode = mode
-    
+
     def set_custom_format(self, fmt: str | None):
         """Define formato customizado."""
         self._datetime_axis.custom_format = fmt
-    
+
     def plot_with_datetime(
         self,
         datetimes: Sequence[datetime],
@@ -471,7 +471,7 @@ class DateTimePlotWidget(pg.PlotWidget):
         # Converte datetimes para timestamps
         epoch = self._datetime_axis.epoch
         timestamps = [datetime_to_timestamp(dt, epoch) for dt in datetimes]
-        
+
         return self.plot(timestamps, values, **kwargs)
 
 

@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
         self.operations_dock.setWidget(self.operations_panel)
         self.operations_dock.setObjectName("OperationsPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
-        
+
         # Tabify operations with config panel
         self.tabifyDockWidget(self.config_dock, self.operations_dock)
         self.config_dock.raise_()  # Show config panel by default
@@ -166,7 +166,7 @@ class MainWindow(QMainWindow):
         self.operations_dock.setWidget(self.operations_panel)
         self.operations_dock.setObjectName("OperationsPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
-        
+
         # Stack operations panel below config panel
         self.splitDockWidget(self.config_dock, self.operations_dock, Qt.Orientation.Vertical)
 
@@ -447,7 +447,7 @@ class MainWindow(QMainWindow):
         self.signal_hub.operation_failed.connect(self._on_operation_failed)
         self.signal_hub.error_occurred.connect(self._on_error_occurred)
         self.signal_hub.status_updated.connect(self._on_status_updated)
-        
+
         # Operations Panel signals (BUG-004 FIX)
         self.operations_panel.operation_requested.connect(self._handle_operation_request)
 
@@ -735,7 +735,7 @@ class MainWindow(QMainWindow):
         This connects the UI to the processing backend.
         """
         logger.info("operation_requested", operation=operation_name, params=params)
-        
+
         # Validate that we have data selected
         selection = self.session_state.get_selected_series()
         if not selection:
@@ -745,18 +745,18 @@ class MainWindow(QMainWindow):
                 "Please select a data series before performing this operation."
             )
             return
-        
+
         try:
             # Get the selected dataset and series
             dataset_id = selection[0].dataset_id if hasattr(selection[0], 'dataset_id') else None
             series_id = selection[0].series_id if hasattr(selection[0], 'series_id') else None
-            
+
             if not dataset_id or not series_id:
                 # Try alternate selection format
                 if isinstance(selection, dict):
                     dataset_id = selection.get('dataset_id')
                     series_id = selection.get('series_id')
-            
+
             if not dataset_id or not series_id:
                 QMessageBox.warning(
                     self,
@@ -764,7 +764,7 @@ class MainWindow(QMainWindow):
                     "Could not determine selected series. Please select a series from the data panel."
                 )
                 return
-            
+
             # Start the processing operation
             self.processing_manager.start_operation(
                 operation_type=operation_name,
@@ -772,14 +772,14 @@ class MainWindow(QMainWindow):
                 series_id=series_id,
                 params=params
             )
-            
+
             # Show feedback
             self.status_label.setText(f"Processing: {operation_name}...")
             self.progress_bar.setVisible(True)
-            
+
             # Activate results panel to show results when complete
             self.results_dock.raise_()
-            
+
         except Exception as e:
             logger.exception("operation_request_failed", operation=operation_name, error=str(e))
             QMessageBox.critical(
@@ -794,7 +794,7 @@ class MainWindow(QMainWindow):
         Handle export request from OperationsPanel.
         """
         logger.info("export_requested", format=format_type, options=options)
-        
+
         # Get output path from user
         file_filters = {
             'csv': "CSV Files (*.csv)",
@@ -803,28 +803,28 @@ class MainWindow(QMainWindow):
             'hdf5': "HDF5 Files (*.h5 *.hdf5)",
             'json': "JSON Files (*.json)",
         }
-        
+
         file_filter = file_filters.get(format_type, "All Files (*.*)")
-        
+
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             f"Export as {format_type.upper()}",
             "",
             file_filter
         )
-        
+
         if file_path:
             self.status_label.setText(f"Exporting to {format_type}...")
             logger.info("export_started", path=file_path, format=format_type)
-            
+
             # Get current dataset and series selection
             current_selection = self.session_state.get_active_selection() if hasattr(self.session_state, 'get_active_selection') else None
             dataset_id = current_selection.get('dataset_id') if current_selection else None
             series_ids = current_selection.get('series_ids') if current_selection else None
-            
+
             if not dataset_id and hasattr(self.data_panel, 'get_selected_dataset_id'):
                 dataset_id = self.data_panel.get_selected_dataset_id()
-            
+
             if not dataset_id:
                 QMessageBox.warning(
                     self,
@@ -833,16 +833,16 @@ class MainWindow(QMainWindow):
                 )
                 self.status_label.setText("Export cancelled - no data selected")
                 return
-            
+
             # Start export worker
             from platform_base.desktop.workers.export_worker import DataExportWorker
-            
+
             export_config = {
                 'delimiter': options.get('delimiter', ','),
                 'encoding': options.get('encoding', 'utf-8'),
                 'include_metadata': options.get('include_metadata', True),
             }
-            
+
             self.export_worker = DataExportWorker(
                 dataset_store=self.signal_hub.dataset_store if hasattr(self.signal_hub, 'dataset_store') else None,
                 dataset_id=dataset_id,
@@ -851,13 +851,13 @@ class MainWindow(QMainWindow):
                 format_type=format_type,
                 export_config=export_config
             )
-            
+
             # Connect worker signals
             self.export_worker.progress.connect(self.progress_bar.setValue)
             self.export_worker.status_updated.connect(self.status_label.setText)
             self.export_worker.error.connect(lambda e: QMessageBox.critical(self, "Export Error", str(e)))
             self.export_worker.finished.connect(self._on_export_finished)
-            
+
             # Start export
             self.progress_bar.setVisible(True)
             self.progress_bar.setValue(0)
@@ -1169,7 +1169,7 @@ class MainWindow(QMainWindow):
                 logger.debug("streaming_panel_updated", total_frames=total_frames)
             except Exception as e:
                 logger.exception("streaming_panel_update_failed", error=str(e))
-    
+
     @pyqtSlot(str, dict)
     def _handle_operation_request(self, operation_name: str, params: dict):
         """
@@ -1180,7 +1180,7 @@ class MainWindow(QMainWindow):
             params: Operation parameters
         """
         logger.info("operation_requested", operation=operation_name, params=params)
-        
+
         # Get currently selected series
         selection = self.session_state.selection
         if not selection.dataset_id or not selection.series_ids:
@@ -1190,7 +1190,7 @@ class MainWindow(QMainWindow):
                 "Please select a series in the Data Panel before performing operations.",
             )
             return
-        
+
         try:
             # Use processing worker manager to handle the operation
             self.processing_manager.start_operation(
@@ -1199,10 +1199,10 @@ class MainWindow(QMainWindow):
                 selection.dataset_id,
                 selection.series_ids[0] if selection.series_ids else None,
             )
-            
+
             # Update status
             self.status_label.setText(f"Processing: {operation_name}...")
-            
+
         except Exception as e:
             logger.exception("operation_start_failed", operation=operation_name, error=str(e))
             QMessageBox.critical(

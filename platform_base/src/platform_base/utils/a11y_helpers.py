@@ -125,14 +125,14 @@ def make_button_accessible(
         shortcut: Associated keyboard shortcut
     """
     button.setAccessibleName(name)
-    
+
     tooltip_parts = []
     if description:
         tooltip_parts.append(description)
         button.setAccessibleDescription(description)
     if shortcut:
         tooltip_parts.append(f"({shortcut})")
-    
+
     if tooltip_parts:
         button.setToolTip(" ".join(tooltip_parts))
 
@@ -155,7 +155,7 @@ def make_input_accessible(
     name = label
     if required:
         name = f"{label} (obrigatório)"
-    
+
     widget.setAccessibleName(name)
     if description:
         widget.setAccessibleDescription(description)
@@ -173,7 +173,7 @@ def associate_label_with_input(label: QLabel, input_widget: QWidget) -> None:
         input_widget: Associated input widget
     """
     label.setBuddy(input_widget)
-    
+
     # Transfer label text to accessible name if not set
     if not input_widget.accessibleName():
         input_widget.setAccessibleName(label.text().replace("&", "").replace(":", ""))
@@ -188,7 +188,7 @@ def setup_logical_tab_order(widgets: Sequence[QWidget]) -> None:
     """
     for i in range(len(widgets) - 1):
         QWidget.setTabOrder(widgets[i], widgets[i + 1])
-    
+
     logger.debug(f"Set tab order for {len(widgets)} widgets")
 
 
@@ -205,7 +205,7 @@ def make_group_accessible(
     """
     # Group title becomes accessible name
     group.setAccessibleName(group.title())
-    
+
     # Setup tab order within group
     if widgets:
         setup_logical_tab_order(widgets)
@@ -229,13 +229,13 @@ def make_table_accessible(
         column_count: Number of columns (for description)
     """
     table.setAccessibleName(name)
-    
+
     desc_parts = [description] if description else []
     if row_count:
         desc_parts.append(f"{row_count} linhas")
     if column_count:
         desc_parts.append(f"{column_count} colunas")
-    
+
     if desc_parts:
         table.setAccessibleDescription(". ".join(desc_parts))
 
@@ -259,17 +259,17 @@ def make_slider_accessible(
     """
     min_val = slider.minimum()
     max_val = slider.maximum()
-    
+
     description = f"De {min_label or min_val} a {max_label or max_val}"
-    
+
     slider.setAccessibleName(name)
     slider.setAccessibleDescription(description)
-    
+
     # Update accessible value on change
     def update_value(value: int) -> None:
         formatted = value_format.format(value=value)
         slider.setAccessibleName(f"{name}: {formatted}")
-    
+
     slider.valueChanged.connect(update_value)
 
 
@@ -289,14 +289,14 @@ def make_progress_accessible(
     progress.setAccessibleName(name)
     if task_description:
         progress.setAccessibleDescription(task_description)
-    
+
     # Update accessible value on change
     def update_value(value: int) -> None:
         max_val = progress.maximum()
         if max_val > 0:
             percent = int(value / max_val * 100)
             progress.setAccessibleName(f"{name}: {percent}%")
-    
+
     progress.valueChanged.connect(update_value)
 
 
@@ -312,7 +312,7 @@ def make_tab_widget_accessible(
         name: Accessible name for the tab bar
     """
     tab_widget.setAccessibleName(name)
-    
+
     # Update description when tab changes
     def update_tab(index: int) -> None:
         tab_name = tab_widget.tabText(index)
@@ -320,9 +320,9 @@ def make_tab_widget_accessible(
         tab_widget.setAccessibleDescription(
             f"Aba {tab_name} selecionada. {index + 1} de {count} abas."
         )
-    
+
     tab_widget.currentChanged.connect(update_tab)
-    
+
     # Initial update
     if tab_widget.count() > 0:
         update_tab(tab_widget.currentIndex())
@@ -370,7 +370,7 @@ def make_toolbar_accessible(
     """
     toolbar_name = name or toolbar.windowTitle() or "Barra de ferramentas"
     toolbar.setAccessibleName(toolbar_name)
-    
+
     action_count = len(toolbar.actions())
     toolbar.setAccessibleDescription(f"{action_count} ações disponíveis")
 
@@ -427,7 +427,7 @@ def format_number_for_speech(
         formatted = str(int(value))
     else:
         formatted = f"{value:.{precision}f}"
-    
+
     if unit:
         return f"{formatted} {unit}"
     return formatted
@@ -451,7 +451,7 @@ def format_range_for_speech(
     """
     start_str = format_number_for_speech(start)
     end_str = format_number_for_speech(end)
-    
+
     if unit:
         return f"de {start_str} a {end_str} {unit}"
     return f"de {start_str} a {end_str}"
@@ -483,24 +483,24 @@ def get_widget_state_description(widget: QWidget) -> str:
         State description
     """
     states = []
-    
+
     if not widget.isEnabled():
         states.append("desabilitado")
     if not widget.isVisible():
         states.append("oculto")
     if widget.hasFocus():
         states.append("em foco")
-    
+
     if isinstance(widget, QAbstractButton):
         if widget.isChecked():
             states.append("marcado" if isinstance(widget, QCheckBox) else "selecionado")
-    
+
     if isinstance(widget, QLineEdit):
         if widget.isReadOnly():
             states.append("somente leitura")
         if not widget.text():
             states.append("vazio")
-    
+
     return ", ".join(states) if states else "normal"
 
 
@@ -524,20 +524,20 @@ def validate_contrast_ratio(
         """Calculate relative luminance of a color."""
         hex_color = hex_color.lstrip("#")
         r, g, b = [int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4)]
-        
+
         def adjust(c: float) -> float:
             return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
-        
+
         return 0.2126 * adjust(r) + 0.7152 * adjust(g) + 0.0722 * adjust(b)
-    
+
     l1 = luminance(foreground)
     l2 = luminance(background)
-    
+
     lighter = max(l1, l2)
     darker = min(l1, l2)
-    
+
     ratio = (lighter + 0.05) / (darker + 0.05)
-    
+
     return ratio >= min_ratio, ratio
 
 
@@ -635,14 +635,14 @@ def is_high_contrast_enabled() -> bool:
         # Check Windows high contrast setting
         import ctypes
         SPI_GETHIGHCONTRAST = 0x0042
-        
+
         class HIGHCONTRAST(ctypes.Structure):
             _fields_ = [
                 ("cbSize", ctypes.c_uint),
                 ("dwFlags", ctypes.c_uint),
                 ("lpszDefaultScheme", ctypes.c_wchar_p)
             ]
-        
+
         hc = HIGHCONTRAST()
         hc.cbSize = ctypes.sizeof(HIGHCONTRAST)
         ctypes.windll.user32.SystemParametersInfoW(SPI_GETHIGHCONTRAST, hc.cbSize, ctypes.byref(hc), 0)
@@ -682,10 +682,10 @@ def _luminance(hex_color: str) -> float:
     """Calculate relative luminance of a color (internal helper)."""
     hex_color = hex_color.lstrip("#")
     r, g, b = [int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4)]
-    
+
     def adjust(c: float) -> float:
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
-    
+
     return 0.2126 * adjust(r) + 0.7152 * adjust(g) + 0.0722 * adjust(b)
 
 
@@ -702,10 +702,10 @@ def calculate_contrast_ratio(foreground: str, background: str) -> float:
     """
     l1 = _luminance(foreground)
     l2 = _luminance(background)
-    
+
     lighter = max(l1, l2)
     darker = min(l1, l2)
-    
+
     return (lighter + 0.05) / (darker + 0.05)
 
 
@@ -743,11 +743,11 @@ def suggest_accessible_color(
         Suggested foreground color (hex)
     """
     bg_luminance = _luminance(background)
-    
+
     # Try black first if preferring dark, else white
     black_ratio = calculate_contrast_ratio("#000000", background)
     white_ratio = calculate_contrast_ratio("#FFFFFF", background)
-    
+
     if prefer_dark:
         if black_ratio >= min_ratio:
             return "#000000"
@@ -758,7 +758,7 @@ def suggest_accessible_color(
             return "#FFFFFF"
         elif black_ratio >= min_ratio:
             return "#000000"
-    
+
     # If neither works, return the one with better contrast
     return "#000000" if black_ratio > white_ratio else "#FFFFFF"
 
@@ -839,7 +839,7 @@ def disable_animations(widget: QWidget) -> None:
     """
     # Store flag to disable animations
     widget.setProperty("animationsDisabled", True)
-    
+
     # Set duration to 0 for any property animations
     animation_style = """
         * {
@@ -918,7 +918,7 @@ def play_feedback_sound(sound_type: str) -> None:
     """
     if not _audio_feedback_enabled:
         return
-    
+
     try:
         import winsound
         sounds = {
@@ -954,18 +954,18 @@ def describe_chart(
     """
     try:
         import numpy as np
-        
+
         x_arr = np.asarray(x_data)
         y_arr = np.asarray(y_data)
-        
+
         n_points = len(y_arr)
         y_min = float(np.nanmin(y_arr))
         y_max = float(np.nanmax(y_arr))
         y_mean = float(np.nanmean(y_arr))
-        
+
         x_min = float(np.nanmin(x_arr))
         x_max = float(np.nanmax(x_arr))
-        
+
         # Determine trend
         if n_points >= 2:
             first_half = np.nanmean(y_arr[:n_points//2])
@@ -978,7 +978,7 @@ def describe_chart(
                 trend = "relativamente estável"
         else:
             trend = "dados insuficientes para tendência"
-        
+
         description = (
             f"Gráfico de {chart_type} com {n_points} pontos. "
             f"{x_label} varia de {x_min:.2f} a {x_max:.2f}. "
@@ -986,7 +986,7 @@ def describe_chart(
             f"com média de {y_mean:.2f}. "
             f"O gráfico mostra {trend}."
         )
-        
+
         return description
     except Exception as e:
         return f"Gráfico de {chart_type}. Descrição detalhada não disponível."
@@ -1006,7 +1006,7 @@ def generate_alt_text(data: Dict[str, Any]) -> str:
     points = data.get("points", 0)
     x_range = data.get("x_range", (0, 0))
     y_range = data.get("y_range", (0, 0))
-    
+
     return (
         f"Gráfico {chart_type} com {points} pontos. "
         f"Eixo X de {x_range[0]} a {x_range[1]}. "
@@ -1031,18 +1031,18 @@ def generate_chart_data_table(
         List of dictionaries representing table rows
     """
     import numpy as np
-    
+
     x_arr = np.asarray(x_data)
     y_arr = np.asarray(y_data)
-    
+
     n_points = len(y_arr)
-    
+
     if n_points <= max_rows:
         indices = range(n_points)
     else:
         # Sample evenly spaced points
         indices = np.linspace(0, n_points - 1, max_rows, dtype=int)
-    
+
     table = []
     for i in indices:
         table.append({
@@ -1050,7 +1050,7 @@ def generate_chart_data_table(
             "x": float(x_arr[i]),
             "y": float(y_arr[i]),
         })
-    
+
     return table
 
 
@@ -1065,7 +1065,7 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
         List of accessibility issues found
     """
     issues = []
-    
+
     # Check accessible name
     name = widget.accessibleName()
     if not name:
@@ -1075,7 +1075,7 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
             "message": "Widget não possui nome acessível",
             "severity": "error",
         })
-    
+
     # Check accessible description
     desc = widget.accessibleDescription()
     if not desc:
@@ -1085,7 +1085,7 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
             "message": "Widget não possui descrição acessível",
             "severity": "warning",
         })
-    
+
     # Check focusability for interactive widgets
     if isinstance(widget, (QAbstractButton, QLineEdit, QComboBox)):
         if widget.focusPolicy() == Qt.FocusPolicy.NoFocus:
@@ -1095,7 +1095,7 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
                 "message": "Widget interativo não é focusável",
                 "severity": "error",
             })
-    
+
     return issues
 
 
@@ -1111,7 +1111,7 @@ def generate_a11y_report(widgets: Sequence[QWidget]) -> Dict[str, Any]:
     """
     all_issues = []
     widgets_audited = 0
-    
+
     for widget in widgets:
         try:
             issues = audit_accessibility(widget)
@@ -1119,10 +1119,10 @@ def generate_a11y_report(widgets: Sequence[QWidget]) -> Dict[str, Any]:
             widgets_audited += 1
         except Exception as e:
             logger.warning(f"Could not audit widget: {e}")
-    
+
     errors = [i for i in all_issues if i.get("severity") == "error"]
     warnings = [i for i in all_issues if i.get("severity") == "warning"]
-    
+
     return {
         "widgets_audited": widgets_audited,
         "total_issues": len(all_issues),

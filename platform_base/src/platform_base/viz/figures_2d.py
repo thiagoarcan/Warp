@@ -357,7 +357,7 @@ class Plot2DWidget(QWidget):
         logger.debug("selection_changed",
                     x_range=(x_min, x_max),
                     n_selected=len(selected_indices))
-    
+
     def _update_selection_from_sync(self, xmin: float, xmax: float) -> None:
         """Update selection region from external synchronization.
         
@@ -367,7 +367,7 @@ class Plot2DWidget(QWidget):
         """
         if not self._brush_selection:
             return
-        
+
         # Temporarily block signals to avoid circular updates
         self._brush_selection.blockSignals(True)
         try:
@@ -375,7 +375,7 @@ class Plot2DWidget(QWidget):
             self._brush_selection.setVisible(True)
         finally:
             self._brush_selection.blockSignals(False)
-        
+
         logger.debug("selection_synced", xmin=xmin, xmax=xmax)
 
     def _on_range_changed(self):
@@ -587,15 +587,15 @@ class MultipanelPlot:
         """
         # Get all valid panels
         valid_panels = [p for p in self._panels if p is not None]
-        
+
         if len(valid_panels) < 2:
             logger.debug("sync_x_axes_skipped", reason="Less than 2 panels")
             return
-        
+
         # Use first panel as reference
         reference_panel = valid_panels[0]
         reference_view = reference_panel.plot_widget.getViewBox()
-        
+
         # Link all other panels to reference
         for panel in valid_panels[1:]:
             try:
@@ -604,7 +604,7 @@ class MultipanelPlot:
                 logger.debug("panel_x_linked", panel=panel)
             except Exception as e:
                 logger.error("failed_to_link_x_axis", error=str(e), panel=panel)
-        
+
         logger.info("x_axes_synchronized", panel_count=len(valid_panels))
 
     def sync_selections(self) -> None:
@@ -615,23 +615,23 @@ class MultipanelPlot:
         """
         # Get all valid panels
         valid_panels = [p for p in self._panels if p is not None]
-        
+
         if len(valid_panels) < 2:
             logger.debug("sync_selections_skipped", reason="Less than 2 panels")
             return
-        
+
         # Connect selection changed signals between panels
         for source_panel in valid_panels:
             if not hasattr(source_panel, '_brush_selection') or source_panel._brush_selection is None:
                 continue
-                
+
             for target_panel in valid_panels:
                 if source_panel is target_panel:
                     continue
-                    
+
                 if not hasattr(target_panel, '_brush_selection') or target_panel._brush_selection is None:
                     continue
-                
+
                 try:
                     # Connect source selection changes to update target
                     source_panel.selection_changed.connect(
@@ -640,6 +640,6 @@ class MultipanelPlot:
                     )
                 except Exception as e:
                     logger.error("failed_to_sync_selections", error=str(e))
-        
+
         logger.info("selections_synchronized", panel_count=len(valid_panels))
 

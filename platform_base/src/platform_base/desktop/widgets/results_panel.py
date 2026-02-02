@@ -32,7 +32,6 @@ from PyQt6.QtWidgets import (
 
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -491,12 +490,13 @@ class ResultsPanel(QWidget):
     def _export_results(self):
         """Export results to file"""
         logger.info("results_export_requested")
-        
-        from PyQt6.QtWidgets import QFileDialog
-        from pathlib import Path
-        import json
+
         import csv
-        
+        import json
+        from pathlib import Path
+
+        from PyQt6.QtWidgets import QFileDialog
+
         # Ask for file type
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
@@ -504,10 +504,10 @@ class ResultsPanel(QWidget):
             "",
             "CSV Files (*.csv);;JSON Files (*.json);;All Files (*.*)"
         )
-        
+
         if not file_path:
             return
-        
+
         try:
             # Collect all results from table
             results = []
@@ -520,45 +520,45 @@ class ResultsPanel(QWidget):
                     if "timestamp" in result_copy and isinstance(result_copy["timestamp"], datetime):
                         result_copy["timestamp"] = result_copy["timestamp"].isoformat()
                     results.append(result_copy)
-            
+
             # Export based on file extension
             file_path_obj = Path(file_path)
-            
+
             if file_path_obj.suffix == '.json' or "JSON" in selected_filter:
                 # Export as JSON
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(results, f, indent=2, default=str)
                 logger.info("results_exported_json", path=file_path, count=len(results))
-                
+
             else:  # CSV by default
                 # Export as CSV
                 if not results:
                     logger.warning("no_results_to_export")
                     return
-                
+
                 with open(file_path, 'w', newline='', encoding='utf-8') as f:
                     # Get all keys from all results
                     all_keys = set()
                     for result in results:
                         all_keys.update(result.keys())
-                    
+
                     fieldnames = sorted(all_keys)
                     writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
-                    
+
                     writer.writeheader()
                     for result in results:
                         # Convert non-string values to strings
                         row_data = {k: str(v) if not isinstance(v, (str, int, float)) else v 
                                    for k, v in result.items()}
                         writer.writerow(row_data)
-                
+
                 logger.info("results_exported_csv", path=file_path, count=len(results))
-            
+
             self.log_widget.add_log_entry(
                 "info", 
                 f"Results exported to {file_path_obj.name} ({len(results)} entries)"
             )
-            
+
         except Exception as e:
             logger.exception("results_export_failed", error=str(e))
             self.log_widget.add_log_entry("error", f"Export failed: {str(e)}")
@@ -567,10 +567,21 @@ class ResultsPanel(QWidget):
         """Poll for new log entries from the logging system"""
         # This integrates with the centralized logging system
         # For production, this could connect to a log aggregator or file
-        
-        # TODO: Implement log fetching from structured logger
-        # For now, this is a no-op as logs are already being added via signals
-        pass
+
+        # Logs são adicionados em tempo real via signals dos workers
+        try:
+            # Verificar se há novos logs no buffer
+            log_buffer = getattr(self.session_state, '_log_buffer', [])
+            if log_buffer:
+                for log_entry in log_buffer:
+                    self.log_widget.add_log_entry(
+                        log_entry.get('level', 'info'),
+                        log_entry.get('message', ''),
+                        timestamp=log_entry.get('timestamp')
+                    )
+                self.session_state._log_buffer = []
+        except Exception as e:
+            logger.exception(f"Error polling logs: {e}")
 
     def _update_quality_metrics(self):
         """Update quality metrics display"""

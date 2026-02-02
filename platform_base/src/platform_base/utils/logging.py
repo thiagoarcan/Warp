@@ -105,16 +105,16 @@ def configure_logging(level: str = "INFO", json_logs: bool = True) -> None:
 
 class NamedStructLogger:
     """Wrapper around structlog logger that adds a name attribute."""
-    
+
     def __init__(self, logger, name: str):
         self._logger = logger
         self._name = name
-    
+
     @property
     def name(self) -> str:
         """Return the logger name."""
         return self._name
-    
+
     def __getattr__(self, item):
         """Forward all other attributes to the underlying logger."""
         return getattr(self._logger, item)

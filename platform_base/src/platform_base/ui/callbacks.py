@@ -103,7 +103,7 @@ def _create_timeseries_figure(
 
     # Use custom template with #ffffff backgrounds for consistency
     custom_template = _get_custom_white_template()
-    
+
     fig.update_layout(
         title=title,
         xaxis_title="Time (seconds)",

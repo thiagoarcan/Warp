@@ -37,10 +37,10 @@ def _safe_filename(path_str: str) -> str:
         # Try to get the filename from path
         path = Path(path_str)
         filename = path.stem  # Remove extension
-        
+
         # Normalize unicode to NFC form
         filename = unicodedata.normalize('NFC', filename)
-        
+
         # Replace any problematic characters with safe alternatives
         # Keep letters, numbers, spaces, and common punctuation
         safe_chars = []
@@ -54,10 +54,10 @@ def _safe_filename(path_str: str) -> str:
             else:
                 # Try to keep the character, it might display correctly
                 safe_chars.append(char)
-        
+
         result = ''.join(safe_chars).strip()
         return result if result else path_str
-        
+
     except Exception as e:
         logger.warning("filename_encoding_error", path=path_str, error=str(e))
         # Fallback: return the original string
@@ -252,14 +252,14 @@ class DatasetTreeModel(QAbstractItemModel):
             new_name = str(value).strip()
             if not new_name:
                 return False  # Don't allow empty names
-            
+
             # Store the display name in the item
             item._custom_name = new_name
             item.item_data[0] = new_name
-            
+
             # Emit data changed
             self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole])
-            
+
             logger.debug("item_renamed",
                         item_type=item.item_type,
                         dataset_id=item.dataset_id,

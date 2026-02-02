@@ -84,7 +84,7 @@ def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
     """Recursively sanitize sensitive data in a dictionary."""
     result = {}
     sensitive_keys = {'password', 'token', 'api_key', 'secret', 'credential', 'auth'}
-    
+
     for key, value in data.items():
         key_lower = key.lower()
         if any(s in key_lower for s in sensitive_keys):
@@ -115,7 +115,7 @@ class LogRecord:
     component: str
     duration_ms: float | None = None
     extra: dict[str, Any] = field(default_factory=dict)
-    
+
     def to_json(self) -> str:
         """Convert to JSON string."""
         data = {
@@ -130,7 +130,7 @@ class LogRecord:
         if self.extra:
             data.update(self.extra)
         return json.dumps(data, ensure_ascii=False)
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         data = {
@@ -149,7 +149,7 @@ class LogRecord:
 
 class CompressedRotatingFileHandler(RotatingFileHandler):
     """Rotating file handler that compresses old log files."""
-    
+
     def __init__(
         self,
         filename: str,
@@ -160,13 +160,13 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
         delay: bool = False,
     ):
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
-    
+
     def doRollover(self) -> None:
         """Do rollover and compress the old file."""
         if self.stream:
             self.stream.close()
             self.stream = None
-        
+
         # Rotate files
         for i in range(self.backupCount - 1, 0, -1):
             sfn = self.rotation_filename(f"{self.baseFilename}.{i}.gz")
@@ -175,35 +175,35 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
                 if os.path.exists(dfn):
                     os.remove(dfn)
                 os.rename(sfn, dfn)
-        
+
         # Compress the current file
         dfn = self.rotation_filename(f"{self.baseFilename}.1.gz")
         if os.path.exists(dfn):
             os.remove(dfn)
-        
+
         if os.path.exists(self.baseFilename):
             with open(self.baseFilename, 'rb') as f_in:
                 with gzip.open(dfn, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
             os.remove(self.baseFilename)
-        
+
         if not self.delay:
             self.stream = self._open()
 
 
 class JSONFormatter(logging.Formatter):
     """JSON formatter for structured logging."""
-    
+
     def __init__(self, sanitize: bool = True):
         super().__init__()
         self.sanitize = sanitize
-    
+
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record as JSON."""
         message = record.getMessage()
         if self.sanitize:
             message = sanitize_message(message)
-        
+
         log_record = LogRecord(
             timestamp=datetime.utcnow().isoformat() + 'Z',
             level=record.levelname,
@@ -214,13 +214,13 @@ class JSONFormatter(logging.Formatter):
             extra=sanitize_dict(getattr(record, 'extra', {})) if self.sanitize 
                   else getattr(record, 'extra', {}),
         )
-        
+
         return log_record.to_json()
 
 
 class ConsoleFormatter(logging.Formatter):
     """Colored console formatter."""
-    
+
     COLORS = {
         'DEBUG': '\033[36m',     # Cyan
         'INFO': '\033[32m',      # Green
@@ -229,20 +229,20 @@ class ConsoleFormatter(logging.Formatter):
         'CRITICAL': '\033[35m',  # Magenta
     }
     RESET = '\033[0m'
-    
+
     def format(self, record: logging.LogRecord) -> str:
         """Format with colors."""
         color = self.COLORS.get(record.levelname, '')
         correlation = get_correlation_id()
         duration = getattr(record, 'duration_ms', None)
-        
+
         msg = f"{color}[{record.levelname}]{self.RESET} "
         msg += f"\033[90m[{correlation}]\033[0m "
         msg += f"{record.name}: {record.getMessage()}"
-        
+
         if duration is not None:
             msg += f" \033[90m({duration:.2f}ms)\033[0m"
-        
+
         return msg
 
 
@@ -253,10 +253,10 @@ class StructuredLogger:
     Provides JSON structured logging with correlation IDs,
     automatic timing, and sanitization.
     """
-    
+
     _instance: StructuredLogger | None = None
     _lock = threading.Lock()
-    
+
     def __new__(cls) -> StructuredLogger:
         if cls._instance is None:
             with cls._lock:
@@ -264,11 +264,11 @@ class StructuredLogger:
                     cls._instance = super().__new__(cls)
                     cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         self._initialized = True
         self._level = logging.INFO
         self._handlers: list[logging.Handler] = []
@@ -278,7 +278,7 @@ class StructuredLogger:
         self._sanitize = True
         self._slow_threshold_ms = 100.0
         self._listeners: list[Callable[[LogRecord], None]] = []
-    
+
     def configure(
         self,
         level: str = "INFO",
@@ -305,12 +305,12 @@ class StructuredLogger:
         self._json_mode = json_mode
         self._sanitize = sanitize
         self._slow_threshold_ms = slow_threshold_ms
-        
+
         # Clear existing handlers
         for handler in self._handlers:
             handler.close()
         self._handlers.clear()
-        
+
         # Console handler
         console_handler = logging.StreamHandler(sys.stdout)
         if json_mode:
@@ -319,13 +319,13 @@ class StructuredLogger:
             console_handler.setFormatter(ConsoleFormatter())
         console_handler.setLevel(self._level)
         self._handlers.append(console_handler)
-        
+
         # File handler
         if log_dir:
             log_path = Path(log_dir)
             log_path.mkdir(parents=True, exist_ok=True)
             self._log_file = log_path / "platform_base.log"
-            
+
             file_handler = CompressedRotatingFileHandler(
                 str(self._log_file),
                 maxBytes=max_bytes,
@@ -334,14 +334,14 @@ class StructuredLogger:
             file_handler.setFormatter(JSONFormatter(sanitize=sanitize))
             file_handler.setLevel(self._level)
             self._handlers.append(file_handler)
-        
+
         # Update all loggers
         for logger in self._loggers.values():
             logger.handlers = []
             for handler in self._handlers:
                 logger.addHandler(handler)
             logger.setLevel(self._level)
-    
+
     def set_level(self, level: str) -> None:
         """Change log level at runtime."""
         self._level = getattr(logging, level.upper(), logging.INFO)
@@ -349,7 +349,7 @@ class StructuredLogger:
             handler.setLevel(self._level)
         for logger in self._loggers.values():
             logger.setLevel(self._level)
-    
+
     def get_logger(self, name: str) -> logging.Logger:
         """Get a named logger."""
         if name not in self._loggers:
@@ -361,16 +361,16 @@ class StructuredLogger:
             logger.propagate = False
             self._loggers[name] = logger
         return self._loggers[name]
-    
+
     def add_listener(self, callback: Callable[[LogRecord], None]) -> None:
         """Add a listener for log events (for LogViewer)."""
         self._listeners.append(callback)
-    
+
     def remove_listener(self, callback: Callable[[LogRecord], None]) -> None:
         """Remove a log listener."""
         if callback in self._listeners:
             self._listeners.remove(callback)
-    
+
     def _notify_listeners(self, record: LogRecord) -> None:
         """Notify all listeners of a log event."""
         for listener in self._listeners:
@@ -378,7 +378,7 @@ class StructuredLogger:
                 listener(record)
             except Exception:
                 pass  # Don't let listener errors affect logging
-    
+
     @contextmanager
     def operation(
         self,
@@ -404,17 +404,17 @@ class StructuredLogger:
         context: dict[str, Any] = {'operation': name, **extra}
         logger = self.get_logger(component)
         correlation = set_correlation_id()
-        
+
         start_time = time.perf_counter()
-        
+
         if log_start:
             logger.info(f"Starting: {name}", extra={'extra': context})
-        
+
         try:
             yield context
-            
+
             duration_ms = (time.perf_counter() - start_time) * 1000
-            
+
             if log_end:
                 log_record = logging.LogRecord(
                     name=component,
@@ -428,18 +428,18 @@ class StructuredLogger:
                 log_record.duration_ms = duration_ms
                 log_record.extra = context
                 logger.handle(log_record)
-                
+
                 if duration_ms > self._slow_threshold_ms:
                     logger.warning(
                         f"Slow operation: {name} took {duration_ms:.2f}ms",
                         extra={'extra': {'threshold': self._slow_threshold_ms, **context}}
                     )
-        
+
         except Exception as e:
             duration_ms = (time.perf_counter() - start_time) * 1000
             context['error'] = str(e)
             context['error_type'] = type(e).__name__
-            
+
             log_record = logging.LogRecord(
                 name=component,
                 level=logging.ERROR,
@@ -453,7 +453,7 @@ class StructuredLogger:
             log_record.extra = context
             logger.handle(log_record)
             raise
-    
+
     @contextmanager
     def correlation_scope(self, correlation_id: str | None = None) -> Generator[str, None, None]:
         """
@@ -471,7 +471,7 @@ class StructuredLogger:
             yield new_id
         finally:
             _correlation_id.value = old_id
-    
+
     def export_logs(
         self,
         output_path: str | Path,
@@ -495,34 +495,34 @@ class StructuredLogger:
         """
         if self._log_file is None or not self._log_file.exists():
             return 0
-        
+
         output_path = Path(output_path)
         records = []
-        
+
         # Read main log file
         with open(self._log_file, 'r', encoding='utf-8') as f:
             for line in f:
                 try:
                     record = json.loads(line.strip())
-                    
+
                     # Apply filters
                     if level_filter and record.get('level') != level_filter.upper():
                         continue
-                    
+
                     if start_date:
                         record_date = datetime.fromisoformat(record['timestamp'].rstrip('Z'))
                         if record_date < start_date:
                             continue
-                    
+
                     if end_date:
                         record_date = datetime.fromisoformat(record['timestamp'].rstrip('Z'))
                         if record_date > end_date:
                             continue
-                    
+
                     records.append(record)
                 except json.JSONDecodeError:
                     continue
-        
+
         # Write output
         if format == "json":
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -534,7 +534,7 @@ class StructuredLogger:
                     writer = csv.DictWriter(f, fieldnames=records[0].keys())
                     writer.writeheader()
                     writer.writerows(records)
-        
+
         return len(records)
 
 
