@@ -74,7 +74,7 @@ class UiLoaderMixin:
         try:
             # Importar uic aqui para evitar problemas de import circular
             from PyQt6 import uic
-            
+
             # Resolver caminho do arquivo .ui
             package_root = _get_package_root()
             ui_path = package_root / self.UI_FILE
