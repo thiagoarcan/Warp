@@ -1,753 +1,739 @@
-# Platform Base v2.0 - Complete User Guide
+# Platform Base v2.0 - Guia Completo do Usuário
 
-**Comprehensive guide for end users**
-
----
-
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Installation](#installation)
-4. [User Interface Overview](#user-interface-overview)
-5. [Loading Data](#loading-data)
-6. [Visualization](#visualization)
-7. [Data Analysis](#data-analysis)
-8. [Streaming & Playback](#streaming--playback)
-9. [Export & Reports](#export--reports)
-10. [Keyboard Shortcuts](#keyboard-shortcuts)
-11. [Settings & Configuration](#settings--configuration)
-12. [Tips & Best Practices](#tips--best-practices)
-13. [FAQ](#faq)
-14. [Support](#support)
+**Guia abrangente para usuários finais**
 
 ---
 
-## Introduction
+## Índice
 
-Platform Base is a desktop application for exploring and analyzing time-series data from sensors, navigation systems, and SCADA equipment. It provides interactive visualization, advanced calculations, and export capabilities.
-
-### Key Features
-
-- 📊 **Interactive 2D/3D Visualization** - Real-time plots with zoom, pan, and selection
-- 📁 **Multi-format Support** - CSV, Excel, Parquet, HDF5, MAT files
-- 🧮 **Advanced Calculations** - Derivatives, integrals, interpolation, filtering
-- 🎬 **Time Streaming** - Animated playback of temporal data
-- 🔄 **Synchronization** - Align multiple time series automatically
-- 🌙 **Themes** - Light and dark modes
-- 🌍 **Multilingual** - English and Portuguese
-
-### System Requirements
-
-- **OS**: Windows 10/11, Linux (Ubuntu 20.04+), macOS 11+
-- **Python**: 3.12 or higher
-- **RAM**: 4GB minimum, 8GB+ recommended
-- **Storage**: 500MB for installation
-- **Display**: 1920x1080 or higher recommended
+1. [Introdução](#introdução)
+2. [Começando](#começando)
+3. [Instalação](#instalação)
+4. [Visão Geral da Interface](#visão-geral-da-interface)
+5. [Carregando Dados](#carregando-dados)
+6. [Visualização](#visualização)
+7. [Análise de Dados](#análise-de-dados)
+8. [Streaming e Reprodução](#streaming-e-reprodução)
+9. [Exportação e Relatórios](#exportação-e-relatórios)
+10. [Atalhos de Teclado](#atalhos-de-teclado)
+11. [Configurações](#configurações)
+12. [Dicas e Boas Práticas](#dicas-e-boas-práticas)
+13. [Perguntas Frequentes](#perguntas-frequentes)
+14. [Suporte](#suporte)
 
 ---
 
-## Getting Started
+## Introdução
 
-### Quick Start (5 minutes)
+O Platform Base é uma aplicação desktop para explorar e analisar dados de séries temporais de sensores, sistemas de navegação e equipamentos SCADA. Fornece visualização interativa, cálculos avançados e capacidades de exportação.
 
-1. **Install Platform Base**
+### Recursos Principais
+
+- 📊 **Visualização 2D/3D Interativa** - Gráficos em tempo real com zoom, pan e seleção
+- 📁 **Suporte Multi-formato** - Arquivos CSV, Excel, Parquet, HDF5, MAT
+- 🧮 **Cálculos Avançados** - Derivadas, integrais, interpolação, filtragem
+- 🎬 **Streaming Temporal** - Reprodução animada de dados temporais
+- 🔄 **Sincronização** - Alinhamento automático de múltiplas séries temporais
+- 🌙 **Temas** - Modos claro e escuro
+- 🌍 **Multilíngue** - Inglês e Português
+
+### Requisitos do Sistema
+
+- **SO**: Windows 10/11, Linux (Ubuntu 20.04+), macOS 11+
+- **Python**: 3.12 ou superior
+- **RAM**: 4GB mínimo, 8GB+ recomendado
+- **Armazenamento**: 500MB para instalação
+- **Monitor**: 1920x1080 ou superior recomendado
+
+---
+
+## Começando
+
+### Início Rápido (5 minutos)
+
+1. **Instale o Platform Base**
    ```bash
    pip install -e .
    ```
 
-2. **Launch the application**
+2. **Inicie a aplicação**
    ```bash
    python -m platform_base.desktop.main_window
    ```
 
-3. **Load sample data**
-   - Click "File → Open" or press `Ctrl+O`
-   - Select a CSV or Excel file
-   - Data appears in the left panel
+3. **Carregue dados de exemplo**
+   - Clique em "Arquivo → Abrir" ou pressione `Ctrl+O`
+   - Selecione um arquivo CSV ou Excel
+   - Os dados aparecem no painel esquerdo
 
 4. **Visualize**
-   - Double-click a series in the data tree
-   - Series appears in the visualization panel
-   - Use mouse to zoom/pan
+   - Dê um duplo clique em uma série na árvore de dados
+   - A série aparece no painel de visualização
+   - Use o mouse para zoom/pan
 
-5. **Calculate**
-   - Select a series
-   - Click "Operations → Derivative"
-   - Result appears as new series
+5. **Calcule**
+   - Selecione uma série
+   - Clique em "Operações → Derivada"
+   - O resultado aparece como nova série
 
 ---
 
-## Installation
+## Instalação
 
-### Standard Installation
+### Instalação Padrão
 
 ```bash
-# Clone repository
+# Clone o repositório
 git clone https://github.com/thiagoarcan/Warp.git
 cd Warp/platform_base
 
-# Install dependencies
+# Instale as dependências
 pip install -e .
 
-# Install development tools (optional)
+# Instale ferramentas de desenvolvimento (opcional)
 pip install -e ".[dev]"
 
-# Install visualization extras (optional)
+# Instale extras de visualização (opcional)
 pip install -e ".[viz]"
 ```
 
-### Virtual Environment (Recommended)
+### Ambiente Virtual (Recomendado)
 
 ```bash
-# Create virtual environment
+# Crie o ambiente virtual
 python -m venv venv
 
-# Activate (Windows)
+# Ative (Windows)
 venv\Scripts\activate
 
-# Activate (Linux/Mac)
+# Ative (Linux/Mac)
 source venv/bin/activate
 
-# Install
+# Instale
 pip install -e .
 ```
 
-### Verify Installation
+### Verificar Instalação
 
 ```bash
 python -c "import platform_base; print(platform_base.__version__)"
-# Should print: 2.0.0
+# Deve exibir: 2.0.0
 ```
 
 ---
 
-## User Interface Overview
+## Visão Geral da Interface
 
-### Main Window Layout
+### Layout da Janela Principal
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Menu Bar: File | Edit | View | Operations | Tools | Help    │
+│ Barra de Menu: Arquivo | Editar | Ver | Operações | Ajuda  │
 ├─────────────────────────────────────────────────────────────┤
-│ Toolbar: [Open] [Save] [Zoom] [Pan] [Settings]             │
+│ Barra de Ferramentas: [Abrir] [Salvar] [Zoom] [Config]    │
 ├──────────────┬──────────────────────────────┬───────────────┤
 │              │                              │               │
-│  Data Panel  │   Visualization Panel        │  Operations   │
-│              │                              │   Panel       │
-│  📁 Files    │   [2D/3D Plots]             │               │
-│  📊 Series   │                              │  [Calculate]  │
-│  ℹ️  Info     │   [Controls]                │  [Filter]     │
-│              │                              │  [Export]     │
+│  Painel de   │   Painel de Visualização     │  Painel de    │
+│  Dados       │                              │  Operações    │
+│              │   [Gráficos 2D/3D]          │               │
+│  📁 Arquivos │                              │  [Calcular]   │
+│  📊 Séries   │   [Controles]               │  [Filtrar]    │
+│  ℹ️  Info     │                              │  [Exportar]   │
 │              │                              │               │
 ├──────────────┴──────────────────────────────┴───────────────┤
-│ Status Bar: Ready | Memory: 120MB | Series: 3               │
+│ Barra de Status: Pronto | Memória: 120MB | Séries: 3       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Panels
+### Painéis
 
-#### Data Panel (Left)
-- **Tree View**: Hierarchical view of datasets and series
-- **Info Tabs**: Summary, Metadata, Quality
-- **Buttons**: Load, Remove, Refresh
+#### Painel de Dados (Esquerda)
+- **Visualização em Árvore**: Visão hierárquica de datasets e séries
+- **Abas de Informação**: Resumo, Metadados, Qualidade
+- **Botões**: Carregar, Remover, Atualizar
 
-#### Visualization Panel (Center)
-- **Plot Area**: Interactive 2D or 3D plots
-- **Tabs**: Multiple plots in tabs
-- **Toolbar**: Zoom, Pan, Reset, Screenshot
-- **Controls**: Line width, grid, legend settings
+#### Painel de Visualização (Centro)
+- **Área de Gráfico**: Gráficos 2D ou 3D interativos
+- **Abas**: Múltiplos gráficos em abas
+- **Barra de Ferramentas**: Zoom, Pan, Reset, Screenshot
+- **Controles**: Espessura de linha, grade, configurações de legenda
 
-#### Operations Panel (Right)
-- **Calculations**: Derivative, Integral, Area
-- **Filters**: Lowpass, Highpass, Bandpass
-- **Interpolation**: Fill gaps in data
-- **Statistics**: Min, Max, Mean, Std Dev
+#### Painel de Operações (Direita)
+- **Cálculos**: Derivada, Integral, Área
+- **Filtros**: Passa-baixas, Passa-altas, Passa-faixa
+- **Interpolação**: Preencher lacunas nos dados
+- **Estatísticas**: Min, Max, Média, Desvio Padrão
 
 ---
 
-## Loading Data
+## Carregando Dados
 
-### Supported Formats
+### Formatos Suportados
 
-| Format | Extension | Read | Write | Notes |
-|--------|-----------|------|-------|-------|
-| CSV | .csv | ✅ | ✅ | Fastest |
-| Excel | .xlsx | ✅ | ✅ | Multiple sheets supported |
-| Parquet | .parquet | ✅ | ✅ | Best for large files |
-| HDF5 | .h5, .hdf5 | ✅ | ✅ | Scientific data |
-| MAT | .mat | ✅ | ❌ | MATLAB files |
+| Formato | Extensão | Leitura | Escrita | Notas |
+|---------|----------|---------|---------|-------|
+| CSV | .csv | ✅ | ✅ | Mais rápido |
+| Excel | .xlsx | ✅ | ✅ | Múltiplas planilhas suportadas |
+| Parquet | .parquet | ✅ | ✅ | Melhor para arquivos grandes |
+| HDF5 | .h5, .hdf5 | ✅ | ✅ | Dados científicos |
+| MAT | .mat | ✅ | ❌ | Arquivos MATLAB |
 
-### Loading Files
+### Carregando Arquivos
 
-**Method 1: Menu**
-1. File → Open (or `Ctrl+O`)
-2. Select file
-3. Configure import settings (if prompted)
-4. Click OK
+**Método 1: Menu**
+1. Arquivo → Abrir (ou `Ctrl+O`)
+2. Selecione o arquivo
+3. Configure as opções de importação (se solicitado)
+4. Clique em OK
 
-**Method 2: Drag & Drop**
-1. Drag file from file explorer
-2. Drop onto main window
-3. Data loads automatically
+**Método 2: Arrastar e Soltar**
+1. Arraste o arquivo do explorador de arquivos
+2. Solte na janela principal
+3. Os dados carregam automaticamente
 
-**Method 3: Command Line**
+**Método 3: Linha de Comando**
 ```bash
-python launch_app.py --file data.csv
+python launch_app.py --file dados.csv
 ```
 
-### Import Settings
+### Configurações de Importação
 
-#### CSV Options
-- **Delimiter**: Comma, Tab, Semicolon, Space
-- **Encoding**: UTF-8, Latin-1, ASCII
-- **Header Row**: Line number for column names
-- **Skip Rows**: Number of rows to skip at start
+#### Opções CSV
+- **Delimitador**: Vírgula, Tab, Ponto-e-vírgula, Espaço
+- **Codificação**: UTF-8, Latin-1, ASCII
+- **Linha de Cabeçalho**: Número da linha para nomes de colunas
+- **Pular Linhas**: Número de linhas para pular no início
 
-#### Excel Options
-- **Sheet**: Select which sheet to load
-- **Range**: Specific cell range (e.g., A1:D1000)
-- **Date Columns**: Auto-detect or manual selection
+#### Opções Excel
+- **Planilha**: Selecione qual planilha carregar
+- **Intervalo**: Intervalo específico de células (ex: A1:D1000)
+- **Colunas de Data**: Detecção automática ou seleção manual
 
-### Handling Large Files
+### Lidando com Arquivos Grandes
 
-For files > 100MB:
+Para arquivos > 100MB:
 
-1. **Use Parquet format** - Faster than CSV/Excel
-2. **Enable decimation** - Settings → Performance → Auto-decimate
-3. **Increase memory limit** - Settings → Performance → Memory Limit
-4. **Load specific columns only** - Import dialog → Select Columns
-
----
-
-## Visualization
-
-### 2D Plots
-
-#### Creating a Plot
-
-1. **Double-click** a series in data tree
-2. Or **right-click** → "Add to Plot"
-3. Or **drag** series to plot area
-
-#### Plot Controls
-
-- **Zoom**: Mouse wheel or `Ctrl + Drag`
-- **Pan**: Click and drag or Arrow keys
-- **Reset**: Right-click → Reset View or press `R`
-- **Select**: `Ctrl + Drag` rectangle
-
-#### Multiple Series
-
-Add multiple series to same plot:
-1. Click first series
-2. Hold `Ctrl` and click additional series
-3. Right-click → "Plot Selected"
-
-All series appear with different colors.
-
-#### Multiple Y Axes
-
-For series with different scales:
-1. Right-click series in legend
-2. Select "Move to Y2 axis"
-3. Second Y axis appears on right
-
-#### Customization
-
-**Line Style**
-- Width: Toolbar → Line Width spinbox
-- Color: Right-click series → Change Color
-- Style: Solid, Dashed, Dotted
-
-**Grid**
-- Toggle: Toolbar → Show Grid checkbox
-- Or press `G`
-
-**Legend**
-- Toggle: Toolbar → Show Legend checkbox
-- Or press `L`
-- Position: Drag legend to desired location
-
-### 3D Plots
-
-#### Creating 3D Plot
-
-1. Select exactly 3 series (X, Y, Z axes)
-2. Operations → Visualization → 3D Trajectory
-3. 3D plot opens in new window
-
-#### 3D Controls
-
-- **Rotate**: Click and drag
-- **Zoom**: Mouse wheel
-- **Pan**: `Shift + Drag`
-- **Reset Camera**: Press `R`
-
-#### 3D Settings
-
-- **Colormap**: Settings → Colormap dropdown
-- **Point Size**: Settings → Point Size slider
-- **Show Surface**: Settings → Show Surface checkbox
-
-### Export Plots
-
-**As Image**
-1. Right-click plot → Export
-2. Choose format: PNG, SVG, PDF
-3. Select resolution (72-600 DPI)
-4. Save
-
-**As Animation**
-1. Enable streaming mode
-2. Tools → Export → Video
-3. Choose format: MP4, GIF
-4. Configure FPS and quality
-5. Export
+1. **Use formato Parquet** - Mais rápido que CSV/Excel
+2. **Habilite decimação** - Configurações → Desempenho → Auto-decimação
+3. **Aumente limite de memória** - Configurações → Desempenho → Limite de Memória
+4. **Carregue apenas colunas específicas** - Diálogo de importação → Selecionar Colunas
 
 ---
 
-## Data Analysis
+## Visualização
 
-### Interpolation
+### Gráficos 2D
 
-Fill gaps in time series data:
+#### Criando um Gráfico
 
-1. Select series with gaps
-2. Operations → Interpolation
-3. Choose method:
-   - **Linear**: Fast, simple
-   - **Spline Cubic**: Smooth curves
-   - **PCHIP**: Preserves monotonicity
-   - **Akima**: Minimizes overshoot
-4. Click "Apply"
-5. New interpolated series created
+1. **Duplo clique** em uma série na árvore de dados
+2. Ou **clique direito** → "Adicionar ao Gráfico"
+3. Ou **arraste** a série para a área do gráfico
 
-### Derivatives
+#### Controles do Gráfico
 
-Calculate rate of change:
+- **Zoom**: Roda do mouse ou `Ctrl + Arrastar`
+- **Pan**: Clicar e arrastar ou teclas de seta
+- **Resetar**: Clique direito → Resetar Vista ou pressione `R`
+- **Selecionar**: `Ctrl + Arrastar` retângulo
 
-1. Select series (e.g., position)
-2. Operations → Calculus → Derivative
-3. Select order:
-   - **1st**: Velocity
-   - **2nd**: Acceleration
-   - **3rd**: Jerk
-4. Result: New series with derivative
+#### Múltiplas Séries
 
-**Example**: Position → Velocity
-- Input: GPS position (meters)
-- Output: Velocity (m/s)
+Adicione múltiplas séries ao mesmo gráfico:
+1. Clique na primeira série
+2. Segure `Ctrl` e clique em séries adicionais
+3. Clique direito → "Plotar Selecionadas"
 
-### Integrals
+Todas as séries aparecem com cores diferentes.
 
-Calculate area under curve:
+#### Múltiplos Eixos Y
 
-1. Select series (e.g., velocity)
-2. Operations → Calculus → Integral
-3. Choose method:
-   - **Trapezoidal**: Standard
-   - **Simpson's**: More accurate
-4. Result: Integrated series
+Para séries com escalas diferentes:
+1. Clique direito na série na legenda
+2. Selecione "Mover para eixo Y2"
+3. O segundo eixo Y aparece à direita
 
-**Example**: Velocity → Position
-- Input: Velocity (m/s)
-- Output: Displacement (meters)
+#### Personalização
 
-### Filters
+**Estilo de Linha**
+- Espessura: Barra de ferramentas → Spinbox de Espessura de Linha
+- Cor: Clique direito na série → Mudar Cor
+- Estilo: Sólida, Tracejada, Pontilhada
 
-Remove noise from signals:
+**Grade**
+- Alternar: Barra de ferramentas → Checkbox Mostrar Grade
+- Ou pressione `G`
 
-#### Lowpass Filter
-Removes high-frequency noise:
-1. Operations → Filters → Lowpass
-2. Set cutoff frequency (Hz)
-3. Preview result
-4. Apply
+**Legenda**
+- Alternar: Barra de ferramentas → Checkbox Mostrar Legenda
+- Ou pressione `L`
+- Posição: Arraste a legenda para a posição desejada
 
-#### Highpass Filter
-Removes low-frequency drift:
-1. Operations → Filters → Highpass
-2. Set cutoff frequency
-3. Apply
+### Gráficos 3D
 
-#### Bandpass Filter
-Keeps only specific frequency range:
-1. Operations → Filters → Bandpass
-2. Set low and high cutoff
-3. Apply
+#### Criando Gráfico 3D
 
-#### Moving Average
-Simple smoothing:
-1. Operations → Filters → Moving Average
-2. Set window size
-3. Apply
+1. Selecione exatamente 3 séries (eixos X, Y, Z)
+2. Operações → Visualização → Trajetória 3D
+3. O gráfico 3D abre em nova janela
 
-### Statistics
+#### Controles 3D
 
-Get summary statistics:
+- **Rotacionar**: Clicar e arrastar
+- **Zoom**: Roda do mouse
+- **Pan**: `Shift + Arrastar`
+- **Resetar Câmera**: Pressione `R`
 
-1. Select series
-2. Operations → Statistics → Summary
-3. View results:
-   - Count, Min, Max
-   - Mean, Median, Mode
-   - Std Dev, Variance
-   - Percentiles (25%, 50%, 75%)
+#### Configurações 3D
 
-### Synchronization
+- **Mapa de Cores**: Configurações → Dropdown de Mapa de Cores
+- **Tamanho do Ponto**: Configurações → Slider de Tamanho do Ponto
+- **Mostrar Superfície**: Configurações → Checkbox Mostrar Superfície
 
-Align multiple series with different time grids:
+### Exportar Gráficos
 
-1. Select 2+ series
-2. Operations → Synchronization
-3. Choose method:
-   - **Common Grid Interpolate**: Resample all to same time grid
-   - **Nearest Neighbor**: Fast, less accurate
-4. Apply
-5. All series now have same time points
+**Como Imagem**
+1. Clique direito no gráfico → Exportar
+2. Escolha o formato: PNG, SVG, PDF
+3. Selecione a resolução (72-600 DPI)
+4. Salvar
+
+**Como Animação**
+1. Habilite o modo streaming
+2. Ferramentas → Exportar → Vídeo
+3. Escolha o formato: MP4, GIF
+4. Configure FPS e qualidade
+5. Exportar
 
 ---
 
-## Streaming & Playback
+## Análise de Dados
 
-### Overview
+### Interpolação
 
-Stream mode allows animated playback of time-series data, useful for:
-- Reviewing sensor data over time
-- Creating presentations
-- Finding patterns in temporal data
+Preencha lacunas em dados de séries temporais:
 
-### Enable Streaming
+1. Selecione a série com lacunas
+2. Operações → Interpolação
+3. Escolha o método:
+   - **Linear**: Rápido, simples
+   - **Spline Cúbico**: Curvas suaves
+   - **PCHIP**: Preserva monotonicidade
+   - **Akima**: Minimiza overshoot
+4. Clique em "Aplicar"
+5. Nova série interpolada criada
 
-1. Load time-series data
-2. View → Streaming Controls
-3. Streaming panel appears at bottom
+### Derivadas
 
-### Controls
+Calcule a taxa de variação:
+
+1. Selecione a série (ex: posição)
+2. Operações → Cálculo → Derivada
+3. Selecione a ordem:
+   - **1ª**: Velocidade
+   - **2ª**: Aceleração
+   - **3ª**: Jerk
+4. Resultado: Nova série com derivada
+
+**Exemplo**: Posição → Velocidade
+- Entrada: Posição GPS (metros)
+- Saída: Velocidade (m/s)
+
+### Integrais
+
+Calcule a área sob a curva:
+
+1. Selecione a série (ex: velocidade)
+2. Operações → Cálculo → Integral
+3. Escolha o método:
+   - **Trapezoidal**: Padrão
+   - **Simpson**: Mais preciso
+4. Resultado: Série integrada
+
+**Exemplo**: Velocidade → Posição
+- Entrada: Velocidade (m/s)
+- Saída: Deslocamento (metros)
+
+### Filtros
+
+Remova ruído dos sinais:
+
+#### Filtro Passa-Baixas
+Remove ruído de alta frequência:
+1. Operações → Filtros → Passa-Baixas
+2. Defina a frequência de corte (Hz)
+3. Visualize o resultado
+4. Aplicar
+
+#### Filtro Passa-Altas
+Remove deriva de baixa frequência:
+1. Operações → Filtros → Passa-Altas
+2. Defina a frequência de corte
+3. Aplicar
+
+#### Filtro Passa-Faixa
+Mantém apenas faixa específica de frequência:
+1. Operações → Filtros → Passa-Faixa
+2. Defina cortes baixo e alto
+3. Aplicar
+
+#### Média Móvel
+Suavização simples:
+1. Operações → Filtros → Média Móvel
+2. Defina o tamanho da janela
+3. Aplicar
+
+### Estatísticas
+
+Obtenha estatísticas resumidas:
+
+1. Selecione a série
+2. Operações → Estatísticas → Resumo
+3. Visualize os resultados:
+   - Contagem, Min, Max
+   - Média, Mediana, Moda
+   - Desvio Padrão, Variância
+   - Percentis (25%, 50%, 75%)
+
+### Sincronização
+
+Alinhe múltiplas séries com grades temporais diferentes:
+
+1. Selecione 2+ séries
+2. Operações → Sincronização
+3. Escolha o método:
+   - **Interpolação de Grade Comum**: Reamostra todas para a mesma grade temporal
+   - **Vizinho Mais Próximo**: Rápido, menos preciso
+4. Aplicar
+5. Todas as séries agora têm os mesmos pontos temporais
+
+---
+
+## Streaming e Reprodução
+
+### Visão Geral
+
+O modo streaming permite reprodução animada de dados de séries temporais, útil para:
+- Revisar dados de sensores ao longo do tempo
+- Criar apresentações
+- Encontrar padrões em dados temporais
+
+### Habilitar Streaming
+
+1. Carregue dados de séries temporais
+2. Ver → Controles de Streaming
+3. Painel de streaming aparece na parte inferior
+
+### Controles
 
 ```
 [◀◀] [◀] [▶] [▶▶] [■] [Loop]
-├─────────────────────────────┤ Timeline
-│         Position            │
+├─────────────────────────────┤ Linha do Tempo
+│         Posição              │
 └─────────────────────────────┘
 
-Speed: [0.5x] [1x] [2x] [4x]
-Window: [5 sec] [10 sec] [30 sec]
+Velocidade: [0.5x] [1x] [2x] [4x]
+Janela: [5 seg] [10 seg] [30 seg]
 ```
 
-- **Play/Pause**: Space bar or ▶ button
-- **Stop**: ■ button or Escape
-- **Seek**: Click timeline or use Left/Right arrows
-- **Speed**: Adjust playback speed
-- **Window**: How many seconds shown at once
+- **Play/Pause**: Barra de espaço ou botão ▶
+- **Stop**: Botão ■ ou Escape
+- **Buscar**: Clique na linha do tempo ou use setas Esquerda/Direita
+- **Velocidade**: Ajuste a velocidade de reprodução
+- **Janela**: Quantos segundos mostrados de uma vez
 
-### Streaming with Filters
+### Streaming com Filtros
 
-Apply filters in real-time during playback:
+Aplique filtros em tempo real durante a reprodução:
 
-1. Enable streaming
-2. Operations → Filters → Real-time
-3. Select filter (e.g., Lowpass)
-4. Configure parameters
-5. Play - filter applies as data streams
+1. Habilite streaming
+2. Operações → Filtros → Tempo Real
+3. Selecione o filtro (ex: Passa-Baixas)
+4. Configure os parâmetros
+5. Play - o filtro se aplica conforme os dados são transmitidos
 
-### Export Streaming Video
+### Exportar Vídeo de Streaming
 
-1. Configure streaming window
-2. Tools → Export → Video
-3. Choose:
-   - Format: MP4, GIF
-   - Resolution: 720p, 1080p, 4K
+1. Configure a janela de streaming
+2. Ferramentas → Exportar → Vídeo
+3. Escolha:
+   - Formato: MP4, GIF
+   - Resolução: 720p, 1080p, 4K
    - FPS: 15, 24, 30, 60
-4. Click "Export"
-5. Video generated
+4. Clique em "Exportar"
+5. Vídeo gerado
 
 ---
 
-## Export & Reports
+## Exportação e Relatórios
 
-### Export Data
+### Exportar Dados
 
-#### Single Series
-1. Right-click series → Export
-2. Choose format: CSV, Excel, Parquet
-3. Save
+#### Série Única
+1. Clique direito na série → Exportar
+2. Escolha o formato: CSV, Excel, Parquet
+3. Salvar
 
-#### Multiple Series
-1. Select series (Ctrl+Click)
-2. File → Export Selected
-3. Options:
-   - **Single file, multiple columns**
-   - **Separate files**
-4. Save
+#### Múltiplas Séries
+1. Selecione séries (Ctrl+Clique)
+2. Arquivo → Exportar Selecionadas
+3. Opções:
+   - **Arquivo único, múltiplas colunas**
+   - **Arquivos separados**
+4. Salvar
 
-### Export Configuration
+### Configuração de Exportação
 
-**CSV Options**
-- Delimiter: Comma, Tab, Semicolon
-- Encoding: UTF-8, Latin-1
-- Include header: Yes/No
-- Precision: Number of decimal places
+**Opções CSV**
+- Delimitador: Vírgula, Tab, Ponto-e-vírgula
+- Codificação: UTF-8, Latin-1
+- Incluir cabeçalho: Sim/Não
+- Precisão: Número de casas decimais
 
-**Excel Options**
-- Single sheet: All series in one sheet
-- Multiple sheets: One series per sheet
-- Include metadata: Add info sheet
+**Opções Excel**
+- Planilha única: Todas as séries em uma planilha
+- Múltiplas planilhas: Uma série por planilha
+- Incluir metadados: Adicionar planilha de informações
 
-### Generate Report
+### Gerar Relatório
 
-Create PDF/HTML report:
+Crie relatório em PDF/HTML:
 
-1. Tools → Generate Report
-2. Select content:
-   - [ ] Summary statistics
-   - [ ] Plots
-   - [ ] Calculation results
-   - [ ] Metadata
-3. Choose template: Default, Technical, Executive
-4. Generate
-5. Report saved
-
----
-
-## Keyboard Shortcuts
-
-### General
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+O` | Open file |
-| `Ctrl+S` | Save session |
-| `Ctrl+W` | Close current tab |
-| `Ctrl+Q` | Quit application |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Ctrl+A` | Select all |
-| `Escape` | Deselect all |
-| `F1` | Help |
-| `F5` | Refresh data |
-| `F11` | Toggle fullscreen |
-
-### Visualization
-
-| Shortcut | Action |
-|----------|--------|
-| `Space` | Play/Pause streaming |
-| `R` | Reset view |
-| `G` | Toggle grid |
-| `L` | Toggle legend |
-| `+` / `-` | Zoom in/out |
-| `←` `→` | Pan left/right |
-| `↑` `↓` | Pan up/down |
-| `Ctrl+Drag` | Box zoom |
-| `Shift+Drag` | Pan plot |
-
-### Data
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+D` | Duplicate series |
-| `Delete` | Remove selected series |
-| `Ctrl+F` | Find series |
-| `Ctrl+E` | Export selected |
-
-### Operations
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+1` | Calculate derivative |
-| `Ctrl+2` | Calculate integral |
-| `Ctrl+3` | Interpolate |
-| `Ctrl+4` | Apply filter |
+1. Ferramentas → Gerar Relatório
+2. Selecione o conteúdo:
+   - [ ] Estatísticas resumidas
+   - [ ] Gráficos
+   - [ ] Resultados de cálculos
+   - [ ] Metadados
+3. Escolha o modelo: Padrão, Técnico, Executivo
+4. Gerar
+5. Relatório salvo
 
 ---
 
-## Settings & Configuration
+## Atalhos de Teclado
 
-### General Settings
+### Gerais
 
-**File → Preferences** or `Ctrl+,`
+| Atalho | Ação |
+|--------|------|
+| `Ctrl+O` | Abrir arquivo |
+| `Ctrl+S` | Salvar sessão |
+| `Ctrl+W` | Fechar aba atual |
+| `Ctrl+Q` | Sair da aplicação |
+| `Ctrl+Z` | Desfazer |
+| `Ctrl+Y` | Refazer |
+| `Ctrl+A` | Selecionar tudo |
+| `Escape` | Desselecionar tudo |
+| `F1` | Ajuda |
+| `F5` | Atualizar dados |
+| `F11` | Alternar tela cheia |
 
-#### Appearance
-- **Theme**: Light, Dark, System
-- **Font Size**: 8-16pt
-- **Language**: English, Português
+### Visualização
 
-#### Performance
-- **Auto-decimate**: Enable for files > 100K points
-- **Decimation threshold**: Number of points
-- **Memory limit**: Max RAM usage (MB)
-- **Cache size**: Disk cache size (MB)
+| Atalho | Ação |
+|--------|------|
+| `Espaço` | Play/Pause streaming |
+| `R` | Resetar vista |
+| `G` | Alternar grade |
+| `L` | Alternar legenda |
+| `+` / `-` | Aumentar/diminuir zoom |
+| `←` `→` | Pan esquerda/direita |
+| `↑` `↓` | Pan cima/baixo |
+| `Ctrl+Arrastar` | Zoom em caixa |
+| `Shift+Arrastar` | Pan no gráfico |
 
-#### Data
-- **Default delimiter**: CSV delimiter
-- **Date format**: ISO, US, EU
-- **Time zone**: UTC, Local
-- **Precision**: Decimal places for display
+### Dados
 
-#### Visualization
-- **Default colors**: Color scheme for plots
-- **Line width**: Default line width
-- **Grid**: Show by default
-- **Legend**: Show by default
-- **Anti-aliasing**: Enable for smoother plots
+| Atalho | Ação |
+|--------|------|
+| `Ctrl+D` | Duplicar série |
+| `Delete` | Remover série selecionada |
+| `Ctrl+F` | Encontrar série |
+| `Ctrl+E` | Exportar selecionadas |
 
-### Advanced Settings
+### Operações
 
-#### Interpolation
-- **Default method**: Linear, Spline, PCHIP
-- **Fill gaps**: Auto-fill gaps > X seconds
-- **Max gap size**: Don't interpolate gaps larger than
-
-#### Filters
-- **Default cutoff**: Lowpass cutoff frequency
-- **Filter order**: Butterworth filter order
-
-#### Auto-save
-- **Enable**: Auto-save session
-- **Interval**: Save every X minutes
-- **Keep versions**: Number of backup versions
-
----
-
-## Tips & Best Practices
-
-### Performance Tips
-
-1. **Use Parquet for large files** - 5-10x faster than CSV
-2. **Enable auto-decimation** - For files > 100K points
-3. **Close unused tabs** - Reduces memory usage
-4. **Export filtered data** - Work with smaller datasets
-5. **Use keyboard shortcuts** - Faster than mouse
-
-### Data Quality
-
-1. **Check for gaps** - View → Quality Report
-2. **Interpolate missing data** - Operations → Interpolation
-3. **Remove outliers** - Operations → Filters → Outlier Detection
-4. **Validate time stamps** - Ensure monotonic increasing
-5. **Check units** - Verify physical units make sense
-
-### Workflow Tips
-
-1. **Save session regularly** - `Ctrl+S` after major changes
-2. **Use descriptive names** - Rename series for clarity
-3. **Add metadata** - Right-click → Edit Metadata
-4. **Export intermediate results** - Save calculated series
-5. **Document your work** - Use Notes panel
-
-### Troubleshooting
-
-**Problem**: App runs slow with large files
-- **Solution**: Enable decimation, increase memory limit
-
-**Problem**: Plot looks jagged
-- **Solution**: Enable anti-aliasing in settings
-
-**Problem**: Data not loading
-- **Solution**: Check file format, try different delimiter
-
-**Problem**: Out of memory error
-- **Solution**: Close other apps, reduce dataset size, increase swap
+| Atalho | Ação |
+|--------|------|
+| `Ctrl+1` | Calcular derivada |
+| `Ctrl+2` | Calcular integral |
+| `Ctrl+3` | Interpolar |
+| `Ctrl+4` | Aplicar filtro |
 
 ---
 
-## FAQ
+## Configurações
 
-### General Questions
+### Configurações Gerais
 
-**Q: What file formats are supported?**
-A: CSV, Excel (.xlsx), Parquet, HDF5, MAT files. See [Loading Data](#loading-data).
+**Arquivo → Preferências** ou `Ctrl+,`
 
-**Q: How large files can I load?**
-A: Tested up to 10M rows (1GB). Performance depends on available RAM.
+#### Aparência
+- **Tema**: Claro, Escuro, Sistema
+- **Tamanho da Fonte**: 8-16pt
+- **Idioma**: English, Português
 
-**Q: Can I use this for real-time data?**
-A: Yes, streaming mode supports real-time playback and filtering.
+#### Desempenho
+- **Auto-decimação**: Habilitar para arquivos > 100K pontos
+- **Limite de decimação**: Número de pontos
+- **Limite de memória**: Uso máximo de RAM (MB)
+- **Tamanho do cache**: Tamanho do cache em disco (MB)
 
-**Q: Is there a Python API?**
-A: Yes, see [API Reference](API_REFERENCE.md).
+#### Dados
+- **Delimitador padrão**: Delimitador CSV
+- **Formato de data**: ISO, US, EU
+- **Fuso horário**: UTC, Local
+- **Precisão**: Casas decimais para exibição
 
-### Data Questions
+#### Visualização
+- **Cores padrão**: Esquema de cores para gráficos
+- **Espessura de linha**: Espessura padrão da linha
+- **Grade**: Mostrar por padrão
+- **Legenda**: Mostrar por padrão
+- **Anti-aliasing**: Habilitar para gráficos mais suaves
 
-**Q: How do I handle missing data?**
-A: Use interpolation: Operations → Interpolation. Choose method based on data characteristics.
+### Configurações Avançadas
 
-**Q: Can I load multiple files?**
-A: Yes, File → Open Multiple or drag & drop multiple files.
+#### Interpolação
+- **Método padrão**: Linear, Spline, PCHIP
+- **Preencher lacunas**: Auto-preencher lacunas > X segundos
+- **Tamanho máximo da lacuna**: Não interpolar lacunas maiores que
 
-**Q: How do I merge datasets?**
-A: Select series → Operations → Synchronization → Common Grid.
+#### Filtros
+- **Corte padrão**: Frequência de corte passa-baixas
+- **Ordem do filtro**: Ordem do filtro Butterworth
 
-### Visualization Questions
-
-**Q: How do I compare two series?**
-A: Add both to same plot. For different scales, use multiple Y axes.
-
-**Q: Can I export plots?**
-A: Yes, right-click plot → Export. PNG, SVG, PDF supported.
-
-**Q: How do I create animations?**
-A: Enable streaming, then Tools → Export → Video.
-
-### Calculation Questions
-
-**Q: What interpolation method should I use?**
-A: 
-- **Linear**: Fast, good for most cases
-- **Spline**: Smooth curves
-- **PCHIP**: Preserves monotonicity
-
-**Q: How accurate are derivatives?**
-A: Uses numerical differentiation (finite differences). Accuracy depends on sampling rate and noise level.
-
-**Q: Can I write custom operations?**
-A: Yes, use plugin system. See [Plugin Development](PLUGIN_DEVELOPMENT.md).
+#### Auto-salvamento
+- **Habilitar**: Auto-salvar sessão
+- **Intervalo**: Salvar a cada X minutos
+- **Manter versões**: Número de versões de backup
 
 ---
 
-## Support
+## Dicas e Boas Práticas
 
-### Documentation
+### Dicas de Desempenho
 
-- **User Guide**: This document
-- **API Reference**: [API_REFERENCE.md](API_REFERENCE.md)
-- **Plugin Guide**: [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md)
-- **Troubleshooting**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+1. **Use Parquet para arquivos grandes** - 5-10x mais rápido que CSV
+2. **Habilite auto-decimação** - Para arquivos > 100K pontos
+3. **Feche abas não utilizadas** - Reduz uso de memória
+4. **Exporte dados filtrados** - Trabalhe com datasets menores
+5. **Use atalhos de teclado** - Mais rápido que o mouse
 
-### Community
+### Qualidade dos Dados
 
-- **GitHub Issues**: Report bugs
-- **Discussions**: Ask questions, share tips
-- **Wiki**: Community-contributed guides
+1. **Verifique lacunas** - Ver → Relatório de Qualidade
+2. **Interpole dados faltantes** - Operações → Interpolação
+3. **Remova outliers** - Operações → Filtros → Detecção de Outliers
+4. **Valide timestamps** - Garanta que sejam monotonicamente crescentes
+5. **Verifique unidades** - Verifique se as unidades físicas fazem sentido
 
-### Getting Help
+### Dicas de Fluxo de Trabalho
 
-1. Check [FAQ](#faq) above
-2. Read [Troubleshooting Guide](TROUBLESHOOTING.md)
-3. Search existing [GitHub Issues](https://github.com/thiagoarcan/Warp/issues)
-4. Create new issue with:
-   - Platform Base version
-   - Operating system
-   - Steps to reproduce
-   - Error messages/screenshots
+1. **Salve a sessão regularmente** - `Ctrl+S` após mudanças importantes
+2. **Use nomes descritivos** - Renomeie séries para clareza
+3. **Adicione metadados** - Clique direito → Editar Metadados
+4. **Exporte resultados intermediários** - Salve séries calculadas
+5. **Documente seu trabalho** - Use o painel de Notas
 
 ---
 
-## Appendix
+## Perguntas Frequentes
 
-### Glossary
+### Perguntas Gerais
 
-- **Series**: A sequence of values over time
-- **Dataset**: Collection of related series
-- **Decimation**: Reducing number of points for visualization
-- **Interpolation**: Estimating values between known points
-- **Synchronization**: Aligning multiple time series
+**P: Quais formatos de arquivo são suportados?**
+R: CSV, Excel (.xlsx), Parquet, HDF5, arquivos MAT. Veja [Carregando Dados](#carregando-dados).
 
-### File Formats Details
+**P: Quão grandes podem ser os arquivos?**
+R: Testado até 10M linhas (1GB). O desempenho depende da RAM disponível.
 
-#### CSV Structure
+**P: Posso usar para dados em tempo real?**
+R: Sim, o modo streaming suporta reprodução e filtragem em tempo real.
+
+**P: Existe uma API Python?**
+R: Sim, veja [Referência da API](API_REFERENCE.md).
+
+### Perguntas sobre Dados
+
+**P: Como lidar com dados faltantes?**
+R: Use interpolação: Operações → Interpolação. Escolha o método baseado nas características dos dados.
+
+**P: Posso carregar múltiplos arquivos?**
+R: Sim, Arquivo → Abrir Múltiplos ou arraste e solte múltiplos arquivos.
+
+**P: Como mesclar datasets?**
+R: Selecione séries → Operações → Sincronização → Grade Comum.
+
+### Perguntas sobre Visualização
+
+**P: Como comparar duas séries?**
+R: Adicione ambas ao mesmo gráfico. Para escalas diferentes, use múltiplos eixos Y.
+
+**P: Posso exportar gráficos?**
+R: Sim, clique direito no gráfico → Exportar. PNG, SVG, PDF suportados.
+
+**P: Como criar animações?**
+R: Habilite streaming, depois Ferramentas → Exportar → Vídeo.
+
+### Perguntas sobre Cálculos
+
+**P: Qual método de interpolação devo usar?**
+R: 
+- **Linear**: Rápido, bom para a maioria dos casos
+- **Spline**: Curvas suaves
+- **PCHIP**: Preserva monotonicidade
+
+**P: Quão precisas são as derivadas?**
+R: Usa diferenciação numérica (diferenças finitas). A precisão depende da taxa de amostragem e nível de ruído.
+
+**P: Posso escrever operações customizadas?**
+R: Sim, use o sistema de plugins. Veja [Desenvolvimento de Plugins](PLUGIN_DEVELOPMENT.md).
+
+---
+
+## Suporte
+
+### Documentação
+
+- **Guia do Usuário**: Este documento
+- **Referência da API**: [API_REFERENCE.md](API_REFERENCE.md)
+- **Guia de Plugins**: [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md)
+- **Solução de Problemas**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+### Comunidade
+
+- **Issues no GitHub**: Reporte bugs
+- **Discussões**: Faça perguntas, compartilhe dicas
+- **Wiki**: Guias contribuídos pela comunidade
+
+### Obtendo Ajuda
+
+1. Verifique as [Perguntas Frequentes](#perguntas-frequentes) acima
+2. Leia o [Guia de Solução de Problemas](TROUBLESHOOTING.md)
+3. Pesquise [Issues existentes no GitHub](https://github.com/thiagoarcan/Warp/issues)
+4. Crie nova issue com:
+   - Versão do Platform Base
+   - Sistema operacional
+   - Passos para reproduzir
+   - Mensagens de erro/screenshots
+
+---
+
+## Apêndice
+
+### Glossário
+
+- **Série**: Uma sequência de valores ao longo do tempo
+- **Dataset**: Coleção de séries relacionadas
+- **Decimação**: Redução do número de pontos para visualização
+- **Interpolação**: Estimativa de valores entre pontos conhecidos
+- **Sincronização**: Alinhamento de múltiplas séries temporais
+
+### Detalhes dos Formatos de Arquivo
+
+#### Estrutura CSV
 ```
 time,sensor_1,sensor_2
 0.0,1.5,2.3
@@ -755,29 +741,29 @@ time,sensor_1,sensor_2
 0.2,1.4,2.2
 ```
 
-#### Excel Structure
-- Sheet 1: Data (time + value columns)
-- Sheet 2: Metadata (optional)
+#### Estrutura Excel
+- Planilha 1: Dados (colunas tempo + valor)
+- Planilha 2: Metadados (opcional)
 
-### Calculation Methods
+### Métodos de Cálculo
 
-**Derivative Methods**
-- Forward difference
-- Backward difference
-- Central difference (default)
+**Métodos de Derivada**
+- Diferença progressiva
+- Diferença regressiva
+- Diferença central (padrão)
 
-**Integral Methods**
-- Trapezoidal rule (default)
-- Simpson's rule
-- Romberg integration
+**Métodos de Integral**
+- Regra trapezoidal (padrão)
+- Regra de Simpson
+- Integração de Romberg
 
-**Filter Types**
-- Butterworth (smooth frequency response)
-- Chebyshev (steeper roll-off)
-- Bessel (linear phase)
+**Tipos de Filtro**
+- Butterworth (resposta de frequência suave)
+- Chebyshev (roll-off mais acentuado)
+- Bessel (fase linear)
 
 ---
 
-*Platform Base v2.0 - User Guide*  
-*Last Updated: 2026-02-02*  
-*Copyright © 2026 Platform Base Team*
+*Platform Base v2.0 - Guia do Usuário*  
+*Última Atualização: 2026-02-02*  
+*Copyright © 2026 Equipe Platform Base*

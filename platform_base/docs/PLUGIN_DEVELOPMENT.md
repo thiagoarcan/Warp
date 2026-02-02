@@ -1,99 +1,99 @@
-# Platform Base v2.0 - Plugin Development Guide
+# Platform Base v2.0 - Guia de Desenvolvimento de Plugins
 
-**Complete guide for developing custom plugins**
-
----
-
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [Plugin Architecture](#plugin-architecture)
-3. [Quick Start](#quick-start)
-4. [Plugin Types](#plugin-types)
-5. [API Reference](#api-reference)
-6. [Examples](#examples)
-7. [Testing Plugins](#testing-plugins)
-8. [Distribution](#distribution)
-9. [Best Practices](#best-practices)
-10. [Troubleshooting](#troubleshooting)
+**Guia completo para desenvolver plugins customizados**
 
 ---
 
-## Introduction
+## Índice
 
-Platform Base supports a plugin system that allows you to extend functionality without modifying core code. Plugins can:
-
-- Add custom data processing operations
-- Create new visualization types
-- Implement custom file format loaders
-- Add UI panels and dialogs
-- Integrate external tools and services
-
-### Plugin System Features
-
-- ✅ **Hot reloading** - Load plugins without restart
-- ✅ **Isolation** - Plugins run in separate process (optional)
-- ✅ **Type safety** - Full type hints and validation
-- ✅ **Auto-discovery** - Automatic plugin detection
-- ✅ **Error handling** - Graceful failure without crashing app
-- ✅ **Metadata** - Version info, dependencies, descriptions
+1. [Introdução](#introdução)
+2. [Arquitetura de Plugins](#arquitetura-de-plugins)
+3. [Início Rápido](#início-rápido)
+4. [Tipos de Plugins](#tipos-de-plugins)
+5. [Referência da API](#referência-da-api)
+6. [Exemplos](#exemplos)
+7. [Testando Plugins](#testando-plugins)
+8. [Distribuição](#distribuição)
+9. [Boas Práticas](#boas-práticas)
+10. [Solução de Problemas](#solução-de-problemas)
 
 ---
 
-## Plugin Architecture
+## Introdução
 
-### Plugin Structure
+O Platform Base suporta um sistema de plugins que permite estender funcionalidades sem modificar o código principal. Plugins podem:
+
+- Adicionar operações customizadas de processamento de dados
+- Criar novos tipos de visualização
+- Implementar carregadores de formatos de arquivo customizados
+- Adicionar painéis e diálogos de UI
+- Integrar ferramentas e serviços externos
+
+### Recursos do Sistema de Plugins
+
+- ✅ **Hot reloading** - Carregue plugins sem reiniciar
+- ✅ **Isolamento** - Plugins executam em processo separado (opcional)
+- ✅ **Segurança de tipo** - Type hints e validação completos
+- ✅ **Auto-descoberta** - Detecção automática de plugins
+- ✅ **Tratamento de erros** - Falha graciosa sem travar a aplicação
+- ✅ **Metadados** - Informações de versão, dependências, descrições
+
+---
+
+## Arquitetura de Plugins
+
+### Estrutura de Plugin
 
 ```
-my_plugin/
-├── __init__.py           # Plugin entry point
-├── plugin.yaml           # Plugin metadata
-├── operations.py         # Custom operations
-├── ui.py                 # UI components (optional)
-├── tests/               # Unit tests (optional)
+meu_plugin/
+├── __init__.py           # Ponto de entrada do plugin
+├── plugin.yaml           # Metadados do plugin
+├── operations.py         # Operações customizadas
+├── ui.py                 # Componentes de UI (opcional)
+├── tests/               # Testes unitários (opcional)
 │   └── test_operations.py
-└── README.md            # Documentation
+└── README.md            # Documentação
 ```
 
-### Plugin Lifecycle
+### Ciclo de Vida do Plugin
 
 ```
-1. Discovery → 2. Validation → 3. Loading → 4. Registration → 5. Execution
+1. Descoberta → 2. Validação → 3. Carregamento → 4. Registro → 5. Execução
 ```
 
-### Plugin Registry
+### Registro de Plugins
 
-Plugins register with the central `PluginRegistry`:
+Plugins se registram no `PluginRegistry` central:
 
 ```python
 from platform_base.plugins.registry import PluginRegistry
 
 registry = PluginRegistry()
-registry.register_plugin(MyPlugin)
+registry.register_plugin(MeuPlugin)
 ```
 
 ---
 
-## Quick Start
+## Início Rápido
 
-### Create Your First Plugin (5 minutes)
+### Crie Seu Primeiro Plugin (5 minutos)
 
-#### Step 1: Create Plugin Directory
+#### Passo 1: Criar Diretório do Plugin
 
 ```bash
-mkdir my_first_plugin
-cd my_first_plugin
+mkdir meu_primeiro_plugin
+cd meu_primeiro_plugin
 ```
 
-#### Step 2: Create plugin.yaml
+#### Passo 2: Criar plugin.yaml
 
 ```yaml
-name: my_first_plugin
+name: meu_primeiro_plugin
 version: 1.0.0
-author: Your Name
-description: My first Platform Base plugin
+author: Seu Nome
+description: Meu primeiro plugin do Platform Base
 type: operation
-entry_point: my_first_plugin:MyPlugin
+entry_point: meu_primeiro_plugin:MeuPlugin
 
 dependencies:
   - numpy>=1.24.0
@@ -102,95 +102,95 @@ dependencies:
 platform_base_version: ">=2.0.0"
 ```
 
-#### Step 3: Create __init__.py
+#### Passo 3: Criar __init__.py
 
 ```python
-"""My First Plugin - Simple data smoothing."""
+"""Meu Primeiro Plugin - Suavização simples de dados."""
 
 from platform_base.plugins.base import OperationPlugin
 from platform_base.core.models import Series
 import numpy as np
 
 
-class MyPlugin(OperationPlugin):
-    """Simple data smoothing plugin."""
+class MeuPlugin(OperationPlugin):
+    """Plugin de suavização de dados simples."""
     
-    name = "Simple Smooth"
-    description = "Smooth data using moving average"
-    category = "Filters"
+    name = "Suavização Simples"
+    description = "Suaviza dados usando média móvel"
+    category = "Filtros"
     
     def get_parameters(self):
-        """Define plugin parameters."""
+        """Define parâmetros do plugin."""
         return {
             "window_size": {
                 "type": "int",
                 "default": 5,
                 "min": 3,
                 "max": 100,
-                "description": "Moving average window size"
+                "description": "Tamanho da janela de média móvel"
             }
         }
     
     def execute(self, series: Series, params: dict) -> Series:
-        """Execute plugin operation."""
+        """Executa operação do plugin."""
         window = params["window_size"]
         
-        # Calculate moving average
+        # Calcula média móvel
         smoothed = np.convolve(
             series.values,
             np.ones(window) / window,
             mode='same'
         )
         
-        # Return new series
+        # Retorna nova série
         return Series(
             series_id=f"{series.series_id}_smoothed",
-            name=f"{series.name} (Smoothed)",
+            name=f"{series.name} (Suavizado)",
             values=smoothed,
             unit=series.unit
         )
 
 
-# Export plugin class
-__plugin__ = MyPlugin
+# Exporta classe do plugin
+__plugin__ = MeuPlugin
 ```
 
-#### Step 4: Install Plugin
+#### Passo 4: Instalar Plugin
 
 ```bash
-# From Platform Base root
-python -m platform_base.plugins install /path/to/my_first_plugin
+# Da raiz do Platform Base
+python -m platform_base.plugins install /caminho/para/meu_primeiro_plugin
 ```
 
-#### Step 5: Use Plugin
+#### Passo 5: Usar Plugin
 
-1. Launch Platform Base
-2. Load data
-3. Select series
-4. Operations → Filters → Simple Smooth
-5. Set window size → Apply
+1. Inicie o Platform Base
+2. Carregue dados
+3. Selecione série
+4. Operações → Filtros → Suavização Simples
+5. Defina tamanho da janela → Aplicar
 
-**Congratulations!** You've created your first plugin!
+**Parabéns!** Você criou seu primeiro plugin!
 
 ---
 
-## Plugin Types
+## Tipos de Plugins
 
-### 1. Operation Plugins
+### 1. Plugins de Operação
 
-Process data and return results.
+Processam dados e retornam resultados.
 
-**Base Class**: `OperationPlugin`
+**Classe Base**: `OperationPlugin`
 
-**Example**: Derivative, Integral, Custom Filter
+**Exemplo**: Derivada, Integral, Filtro Customizado
 
 ```python
 from platform_base.plugins.base import OperationPlugin
 from platform_base.core.models import Series
 
-class DerivativePlugin(OperationPlugin):
-    name = "Custom Derivative"
-    category = "Calculus"
+class PluginDerivada(OperationPlugin):
+    name = "Derivada Customizada"
+    category = "Cálculo"
     
     def get_parameters(self):
         return {
@@ -198,140 +198,140 @@ class DerivativePlugin(OperationPlugin):
         }
     
     def execute(self, series: Series, params: dict) -> Series:
-        # Implementation
+        # Implementação
         pass
 ```
 
-### 2. Visualization Plugins
+### 2. Plugins de Visualização
 
-Create custom plot types.
+Criam tipos de gráficos customizados.
 
-**Base Class**: `VisualizationPlugin`
+**Classe Base**: `VisualizationPlugin`
 
-**Example**: Custom 3D plot, Heatmap, Waterfall
+**Exemplo**: Gráfico 3D customizado, Mapa de calor, Waterfall
 
 ```python
 from platform_base.plugins.base import VisualizationPlugin
 
-class HeatmapPlugin(VisualizationPlugin):
-    name = "Custom Heatmap"
-    category = "2D Plots"
+class PluginMapaCalor(VisualizationPlugin):
+    name = "Mapa de Calor Customizado"
+    category = "Gráficos 2D"
     
     def create_plot(self, data, params):
-        # Create matplotlib/plotly figure
+        # Cria figura matplotlib/plotly
         pass
 ```
 
-### 3. Loader Plugins
+### 3. Plugins de Carregamento
 
-Support custom file formats.
+Suportam formatos de arquivo customizados.
 
-**Base Class**: `LoaderPlugin`
+**Classe Base**: `LoaderPlugin`
 
-**Example**: Custom binary format, Database connection
+**Exemplo**: Formato binário customizado, Conexão com banco de dados
 
 ```python
 from platform_base.plugins.base import LoaderPlugin
 from platform_base.core.models import Dataset
 
-class CustomFormatLoader(LoaderPlugin):
-    name = "Custom Format"
-    extensions = [".myformat"]
+class CarregadorFormatoCustomizado(LoaderPlugin):
+    name = "Formato Customizado"
+    extensions = [".meuformato"]
     
     def load(self, filepath: str) -> Dataset:
-        # Parse file and return Dataset
+        # Analisa arquivo e retorna Dataset
         pass
 ```
 
-### 4. Export Plugins
+### 4. Plugins de Exportação
 
-Export data in custom formats.
+Exportam dados em formatos customizados.
 
-**Base Class**: `ExportPlugin`
+**Classe Base**: `ExportPlugin`
 
-**Example**: Custom report format, API upload
+**Exemplo**: Formato de relatório customizado, Upload para API
 
 ```python
 from platform_base.plugins.base import ExportPlugin
 
-class CustomExporter(ExportPlugin):
-    name = "Custom Export"
+class ExportadorCustomizado(ExportPlugin):
+    name = "Exportação Customizada"
     extensions = [".custom"]
     
     def export(self, dataset, filepath: str):
-        # Write data to file
+        # Escreve dados em arquivo
         pass
 ```
 
-### 5. UI Plugins
+### 5. Plugins de UI
 
-Add custom panels and dialogs.
+Adicionam painéis e diálogos customizados.
 
-**Base Class**: `UIPlugin`
+**Classe Base**: `UIPlugin`
 
-**Example**: Statistics panel, Data quality dashboard
+**Exemplo**: Painel de estatísticas, Dashboard de qualidade de dados
 
 ```python
 from platform_base.plugins.base import UIPlugin
 from PyQt6.QtWidgets import QWidget
 
-class StatsPanelPlugin(UIPlugin):
-    name = "Statistics Panel"
+class PluginPainelEstatisticas(UIPlugin):
+    name = "Painel de Estatísticas"
     location = "right"
     
     def create_widget(self) -> QWidget:
-        # Create and return Qt widget
+        # Cria e retorna widget Qt
         pass
 ```
 
 ---
 
-## API Reference
+## Referência da API
 
-### Plugin Base Classes
+### Classes Base de Plugins
 
 #### OperationPlugin
 
 ```python
 class OperationPlugin:
-    """Base class for data operations."""
+    """Classe base para operações de dados."""
     
-    name: str                    # Display name
-    description: str             # Short description
-    category: str                # Category for menu
+    name: str                    # Nome de exibição
+    description: str             # Descrição curta
+    category: str                # Categoria para o menu
     
     def get_parameters(self) -> dict:
-        """Return parameter definitions."""
+        """Retorna definições de parâmetros."""
         pass
     
     def validate_input(self, series: Series) -> bool:
-        """Validate input data (optional)."""
+        """Valida dados de entrada (opcional)."""
         return True
     
     def execute(self, series: Series, params: dict) -> Series:
-        """Execute operation and return result."""
+        """Executa operação e retorna resultado."""
         pass
     
     def get_preview(self, series: Series, params: dict) -> Series:
-        """Return preview result (optional)."""
+        """Retorna resultado de preview (opcional)."""
         return self.execute(series, params)
 ```
 
-#### Parameter Types
+#### Tipos de Parâmetros
 
 ```python
-# Integer parameter
+# Parâmetro inteiro
 {
     "param_name": {
         "type": "int",
         "default": 10,
         "min": 1,
         "max": 100,
-        "description": "Parameter description"
+        "description": "Descrição do parâmetro"
     }
 }
 
-# Float parameter
+# Parâmetro float
 {
     "frequency": {
         "type": "float",
@@ -339,31 +339,31 @@ class OperationPlugin:
         "min": 0.1,
         "max": 100.0,
         "step": 0.1,
-        "description": "Cutoff frequency (Hz)"
+        "description": "Frequência de corte (Hz)"
     }
 }
 
-# Choice parameter
+# Parâmetro de escolha
 {
     "method": {
         "type": "choice",
         "options": ["linear", "cubic", "quintic"],
         "default": "cubic",
-        "description": "Interpolation method"
+        "description": "Método de interpolação"
     }
 }
 
-# Boolean parameter
+# Parâmetro booleano
 {
     "normalize": {
         "type": "bool",
         "default": False,
-        "description": "Normalize output"
+        "description": "Normalizar saída"
     }
 }
 ```
 
-### Core Models
+### Modelos Principais
 
 #### Series
 
@@ -372,14 +372,14 @@ from platform_base.core.models import Series
 
 series = Series(
     series_id="unique_id",
-    name="Display Name",
+    name="Nome de Exibição",
     values=np.array([1, 2, 3]),
     unit="m/s",
     metadata={"sensor": "IMU-001"}
 )
 
-# Properties
-series.values       # numpy array
+# Propriedades
+series.values       # array numpy
 series.name         # str
 series.unit         # str
 series.metadata     # dict
@@ -392,26 +392,26 @@ from platform_base.core.models import Dataset, Series
 
 dataset = Dataset(
     dataset_id="ds_001",
-    name="Dataset Name",
+    name="Nome do Dataset",
     series={"s1": series1, "s2": series2},
     t_seconds=np.array([0, 0.1, 0.2]),
     metadata={"source": "file.csv"}
 )
 
-# Properties
+# Propriedades
 dataset.series      # dict[str, Series]
-dataset.t_seconds   # numpy array
+dataset.t_seconds   # array numpy
 dataset.metadata    # dict
 ```
 
 ---
 
-## Examples
+## Exemplos
 
-### Example 1: FFT Plugin
+### Exemplo 1: Plugin FFT
 
 ```python
-"""FFT Analysis Plugin."""
+"""Plugin de Análise FFT."""
 
 from platform_base.plugins.base import OperationPlugin
 from platform_base.core.models import Series
@@ -419,12 +419,12 @@ import numpy as np
 from scipy import fft
 
 
-class FFTPlugin(OperationPlugin):
-    """Compute Fast Fourier Transform."""
+class PluginFFT(OperationPlugin):
+    """Calcula Transformada Rápida de Fourier."""
     
-    name = "FFT Analysis"
-    description = "Compute frequency spectrum"
-    category = "Signal Processing"
+    name = "Análise FFT"
+    description = "Calcula espectro de frequência"
+    category = "Processamento de Sinal"
     
     def get_parameters(self):
         return {
@@ -432,37 +432,37 @@ class FFTPlugin(OperationPlugin):
                 "type": "choice",
                 "options": ["hann", "hamming", "blackman", "none"],
                 "default": "hann",
-                "description": "Window function"
+                "description": "Função de janela"
             },
             "normalize": {
                 "type": "bool",
                 "default": True,
-                "description": "Normalize amplitudes"
+                "description": "Normalizar amplitudes"
             }
         }
     
     def execute(self, series: Series, params: dict) -> Series:
-        """Compute FFT."""
-        # Get parameters
+        """Calcula FFT."""
+        # Obtém parâmetros
         window_type = params["window"]
         normalize = params["normalize"]
         
-        # Apply window
+        # Aplica janela
         if window_type != "none":
             window = getattr(np, window_type)(len(series.values))
             windowed = series.values * window
         else:
             windowed = series.values
         
-        # Compute FFT
+        # Calcula FFT
         spectrum = fft.rfft(windowed)
         amplitudes = np.abs(spectrum)
         
-        # Normalize if requested
+        # Normaliza se solicitado
         if normalize:
             amplitudes = amplitudes / np.max(amplitudes)
         
-        # Create result series
+        # Cria série resultado
         return Series(
             series_id=f"{series.series_id}_fft",
             name=f"{series.name} (FFT)",
@@ -471,10 +471,10 @@ class FFTPlugin(OperationPlugin):
         )
 ```
 
-### Example 2: Peak Detection Plugin
+### Exemplo 2: Plugin de Detecção de Picos
 
 ```python
-"""Peak Detection Plugin."""
+"""Plugin de Detecção de Picos."""
 
 from platform_base.plugins.base import OperationPlugin
 from platform_base.core.models import Series
@@ -482,11 +482,11 @@ from scipy.signal import find_peaks
 import numpy as np
 
 
-class PeakDetectionPlugin(OperationPlugin):
-    """Detect peaks in signal."""
+class PluginDeteccaoPicos(OperationPlugin):
+    """Detecta picos no sinal."""
     
-    name = "Peak Detection"
-    category = "Analysis"
+    name = "Detecção de Picos"
+    category = "Análise"
     
     def get_parameters(self):
         return {
@@ -494,25 +494,25 @@ class PeakDetectionPlugin(OperationPlugin):
                 "type": "float",
                 "default": 0.5,
                 "min": 0.0,
-                "description": "Minimum peak height"
+                "description": "Altura mínima do pico"
             },
             "distance": {
                 "type": "int",
                 "default": 10,
                 "min": 1,
-                "description": "Minimum distance between peaks"
+                "description": "Distância mínima entre picos"
             },
             "prominence": {
                 "type": "float",
                 "default": 0.1,
                 "min": 0.0,
-                "description": "Minimum peak prominence"
+                "description": "Proeminência mínima do pico"
             }
         }
     
     def execute(self, series: Series, params: dict) -> Series:
-        """Find peaks."""
-        # Find peaks
+        """Encontra picos."""
+        # Encontra picos
         peaks, properties = find_peaks(
             series.values,
             height=params["height"],
@@ -520,13 +520,13 @@ class PeakDetectionPlugin(OperationPlugin):
             prominence=params["prominence"]
         )
         
-        # Create boolean array marking peaks
+        # Cria array booleano marcando picos
         peak_markers = np.zeros_like(series.values)
         peak_markers[peaks] = 1.0
         
         return Series(
             series_id=f"{series.series_id}_peaks",
-            name=f"{series.name} (Peaks)",
+            name=f"{series.name} (Picos)",
             values=peak_markers,
             metadata={
                 "peak_count": len(peaks),
@@ -536,10 +536,10 @@ class PeakDetectionPlugin(OperationPlugin):
         )
 ```
 
-### Example 3: Custom Loader Plugin
+### Exemplo 3: Plugin de Carregador Customizado
 
 ```python
-"""Custom Binary Format Loader."""
+"""Carregador de Formato Binário Customizado."""
 
 from platform_base.plugins.base import LoaderPlugin
 from platform_base.core.models import Dataset, Series
@@ -547,43 +547,43 @@ import struct
 import numpy as np
 
 
-class BinaryLoader(LoaderPlugin):
-    """Load custom binary format."""
+class CarregadorBinario(LoaderPlugin):
+    """Carrega formato binário customizado."""
     
-    name = "Custom Binary"
+    name = "Binário Customizado"
     extensions = [".bin", ".dat"]
     
     def load(self, filepath: str) -> Dataset:
-        """Load binary file."""
+        """Carrega arquivo binário."""
         with open(filepath, "rb") as f:
-            # Read header
+            # Lê cabeçalho
             version = struct.unpack("I", f.read(4))[0]
             n_points = struct.unpack("I", f.read(4))[0]
             n_series = struct.unpack("I", f.read(4))[0]
             
-            # Read time array
-            time_data = f.read(n_points * 8)  # 8 bytes per double
+            # Lê array de tempo
+            time_data = f.read(n_points * 8)  # 8 bytes por double
             t_seconds = np.frombuffer(time_data, dtype=np.float64)
             
-            # Read series
+            # Lê séries
             series_dict = {}
             for i in range(n_series):
-                # Read series name
+                # Lê nome da série
                 name_len = struct.unpack("H", f.read(2))[0]
                 name = f.read(name_len).decode("utf-8")
                 
-                # Read values
+                # Lê valores
                 values_data = f.read(n_points * 8)
                 values = np.frombuffer(values_data, dtype=np.float64)
                 
-                # Create series
+                # Cria série
                 series_dict[f"series_{i}"] = Series(
                     series_id=f"series_{i}",
                     name=name,
                     values=values
                 )
             
-            # Create dataset
+            # Cria dataset
             return Dataset(
                 dataset_id=filepath,
                 name=filepath,
@@ -595,42 +595,42 @@ class BinaryLoader(LoaderPlugin):
 
 ---
 
-## Testing Plugins
+## Testando Plugins
 
-### Unit Tests
+### Testes Unitários
 
-Create `tests/test_myplugin.py`:
+Crie `tests/test_meuplugin.py`:
 
 ```python
-"""Tests for MyPlugin."""
+"""Testes para MeuPlugin."""
 
 import pytest
 import numpy as np
 from platform_base.core.models import Series
-from my_plugin import MyPlugin
+from meu_plugin import MeuPlugin
 
 
 @pytest.fixture
 def sample_series():
-    """Create test series."""
+    """Cria série de teste."""
     t = np.linspace(0, 10, 100)
     y = np.sin(t)
     return Series(
         series_id="test",
-        name="Test",
+        name="Teste",
         values=y
     )
 
 
 def test_plugin_creation():
-    """Test plugin can be instantiated."""
-    plugin = MyPlugin()
-    assert plugin.name == "My Plugin"
+    """Testa se o plugin pode ser instanciado."""
+    plugin = MeuPlugin()
+    assert plugin.name == "Meu Plugin"
 
 
 def test_plugin_parameters():
-    """Test parameter definition."""
-    plugin = MyPlugin()
+    """Testa definição de parâmetros."""
+    plugin = MeuPlugin()
     params = plugin.get_parameters()
     
     assert "window_size" in params
@@ -638,8 +638,8 @@ def test_plugin_parameters():
 
 
 def test_plugin_execution(sample_series):
-    """Test plugin execution."""
-    plugin = MyPlugin()
+    """Testa execução do plugin."""
+    plugin = MeuPlugin()
     params = {"window_size": 5}
     
     result = plugin.execute(sample_series, params)
@@ -650,18 +650,18 @@ def test_plugin_execution(sample_series):
 
 
 def test_plugin_validation(sample_series):
-    """Test input validation."""
-    plugin = MyPlugin()
+    """Testa validação de entrada."""
+    plugin = MeuPlugin()
     
-    # Valid input
+    # Entrada válida
     assert plugin.validate_input(sample_series)
     
-    # Invalid input (empty series)
+    # Entrada inválida (série vazia)
     empty_series = Series("empty", "Empty", np.array([]))
     assert not plugin.validate_input(empty_series)
 ```
 
-### Run Tests
+### Executar Testes
 
 ```bash
 pytest tests/
@@ -669,22 +669,22 @@ pytest tests/
 
 ---
 
-## Distribution
+## Distribuição
 
-### Package Plugin
+### Empacotar Plugin
 
 ```bash
-# Create distribution package
+# Criar pacote de distribuição
 python setup.py sdist bdist_wheel
 ```
 
-### setup.py Example
+### Exemplo de setup.py
 
 ```python
 from setuptools import setup, find_packages
 
 setup(
-    name="platform-base-myplugin",
+    name="platform-base-meuplugin",
     version="1.0.0",
     packages=find_packages(),
     install_requires=[
@@ -693,15 +693,15 @@ setup(
     ],
     entry_points={
         "platform_base.plugins": [
-            "myplugin=my_plugin:MyPlugin"
+            "meuplugin=meu_plugin:MeuPlugin"
         ]
     },
-    author="Your Name",
-    author_email="your.email@example.com",
-    description="My Platform Base plugin",
+    author="Seu Nome",
+    author_email="seu.email@exemplo.com",
+    description="Meu plugin do Platform Base",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/myplugin",
+    url="https://github.com/seunome/meuplugin",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License"
@@ -709,100 +709,100 @@ setup(
 )
 ```
 
-### Publish to PyPI
+### Publicar no PyPI
 
 ```bash
 twine upload dist/*
 ```
 
-### Install from PyPI
+### Instalar do PyPI
 
 ```bash
-pip install platform-base-myplugin
+pip install platform-base-meuplugin
 ```
 
 ---
 
-## Best Practices
+## Boas Práticas
 
-### 1. Error Handling
+### 1. Tratamento de Erros
 
-Always handle errors gracefully:
+Sempre trate erros graciosamente:
 
 ```python
 def execute(self, series: Series, params: dict) -> Series:
     try:
-        # Your code
+        # Seu código
         result = process_data(series.values)
         return Series(...)
     except ValueError as e:
-        raise PluginExecutionError(f"Invalid input: {e}")
+        raise PluginExecutionError(f"Entrada inválida: {e}")
     except Exception as e:
-        raise PluginExecutionError(f"Unexpected error: {e}")
+        raise PluginExecutionError(f"Erro inesperado: {e}")
 ```
 
-### 2. Input Validation
+### 2. Validação de Entrada
 
-Validate inputs before processing:
+Valide entradas antes de processar:
 
 ```python
 def validate_input(self, series: Series) -> bool:
     if len(series.values) < 10:
-        raise ValidationError("Series too short (min 10 points)")
+        raise ValidationError("Série muito curta (mín 10 pontos)")
     
     if np.any(np.isnan(series.values)):
-        raise ValidationError("Series contains NaN values")
+        raise ValidationError("Série contém valores NaN")
     
     return True
 ```
 
-### 3. Documentation
+### 3. Documentação
 
-Provide clear docstrings:
+Forneça docstrings claras:
 
 ```python
-class MyPlugin(OperationPlugin):
+class MeuPlugin(OperationPlugin):
     """
-    One-line summary.
+    Resumo de uma linha.
     
-    Longer description explaining what the plugin does,
-    algorithm used, and any important notes.
+    Descrição mais longa explicando o que o plugin faz,
+    algoritmo usado e notas importantes.
     
-    Parameters:
-        window_size: Size of moving average window
+    Parâmetros:
+        window_size: Tamanho da janela de média móvel
         
-    Returns:
-        Smoothed series with same length as input
+    Retorna:
+        Série suavizada com mesmo comprimento da entrada
         
-    Example:
-        >>> plugin = MyPlugin()
+    Exemplo:
+        >>> plugin = MeuPlugin()
         >>> result = plugin.execute(series, {"window_size": 5})
     """
 ```
 
-### 4. Performance
+### 4. Desempenho
 
-Optimize for large datasets:
+Otimize para datasets grandes:
 
 ```python
-# Use NumPy operations (fast)
+# Use operações NumPy (rápido)
 result = np.mean(data)
 
-# Avoid Python loops (slow)
+# Evite loops Python (lento)
 result = sum(data) / len(data)
 
-# Use numba for custom loops
+# Use numba para loops customizados
 from numba import jit
 
 @jit(nopython=True)
 def custom_operation(data):
-    # Fast loop
+    # Loop rápido
     pass
 ```
 
 ### 5. Type Hints
 
-Use type hints for better IDE support:
+Use type hints para melhor suporte de IDE:
 
 ```python
 from typing import Dict, Any
@@ -814,68 +814,68 @@ def execute(self, series: Series, params: Dict[str, Any]) -> Series:
 
 ---
 
-## Troubleshooting
+## Solução de Problemas
 
-### Plugin Not Loading
+### Plugin Não Carrega
 
-**Problem**: Plugin not appearing in menu
+**Problema**: Plugin não aparece no menu
 
-**Solutions**:
-1. Check `plugin.yaml` syntax
-2. Verify entry point is correct
-3. Check logs: `~/.platform_base/logs/plugins.log`
-4. Ensure dependencies installed
-5. Check Platform Base version compatibility
+**Soluções**:
+1. Verifique sintaxe do `plugin.yaml`
+2. Verifique se o ponto de entrada está correto
+3. Veja logs: `~/.platform_base/logs/plugins.log`
+4. Garanta que dependências estejam instaladas
+5. Verifique compatibilidade de versão do Platform Base
 
-### Import Errors
+### Erros de Importação
 
-**Problem**: `ModuleNotFoundError`
+**Problema**: `ModuleNotFoundError`
 
-**Solutions**:
-1. Install plugin dependencies
-2. Check Python path
-3. Reinstall plugin
+**Soluções**:
+1. Instale dependências do plugin
+2. Verifique o Python path
+3. Reinstale o plugin
 
-### Runtime Errors
+### Erros em Tempo de Execução
 
-**Problem**: Plugin crashes during execution
+**Problema**: Plugin trava durante execução
 
-**Solutions**:
-1. Add try/except blocks
-2. Validate inputs
-3. Check for NaN/Inf values
-4. Test with sample data first
-5. Enable debug logging
+**Soluções**:
+1. Adicione blocos try/except
+2. Valide entradas
+3. Verifique valores NaN/Inf
+4. Teste com dados de exemplo primeiro
+5. Habilite logging de depuração
 
-### Performance Issues
+### Problemas de Desempenho
 
-**Problem**: Plugin is slow
+**Problema**: Plugin está lento
 
-**Solutions**:
-1. Profile code: `python -m cProfile`
-2. Use NumPy operations
-3. Consider numba JIT compilation
-4. Reduce data copying
-5. Process in chunks for large data
-
----
-
-## Resources
-
-### Documentation
-- [API Reference](API_REFERENCE.md)
-- [User Guide](USER_GUIDE.md)
-- [Core Models](../src/platform_base/core/models.py)
-
-### Examples
-- [Example Plugins](../plugins/examples/)
-- [Community Plugins](https://github.com/platform-base/plugins)
-
-### Support
-- [GitHub Issues](https://github.com/thiagoarcan/Warp/issues)
-- [Discussions](https://github.com/thiagoarcan/Warp/discussions)
+**Soluções**:
+1. Profile código: `python -m cProfile`
+2. Use operações NumPy
+3. Considere compilação JIT com numba
+4. Reduza cópia de dados
+5. Processe em chunks para dados grandes
 
 ---
 
-*Platform Base v2.0 - Plugin Development Guide*  
-*Last Updated: 2026-02-02*
+## Recursos
+
+### Documentação
+- [Referência da API](API_REFERENCE.md)
+- [Guia do Usuário](USER_GUIDE.md)
+- [Modelos Principais](../src/platform_base/core/models.py)
+
+### Exemplos
+- [Plugins de Exemplo](../plugins/examples/)
+- [Plugins da Comunidade](https://github.com/platform-base/plugins)
+
+### Suporte
+- [Issues no GitHub](https://github.com/thiagoarcan/Warp/issues)
+- [Discussões](https://github.com/thiagoarcan/Warp/discussions)
+
+---
+
+*Platform Base v2.0 - Guia de Desenvolvimento de Plugins*  
+*Última Atualização: 2026-02-02*
