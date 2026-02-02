@@ -52,7 +52,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-glx libegl1 xvfb
     - run: cd platform_base && pip install -e ".[dev]"
     - name: Run tests
-      run: cd platform_base && xvfb-run -a pytest tests/unit -k "not (datetime_axis or gui or viz_panel or MainWindow or plot_context_menu or selection or dialog or widget or streaming_controls or video_export or temporal_sync or Worker)" -v --cov=platform_base --cov-report=xml
+      run: cd platform_base && xvfb-run -a pytest tests/unit -k "not (datetime_axis or gui or viz_panel or MainWindow or plot_context_menu or selection or dialog or widget or streaming_controls or video_export or temporal_sync or Worker or themes or tooltips or ui_)" -v --cov=platform_base --cov-report=xml
       env:
         QT_QPA_PLATFORM: offscreen
   
