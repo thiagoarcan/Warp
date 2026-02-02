@@ -11,10 +11,6 @@ Mandatory benchmarks for production release:
 Uses pytest-benchmark for accurate timing.
 """
 
-import tempfile
-from pathlib import Path
-import time
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -196,6 +192,10 @@ class TestMemoryPerformance:
         t = np.linspace(0, 10000, 10_000_000)
         y = np.sin(2 * np.pi * 0.001 * t)
         
+        # Use the arrays to ensure they are fully materialized
+        assert t.size == 10_000_000
+        assert y.size == 10_000_000
+        
         # Expected memory for 10M doubles: ~152 MB (2 arrays * 8 bytes * 10M)
         expected_max_memory = baseline_memory + 200  # MB (with overhead)
         
@@ -203,8 +203,11 @@ class TestMemoryPerformance:
         current_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = current_memory - baseline_memory
         
-        # Memory should not exceed expected
-        assert memory_increase < 300, f"Memory increase {memory_increase:.1f}MB exceeds expected"
+        # Memory should not exceed expected - use expected_max_memory
+        assert current_memory < expected_max_memory, (
+            f"Memory {current_memory:.1f}MB exceeds expected {expected_max_memory:.1f}MB "
+            f"(increase: {memory_increase:.1f}MB)"
+        )
 
 
 class TestCachePerformance:
@@ -214,7 +217,8 @@ class TestCachePerformance:
         """Benchmark cache retrieval performance."""
         from platform_base.caching.memory import MemoryCache
         
-        cache = MemoryCache(max_size_mb=100)
+        # MemoryCache takes maxsize (int) not max_size_mb
+        cache = MemoryCache(maxsize=100)
         
         # Pre-populate cache
         for i in range(100):

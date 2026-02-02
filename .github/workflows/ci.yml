@@ -38,7 +38,7 @@ jobs:
       with:
         python-version: '3.12'
     - run: pip install bandit
-    - run: cd platform_base && bandit -r src/platform_base -ll || true
+    - run: cd platform_base && bandit -r src/platform_base -ll
   
   unit-tests:
     name: Unit Tests
@@ -87,3 +87,15 @@ jobs:
       run: cd platform_base && pytest tests/e2e -v
       env:
         QT_QPA_PLATFORM: offscreen
+
+  ui-validation:
+    name: UI Files Validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - run: cd platform_base && pip install -e ".[dev]"
+    - name: Validate .ui files
+      run: cd platform_base && python scripts/validate_ui_files.py

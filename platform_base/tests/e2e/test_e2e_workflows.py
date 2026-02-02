@@ -4,10 +4,6 @@ Extended End-to-End Workflow Tests
 Tests complete user workflows from start to finish, simulating real user interactions.
 """
 
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pandas as pd
 import pytest

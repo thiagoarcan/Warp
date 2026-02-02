@@ -4,14 +4,11 @@ Comprehensive GUI Tests - Complete Widget Testing
 Tests for all GUI widgets, dialogs, and user interactions.
 """
 
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pytest
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QDialog, QPushButton, QWidget
+from PyQt6.QtWidgets import QDialog, QPushButton, QWidget
+from unittest.mock import MagicMock
 
 pytestmark = pytest.mark.gui
 
@@ -23,8 +20,12 @@ class TestMainWindowGUI:
         """Test main window initializes correctly."""
         try:
             from platform_base.desktop.main_window import MainWindow
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
             
-            window = MainWindow()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            window = MainWindow(session_state, signal_hub)
             qtbot.addWidget(window)
             
             assert window is not None
@@ -36,8 +37,12 @@ class TestMainWindowGUI:
         """Test main window has menu bar with expected menus."""
         try:
             from platform_base.desktop.main_window import MainWindow
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
             
-            window = MainWindow()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            window = MainWindow(session_state, signal_hub)
             qtbot.addWidget(window)
             
             menubar = window.menuBar()
@@ -56,8 +61,12 @@ class TestMainWindowGUI:
         """Test main window has toolbar with actions."""
         try:
             from platform_base.desktop.main_window import MainWindow
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
             
-            window = MainWindow()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            window = MainWindow(session_state, signal_hub)
             qtbot.addWidget(window)
             
             toolbars = window.findChildren(QWidget)
@@ -74,8 +83,12 @@ class TestDataPanelGUI:
         """Test data panel can be created."""
         try:
             from platform_base.desktop.widgets.data_panel import DataPanel
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
             
-            panel = DataPanel()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            panel = DataPanel(session_state, signal_hub)
             qtbot.addWidget(panel)
             
             assert panel is not None
@@ -86,8 +99,12 @@ class TestDataPanelGUI:
         """Test data panel has tree widget for displaying data."""
         try:
             from platform_base.desktop.widgets.data_panel import DataPanel
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
             
-            panel = DataPanel()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            panel = DataPanel(session_state, signal_hub)
             qtbot.addWidget(panel)
             
             # Should have some tree-like widget
@@ -103,8 +120,12 @@ class TestDataPanelGUI:
         """Test data panel buttons are clickable."""
         try:
             from platform_base.desktop.widgets.data_panel import DataPanel
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
             
-            panel = DataPanel()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            panel = DataPanel(session_state, signal_hub)
             qtbot.addWidget(panel)
             
             # Find buttons
@@ -126,8 +147,14 @@ class TestVizPanelGUI:
         """Test visualization panel can be created."""
         try:
             from platform_base.desktop.widgets.viz_panel import VizPanel
+
+            from platform_base.core.session_state import SessionState
+
+            from platform_base.core.signal_hub import SignalHub
             
-            panel = VizPanel()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            panel = VizPanel(session_state, signal_hub)
             qtbot.addWidget(panel)
             
             assert panel is not None
@@ -138,8 +165,14 @@ class TestVizPanelGUI:
         """Test viz panel contains plot widget."""
         try:
             from platform_base.desktop.widgets.viz_panel import VizPanel
+
+            from platform_base.core.session_state import SessionState
+
+            from platform_base.core.signal_hub import SignalHub
             
-            panel = VizPanel()
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            panel = VizPanel(session_state, signal_hub)
             qtbot.addWidget(panel)
             
             # Should have plot widgets
@@ -238,8 +271,11 @@ class TestOperationsPanelGUI:
         """Test operations panel can be created."""
         try:
             from platform_base.ui.panels.operations_panel import OperationsPanel
+
+            from platform_base.core.session_state import SessionState
             
-            panel = OperationsPanel()
+            session_state = MagicMock(spec=SessionState)
+            panel = OperationsPanel(session_state)
             qtbot.addWidget(panel)
             
             assert panel is not None
@@ -250,8 +286,11 @@ class TestOperationsPanelGUI:
         """Test operations panel has operation buttons."""
         try:
             from platform_base.ui.panels.operations_panel import OperationsPanel
+
+            from platform_base.core.session_state import SessionState
             
-            panel = OperationsPanel()
+            session_state = MagicMock(spec=SessionState)
+            panel = OperationsPanel(session_state)
             qtbot.addWidget(panel)
             
             # Should have buttons for operations
@@ -380,7 +419,19 @@ class TestAccessibilityGUI:
         try:
             from platform_base.desktop.main_window import MainWindow
             
-            window = MainWindow()
+            from platform_base.core.session_state import SessionState
+
+            
+            from platform_base.core.signal_hub import SignalHub
+
+            
+            session_state = MagicMock(spec=SessionState)
+
+            
+            signal_hub = MagicMock(spec=SignalHub)
+
+            
+            window = MainWindow(session_state, signal_hub)
             qtbot.addWidget(window)
             
             # Simulate Tab key press
@@ -395,8 +446,11 @@ class TestAccessibilityGUI:
         """Test widgets have accessible names."""
         try:
             from platform_base.ui.panels.operations_panel import OperationsPanel
+
+            from platform_base.core.session_state import SessionState
             
-            panel = OperationsPanel()
+            session_state = MagicMock(spec=SessionState)
+            panel = OperationsPanel(session_state)
             qtbot.addWidget(panel)
             
             # Check that widgets have accessible names
@@ -416,8 +470,11 @@ class TestTooltipsGUI:
         """Test important widgets have tooltips."""
         try:
             from platform_base.ui.panels.operations_panel import OperationsPanel
+
+            from platform_base.core.session_state import SessionState
             
-            panel = OperationsPanel()
+            session_state = MagicMock(spec=SessionState)
+            panel = OperationsPanel(session_state)
             qtbot.addWidget(panel)
             
             # Check buttons have tooltips

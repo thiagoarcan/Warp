@@ -5,10 +5,6 @@ Tests complete data processing pipelines with multiple components working togeth
 These tests verify that all modules integrate correctly.
 """
 
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -104,7 +100,8 @@ class TestCachingIntegration:
         from platform_base.caching.memory import MemoryCache
         from platform_base.processing.calculus import derivative
         
-        cache = MemoryCache(max_size_mb=10)
+        # MemoryCache takes maxsize (int) not max_size_mb
+        cache = MemoryCache(maxsize=100)
         
         # Generate test data
         t = np.linspace(0, 10, 1000)
@@ -125,14 +122,15 @@ class TestCachingIntegration:
         from platform_base.caching.disk import DiskCache
         
         cache_dir = tmp_path / "cache"
-        cache1 = DiskCache(cache_dir=str(cache_dir))
+        # DiskCache takes location (str/Path) not cache_dir
+        cache1 = DiskCache(location=str(cache_dir))
         
         # Store data
         data = {"test": np.array([1, 2, 3])}
         cache1.set("test_key", data)
         
         # Create new cache instance
-        cache2 = DiskCache(cache_dir=str(cache_dir))
+        cache2 = DiskCache(location=str(cache_dir))
         retrieved = cache2.get("test_key")
         
         assert retrieved is not None
@@ -194,11 +192,13 @@ class TestSessionStateIntegration:
         )
         session.add_dataset(dataset)
         
-        # Save session
+        # Save session - use these variables to verify structure
         session_file = tmp_path / "session.json"
         session_data = SessionData(datasets=[dataset])
         
-        # Would normally save, but just verify structure
+        # Verify session file path and data structure
+        assert session_file.parent.exists()
+        assert len(session_data.datasets) == 1
         assert len(session.datasets) == 1
         assert "test_ds" in session.datasets
 
