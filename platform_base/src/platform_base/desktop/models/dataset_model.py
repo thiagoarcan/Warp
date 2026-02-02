@@ -16,6 +16,7 @@ from PyQt6.QtGui import QIcon
 
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.dataset_store import DatasetStore
 
@@ -39,30 +40,26 @@ def _safe_filename(path_str: str) -> str:
         filename = path.stem  # Remove extension
 
         # Normalize unicode to NFC form
-        filename = unicodedata.normalize('NFC', filename)
+        filename = unicodedata.normalize("NFC", filename)
 
         # Replace any problematic characters with safe alternatives
         # Keep letters, numbers, spaces, and common punctuation
         safe_chars = []
         for char in filename:
-            if char.isalnum() or char in ' -_.()[]{}':
-                safe_chars.append(char)
-            elif unicodedata.category(char).startswith('L'):  # Letter category
-                safe_chars.append(char)
-            elif unicodedata.category(char).startswith('N'):  # Number category
+            if char.isalnum() or char in " -_.()[]{}" or unicodedata.category(char).startswith("L") or unicodedata.category(char).startswith("N"):
                 safe_chars.append(char)
             else:
                 # Try to keep the character, it might display correctly
                 safe_chars.append(char)
 
-        result = ''.join(safe_chars).strip()
+        result = "".join(safe_chars).strip()
         return result if result else path_str
 
     except Exception as e:
         logger.warning("filename_encoding_error", path=path_str, error=str(e))
         # Fallback: return the original string
         try:
-            return path_str.encode('utf-8', errors='replace').decode('utf-8')
+            return path_str.encode("utf-8", errors="replace").decode("utf-8")
         except Exception:
             return "unnamed_file"
 
@@ -167,7 +164,7 @@ class DatasetTreeModel(QAbstractItemModel):
             # Return checkbox state for first column (series items only)
             if item.item_type == "series":
                 return Qt.CheckState.Checked if item.is_checked else Qt.CheckState.Unchecked
-            elif item.item_type == "dataset":
+            if item.item_type == "dataset":
                 # Dataset is checked if all children are checked
                 if item.child_count() == 0:
                     return Qt.CheckState.Unchecked
@@ -175,10 +172,9 @@ class DatasetTreeModel(QAbstractItemModel):
                 none_checked = not any(child.is_checked for child in item.child_items)
                 if all_checked:
                     return Qt.CheckState.Checked
-                elif none_checked:
+                if none_checked:
                     return Qt.CheckState.Unchecked
-                else:
-                    return Qt.CheckState.PartiallyChecked
+                return Qt.CheckState.PartiallyChecked
 
         if role == Qt.ItemDataRole.DecorationRole and index.column() == 0:
             # Return icon for first column
@@ -230,7 +226,7 @@ class DatasetTreeModel(QAbstractItemModel):
                            dataset_id=item.dataset_id, series_id=item.series_id, visible=new_state)
                 return True
 
-            elif item.item_type == "dataset":
+            if item.item_type == "dataset":
                 # Toggle all children
                 for child in item.child_items:
                     child.is_checked = new_state
@@ -349,7 +345,7 @@ class DatasetTreeModel(QAbstractItemModel):
                     dataset = self.dataset_store.get_dataset(summary.dataset_id)
                     # Use filename for display, fallback to dataset_id
                     # BUG-007 FIX: Use safe filename extraction with encoding handling
-                    if hasattr(dataset, 'source') and dataset.source and hasattr(dataset.source, 'filename'):
+                    if hasattr(dataset, "source") and dataset.source and hasattr(dataset.source, "filename"):
                         display_name = _safe_filename(dataset.source.filename)
                     else:
                         display_name = summary.dataset_id

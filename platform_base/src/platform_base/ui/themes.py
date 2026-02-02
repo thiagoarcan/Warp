@@ -16,17 +16,13 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
 
 from PyQt6.QtCore import QObject, QSettings, pyqtSignal
 from PyQt6.QtGui import QColor, QPalette
-from PyQt6.QtWidgets import QApplication, QStyleFactory
+from PyQt6.QtWidgets import QApplication
 
 from platform_base.utils.logging import get_logger
 
-if TYPE_CHECKING:
-    from PyQt6.QtWidgets import QWidget
 
 logger = get_logger(__name__)
 
@@ -121,7 +117,7 @@ DARK_THEME = ThemeColors(
         "#FF7B72",  # Rosa
         "#8B5CF6",  # Indigo
         "#79C0FF",  # Cyan
-    ]
+    ],
 )
 
 
@@ -137,7 +133,7 @@ def get_system_theme() -> ThemeMode:
         import winreg
         key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
-            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
         )
         value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
         winreg.CloseKey(key)
@@ -151,7 +147,7 @@ def get_system_theme() -> ThemeMode:
         result = subprocess.run(
             ["defaults", "read", "-g", "AppleInterfaceStyle"],
             capture_output=True,
-            text=True
+            text=True,
         )
         if "Dark" in result.stdout:
             return ThemeMode.DARK

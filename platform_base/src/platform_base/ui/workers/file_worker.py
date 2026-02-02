@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import QApplication
 from platform_base.io.loader import LoadConfig, get_file_info, load
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 

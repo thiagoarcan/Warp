@@ -19,15 +19,12 @@ import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
 from platform_base.utils.logging import get_logger
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 logger = get_logger(__name__)
@@ -70,23 +67,23 @@ class IntegrityReport:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'file_path': str(self.file_path),
-            'file_size': self.file_size,
-            'checksum': self.checksum,
-            'is_valid': self.is_valid,
-            'issues': [
+            "file_path": str(self.file_path),
+            "file_size": self.file_size,
+            "checksum": self.checksum,
+            "is_valid": self.is_valid,
+            "issues": [
                 {
-                    'severity': issue.severity,
-                    'code': issue.code,
-                    'message': issue.message,
-                    'details': issue.details,
-                    'repairable': issue.repairable,
-                    'repair_action': issue.repair_action,
+                    "severity": issue.severity,
+                    "code": issue.code,
+                    "message": issue.message,
+                    "details": issue.details,
+                    "repairable": issue.repairable,
+                    "repair_action": issue.repair_action,
                 }
                 for issue in self.issues
             ],
-            'data_quality': self.data_quality,
-            'timestamp': self.timestamp.isoformat(),
+            "data_quality": self.data_quality,
+            "timestamp": self.timestamp.isoformat(),
         }
 
 
@@ -131,7 +128,7 @@ class FileIntegrityChecker:
                     severity="error",
                     code="FILE_NOT_FOUND",
                     message="File does not exist",
-                )]
+                )],
             )
 
         file_size = file_path.stat().st_size
@@ -157,7 +154,7 @@ class FileIntegrityChecker:
 
         # Check encoding
         encoding_result = self._check_encoding(file_path)
-        if encoding_result['ambiguous']:
+        if encoding_result["ambiguous"]:
             issues.append(IntegrityIssue(
                 severity="warning",
                 code="AMBIGUOUS_ENCODING",
@@ -166,7 +163,7 @@ class FileIntegrityChecker:
             ))
 
         # For CSV/Excel files, do deeper validation
-        if file_path.suffix.lower() in ['.csv', '.xlsx', '.xls']:
+        if file_path.suffix.lower() in [".csv", ".xlsx", ".xls"]:
             try:
                 data_issues, quality_metrics = self._check_data_quality(file_path)
                 issues.extend(data_issues)
@@ -175,7 +172,7 @@ class FileIntegrityChecker:
                 issues.append(IntegrityIssue(
                     severity="error",
                     code="DATA_READ_ERROR",
-                    message=f"Failed to read file for quality check: {str(e)}",
+                    message=f"Failed to read file for quality check: {e!s}",
                 ))
                 data_quality = {}
         else:
@@ -203,8 +200,8 @@ class FileIntegrityChecker:
         """Calculate SHA256 checksum of file."""
         sha256 = hashlib.sha256()
 
-        with open(file_path, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), b''):
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
                 sha256.update(chunk)
 
         return sha256.hexdigest()
@@ -213,16 +210,16 @@ class FileIntegrityChecker:
         """Check if file is truncated."""
         try:
             # For CSV files, check if last line is complete
-            if file_path.suffix.lower() == '.csv':
-                with open(file_path, 'rb') as f:
+            if file_path.suffix.lower() == ".csv":
+                with open(file_path, "rb") as f:
                     # Read last few bytes
                     f.seek(max(0, file_path.stat().st_size - 100))
                     last_bytes = f.read()
                     # Check if ends with newline
-                    return not last_bytes.endswith(b'\n') and not last_bytes.endswith(b'\r\n')
+                    return not last_bytes.endswith(b"\n") and not last_bytes.endswith(b"\r\n")
 
             # For Excel, try to open it
-            if file_path.suffix.lower() in ['.xlsx', '.xls']:
+            if file_path.suffix.lower() in [".xlsx", ".xls"]:
                 pd.read_excel(file_path, nrows=1)
                 return False
 
@@ -236,33 +233,33 @@ class FileIntegrityChecker:
         try:
             import chardet
 
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 raw_data = f.read(10000)  # Read first 10KB
                 result = chardet.detect(raw_data)
 
                 return {
-                    'detected': result['encoding'],
-                    'confidence': result['confidence'],
-                    'ambiguous': result['confidence'] < 0.9,
+                    "detected": result["encoding"],
+                    "confidence": result["confidence"],
+                    "ambiguous": result["confidence"] < 0.9,
                 }
 
         except ImportError:
             # chardet not available, assume UTF-8
             return {
-                'detected': 'utf-8',
-                'confidence': 0.0,
-                'ambiguous': True,
+                "detected": "utf-8",
+                "confidence": 0.0,
+                "ambiguous": True,
             }
 
     def _check_data_quality(
-        self, file_path: Path
+        self, file_path: Path,
     ) -> tuple[list[IntegrityIssue], dict[str, Any]]:
         """Check data quality."""
         issues: list[IntegrityIssue] = []
 
         # Try to read file
         try:
-            if file_path.suffix.lower() == '.csv':
+            if file_path.suffix.lower() == ".csv":
                 df = pd.read_csv(file_path, nrows=10000)  # Sample first 10K rows
             else:
                 df = pd.read_excel(file_path, nrows=10000)
@@ -270,7 +267,7 @@ class FileIntegrityChecker:
             issues.append(IntegrityIssue(
                 severity="error",
                 code="PARSE_ERROR",
-                message=f"Failed to parse file: {str(e)}",
+                message=f"Failed to parse file: {e!s}",
             ))
             return issues, {}
 
@@ -289,7 +286,7 @@ class FileIntegrityChecker:
                 severity="warning",
                 code="INSUFFICIENT_DATA",
                 message=f"File has only {len(df)} rows (minimum: {self.min_valid_rows})",
-                details={'row_count': len(df)},
+                details={"row_count": len(df)},
             ))
 
         # Calculate NaN percentage
@@ -302,7 +299,7 @@ class FileIntegrityChecker:
                 severity="warning",
                 code="HIGH_NAN_PERCENT",
                 message=f"High percentage of missing values: {nan_percent:.1f}%",
-                details={'nan_percent': nan_percent, 'threshold': self.max_nan_percent},
+                details={"nan_percent": nan_percent, "threshold": self.max_nan_percent},
                 repairable=True,
                 repair_action="Remove rows/columns with excessive NaN values",
             ))
@@ -316,20 +313,20 @@ class FileIntegrityChecker:
                 severity="warning",
                 code="HIGH_DUPLICATE_PERCENT",
                 message=f"High percentage of duplicate rows: {duplicate_percent:.1f}%",
-                details={'duplicate_count': duplicate_count, 'duplicate_percent': duplicate_percent},
+                details={"duplicate_count": duplicate_count, "duplicate_percent": duplicate_percent},
                 repairable=True,
                 repair_action="Remove duplicate rows",
             ))
 
         # Check for temporal consistency (if timestamp column exists)
         timestamp_cols = [col for col in df.columns if any(
-            word in col.lower() for word in ['time', 'timestamp', 'date', 'datetime']
+            word in col.lower() for word in ["time", "timestamp", "date", "datetime"]
         )]
 
         if timestamp_cols:
             try:
                 ts_col = timestamp_cols[0]
-                df[ts_col] = pd.to_datetime(df[ts_col], errors='coerce')
+                df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
 
                 # Check for invalid timestamps
                 invalid_ts = df[ts_col].isna().sum()
@@ -338,7 +335,7 @@ class FileIntegrityChecker:
                         severity="warning",
                         code="INVALID_TIMESTAMPS",
                         message=f"Found {invalid_ts} invalid timestamp values",
-                        details={'invalid_count': invalid_ts, 'column': ts_col},
+                        details={"invalid_count": invalid_ts, "column": ts_col},
                         repairable=True,
                         repair_action="Interpolate or remove rows with invalid timestamps",
                     ))
@@ -349,7 +346,7 @@ class FileIntegrityChecker:
                         severity="info",
                         code="NON_MONOTONIC_TIMESTAMPS",
                         message="Timestamps are not in chronological order",
-                        details={'column': ts_col},
+                        details={"column": ts_col},
                         repairable=True,
                         repair_action="Sort data by timestamp",
                     ))
@@ -358,27 +355,27 @@ class FileIntegrityChecker:
                 issues.append(IntegrityIssue(
                     severity="warning",
                     code="TIMESTAMP_CHECK_FAILED",
-                    message=f"Could not validate timestamps: {str(e)}",
+                    message=f"Could not validate timestamps: {e!s}",
                 ))
 
         # Calculate quality metrics
         quality_metrics = {
-            'row_count': len(df),
-            'column_count': len(df.columns),
-            'nan_percent': nan_percent,
-            'duplicate_percent': duplicate_percent,
-            'memory_usage_mb': df.memory_usage(deep=True).sum() / 1024 / 1024,
+            "row_count": len(df),
+            "column_count": len(df.columns),
+            "nan_percent": nan_percent,
+            "duplicate_percent": duplicate_percent,
+            "memory_usage_mb": df.memory_usage(deep=True).sum() / 1024 / 1024,
         }
 
         # Calculate value ranges for numeric columns
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
-            quality_metrics['numeric_ranges'] = {
+            quality_metrics["numeric_ranges"] = {
                 col: {
-                    'min': float(df[col].min()),
-                    'max': float(df[col].max()),
-                    'mean': float(df[col].mean()),
-                    'std': float(df[col].std()),
+                    "min": float(df[col].min()),
+                    "max": float(df[col].max()),
+                    "mean": float(df[col].mean()),
+                    "std": float(df[col].std()),
                 }
                 for col in numeric_cols[:5]  # First 5 numeric columns
             }
@@ -410,7 +407,7 @@ class FileIntegrityChecker:
             output_path = Path(output_path)
 
         # Read file
-        if file_path.suffix.lower() == '.csv':
+        if file_path.suffix.lower() == ".csv":
             df = pd.read_csv(file_path)
         else:
             df = pd.read_excel(file_path)
@@ -432,20 +429,20 @@ class FileIntegrityChecker:
 
             elif issue.code == "INVALID_TIMESTAMPS":
                 # Remove rows with invalid timestamps
-                ts_col = issue.details.get('column')
+                ts_col = issue.details.get("column")
                 if ts_col:
                     df = df.dropna(subset=[ts_col])
                     repairs_applied.append(issue.code)
 
             elif issue.code == "NON_MONOTONIC_TIMESTAMPS":
                 # Sort by timestamp
-                ts_col = issue.details.get('column')
+                ts_col = issue.details.get("column")
                 if ts_col:
                     df = df.sort_values(by=ts_col)
                     repairs_applied.append(issue.code)
 
         # Save repaired file
-        if file_path.suffix.lower() == '.csv':
+        if file_path.suffix.lower() == ".csv":
             df.to_csv(output_path, index=False)
         else:
             df.to_excel(output_path, index=False)

@@ -33,6 +33,7 @@ from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
 
@@ -410,7 +411,7 @@ class SettingsDialog(QDialog, UiLoaderMixin):
     
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "desktop/ui_files/settingsDialog.ui"
 
@@ -428,7 +429,6 @@ class SettingsDialog(QDialog, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        pass
 
     def _setup_ui_fallback(self):
         """Setup user interface"""

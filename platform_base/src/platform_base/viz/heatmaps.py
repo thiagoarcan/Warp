@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
 try:
     import pyqtgraph as pg
     import scipy.stats
@@ -29,6 +30,7 @@ except ImportError:
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure
 from platform_base.viz.config import ColorScale, VizConfig
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
@@ -538,10 +540,10 @@ class Heatmap:
         "viridis", "plasma", "inferno", "magma", "cividis",
         "hot", "cool", "coolwarm", "jet", "rainbow",
         "gray", "bone", "copper", "spring", "summer",
-        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn"
+        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn",
     ]
 
-    def __init__(self, data: np.ndarray = None, x_labels: list = None, 
+    def __init__(self, data: np.ndarray = None, x_labels: list = None,
                  y_labels: list = None, normalize: bool = False,
                  colormap: str = "viridis", title: str = "Heatmap",
                  mask_nan: bool = False):
@@ -722,14 +724,14 @@ class Heatmap:
             fig, ax = plt.subplots(figsize=(10, 8))
 
             vmin, vmax = self.get_value_range()
-            im = ax.imshow(self._data, cmap=self._colormap, vmin=vmin, vmax=vmax, aspect='auto')
+            im = ax.imshow(self._data, cmap=self._colormap, vmin=vmin, vmax=vmax, aspect="auto")
 
             plt.colorbar(im, ax=ax)
             ax.set_title(self._title)
 
             if self._x_labels:
                 ax.set_xticks(range(len(self._x_labels)))
-                ax.set_xticklabels(self._x_labels, rotation=45, ha='right')
+                ax.set_xticklabels(self._x_labels, rotation=45, ha="right")
 
             if self._y_labels:
                 ax.set_yticks(range(len(self._y_labels)))
@@ -781,7 +783,7 @@ def correlation_heatmap(data: np.ndarray, method: str = "pearson",
         x_labels=labels,
         y_labels=labels,
         colormap="coolwarm",
-        title=f"Correlation Matrix ({method.capitalize()})"
+        title=f"Correlation Matrix ({method.capitalize()})",
     )
 
 
@@ -813,7 +815,7 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
         nperseg = window_size
         noverlap = int(window_size * overlap)
 
-        f, t, Sxx = scipy_spectrogram(signal, fs=sample_rate, 
+        f, t, Sxx = scipy_spectrogram(signal, fs=sample_rate,
                                        nperseg=nperseg, noverlap=noverlap)
 
         # Convert to dB
@@ -828,7 +830,7 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
             x_labels=time_labels,
             y_labels=freq_labels,
             colormap="viridis",
-            title="Spectrogram"
+            title="Spectrogram",
         )
     except ImportError:
         logger.warning("scipy not available for spectrogram")

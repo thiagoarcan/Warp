@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+
 try:
     from fastapi import FastAPI, File, UploadFile
     from fastapi.middleware.cors import CORSMiddleware
@@ -24,9 +25,6 @@ from platform_base.core.dataset_store import DatasetStore
 from platform_base.io.loader import load
 from platform_base.processing.interpolation import interpolate
 from platform_base.utils.logging import get_logger
-
-if TYPE_CHECKING:
-    pass
 
 
 logger = get_logger(__name__)

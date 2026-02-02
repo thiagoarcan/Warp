@@ -28,6 +28,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -55,20 +56,20 @@ class TelemetryEvent:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'event_type': self.event_type.name,
-            'timestamp': self.timestamp.isoformat(),
-            'data': self.data,
-            'session_id': self.session_id,
+            "event_type": self.event_type.name,
+            "timestamp": self.timestamp.isoformat(),
+            "data": self.data,
+            "session_id": self.session_id,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TelemetryEvent:
         """Create from dictionary."""
         return cls(
-            event_type=TelemetryEventType[data['event_type']],
-            timestamp=datetime.fromisoformat(data['timestamp']),
-            data=data.get('data', {}),
-            session_id=data.get('session_id', ''),
+            event_type=TelemetryEventType[data["event_type"]],
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            data=data.get("data", {}),
+            session_id=data.get("session_id", ""),
         )
 
 
@@ -85,12 +86,12 @@ class TelemetryConfig:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'enabled': self.enabled,
-            'collect_feature_usage': self.collect_feature_usage,
-            'collect_performance': self.collect_performance,
-            'collect_errors': self.collect_errors,
-            'collect_file_stats': self.collect_file_stats,
-            'retention_days': self.retention_days,
+            "enabled": self.enabled,
+            "collect_feature_usage": self.collect_feature_usage,
+            "collect_performance": self.collect_performance,
+            "collect_errors": self.collect_errors,
+            "collect_file_stats": self.collect_file_stats,
+            "retention_days": self.retention_days,
         }
 
     @classmethod
@@ -122,6 +123,7 @@ class TelemetryManager:
 
     _instance: TelemetryManager | None = None
     _lock = threading.Lock()
+    _initialized: bool = False
 
     def __new__(cls) -> TelemetryManager:
         if cls._instance is None:
@@ -131,7 +133,7 @@ class TelemetryManager:
                     cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
 
@@ -159,7 +161,7 @@ class TelemetryManager:
 
         # Load config
         if self._config_path.exists():
-            with open(self._config_path, 'r', encoding='utf-8') as f:
+            with open(self._config_path, encoding="utf-8") as f:
                 self._config = TelemetryConfig.from_dict(json.load(f))
 
         # Initialize database
@@ -197,7 +199,7 @@ class TelemetryManager:
     def _save_config(self) -> None:
         """Save configuration to file."""
         if self._config_path:
-            with open(self._config_path, 'w', encoding='utf-8') as f:
+            with open(self._config_path, "w", encoding="utf-8") as f:
                 json.dump(self._config.to_dict(), f, indent=2)
 
     @property
@@ -259,7 +261,7 @@ class TelemetryManager:
             Session ID
         """
         self._session_id = hashlib.md5(
-            f"{time.time()}-{id(self)}".encode(), usedforsecurity=False
+            f"{time.time()}-{id(self)}".encode(), usedforsecurity=False,
         ).hexdigest()[:16]
         self._session_start = datetime.now()
 
@@ -272,7 +274,7 @@ class TelemetryManager:
             duration = (datetime.now() - self._session_start).total_seconds()
             self.track_event(
                 TelemetryEventType.SESSION_END,
-                {'duration_seconds': duration}
+                {"duration_seconds": duration},
             )
 
         self._session_id = ""
@@ -341,7 +343,7 @@ class TelemetryManager:
                     event.timestamp.isoformat(),
                     event.session_id,
                     json.dumps(event.data),
-                )
+                ),
             )
             self._conn.commit()
 
@@ -355,7 +357,7 @@ class TelemetryManager:
         """
         self.track_event(
             TelemetryEventType.FEATURE_USED,
-            {'feature': feature_name, **extra}
+            {"feature": feature_name, **extra},
         )
 
     def track_operation(
@@ -377,11 +379,11 @@ class TelemetryManager:
         self.track_event(
             TelemetryEventType.OPERATION_COMPLETED,
             {
-                'operation': operation_name,
-                'duration_ms': duration_ms,
-                'success': success,
+                "operation": operation_name,
+                "duration_ms": duration_ms,
+                "success": success,
                 **extra,
-            }
+            },
         )
 
     def track_error(
@@ -404,10 +406,10 @@ class TelemetryManager:
         self.track_event(
             TelemetryEventType.ERROR_OCCURRED,
             {
-                'error_type': error_type,
-                'message_hash': message_hash,
+                "error_type": error_type,
+                "message_hash": message_hash,
                 **extra,
-            }
+            },
         )
 
     def track_file_operation(
@@ -428,17 +430,17 @@ class TelemetryManager:
         """
         event_type = (
             TelemetryEventType.FILE_LOADED
-            if operation == 'load'
+            if operation == "load"
             else TelemetryEventType.FILE_EXPORTED
         )
 
         self.track_event(
             event_type,
             {
-                'format': file_format,
-                'size_bytes': file_size_bytes,
-                'duration_ms': duration_ms,
-            }
+                "format": file_format,
+                "size_bytes": file_size_bytes,
+                "duration_ms": duration_ms,
+            },
         )
 
     def get_stats(self, days: int = 30) -> TelemetryStats:
@@ -462,14 +464,14 @@ class TelemetryManager:
         # Total sessions
         cursor.execute(
             "SELECT COUNT(DISTINCT session_id) FROM events WHERE timestamp > ?",
-            (cutoff,)
+            (cutoff,),
         )
         stats.total_sessions = cursor.fetchone()[0]
 
         # Total events
         cursor.execute(
             "SELECT COUNT(*) FROM events WHERE timestamp > ?",
-            (cutoff,)
+            (cutoff,),
         )
         stats.total_events = cursor.fetchone()[0]
 
@@ -479,12 +481,12 @@ class TelemetryManager:
             SELECT data FROM events 
             WHERE event_type = 'FEATURE_USED' AND timestamp > ?
             """,
-            (cutoff,)
+            (cutoff,),
         )
-        features = Counter()
+        features: Counter[str] = Counter()
         for row in cursor.fetchall():
             data = json.loads(row[0])
-            features[data.get('feature', 'unknown')] += 1
+            features[data.get("feature", "unknown")] += 1
         stats.features_used = dict(features)
 
         # Average operation times
@@ -493,13 +495,13 @@ class TelemetryManager:
             SELECT data FROM events 
             WHERE event_type = 'OPERATION_COMPLETED' AND timestamp > ?
             """,
-            (cutoff,)
+            (cutoff,),
         )
         operation_times: dict[str, list[float]] = {}
         for row in cursor.fetchall():
             data = json.loads(row[0])
-            op = data.get('operation', 'unknown')
-            duration = data.get('duration_ms', 0)
+            op = data.get("operation", "unknown")
+            duration = data.get("duration_ms", 0)
             if op not in operation_times:
                 operation_times[op] = []
             operation_times[op].append(duration)
@@ -516,24 +518,24 @@ class TelemetryManager:
             SELECT data FROM events 
             WHERE event_type = 'ERROR_OCCURRED' AND timestamp > ?
             """,
-            (cutoff,)
+            (cutoff,),
         )
-        errors = Counter()
+        errors: Counter[str] = Counter()
         for row in cursor.fetchall():
             data = json.loads(row[0])
-            errors[data.get('error_type', 'unknown')] += 1
+            errors[data.get("error_type", "unknown")] += 1
         stats.error_counts = dict(errors)
 
         # File counts
         cursor.execute(
             "SELECT COUNT(*) FROM events WHERE event_type = 'FILE_LOADED' AND timestamp > ?",
-            (cutoff,)
+            (cutoff,),
         )
         stats.files_loaded = cursor.fetchone()[0]
 
         cursor.execute(
             "SELECT COUNT(*) FROM events WHERE event_type = 'FILE_EXPORTED' AND timestamp > ?",
-            (cutoff,)
+            (cutoff,),
         )
         stats.files_exported = cursor.fetchone()[0]
 
@@ -543,12 +545,12 @@ class TelemetryManager:
             SELECT data FROM events 
             WHERE event_type = 'SESSION_END' AND timestamp > ?
             """,
-            (cutoff,)
+            (cutoff,),
         )
         total_seconds = 0.0
         for row in cursor.fetchall():
             data = json.loads(row[0])
-            total_seconds += data.get('duration_seconds', 0)
+            total_seconds += data.get("duration_seconds", 0)
         stats.total_usage_time_hours = total_seconds / 3600
 
         return stats
@@ -571,7 +573,7 @@ class TelemetryManager:
             cursor = self._conn.cursor()
             cursor.execute(
                 "DELETE FROM events WHERE timestamp < ?",
-                (cutoff,)
+                (cutoff,),
             )
             deleted = cursor.rowcount
             self._conn.commit()
@@ -605,7 +607,7 @@ class TelemetryManager:
             cutoff = (datetime.now() - timedelta(days=days)).isoformat()
             cursor.execute(
                 "SELECT * FROM events WHERE timestamp > ? ORDER BY timestamp",
-                (cutoff,)
+                (cutoff,),
             )
         else:
             cursor.execute("SELECT * FROM events ORDER BY timestamp")
@@ -616,21 +618,21 @@ class TelemetryManager:
             data = []
             for row in rows:
                 data.append({
-                    'id': row[0],
-                    'event_type': row[1],
-                    'timestamp': row[2],
-                    'session_id': row[3],
-                    'data': json.loads(row[4]) if row[4] else {},
+                    "id": row[0],
+                    "event_type": row[1],
+                    "timestamp": row[2],
+                    "session_id": row[3],
+                    "data": json.loads(row[4]) if row[4] else {},
                 })
 
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
         elif format == "csv":
             import csv
-            with open(output_path, 'w', encoding='utf-8', newline='') as f:
+            with open(output_path, "w", encoding="utf-8", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(['id', 'event_type', 'timestamp', 'session_id', 'data'])
+                writer.writerow(["id", "event_type", "timestamp", "session_id", "data"])
                 for row in rows:
                     writer.writerow(row)
 
@@ -677,7 +679,7 @@ def track_operation(
 ) -> None:
     """Convenience function to track operation."""
     get_telemetry_manager().track_operation(
-        operation_name, duration_ms, success, **extra
+        operation_name, duration_ms, success, **extra,
     )
 
 

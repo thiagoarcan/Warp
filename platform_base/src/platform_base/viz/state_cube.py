@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import plotly.graph_objects as go
 
 from platform_base.viz.base import BaseFigure
+
 
 if TYPE_CHECKING:
     import numpy as np
@@ -61,4 +62,3 @@ class StateCube3D(BaseFigure):
             selection: Current selection state
         """
         # StateCube3D doesn't support selection updates in basic form
-        pass

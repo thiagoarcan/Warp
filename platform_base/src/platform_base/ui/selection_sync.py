@@ -24,6 +24,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 from platform_base.ui.selection import Selection, SelectionCriteria, SelectionMode
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.models import ViewID
     from platform_base.ui.multi_view_sync import MultiViewSynchronizer
@@ -377,7 +378,7 @@ class SelectionSyncView:
         # Default implementation: store selection and log
         self.current_selection = selection
         logger.debug("synced_selection_applied",
-                    n_points=selection.n_points if hasattr(selection, 'n_points') else 0)
+                    n_points=selection.n_points if hasattr(selection, "n_points") else 0)
 
     def clear_synced_selection(self):
         """
@@ -573,7 +574,7 @@ class SelectionSync(QObject):
 
         for view_id, view in self._views.items():
             if view_id != source:
-                if hasattr(view, 'set_selection'):
+                if hasattr(view, "set_selection"):
                     try:
                         view.set_selection(indices)
                     except Exception as e:
@@ -614,7 +615,7 @@ class SelectionSync(QObject):
         self._current_selection = None
 
         for view_id, view in self._views.items():
-            if hasattr(view, 'clear_selection'):
+            if hasattr(view, "clear_selection"):
                 try:
                     view.clear_selection()
                 except Exception as e:

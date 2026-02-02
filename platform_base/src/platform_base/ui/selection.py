@@ -9,6 +9,7 @@ import numpy as np
 from platform_base.core.models import Dataset, TimeWindow, ViewData
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 

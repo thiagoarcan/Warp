@@ -12,6 +12,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 
@@ -65,7 +66,7 @@ class BaseWorker(QThread):
                     self.emit_error(str(e))
         """
         # Base implementation - subclasses MUST override
-        logger.warning("base_worker_run_not_implemented", 
+        logger.warning("base_worker_run_not_implemented",
                       worker_id=self.worker_id,
                       message="Subclass must implement run() method")
         self.emit_error("Worker run() method not implemented by subclass")

@@ -889,7 +889,7 @@ class OperationsPanel(QWidget):
         if filter_type in ("bandpass", "bandstop"):
             params["cutoff_frequency"] = (
                 self._filter_cutoff.value(),
-                self._filter_cutoff_high.value()
+                self._filter_cutoff_high.value(),
             )
         else:
             params["cutoff_frequency"] = self._filter_cutoff.value()
@@ -911,7 +911,7 @@ class OperationsPanel(QWidget):
         if filter_type in ("bandpass", "bandstop"):
             params["cutoff_frequency"] = (
                 self._filter_cutoff.value(),
-                self._filter_cutoff_high.value()
+                self._filter_cutoff_high.value(),
             )
         else:
             params["cutoff_frequency"] = self._filter_cutoff.value()

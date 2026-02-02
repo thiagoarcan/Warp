@@ -31,6 +31,7 @@ from PyQt6.QtWidgets import (
 from platform_base.desktop.selection import SelectionMode, SelectionType
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 

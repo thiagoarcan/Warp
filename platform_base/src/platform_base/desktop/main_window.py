@@ -37,6 +37,7 @@ from platform_base.ui.undo_redo import get_undo_manager
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -72,7 +73,7 @@ class MainWindow(QMainWindow):
             ProcessingWorkerManager,
         )
         self.processing_manager = ProcessingWorkerManager(
-            session_state.dataset_store, signal_hub
+            session_state.dataset_store, signal_hub,
         )
 
         # Initialize UI components
@@ -459,10 +460,10 @@ class MainWindow(QMainWindow):
         self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
         self.undo_manager.can_redo_changed.connect(self.redo_action.setEnabled)
         self.undo_manager.undo_text_changed.connect(
-            lambda text: self.undo_action.setText(f"&Undo {text}" if text else "&Undo")
+            lambda text: self.undo_action.setText(f"&Undo {text}" if text else "&Undo"),
         )
         self.undo_manager.redo_text_changed.connect(
-            lambda text: self.redo_action.setText(f"&Redo {text}" if text else "&Redo")
+            lambda text: self.redo_action.setText(f"&Redo {text}" if text else "&Redo"),
         )
 
         logger.debug("signals_connected")
@@ -607,36 +608,36 @@ class MainWindow(QMainWindow):
             if operation_type == "interpolation":
                 method = params.get("method", "linear")
                 self.processing_manager.start_interpolation(
-                    operation_id, dataset_id, series_id, method, params
+                    operation_id, dataset_id, series_id, method, params,
                 )
             elif operation_type == "calculus":
                 operation = params.get("operation", "derivative_1st")
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation, params
+                    operation_id, dataset_id, series_id, operation, params,
                 )
             elif operation_type == "synchronization":
                 series_ids = list(selection.series_ids)
                 method = params.get("method", "dtw")
                 self.processing_manager.start_synchronization(
-                    operation_id, dataset_id, series_ids, method, params
+                    operation_id, dataset_id, series_ids, method, params,
                 )
             elif operation_type in ("derivative", "derivative_1st", "derivative_2nd", "derivative_3rd"):
                 # Handle derivative operations directly
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation_type, params
+                    operation_id, dataset_id, series_id, operation_type, params,
                 )
             elif operation_type == "integral":
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, "integral", params
+                    operation_id, dataset_id, series_id, "integral", params,
                 )
             elif operation_type == "area":
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, "area", params
+                    operation_id, dataset_id, series_id, "area", params,
                 )
             elif operation_type in ("smoothing", "remove_outliers"):
                 # Handle filtering operations via calculus worker
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation_type, params
+                    operation_id, dataset_id, series_id, operation_type, params,
                 )
             else:
                 logger.warning("unknown_operation_type", operation_type=operation_type)
@@ -696,7 +697,7 @@ class MainWindow(QMainWindow):
                                 selection.dataset_id,
                                 series_id,
                                 new_series,
-                                dataset.timestamps if hasattr(dataset, 'timestamps') else dataset.t_seconds
+                                dataset.timestamps if hasattr(dataset, "timestamps") else dataset.t_seconds,
                             )
                             logger.info("new_series_plotted", series_id=series_id)
                     except Exception as e:
@@ -742,26 +743,26 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(
                 self,
                 "No Data Selected",
-                "Please select a data series before performing this operation."
+                "Please select a data series before performing this operation.",
             )
             return
 
         try:
             # Get the selected dataset and series
-            dataset_id = selection[0].dataset_id if hasattr(selection[0], 'dataset_id') else None
-            series_id = selection[0].series_id if hasattr(selection[0], 'series_id') else None
+            dataset_id = selection[0].dataset_id if hasattr(selection[0], "dataset_id") else None
+            series_id = selection[0].series_id if hasattr(selection[0], "series_id") else None
 
             if not dataset_id or not series_id:
                 # Try alternate selection format
                 if isinstance(selection, dict):
-                    dataset_id = selection.get('dataset_id')
-                    series_id = selection.get('series_id')
+                    dataset_id = selection.get("dataset_id")
+                    series_id = selection.get("series_id")
 
             if not dataset_id or not series_id:
                 QMessageBox.warning(
                     self,
                     "Invalid Selection",
-                    "Could not determine selected series. Please select a series from the data panel."
+                    "Could not determine selected series. Please select a series from the data panel.",
                 )
                 return
 
@@ -770,7 +771,7 @@ class MainWindow(QMainWindow):
                 operation_type=operation_name,
                 dataset_id=dataset_id,
                 series_id=series_id,
-                params=params
+                params=params,
             )
 
             # Show feedback
@@ -785,7 +786,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(
                 self,
                 "Operation Failed",
-                f"Failed to start operation '{operation_name}':\\n{str(e)}"
+                f"Failed to start operation '{operation_name}':\\n{e!s}",
             )
 
     @pyqtSlot(str, dict)
@@ -797,11 +798,11 @@ class MainWindow(QMainWindow):
 
         # Get output path from user
         file_filters = {
-            'csv': "CSV Files (*.csv)",
-            'excel': "Excel Files (*.xlsx)",
-            'parquet': "Parquet Files (*.parquet)",
-            'hdf5': "HDF5 Files (*.h5 *.hdf5)",
-            'json': "JSON Files (*.json)",
+            "csv": "CSV Files (*.csv)",
+            "excel": "Excel Files (*.xlsx)",
+            "parquet": "Parquet Files (*.parquet)",
+            "hdf5": "HDF5 Files (*.h5 *.hdf5)",
+            "json": "JSON Files (*.json)",
         }
 
         file_filter = file_filters.get(format_type, "All Files (*.*)")
@@ -810,7 +811,7 @@ class MainWindow(QMainWindow):
             self,
             f"Export as {format_type.upper()}",
             "",
-            file_filter
+            file_filter,
         )
 
         if file_path:
@@ -818,18 +819,18 @@ class MainWindow(QMainWindow):
             logger.info("export_started", path=file_path, format=format_type)
 
             # Get current dataset and series selection
-            current_selection = self.session_state.get_active_selection() if hasattr(self.session_state, 'get_active_selection') else None
-            dataset_id = current_selection.get('dataset_id') if current_selection else None
-            series_ids = current_selection.get('series_ids') if current_selection else None
+            current_selection = self.session_state.get_active_selection() if hasattr(self.session_state, "get_active_selection") else None
+            dataset_id = current_selection.get("dataset_id") if current_selection else None
+            series_ids = current_selection.get("series_ids") if current_selection else None
 
-            if not dataset_id and hasattr(self.data_panel, 'get_selected_dataset_id'):
+            if not dataset_id and hasattr(self.data_panel, "get_selected_dataset_id"):
                 dataset_id = self.data_panel.get_selected_dataset_id()
 
             if not dataset_id:
                 QMessageBox.warning(
                     self,
                     "No Data Selected",
-                    "Please select a dataset or series to export."
+                    "Please select a dataset or series to export.",
                 )
                 self.status_label.setText("Export cancelled - no data selected")
                 return
@@ -838,18 +839,18 @@ class MainWindow(QMainWindow):
             from platform_base.desktop.workers.export_worker import DataExportWorker
 
             export_config = {
-                'delimiter': options.get('delimiter', ','),
-                'encoding': options.get('encoding', 'utf-8'),
-                'include_metadata': options.get('include_metadata', True),
+                "delimiter": options.get("delimiter", ","),
+                "encoding": options.get("encoding", "utf-8"),
+                "include_metadata": options.get("include_metadata", True),
             }
 
             self.export_worker = DataExportWorker(
-                dataset_store=self.signal_hub.dataset_store if hasattr(self.signal_hub, 'dataset_store') else None,
+                dataset_store=self.signal_hub.dataset_store if hasattr(self.signal_hub, "dataset_store") else None,
                 dataset_id=dataset_id,
                 series_ids=series_ids,
                 output_path=file_path,
                 format_type=format_type,
-                export_config=export_config
+                export_config=export_config,
             )
 
             # Connect worker signals
@@ -872,7 +873,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self,
             "Export Complete",
-            "Data exported successfully."
+            "Data exported successfully.",
         )
 
     def _update_memory_usage(self):
@@ -1123,14 +1124,14 @@ class MainWindow(QMainWindow):
                     time_position = dataset.t_seconds[min(position, total_points - 1)]
 
                     # Get window size from streaming panel
-                    window_frames = self.streaming_panel._window_spin.value() if hasattr(self.streaming_panel, '_window_spin') else 100
+                    window_frames = self.streaming_panel._window_spin.value() if hasattr(self.streaming_panel, "_window_spin") else 100
                     window_size = (dataset.t_seconds[-1] - dataset.t_seconds[0]) * window_frames / total_points
 
                     # Update visualization with sliding window
                     from platform_base.core.models import TimeWindow
                     window = TimeWindow(
                         start=max(0, time_position - window_size / 2),
-                        end=min(dataset.t_seconds[-1], time_position + window_size / 2)
+                        end=min(dataset.t_seconds[-1], time_position + window_size / 2),
                     )
                     self.session_state.set_time_window(window)
 

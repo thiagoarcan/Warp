@@ -515,7 +515,7 @@ class I18n:
         """Traduz um texto para o idioma atual"""
         return self._translations.get(text, text)
 
-    def set_language(self, language: str):
+    def set_language(self, language: str) -> None:
         """Define o idioma da aplicação"""
         self.language = language
         if language == "pt-BR":
@@ -527,16 +527,16 @@ class I18n:
         """Retorna o idioma atual"""
         return self.language
 
-    def add_translation(self, original: str, translation: str):
+    def add_translation(self, original: str, translation: str) -> None:
         """Adiciona uma tradução personalizada"""
         self._translations[original] = translation
 
-    def save_translations(self, filepath: str):
+    def save_translations(self, filepath: str) -> None:
         """Salva as traduções em um arquivo JSON"""
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self._translations, f, ensure_ascii=False, indent=2)
 
-    def load_translations(self, filepath: str):
+    def load_translations(self, filepath: str) -> None:
         """Carrega traduções de um arquivo JSON"""
         try:
             with open(filepath, encoding="utf-8") as f:
@@ -551,7 +551,7 @@ def tr(text: str) -> str:
     """Função de conveniência para tradução"""
     return _i18n.tr(text)
 
-def set_language(language: str):
+def set_language(language: str) -> None:
     """Define o idioma da aplicação"""
     _i18n.set_language(language)
 

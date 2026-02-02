@@ -21,6 +21,7 @@ from platform_base.core.protocols import PluginProtocol
 from platform_base.utils.errors import PluginError
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
@@ -845,7 +846,7 @@ class PluginRegistry:
             # For now, only built-in plugins are considered trusted
             if not manifest.name.startswith("platform_base."):
                 check.add_warning(
-                    f"Plugin '{manifest.name}' claims to be trusted but is not a built-in plugin"
+                    f"Plugin '{manifest.name}' claims to be trusted but is not a built-in plugin",
                 )
 
         # Warn about version downgrades

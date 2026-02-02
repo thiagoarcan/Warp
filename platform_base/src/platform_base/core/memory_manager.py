@@ -25,6 +25,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -56,12 +57,12 @@ class MemoryStatus:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'process_mb': self.process_mb,
-            'total_mb': self.total_mb,
-            'available_mb': self.available_mb,
-            'percent': self.percent,
-            'level': self.level.name,
-            'suggestions': self.suggestions,
+            "process_mb": self.process_mb,
+            "total_mb": self.total_mb,
+            "available_mb": self.available_mb,
+            "percent": self.percent,
+            "level": self.level.name,
+            "suggestions": self.suggestions,
         }
 
 
@@ -87,6 +88,7 @@ class MemoryManager:
 
     _instance: MemoryManager | None = None
     _lock = threading.Lock()
+    _initialized: bool = False
 
     def __new__(cls) -> MemoryManager:
         if cls._instance is None:
@@ -154,13 +156,13 @@ class MemoryManager:
                     self._last_level = status.level
 
                 # Auto-enable low memory mode if critical
-                if (self._config.enable_low_memory_mode and 
-                    status.level == MemoryLevel.CRITICAL and 
+                if (self._config.enable_low_memory_mode and
+                    status.level == MemoryLevel.CRITICAL and
                     not self._low_memory_mode):
                     self.enable_low_memory_mode()
 
                 # Auto garbage collection if high
-                if (self._config.enable_auto_gc and 
+                if (self._config.enable_auto_gc and
                     status.level in (MemoryLevel.HIGH, MemoryLevel.CRITICAL)):
                     self.force_gc()
 
@@ -222,12 +224,11 @@ class MemoryManager:
         """Determine memory level from percentage."""
         if percent >= self._config.critical_threshold:
             return MemoryLevel.CRITICAL
-        elif percent >= self._config.high_threshold:
+        if percent >= self._config.high_threshold:
             return MemoryLevel.HIGH
-        elif percent >= self._config.warning_threshold:
+        if percent >= self._config.warning_threshold:
             return MemoryLevel.WARNING
-        else:
-            return MemoryLevel.NORMAL
+        return MemoryLevel.NORMAL
 
     def _generate_suggestions(
         self,

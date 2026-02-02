@@ -18,9 +18,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt6.QtCore import Qt
 
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -105,20 +105,19 @@ def detect_zoom_level(visible_range: float) -> ZoomLevel:
     """
     if visible_range > 365 * 24 * 3600:  # > 1 ano
         return ZoomLevel.YEARS
-    elif visible_range > 30 * 24 * 3600:  # > 1 mês
+    if visible_range > 30 * 24 * 3600:  # > 1 mês
         return ZoomLevel.MONTHS
-    elif visible_range > 7 * 24 * 3600:   # > 1 semana
+    if visible_range > 7 * 24 * 3600:   # > 1 semana
         return ZoomLevel.WEEKS
-    elif visible_range > 24 * 3600:       # > 1 dia
+    if visible_range > 24 * 3600:       # > 1 dia
         return ZoomLevel.DAYS
-    elif visible_range > 3600:            # > 1 hora
+    if visible_range > 3600:            # > 1 hora
         return ZoomLevel.HOURS
-    elif visible_range > 60:              # > 1 minuto
+    if visible_range > 60:              # > 1 minuto
         return ZoomLevel.MINUTES
-    elif visible_range > 1:               # > 1 segundo
+    if visible_range > 1:               # > 1 segundo
         return ZoomLevel.SECONDS
-    else:
-        return ZoomLevel.MILLISECONDS
+    return ZoomLevel.MILLISECONDS
 
 
 class DateTimeAxisItem(pg.AxisItem):
@@ -134,7 +133,7 @@ class DateTimeAxisItem(pg.AxisItem):
         epoch: datetime | None = None,
         format_mode: DateTimeFormat = DateTimeFormat.ISO,
         custom_format: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Inicializa DateTimeAxisItem.
@@ -156,7 +155,7 @@ class DateTimeAxisItem(pg.AxisItem):
         self._format_cache: dict[float, str] = {}
         self._cache_zoom_level: ZoomLevel | None = None
 
-        logger.debug("datetime_axis_created", 
+        logger.debug("datetime_axis_created",
                     epoch=self._epoch.isoformat(),
                     format_mode=format_mode.name)
 
@@ -292,10 +291,9 @@ class DateTimeAxisItem(pg.AxisItem):
 
         if hours > 0:
             return f"{sign}{hours:02d}:{minutes:02d}:{seconds:05.2f}"
-        elif minutes > 0:
+        if minutes > 0:
             return f"{sign}{minutes:02d}:{seconds:05.2f}"
-        else:
-            return f"{sign}{seconds:.3f}s"
+        return f"{sign}{seconds:.3f}s"
 
     def tickValues(self, minVal: float, maxVal: float, size: int) -> list[tuple[float, list[float]]]:
         """
@@ -357,7 +355,7 @@ class DateTimeAxisItem(pg.AxisItem):
                 if visible_range / (base_spacing * mult) <= 15:
                     return base_spacing * mult
             return base_spacing * 60
-        elif actual_ticks < 3:
+        if actual_ticks < 3:
             # Poucos ticks, diminui espaçamento
             divisors = [2, 5, 10]
             for div in divisors:
@@ -407,7 +405,7 @@ class DateTimePlotWidget(pg.PlotWidget):
         epoch: datetime | None = None,
         format_mode: DateTimeFormat = DateTimeFormat.ISO,
         custom_format: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Inicializa DateTimePlotWidget.
@@ -455,7 +453,7 @@ class DateTimePlotWidget(pg.PlotWidget):
         self,
         datetimes: Sequence[datetime],
         values: Sequence[float],
-        **kwargs
+        **kwargs,
     ):
         """
         Plota dados com datetimes no eixo X.
@@ -479,7 +477,7 @@ class DateTimePlotWidget(pg.PlotWidget):
 def create_datetime_plot(
     epoch: datetime | None = None,
     format_mode: DateTimeFormat = DateTimeFormat.ISO,
-    **kwargs
+    **kwargs,
 ) -> DateTimePlotWidget:
     """
     Cria um DateTimePlotWidget configurado.
@@ -495,7 +493,7 @@ def create_datetime_plot(
     return DateTimePlotWidget(
         epoch=epoch,
         format_mode=format_mode,
-        **kwargs
+        **kwargs,
     )
 
 

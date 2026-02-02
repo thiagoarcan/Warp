@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
 try:
     import pyqtgraph as pg
     from PyQt6.QtCore import QObject, Qt, pyqtSignal
@@ -27,6 +28,7 @@ except ImportError:
 
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure, _downsample_lttb
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset, Series
@@ -438,7 +440,7 @@ class TimeseriesPlot(BaseFigure):
             # Highlight the selected region in the plot
             try:
                 # Get data range from selection indices
-                if hasattr(self, '_current_x_data') and self._current_x_data is not None:
+                if hasattr(self, "_current_x_data") and self._current_x_data is not None:
                     x_data = self._current_x_data
                     x_min = x_data[selection_indices.min()]
                     x_max = x_data[selection_indices.max()]
@@ -447,11 +449,11 @@ class TimeseriesPlot(BaseFigure):
                     # Use indices directly if no x data available
                     self._widget.set_selection_region(
                         float(selection_indices.min()),
-                        float(selection_indices.max())
+                        float(selection_indices.max()),
                     )
             except (IndexError, AttributeError):
                 # Widget may not support selection region
-                logger.debug("selection_update_skipped", 
+                logger.debug("selection_update_skipped",
                            reason="widget_does_not_support_selection_region")
 
     def export(self, file_path: str, format: str, **kwargs):
@@ -622,21 +624,21 @@ class MultipanelPlot:
 
         # Connect selection changed signals between panels
         for source_panel in valid_panels:
-            if not hasattr(source_panel, '_brush_selection') or source_panel._brush_selection is None:
+            if not hasattr(source_panel, "_brush_selection") or source_panel._brush_selection is None:
                 continue
 
             for target_panel in valid_panels:
                 if source_panel is target_panel:
                     continue
 
-                if not hasattr(target_panel, '_brush_selection') or target_panel._brush_selection is None:
+                if not hasattr(target_panel, "_brush_selection") or target_panel._brush_selection is None:
                     continue
 
                 try:
                     # Connect source selection changes to update target
                     source_panel.selection_changed.connect(
-                        lambda xmin, xmax, panel=target_panel: 
-                        panel._update_selection_from_sync(xmin, xmax)
+                        lambda xmin, xmax, panel=target_panel:
+                        panel._update_selection_from_sync(xmin, xmax),
                     )
                 except Exception as e:
                     logger.error("failed_to_sync_selections", error=str(e))

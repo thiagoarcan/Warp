@@ -18,17 +18,14 @@ Nota: PyQt6 usa PyQt6.uic.loadUi() para carregar .ui diretamente no widget.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtWidgets import QDialogButtonBox, QWidget
 
 from platform_base.utils.logging import get_logger
 
-if TYPE_CHECKING:
-    from PyQt6.QtWidgets import QDialog
 
 logger = get_logger(__name__)
 
@@ -49,10 +46,10 @@ class UiLoaderMixin:
         _ui_loaded: bool - True se UI foi carregado com sucesso
         _ui_file_path: Path - Caminho absoluto do arquivo .ui carregado
     """
-    
+
     # Deve ser definido pelas subclasses
     UI_FILE: ClassVar[str] = ""
-    
+
     # Atributos de instância
     _ui_loaded: bool = False
     _ui_file_path: Path | None = None
@@ -70,7 +67,7 @@ class UiLoaderMixin:
         if not self.UI_FILE:
             logger.warning("ui_file_not_specified", cls=self.__class__.__name__)
             return False
-            
+
         try:
             # Importar uic aqui para evitar problemas de import circular
             from PyQt6 import uic
@@ -78,7 +75,7 @@ class UiLoaderMixin:
             # Resolver caminho do arquivo .ui
             package_root = _get_package_root()
             ui_path = package_root / self.UI_FILE
-            
+
             # Tentar localizações alternativas
             if not ui_path.exists():
                 alt_paths = [
@@ -86,7 +83,7 @@ class UiLoaderMixin:
                     package_root / "ui" / "designer" / Path(self.UI_FILE).name,
                     Path(__file__).parent / "ui_files" / Path(self.UI_FILE).name,
                 ]
-                
+
                 for alt_path in alt_paths:
                     if alt_path.exists():
                         ui_path = alt_path
@@ -95,35 +92,35 @@ class UiLoaderMixin:
                     logger.error(
                         "ui_file_not_found",
                         ui_file=self.UI_FILE,
-                        searched_paths=[str(p) for p in [ui_path] + alt_paths]
+                        searched_paths=[str(p) for p in [ui_path] + alt_paths],
                     )
                     return False
-            
+
             # Verificar se arquivo existe
             if not ui_path.exists():
                 logger.error("ui_file_does_not_exist", path=str(ui_path))
                 return False
-            
+
             # Carregar UI diretamente no widget
             uic.loadUi(str(ui_path), self)
-            
+
             # Marcar como carregado
             self._ui_loaded = True
             self._ui_file_path = ui_path
-            
+
             logger.debug(
                 "ui_loaded_successfully",
                 cls=self.__class__.__name__,
-                path=str(ui_path)
+                path=str(ui_path),
             )
             return True
-            
+
         except Exception as e:
             logger.exception(
                 "ui_loading_error",
                 cls=self.__class__.__name__,
                 ui_file=self.UI_FILE,
-                error=str(e)
+                error=str(e),
             )
             return False
 
@@ -140,12 +137,12 @@ class UiLoaderMixin:
         """
         if not isinstance(self, QWidget):
             return None
-            
+
         widget = self.findChild(widget_type, name)
         if widget is None:
             # Tentar como atributo direto (uic.loadUi cria atributos)
             widget = getattr(self, name, None)
-            
+
         return widget
 
     def _get_widget(self, name: str, widget_type: type = QWidget) -> Any:
@@ -166,7 +163,7 @@ class UiLoaderMixin:
         if widget is None:
             raise AttributeError(
                 f"Widget '{name}' não encontrado em {self.__class__.__name__}. "
-                f"Verifique se o objectName está correto no arquivo .ui"
+                f"Verifique se o objectName está correto no arquivo .ui",
             )
         return widget
 
@@ -174,7 +171,7 @@ class UiLoaderMixin:
         self,
         button_box_name: str = "buttonBox",
         on_accept: Any = None,
-        on_reject: Any = None
+        on_reject: Any = None,
     ) -> bool:
         """
         Conecta botões de um QDialogButtonBox aos métodos accept/reject.
@@ -191,21 +188,21 @@ class UiLoaderMixin:
             button_box = self._find_widget(button_box_name, QDialogButtonBox)
             if not button_box:
                 return False
-            
+
             # Conectar accepted
             if on_accept is not None:
                 button_box.accepted.connect(on_accept)
-            elif hasattr(self, 'accept'):
+            elif hasattr(self, "accept"):
                 button_box.accepted.connect(self.accept)  # type: ignore
-                
+
             # Conectar rejected
             if on_reject is not None:
                 button_box.rejected.connect(on_reject)
-            elif hasattr(self, 'reject'):
+            elif hasattr(self, "reject"):
                 button_box.rejected.connect(self.reject)  # type: ignore
-                
+
             return True
-            
+
         except Exception as e:
             logger.exception("button_box_connection_error", error=str(e))
             return False
@@ -213,7 +210,7 @@ class UiLoaderMixin:
     def is_ui_loaded(self) -> bool:
         """Verifica se UI foi carregado com sucesso"""
         return self._ui_loaded
-        
+
     def get_ui_file_path(self) -> Path | None:
         """Retorna caminho do arquivo .ui carregado"""
         return self._ui_file_path
@@ -271,5 +268,5 @@ def get_ui_file_for_class(widget_class: type) -> str | None:
         Caminho do arquivo .ui ou None
     """
     if is_ui_based(widget_class):
-        return getattr(widget_class, 'UI_FILE', None)
+        return getattr(widget_class, "UI_FILE", None)
     return None

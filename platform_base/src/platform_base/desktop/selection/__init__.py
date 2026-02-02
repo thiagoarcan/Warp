@@ -21,6 +21,7 @@ from .selection_widgets import (
     SelectionToolbar,
 )
 
+
 __all__ = [
     "ConditionalSelection",
     "ConditionalSelectionDialog",

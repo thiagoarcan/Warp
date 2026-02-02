@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import faulthandler
 import json
-import os
 import platform
 import sys
 import threading
@@ -25,6 +24,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -55,17 +55,17 @@ class CrashReport:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'timestamp': self.timestamp,
-            'app_version': self.app_version,
-            'python_version': self.python_version,
-            'os_info': self.os_info,
-            'exception_type': self.exception_type,
-            'exception_message': self.exception_message,
-            'stack_trace': self.stack_trace,
-            'last_actions': self.last_actions,
-            'memory_info': self.memory_info,
-            'thread_info': self.thread_info,
-            'extra_info': self.extra_info,
+            "timestamp": self.timestamp,
+            "app_version": self.app_version,
+            "python_version": self.python_version,
+            "os_info": self.os_info,
+            "exception_type": self.exception_type,
+            "exception_message": self.exception_message,
+            "stack_trace": self.stack_trace,
+            "last_actions": self.last_actions,
+            "memory_info": self.memory_info,
+            "thread_info": self.thread_info,
+            "extra_info": self.extra_info,
         }
 
     def to_json(self, sanitize: bool = True) -> str:
@@ -83,19 +83,20 @@ class CrashReport:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(self.to_json(sanitize=sanitize))
 
 
 def _sanitize_crash_data(data: dict[str, Any]) -> dict[str, Any]:
     """Remove sensitive information from crash data."""
     import re
+    from typing import cast
 
     sensitive_patterns = [
-        (re.compile(r'([A-Za-z]:\\Users\\[^\\]+)', re.IGNORECASE), r'[USER_PATH]'),
-        (re.compile(r'(/home/[^/]+)', re.IGNORECASE), r'[USER_PATH]'),
-        (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'password: [REDACTED]'),
-        (re.compile(r'token["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'token: [REDACTED]'),
+        (re.compile(r"([A-Za-z]:\\Users\\[^\\]+)", re.IGNORECASE), r"[USER_PATH]"),
+        (re.compile(r"(/home/[^/]+)", re.IGNORECASE), r"[USER_PATH]"),
+        (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"password: [REDACTED]"),
+        (re.compile(r'token["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"token: [REDACTED]"),
     ]
 
     def sanitize_value(value: Any) -> Any:
@@ -104,13 +105,13 @@ def _sanitize_crash_data(data: dict[str, Any]) -> dict[str, Any]:
             for pattern, replacement in sensitive_patterns:
                 result = pattern.sub(replacement, result)
             return result
-        elif isinstance(value, dict):
+        if isinstance(value, dict):
             return {k: sanitize_value(v) for k, v in value.items()}
-        elif isinstance(value, list):
+        if isinstance(value, list):
             return [sanitize_value(v) for v in value]
         return value
 
-    return sanitize_value(data)
+    return cast(dict[str, Any], sanitize_value(data))
 
 
 class CrashHandler:
@@ -122,6 +123,7 @@ class CrashHandler:
 
     _instance: CrashHandler | None = None
     _lock = threading.Lock()
+    _initialized: bool = False
 
     def __new__(cls) -> CrashHandler:
         if cls._instance is None:
@@ -131,7 +133,7 @@ class CrashHandler:
                     cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
 
@@ -238,11 +240,11 @@ class CrashHandler:
             vm = psutil.virtual_memory()
 
             return {
-                'process_rss_mb': memory.rss / (1024 * 1024),
-                'process_vms_mb': memory.vms / (1024 * 1024),
-                'system_total_mb': vm.total / (1024 * 1024),
-                'system_available_mb': vm.available / (1024 * 1024),
-                'system_percent': vm.percent,
+                "process_rss_mb": memory.rss / (1024 * 1024),
+                "process_vms_mb": memory.vms / (1024 * 1024),
+                "system_total_mb": vm.total / (1024 * 1024),
+                "system_available_mb": vm.available / (1024 * 1024),
+                "system_percent": vm.percent,
             }
         except Exception:
             return {}
@@ -252,10 +254,10 @@ class CrashHandler:
         threads = []
         for thread in threading.enumerate():
             threads.append({
-                'name': thread.name,
-                'daemon': thread.daemon,
-                'alive': thread.is_alive(),
-                'ident': thread.ident,
+                "name": thread.name,
+                "daemon": thread.daemon,
+                "alive": thread.is_alive(),
+                "ident": thread.ident,
             })
         return threads
 
@@ -273,7 +275,7 @@ class CrashHandler:
             os_info=f"{platform.system()} {platform.release()} ({platform.machine()})",
             exception_type=exc_type.__name__,
             exception_message=str(exc_value),
-            stack_trace=''.join(traceback.format_exception(exc_type, exc_value, exc_tb)),
+            stack_trace="".join(traceback.format_exception(exc_type, exc_value, exc_tb)),
             last_actions=list(self._last_actions),
             memory_info=self._get_memory_info(),
             thread_info=self._get_thread_info(),
@@ -384,21 +386,21 @@ class CrashHandler:
         if not reports:
             return None
 
-        with open(reports[0], 'r', encoding='utf-8') as f:
+        with open(reports[0], encoding="utf-8") as f:
             data = json.load(f)
 
         return CrashReport(
-            timestamp=data['timestamp'],
-            app_version=data['app_version'],
-            python_version=data['python_version'],
-            os_info=data['os_info'],
-            exception_type=data['exception_type'],
-            exception_message=data['exception_message'],
-            stack_trace=data['stack_trace'],
-            last_actions=data.get('last_actions', []),
-            memory_info=data.get('memory_info', {}),
-            thread_info=data.get('thread_info', []),
-            extra_info=data.get('extra_info', {}),
+            timestamp=data["timestamp"],
+            app_version=data["app_version"],
+            python_version=data["python_version"],
+            os_info=data["os_info"],
+            exception_type=data["exception_type"],
+            exception_message=data["exception_message"],
+            stack_trace=data["stack_trace"],
+            last_actions=data.get("last_actions", []),
+            memory_info=data.get("memory_info", {}),
+            thread_info=data.get("thread_info", []),
+            extra_info=data.get("extra_info", {}),
         )
 
     def check_for_crash_recovery(self) -> Path | None:

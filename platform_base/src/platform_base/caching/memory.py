@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 def memory_cache(maxsize: int = 128) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator for in-memory LRU caching."""

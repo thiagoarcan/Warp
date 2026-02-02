@@ -19,6 +19,7 @@ from PyQt6.QtCore import QObject, QPointF, QRectF, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
