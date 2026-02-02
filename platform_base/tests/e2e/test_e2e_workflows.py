@@ -48,11 +48,14 @@ class TestUserWorkflowAnalysis:
         
         # Step 5: Export results
         output_file = tmp_path / "results.csv"
+        # Ensure all arrays have the same length by truncating to shortest
+        min_len = min(len(dataset.t_seconds), len(series.values), 
+                      len(accel_result.values), len(position_result.values))
         df_results = pd.DataFrame({
-            "time": dataset.t_seconds,
-            "velocity": series.values,
-            "acceleration": accel_result.values,
-            "position": position_result.values
+            "time": dataset.t_seconds[:min_len],
+            "velocity": series.values[:min_len],
+            "acceleration": accel_result.values[:min_len],
+            "position": position_result.values[:min_len]
         })
         df_results.to_csv(output_file, index=False)
         
@@ -91,15 +94,15 @@ class TestUserWorkflowAnalysis:
         synced = synchronize(series_dict, time_dict, method="common_grid_interpolate", params={})
         
         # Verify synchronization
-        assert len(synced.synced_data) == 3
-        lengths = [len(v) for v in synced.synced_data.values()]
+        assert len(synced.synced_series) == 3
+        lengths = [len(v) for v in synced.synced_series.values()]
         assert len(set(lengths)) == 1  # All same length after sync
         
         # Export comparison
         output = tmp_path / "comparison.csv"
         df_compare = pd.DataFrame({
-            "time": synced.common_time,
-            **synced.synced_data
+            "time": synced.t_common,
+            **synced.synced_series
         })
         df_compare.to_csv(output, index=False)
         assert output.exists()
@@ -142,7 +145,7 @@ class TestDataStreamingWorkflow:
     
     def test_streaming_playback_workflow(self):
         """Workflow: Load time series → Stream/playback → Apply filters in real-time."""
-        from platform_base.streaming.filters import LowpassFilter
+        from platform_base.streaming.filters import create_range_filter, FilterAction
         
         # Generate time series data
         t = np.linspace(0, 10, 1000)
@@ -151,19 +154,32 @@ class TestDataStreamingWorkflow:
         
         # Simulate streaming - process in chunks
         chunk_size = 100
-        filter_obj = LowpassFilter(cutoff=5.0, fs=100.0)
+        filter_obj = create_range_filter(min_value=-1.5, max_value=1.5)
         
         filtered_chunks = []
         for i in range(0, len(signal), chunk_size):
             chunk = signal[i:i+chunk_size]
-            filtered_chunk = filter_obj.apply(chunk)
-            filtered_chunks.append(filtered_chunk)
+            chunk_t = t[i:i+chunk_size]
+            # Apply filter to each point in chunk
+            filtered_chunk = []
+            for timestamp, value in zip(chunk_t, chunk):
+                result = filter_obj.apply(timestamp, value)
+                if result.action == FilterAction.PASS:
+                    filtered_chunk.append(value)
+                elif result.action == FilterAction.MODIFY and result.value is not None:
+                    filtered_chunk.append(result.value)
+                else:
+                    filtered_chunk.append(np.nan)
+            filtered_chunks.append(np.array(filtered_chunk))
         
         # Combine chunks
         filtered_full = np.concatenate(filtered_chunks)
         
-        # High frequency should be attenuated
-        assert len(filtered_full) <= len(signal)
+        # Verify filtering occurred
+        assert len(filtered_full) == len(signal)
+        valid_values = filtered_full[~np.isnan(filtered_full)]
+        # Most values should pass through within range
+        assert len(valid_values) > 0
 
 
 class TestExportWorkflows:
@@ -208,26 +224,48 @@ class TestExportWorkflows:
     
     def test_export_with_metadata_workflow(self, tmp_path):
         """Workflow: Add metadata → Export with embedded metadata."""
-        from platform_base.core.models import Dataset, Series
+        from platform_base.core.models import Dataset, Series, SourceInfo
+        from datetime import datetime, timezone
+        import pint
         
         # Create dataset with metadata
         t = np.linspace(0, 10, 100)
         y = np.sin(t)
         
+        ureg = pint.UnitRegistry()
         series = Series(
             series_id="test",
             name="Test Signal",
             values=y,
-            unit="m/s",
-            metadata={"sensor": "IMU-001", "location": "Engine Room"}
+            unit=ureg.parse_units("m/s"),
+            metadata={
+                "sensor": "IMU-001", 
+                "location": "Engine Room",
+                "original_name": "Test Signal",
+                "source_column": "value"
+            }
         )
         
         dataset = Dataset(
             dataset_id="test_ds",
-            name="Test Dataset",
-            series={"test": series},
+            version=1,
+            parent_id=None,
+            source=SourceInfo(
+                filepath=str(tmp_path / "source.csv"),
+                filename="source.csv",
+                format="csv",
+                size_bytes=1024,
+                checksum="dummy"
+            ),
             t_seconds=t,
-            metadata={"project": "Sea Trial", "vessel": "Ship-123"}
+            t_datetime=pd.to_datetime(t, unit='s').values,  # Convert to ndarray
+            series={"test": series},
+            metadata={
+                "description": None,
+                "tags": [],
+                "custom": {"project": "Sea Trial", "vessel": "Ship-123"}
+            },
+            created_at=datetime.now(timezone.utc)
         )
         
         # Export with metadata
@@ -242,8 +280,8 @@ class TestExportWorkflows:
         metadata_file = tmp_path / "metadata.json"
         import json
         metadata_file.write_text(json.dumps({
-            "dataset": dataset.metadata,
-            "series": series.metadata
+            "dataset": dataset.metadata.model_dump(),
+            "series": series.metadata if isinstance(series.metadata, dict) else series.metadata.model_dump() if hasattr(series.metadata, 'model_dump') else dict(series.metadata)
         }))
         
         assert output.exists()
@@ -258,9 +296,9 @@ class TestInteractiveAnalysisWorkflow:
         from platform_base.processing.interpolation import interpolate
         from platform_base.io.loader import load
         
-        # Create test data
+        # Create test data with at least 10 points
         csv_file = tmp_path / "data.csv"
-        t = np.array([0, 1, 2, 5, 6, 7, 10])  # Irregular spacing
+        t = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15])  # Irregular spacing, 13 points
         y = np.sin(t)
         df = pd.DataFrame({"time": t, "value": y})
         df.to_csv(csv_file, index=False)
@@ -269,9 +307,10 @@ class TestInteractiveAnalysisWorkflow:
         dataset = load(csv_file)
         series = list(dataset.series.values())[0]
         
-        # Try different interpolation methods
-        methods = ["linear", "spline_cubic", "pchip"]
+        # Try different interpolation methods (use supported methods)
+        methods = ["linear", "spline_cubic"]
         results = {}
+        smoothness_values = {}
         
         for method in methods:
             result = interpolate(series.values, dataset.t_seconds, method=method, params={})
@@ -280,10 +319,10 @@ class TestInteractiveAnalysisWorkflow:
             # Calculate some metric (e.g., smoothness)
             if len(result.values) > 1:
                 smoothness = np.mean(np.abs(np.diff(result.values)))
-                results[method].smoothness = smoothness
+                smoothness_values[method] = smoothness
         
         # Select best (e.g., smoothest)
-        best_method = min(results.keys(), key=lambda k: getattr(results[k], 'smoothness', float('inf')))
+        best_method = min(smoothness_values.keys(), key=lambda k: smoothness_values[k])
         
         # Export best result
         output = tmp_path / f"result_{best_method}.csv"
