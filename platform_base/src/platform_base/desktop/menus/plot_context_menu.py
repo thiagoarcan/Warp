@@ -33,6 +33,7 @@ from PyQt6.QtWidgets import (
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.models import DatasetID, SeriesID
     from platform_base.desktop.session_state import SessionState
@@ -639,7 +640,7 @@ class PlotContextMenu(QMenu):
                     if np.sum(valid_mask) > 1:
                         corr_matrix[i, j] = np.corrcoef(
                             vals_i[valid_mask],
-                            vals_j[valid_mask]
+                            vals_j[valid_mask],
                         )[0, 1]
                     else:
                         corr_matrix[i, j] = np.nan
@@ -711,7 +712,7 @@ class PlotContextMenu(QMenu):
             return
 
         try:
-            from platform_base.streaming.filters import ButterworthFilter, FilterType
+            from platform_base.streaming.filters import FilterType
 
             # Get cutoff frequency from user
             cutoff, ok = QInputDialog.getDouble(
@@ -939,7 +940,6 @@ class PlotContextMenu(QMenu):
 
     def _copy_to_clipboard(self):
         """Copy plot or data to clipboard"""
-        from PyQt6.QtGui import QGuiApplication, QImage
         from PyQt6.QtWidgets import QApplication
 
         parent_widget = self.parent()
@@ -955,7 +955,6 @@ class PlotContextMenu(QMenu):
                 logger.info("plot_copied_to_clipboard")
             elif hasattr(parent_widget, "_series_data"):
                 # Copy data as text
-                import numpy as np
 
                 text_lines = ["Time,Value,Series"]
                 for series_id, series_data in parent_widget._series_data.items():

@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
-from scipy import signal, stats
+from scipy import signal
 
 from platform_base.utils.errors import ValidationError
 from platform_base.utils.logging import get_logger
@@ -182,7 +182,7 @@ def compute_correlation(
 
     # Auto-correlation if signal2 not provided
     if signal2 is None or mode == "auto":
-        correlation = np.correlate(clean_signal1, clean_signal1, mode='full')
+        correlation = np.correlate(clean_signal1, clean_signal1, mode="full")
         lags = np.arange(-len(clean_signal1) + 1, len(clean_signal1))
     else:
         # Cross-correlation
@@ -191,7 +191,7 @@ def compute_correlation(
         if len(clean_signal2) < 2:
             raise ValidationError("Not enough valid data points in signal2")
 
-        correlation = np.correlate(clean_signal1, clean_signal2, mode='full')
+        correlation = np.correlate(clean_signal1, clean_signal2, mode="full")
         lags = np.arange(-len(clean_signal1) + 1, len(clean_signal1))
 
     # Normalize if requested
@@ -297,7 +297,7 @@ def detect_outliers(
         # Distance from bounds as score
         scores_clean = np.maximum(
             lower_bound - clean_values,
-            clean_values - upper_bound
+            clean_values - upper_bound,
         )
         scores_clean = np.maximum(scores_clean, 0)
 
@@ -330,7 +330,7 @@ def detect_outliers(
 
         scores_clean = np.maximum(
             lower_bound - clean_values,
-            clean_values - upper_bound
+            clean_values - upper_bound,
         )
         scores_clean = np.maximum(scores_clean, 0)
 

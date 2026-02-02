@@ -40,6 +40,7 @@ from platform_base.viz.streaming import (
     TickUpdate,
 )
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 

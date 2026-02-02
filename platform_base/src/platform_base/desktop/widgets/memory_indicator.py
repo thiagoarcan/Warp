@@ -13,21 +13,15 @@ Features:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QLabel, QMessageBox, QWidget
 
 from platform_base.core.memory_manager import (
     MemoryLevel,
-    MemoryManager,
     MemoryStatus,
     get_memory_manager,
 )
 from platform_base.utils.logging import get_logger
-
-if TYPE_CHECKING:
-    pass
 
 
 logger = get_logger(__name__)
@@ -172,10 +166,10 @@ class MemoryIndicator(QLabel):
         logger.warning(
             "High memory usage",
             extra={
-                'percent': status.percent,
-                'available_mb': status.available_mb,
-                'suggestions': status.suggestions,
-            }
+                "percent": status.percent,
+                "available_mb": status.available_mb,
+                "suggestions": status.suggestions,
+            },
         )
 
     def mousePressEvent(self, event) -> None:

@@ -16,7 +16,6 @@ Features:
 
 from __future__ import annotations
 
-import gzip
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -130,13 +129,13 @@ class FileIntegrityInfo:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'path': str(self.path),
-            'size_bytes': self.size_bytes,
-            'checksum_md5': self.checksum_md5,
-            'checksum_sha256': self.checksum_sha256,
-            'is_truncated': self.is_truncated,
-            'encoding': self.encoding,
-            'encoding_confidence': self.encoding_confidence,
+            "path": str(self.path),
+            "size_bytes": self.size_bytes,
+            "checksum_md5": self.checksum_md5,
+            "checksum_sha256": self.checksum_sha256,
+            "is_truncated": self.is_truncated,
+            "encoding": self.encoding,
+            "encoding_confidence": self.encoding_confidence,
         }
 
 
@@ -156,15 +155,15 @@ class DataQualityReport:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'row_count': self.row_count,
-            'column_count': self.column_count,
-            'nan_percent': self.nan_percent,
-            'duplicate_rows': self.duplicate_rows,
-            'value_range': self.value_range,
-            'temporal_gaps': self.temporal_gaps,
-            'outlier_count': self.outlier_count,
-            'issues': [issue.name for issue in self.issues],
-            'suggestions': self.suggestions,
+            "row_count": self.row_count,
+            "column_count": self.column_count,
+            "nan_percent": self.nan_percent,
+            "duplicate_rows": self.duplicate_rows,
+            "value_range": self.value_range,
+            "temporal_gaps": self.temporal_gaps,
+            "outlier_count": self.outlier_count,
+            "issues": [issue.name for issue in self.issues],
+            "suggestions": self.suggestions,
         }
 
 
@@ -285,8 +284,8 @@ def calculate_checksum(file_path: str | Path, algorithm: str = "md5") -> str:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
     # Read file in chunks
-    with open(path, 'rb') as f:
-        for chunk in iter(lambda: f.read(65536), b''):
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
             hasher.update(chunk)
 
     return hasher.hexdigest()
@@ -305,12 +304,12 @@ def detect_encoding(file_path: str | Path, sample_size: int = 100000) -> tuple[s
     """
     path = Path(file_path)
 
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         sample = f.read(sample_size)
 
     result = chardet.detect(sample)
-    encoding = result.get('encoding', 'utf-8') or 'utf-8'
-    confidence = result.get('confidence', 0.0)
+    encoding = result.get("encoding", "utf-8") or "utf-8"
+    confidence = result.get("confidence", 0.0)
 
     return encoding, confidence
 
@@ -329,16 +328,16 @@ def is_file_truncated(file_path: str | Path) -> bool:
 
     try:
         # Try to read the last few bytes
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             f.seek(-min(1000, path.stat().st_size), 2)  # Seek from end
             tail = f.read()
 
         # Check for common file endings
-        if path.suffix.lower() in ['.csv', '.txt']:
+        if path.suffix.lower() in [".csv", ".txt"]:
             # Should end with newline or valid character
-            return not tail.endswith(b'\n') and not tail.endswith(b'\r\n')
+            return not tail.endswith(b"\n") and not tail.endswith(b"\r\n")
 
-        elif path.suffix.lower() in ['.xlsx', '.xls']:
+        if path.suffix.lower() in [".xlsx", ".xls"]:
             # Excel files have specific structure
             # This is a basic check - could be enhanced
             return len(tail) < 100  # Suspiciously short
@@ -450,7 +449,7 @@ def analyze_data_quality(
     if timestamp_column:
         try:
             timestamps = _parse_timestamps_for_validation(
-                df[timestamp_column] if timestamp_column != "__index__" else df.index
+                df[timestamp_column] if timestamp_column != "__index__" else df.index,
             )
             t_seconds = to_seconds(timestamps.to_numpy())
             gap_report = detect_gaps(t_seconds)
@@ -511,14 +510,14 @@ def validate_file(
                 errors.append(ValidationError(
                     code="file_truncated",
                     message="File appears to be truncated",
-                    context={'path': str(file_path)},
+                    context={"path": str(file_path)},
                 ))
 
             if file_integrity.encoding_confidence < 0.7:
                 warnings.append(ValidationWarning(
                     code="encoding_uncertain",
                     message=f"Encoding detection uncertain ({file_integrity.encoding}, {file_integrity.encoding_confidence:.0%} confidence)",
-                    context={'encoding': file_integrity.encoding},
+                    context={"encoding": file_integrity.encoding},
                 ))
 
         except Exception as e:
@@ -606,7 +605,7 @@ def auto_repair_data(
             # Interpolate only small runs
             small_gaps = nan_runs[nan_runs <= max_gap_size]
             if len(small_gaps) > 0:
-                repaired[col] = repaired[col].interpolate(method='linear', limit=max_gap_size)
+                repaired[col] = repaired[col].interpolate(method="linear", limit=max_gap_size)
                 actions.append(f"Interpolated small gaps in column '{col}'")
 
     return repaired, actions

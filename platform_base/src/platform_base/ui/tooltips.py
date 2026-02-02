@@ -20,10 +20,10 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer
 from PyQt6.QtGui import QEnterEvent
-from PyQt6.QtWidgets import QApplication, QLabel, QToolTip, QWidget
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget
 
-from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.ui.shortcuts import ShortcutManager
@@ -441,14 +441,12 @@ class RichTooltip(QLabel):
         # Adjust horizontal
         if x + self.width() > screen_rect.right():
             x = screen_rect.right() - self.width()
-        if x < screen_rect.left():
-            x = screen_rect.left()
+        x = max(x, screen_rect.left())
 
         # Adjust vertical
         if y + self.height() > screen_rect.bottom():
             y = pos.y() - self.height() - 5  # Show above cursor
-        if y < screen_rect.top():
-            y = screen_rect.top()
+        y = max(y, screen_rect.top())
 
         return QPoint(x, y)
 
@@ -532,8 +530,8 @@ def get_tooltip_manager() -> TooltipManager:
 
 
 __all__ = [
-    "RichTooltip",
     "TOOLTIPS",
+    "RichTooltip",
     "TooltipConfig",
     "TooltipEventFilter",
     "TooltipManager",

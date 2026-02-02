@@ -37,6 +37,7 @@ from PyQt6.QtWidgets import (
 
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -826,14 +827,13 @@ class VideoExport:
         Args:
             frame: Numpy array (RGB image) or QPixmap/QImage
         """
-        import numpy as np
 
         # Convert QPixmap/QImage to numpy if needed
-        if hasattr(frame, 'toImage'):
+        if hasattr(frame, "toImage"):
             # QPixmap
             image = frame.toImage()
             frame = self._qimage_to_numpy(image)
-        elif hasattr(frame, 'bits'):
+        elif hasattr(frame, "bits"):
             # QImage
             frame = self._qimage_to_numpy(frame)
 
@@ -889,18 +889,17 @@ class VideoExport:
             plot_widget: PyQtGraph PlotWidget or similar
             timestamp: Optional timestamp to show on frame
         """
-        import numpy as np
 
         try:
             # Capture from pyqtgraph widget
-            if hasattr(plot_widget, 'grab'):
+            if hasattr(plot_widget, "grab"):
                 pixmap = plot_widget.grab()
                 self.add_frame(pixmap)
-            elif hasattr(plot_widget, 'render'):
+            elif hasattr(plot_widget, "render"):
                 # Try render method
                 import pyqtgraph as pg
                 exporter = pg.exporters.ImageExporter(plot_widget.plotItem)
-                exporter.parameters()['width'] = self._width
+                exporter.parameters()["width"] = self._width
                 img = exporter.export(toBytes=True)
                 self.add_frame(img)
         except Exception as e:
@@ -914,7 +913,7 @@ class VideoExport:
                 plt.figure()
                 plt.imshow(self._frames[0])
                 plt.title(f"Frame 1 of {len(self._frames)}")
-                plt.axis('off')
+                plt.axis("off")
                 plt.show()
             except ImportError:
                 logger.info("matplotlib not available for preview")

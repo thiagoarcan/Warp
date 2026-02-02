@@ -7,40 +7,30 @@ Provides utility functions for common accessibility tasks.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Any
 
-from PyQt6.QtCore import QObject, Qt
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QAbstractButton,
     QAbstractSlider,
-    QAbstractSpinBox,
     QCheckBox,
     QComboBox,
     QDialog,
     QDockWidget,
-    QDoubleSpinBox,
     QGroupBox,
     QLabel,
     QLineEdit,
     QListView,
-    QMenu,
-    QMessageBox,
-    QPlainTextEdit,
     QProgressBar,
-    QPushButton,
-    QRadioButton,
-    QSlider,
-    QSpinBox,
     QStatusBar,
     QTableView,
     QTabWidget,
-    QTextEdit,
     QToolBar,
-    QToolButton,
     QTreeView,
     QWidget,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +202,7 @@ def make_group_accessible(
 
 
 def make_table_accessible(
-    table: Union[QTableView, QTreeView, QListView],
+    table: QTableView | QTreeView | QListView,
     name: str,
     description: str = "",
     row_count: int = 0,
@@ -318,7 +308,7 @@ def make_tab_widget_accessible(
         tab_name = tab_widget.tabText(index)
         count = tab_widget.count()
         tab_widget.setAccessibleDescription(
-            f"Aba {tab_name} selecionada. {index + 1} de {count} abas."
+            f"Aba {tab_name} selecionada. {index + 1} de {count} abas.",
         )
 
     tab_widget.currentChanged.connect(update_tab)
@@ -508,7 +498,7 @@ def validate_contrast_ratio(
     foreground: str,
     background: str,
     min_ratio: float = 4.5,
-) -> Tuple[bool, float]:
+) -> tuple[bool, float]:
     """
     Validate contrast ratio between two colors.
     
@@ -572,7 +562,7 @@ def make_focusable(widget: QWidget, policy: Qt.FocusPolicy = Qt.FocusPolicy.Stro
     widget.setFocusPolicy(policy)
 
 
-def setup_skip_links(main_widget: QWidget, targets: Dict[str, QWidget]) -> None:
+def setup_skip_links(main_widget: QWidget, targets: dict[str, QWidget]) -> None:
     """
     Setup skip links for quick navigation.
     
@@ -581,7 +571,7 @@ def setup_skip_links(main_widget: QWidget, targets: Dict[str, QWidget]) -> None:
         targets: Dictionary mapping link names to target widgets
     """
     # Store targets for later use
-    if not hasattr(main_widget, '_skip_link_targets'):
+    if not hasattr(main_widget, "_skip_link_targets"):
         main_widget._skip_link_targets = {}
     main_widget._skip_link_targets.update(targets)
     logger.debug(f"Set up skip links: {list(targets.keys())}")
@@ -640,7 +630,7 @@ def is_high_contrast_enabled() -> bool:
             _fields_ = [
                 ("cbSize", ctypes.c_uint),
                 ("dwFlags", ctypes.c_uint),
-                ("lpszDefaultScheme", ctypes.c_wchar_p)
+                ("lpszDefaultScheme", ctypes.c_wchar_p),
             ]
 
         hc = HIGHCONTRAST()
@@ -729,7 +719,7 @@ def meets_wcag_aa(foreground: str, background: str, large_text: bool = False) ->
 def suggest_accessible_color(
     background: str,
     min_ratio: float = 4.5,
-    prefer_dark: bool = True
+    prefer_dark: bool = True,
 ) -> str:
     """
     Suggest a foreground color that meets contrast requirements.
@@ -751,13 +741,12 @@ def suggest_accessible_color(
     if prefer_dark:
         if black_ratio >= min_ratio:
             return "#000000"
-        elif white_ratio >= min_ratio:
-            return "#FFFFFF"
-    else:
         if white_ratio >= min_ratio:
             return "#FFFFFF"
-        elif black_ratio >= min_ratio:
-            return "#000000"
+    elif white_ratio >= min_ratio:
+        return "#FFFFFF"
+    elif black_ratio >= min_ratio:
+        return "#000000"
 
     # If neither works, return the one with better contrast
     return "#000000" if black_ratio > white_ratio else "#FFFFFF"
@@ -820,7 +809,7 @@ def prefers_reduced_motion() -> bool:
         import winreg
         key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
-            r"Control Panel\Desktop"
+            r"Control Panel\Desktop",
         )
         value, _ = winreg.QueryValueEx(key, "UserPreferencesMask")
         winreg.CloseKey(key)
@@ -988,11 +977,11 @@ def describe_chart(
         )
 
         return description
-    except Exception as e:
+    except Exception:
         return f"Gráfico de {chart_type}. Descrição detalhada não disponível."
 
 
-def generate_alt_text(data: Dict[str, Any]) -> str:
+def generate_alt_text(data: dict[str, Any]) -> str:
     """
     Generate alternative text for a chart.
     
@@ -1018,7 +1007,7 @@ def generate_chart_data_table(
     x_data: Any,
     y_data: Any,
     max_rows: int = 10,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Generate a data table representation of chart data.
     
@@ -1054,7 +1043,7 @@ def generate_chart_data_table(
     return table
 
 
-def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
+def audit_accessibility(widget: QWidget) -> list[dict[str, str]]:
     """
     Audit a widget for accessibility issues.
     
@@ -1099,7 +1088,7 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
     return issues
 
 
-def generate_a11y_report(widgets: Sequence[QWidget]) -> Dict[str, Any]:
+def generate_a11y_report(widgets: Sequence[QWidget]) -> dict[str, Any]:
     """
     Generate an accessibility report for multiple widgets.
     

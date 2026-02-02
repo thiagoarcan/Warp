@@ -59,13 +59,16 @@ class TestMLSInterpolation:
 class TestGPRInterpolation:
     """Tests for Gaussian Process Regression interpolation"""
     
-    @pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
     @pytest.mark.skipif(
         not _check_sklearn_available(),
         reason="scikit-learn not available"
     )
     def test_gpr_fills_missing_values(self):
         """GPR should fill NaN values"""
+        # Filter sklearn warnings if sklearn is available
+        if _check_sklearn_available():
+            warnings.filterwarnings("ignore", category=Warning, module="sklearn")
+        
         t = np.linspace(0, 10, 50)
         values = np.sin(t)
         values[20:25] = np.nan
@@ -78,13 +81,16 @@ class TestGPRInterpolation:
         assert np.all(np.isfinite(result.values))
         assert result.interpolation_info.is_interpolated_mask[20:25].all()
     
-    @pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
     @pytest.mark.skipif(
         not _check_sklearn_available(),
         reason="scikit-learn not available"
     )
     def test_gpr_provides_uncertainty(self):
         """GPR metadata should include uncertainty estimate"""
+        # Filter sklearn warnings if sklearn is available
+        if _check_sklearn_available():
+            warnings.filterwarnings("ignore", category=Warning, module="sklearn")
+        
         t = np.linspace(0, 5, 30)
         values = np.sin(t)
         values[10] = np.nan
@@ -96,13 +102,16 @@ class TestGPRInterpolation:
         
         assert "uncertainty_std" in result.metadata.params
     
-    @pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
     @pytest.mark.skipif(
         not _check_sklearn_available(),
         reason="scikit-learn not available"
     )
     def test_gpr_with_matern_kernel(self):
         """GPR should work with Matern kernel"""
+        # Filter sklearn warnings if sklearn is available
+        if _check_sklearn_available():
+            warnings.filterwarnings("ignore", category=Warning, module="sklearn")
+        
         t = np.linspace(0, 5, 30)
         values = np.sin(t)
         values[15] = np.nan

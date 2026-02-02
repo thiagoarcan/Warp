@@ -15,20 +15,16 @@ Category 2.9 - Multi-Y Axis
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-import numpy as np
 import pyqtgraph as pg
-from PyQt6.QtCore import QObject, Qt, pyqtSignal
-from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QObject, pyqtSignal
 from pyqtgraph import AxisItem, PlotItem, ViewBox
 
 from platform_base.utils.logging import get_logger
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 logger = get_logger(__name__)
 
@@ -166,7 +162,7 @@ class YAxis:
             view_box = self.view_box
 
         # Track series
-        color = kwargs.get('pen', {}).opts.get('color') if hasattr(kwargs.get('pen', {}), 'opts') else None
+        color = kwargs.get("pen", {}).opts.get("color") if hasattr(kwargs.get("pen", {}), "opts") else None
         self._series[series_id] = SeriesAxisInfo(
             series_id=series_id,
             axis_position=self.position,
@@ -372,7 +368,7 @@ class MultiYAxisManager(QObject):
             raise ValueError(f"Series {series_id} not on axis {from_position.name}")
 
         # Get data from plot item
-        if hasattr(info.plot_item, 'getData'):
+        if hasattr(info.plot_item, "getData"):
             x_data, y_data = info.plot_item.getData()
         else:
             raise ValueError("Cannot get data from plot item")
@@ -385,7 +381,7 @@ class MultiYAxisManager(QObject):
         to_axis.add_series(series_id, x_data, y_data, pen=pen)
 
         self.series_moved.emit(series_id, from_position.name, to_position.name)
-        logger.info("series_moved", 
+        logger.info("series_moved",
                    series_id=series_id,
                    from_axis=from_position.name,
                    to_axis=to_position.name)

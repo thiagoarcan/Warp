@@ -34,6 +34,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
@@ -44,7 +45,7 @@ _correlation_id = threading.local()
 
 def get_correlation_id() -> str:
     """Get the current correlation ID, or create a new one."""
-    if not hasattr(_correlation_id, 'value') or _correlation_id.value is None:
+    if not hasattr(_correlation_id, "value") or _correlation_id.value is None:
         _correlation_id.value = str(uuid.uuid4())[:8]
     return _correlation_id.value
 
@@ -62,13 +63,13 @@ def clear_correlation_id() -> None:
 
 # Sensitive data patterns for sanitization
 SENSITIVE_PATTERNS = [
-    (re.compile(r'([A-Za-z]:\\Users\\[^\\]+)', re.IGNORECASE), r'[USER_PATH]'),
-    (re.compile(r'(/home/[^/]+)', re.IGNORECASE), r'[USER_PATH]'),
-    (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'password: [REDACTED]'),
-    (re.compile(r'token["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'token: [REDACTED]'),
-    (re.compile(r'api_key["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'api_key: [REDACTED]'),
-    (re.compile(r'secret["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'secret: [REDACTED]'),
-    (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'), r'[EMAIL]'),
+    (re.compile(r"([A-Za-z]:\\Users\\[^\\]+)", re.IGNORECASE), r"[USER_PATH]"),
+    (re.compile(r"(/home/[^/]+)", re.IGNORECASE), r"[USER_PATH]"),
+    (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"password: [REDACTED]"),
+    (re.compile(r'token["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"token: [REDACTED]"),
+    (re.compile(r'api_key["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"api_key: [REDACTED]"),
+    (re.compile(r'secret["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"secret: [REDACTED]"),
+    (re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"), r"[EMAIL]"),
 ]
 
 
@@ -83,12 +84,12 @@ def sanitize_message(message: str) -> str:
 def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
     """Recursively sanitize sensitive data in a dictionary."""
     result = {}
-    sensitive_keys = {'password', 'token', 'api_key', 'secret', 'credential', 'auth'}
+    sensitive_keys = {"password", "token", "api_key", "secret", "credential", "auth"}
 
     for key, value in data.items():
         key_lower = key.lower()
         if any(s in key_lower for s in sensitive_keys):
-            result[key] = '[REDACTED]'
+            result[key] = "[REDACTED]"
         elif isinstance(value, dict):
             result[key] = sanitize_dict(value)
         elif isinstance(value, str):
@@ -119,14 +120,14 @@ class LogRecord:
     def to_json(self) -> str:
         """Convert to JSON string."""
         data = {
-            'timestamp': self.timestamp,
-            'level': self.level,
-            'message': self.message,
-            'correlation_id': self.correlation_id,
-            'component': self.component,
+            "timestamp": self.timestamp,
+            "level": self.level,
+            "message": self.message,
+            "correlation_id": self.correlation_id,
+            "component": self.component,
         }
         if self.duration_ms is not None:
-            data['duration_ms'] = self.duration_ms
+            data["duration_ms"] = self.duration_ms
         if self.extra:
             data.update(self.extra)
         return json.dumps(data, ensure_ascii=False)
@@ -134,14 +135,14 @@ class LogRecord:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         data = {
-            'timestamp': self.timestamp,
-            'level': self.level,
-            'message': self.message,
-            'correlation_id': self.correlation_id,
-            'component': self.component,
+            "timestamp": self.timestamp,
+            "level": self.level,
+            "message": self.message,
+            "correlation_id": self.correlation_id,
+            "component": self.component,
         }
         if self.duration_ms is not None:
-            data['duration_ms'] = self.duration_ms
+            data["duration_ms"] = self.duration_ms
         if self.extra:
             data.update(self.extra)
         return data
@@ -153,10 +154,10 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
     def __init__(
         self,
         filename: str,
-        mode: str = 'a',
+        mode: str = "a",
         maxBytes: int = 10 * 1024 * 1024,  # 10MB
         backupCount: int = 5,
-        encoding: str | None = 'utf-8',
+        encoding: str | None = "utf-8",
         delay: bool = False,
     ):
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
@@ -182,9 +183,8 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
             os.remove(dfn)
 
         if os.path.exists(self.baseFilename):
-            with open(self.baseFilename, 'rb') as f_in:
-                with gzip.open(dfn, 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
+            with open(self.baseFilename, "rb") as f_in, gzip.open(dfn, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
             os.remove(self.baseFilename)
 
         if not self.delay:
@@ -205,14 +205,14 @@ class JSONFormatter(logging.Formatter):
             message = sanitize_message(message)
 
         log_record = LogRecord(
-            timestamp=datetime.utcnow().isoformat() + 'Z',
+            timestamp=datetime.utcnow().isoformat() + "Z",
             level=record.levelname,
             message=message,
             correlation_id=get_correlation_id(),
             component=record.name,
-            duration_ms=getattr(record, 'duration_ms', None),
-            extra=sanitize_dict(getattr(record, 'extra', {})) if self.sanitize 
-                  else getattr(record, 'extra', {}),
+            duration_ms=getattr(record, "duration_ms", None),
+            extra=sanitize_dict(getattr(record, "extra", {})) if self.sanitize
+                  else getattr(record, "extra", {}),
         )
 
         return log_record.to_json()
@@ -222,19 +222,19 @@ class ConsoleFormatter(logging.Formatter):
     """Colored console formatter."""
 
     COLORS = {
-        'DEBUG': '\033[36m',     # Cyan
-        'INFO': '\033[32m',      # Green
-        'WARNING': '\033[33m',   # Yellow
-        'ERROR': '\033[31m',     # Red
-        'CRITICAL': '\033[35m',  # Magenta
+        "DEBUG": "\033[36m",     # Cyan
+        "INFO": "\033[32m",      # Green
+        "WARNING": "\033[33m",   # Yellow
+        "ERROR": "\033[31m",     # Red
+        "CRITICAL": "\033[35m",  # Magenta
     }
-    RESET = '\033[0m'
+    RESET = "\033[0m"
 
     def format(self, record: logging.LogRecord) -> str:
         """Format with colors."""
-        color = self.COLORS.get(record.levelname, '')
+        color = self.COLORS.get(record.levelname, "")
         correlation = get_correlation_id()
-        duration = getattr(record, 'duration_ms', None)
+        duration = getattr(record, "duration_ms", None)
 
         msg = f"{color}[{record.levelname}]{self.RESET} "
         msg += f"\033[90m[{correlation}]\033[0m "
@@ -401,14 +401,14 @@ class StructuredLogger:
         Yields:
             Context dict that can be updated with additional info
         """
-        context: dict[str, Any] = {'operation': name, **extra}
+        context: dict[str, Any] = {"operation": name, **extra}
         logger = self.get_logger(component)
         correlation = set_correlation_id()
 
         start_time = time.perf_counter()
 
         if log_start:
-            logger.info(f"Starting: {name}", extra={'extra': context})
+            logger.info(f"Starting: {name}", extra={"extra": context})
 
         try:
             yield context
@@ -432,13 +432,13 @@ class StructuredLogger:
                 if duration_ms > self._slow_threshold_ms:
                     logger.warning(
                         f"Slow operation: {name} took {duration_ms:.2f}ms",
-                        extra={'extra': {'threshold': self._slow_threshold_ms, **context}}
+                        extra={"extra": {"threshold": self._slow_threshold_ms, **context}},
                     )
 
         except Exception as e:
             duration_ms = (time.perf_counter() - start_time) * 1000
-            context['error'] = str(e)
-            context['error_type'] = type(e).__name__
+            context["error"] = str(e)
+            context["error_type"] = type(e).__name__
 
             log_record = logging.LogRecord(
                 name=component,
@@ -465,7 +465,7 @@ class StructuredLogger:
         Yields:
             The correlation ID being used
         """
-        old_id = getattr(_correlation_id, 'value', None)
+        old_id = getattr(_correlation_id, "value", None)
         new_id = set_correlation_id(correlation_id)
         try:
             yield new_id
@@ -500,22 +500,22 @@ class StructuredLogger:
         records = []
 
         # Read main log file
-        with open(self._log_file, 'r', encoding='utf-8') as f:
+        with open(self._log_file, encoding="utf-8") as f:
             for line in f:
                 try:
                     record = json.loads(line.strip())
 
                     # Apply filters
-                    if level_filter and record.get('level') != level_filter.upper():
+                    if level_filter and record.get("level") != level_filter.upper():
                         continue
 
                     if start_date:
-                        record_date = datetime.fromisoformat(record['timestamp'].rstrip('Z'))
+                        record_date = datetime.fromisoformat(record["timestamp"].rstrip("Z"))
                         if record_date < start_date:
                             continue
 
                     if end_date:
-                        record_date = datetime.fromisoformat(record['timestamp'].rstrip('Z'))
+                        record_date = datetime.fromisoformat(record["timestamp"].rstrip("Z"))
                         if record_date > end_date:
                             continue
 
@@ -525,12 +525,12 @@ class StructuredLogger:
 
         # Write output
         if format == "json":
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(records, f, indent=2, ensure_ascii=False)
         elif format == "csv":
             import csv
             if records:
-                with open(output_path, 'w', encoding='utf-8', newline='') as f:
+                with open(output_path, "w", encoding="utf-8", newline="") as f:
                     writer = csv.DictWriter(f, fieldnames=records[0].keys())
                     writer.writeheader()
                     writer.writerows(records)

@@ -30,6 +30,7 @@ from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from PyQt6.QtGui import QIcon
 
@@ -52,7 +53,7 @@ class DataPanel(QWidget, UiLoaderMixin):
     
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "desktop/ui_files/dataPanel.ui"
 
@@ -80,15 +81,15 @@ class DataPanel(QWidget, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         # Os widgets já existem como atributos (criados pelo uic.loadUi)
         # Aqui apenas configuramos o modelo da tree e comportamentos dinâmicos
-        
+
         # Configurar tree model
         self.tree_model = DatasetTreeModel(self.session_state.dataset_store)
         self.dataTree.setModel(self.tree_model)
-        
+
         # Configurar selection model
         self.dataTree.selectionModel().selectionChanged.connect(self._on_tree_selection_changed)
         self.dataTree.doubleClicked.connect(self._on_item_double_clicked)
-        
+
         # Configurar colunas do header
         header = self.dataTree.header()
         header.setStretchLastSection(False)
@@ -96,12 +97,12 @@ class DataPanel(QWidget, UiLoaderMixin):
         for i in range(1, 5):
             if i < header.count():
                 header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
-        
+
         # Conectar botões
         self.loadBtn.clicked.connect(self._load_data)
         self.removeBtn.clicked.connect(self._remove_selected)
         self.refreshBtn.clicked.connect(self._refresh_data)
-        
+
         # Manter referências com nomes usados no código existente
         self.data_tree = self.dataTree
         self.load_btn = self.loadBtn
@@ -111,7 +112,7 @@ class DataPanel(QWidget, UiLoaderMixin):
         self.summary_text = self.summaryText
         self.metadata_text = self.metadataText
         self.quality_text = self.qualityText
-        
+
         # Set initial summary
         self._update_summary()
 

@@ -40,6 +40,7 @@ from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -198,7 +199,7 @@ class UploadDialog(QDialog, UiLoaderMixin):
     
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "desktop/ui_files/uploadDialog.ui"
 
@@ -234,7 +235,6 @@ class UploadDialog(QDialog, UiLoaderMixin):
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
         # UploadDialog precisa de muitos widgets dinâmicos, usar fallback
-        pass
 
     def _setup_ui_fallback(self):
         """Setup user interface"""

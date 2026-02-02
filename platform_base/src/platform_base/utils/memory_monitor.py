@@ -15,7 +15,6 @@ Features:
 from __future__ import annotations
 
 import gc
-import os
 import threading
 import time
 from dataclasses import dataclass, field
@@ -23,6 +22,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -52,12 +52,12 @@ class MemorySnapshot:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'timestamp': self.timestamp.isoformat(),
-            'used_mb': self.used_mb,
-            'available_mb': self.available_mb,
-            'total_mb': self.total_mb,
-            'percent_used': self.percent_used,
-            'process_mb': self.process_mb,
+            "timestamp": self.timestamp.isoformat(),
+            "used_mb": self.used_mb,
+            "available_mb": self.available_mb,
+            "total_mb": self.total_mb,
+            "percent_used": self.percent_used,
+            "process_mb": self.process_mb,
         }
 
 
@@ -73,11 +73,11 @@ class MemoryWarning:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'level': self.level,
-            'percent_used': self.percent_used,
-            'used_mb': self.used_mb,
-            'available_mb': self.available_mb,
-            'suggestions': self.suggestions,
+            "level": self.level,
+            "percent_used": self.percent_used,
+            "used_mb": self.used_mb,
+            "available_mb": self.available_mb,
+            "suggestions": self.suggestions,
         }
 
 
@@ -107,9 +107,9 @@ class MemoryMonitor:
         self._running = False
         self._monitor_thread: threading.Thread | None = None
         self._callbacks: dict[str, list[Callable[[MemoryWarning], None]]] = {
-            'caution': [],
-            'warning': [],
-            'critical': [],
+            "caution": [],
+            "warning": [],
+            "critical": [],
         }
 
         # Configuration

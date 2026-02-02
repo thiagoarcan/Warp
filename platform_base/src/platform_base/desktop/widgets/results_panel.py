@@ -35,6 +35,7 @@ from PyQt6.QtWidgets import (
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -224,7 +225,7 @@ class ResultsPanel(QWidget, UiLoaderMixin):
     
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "desktop/ui_files/resultsPanel.ui"
 
@@ -248,7 +249,6 @@ class ResultsPanel(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        pass
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
@@ -517,7 +517,7 @@ class ResultsPanel(QWidget, UiLoaderMixin):
             self,
             "Export Results",
             "",
-            "CSV Files (*.csv);;JSON Files (*.json);;All Files (*.*)"
+            "CSV Files (*.csv);;JSON Files (*.json);;All Files (*.*)",
         )
 
         if not file_path:
@@ -539,9 +539,9 @@ class ResultsPanel(QWidget, UiLoaderMixin):
             # Export based on file extension
             file_path_obj = Path(file_path)
 
-            if file_path_obj.suffix == '.json' or "JSON" in selected_filter:
+            if file_path_obj.suffix == ".json" or "JSON" in selected_filter:
                 # Export as JSON
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(results, f, indent=2, default=str)
                 logger.info("results_exported_json", path=file_path, count=len(results))
 
@@ -551,32 +551,32 @@ class ResultsPanel(QWidget, UiLoaderMixin):
                     logger.warning("no_results_to_export")
                     return
 
-                with open(file_path, 'w', newline='', encoding='utf-8') as f:
+                with open(file_path, "w", newline="", encoding="utf-8") as f:
                     # Get all keys from all results
                     all_keys = set()
                     for result in results:
                         all_keys.update(result.keys())
 
                     fieldnames = sorted(all_keys)
-                    writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+                    writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
 
                     writer.writeheader()
                     for result in results:
                         # Convert non-string values to strings
-                        row_data = {k: str(v) if not isinstance(v, (str, int, float)) else v 
+                        row_data = {k: str(v) if not isinstance(v, (str, int, float)) else v
                                    for k, v in result.items()}
                         writer.writerow(row_data)
 
                 logger.info("results_exported_csv", path=file_path, count=len(results))
 
             self.log_widget.add_log_entry(
-                "info", 
-                f"Results exported to {file_path_obj.name} ({len(results)} entries)"
+                "info",
+                f"Results exported to {file_path_obj.name} ({len(results)} entries)",
             )
 
         except Exception as e:
             logger.exception("results_export_failed", error=str(e))
-            self.log_widget.add_log_entry("error", f"Export failed: {str(e)}")
+            self.log_widget.add_log_entry("error", f"Export failed: {e!s}")
 
     def _poll_logs(self):
         """Poll for new log entries from the logging system"""
@@ -586,13 +586,13 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         # Logs são adicionados em tempo real via signals dos workers
         try:
             # Verificar se há novos logs no buffer
-            log_buffer = getattr(self.session_state, '_log_buffer', [])
+            log_buffer = getattr(self.session_state, "_log_buffer", [])
             if log_buffer:
                 for log_entry in log_buffer:
                     self.log_widget.add_log_entry(
-                        log_entry.get('level', 'info'),
-                        log_entry.get('message', ''),
-                        timestamp=log_entry.get('timestamp')
+                        log_entry.get("level", "info"),
+                        log_entry.get("message", ""),
+                        timestamp=log_entry.get("timestamp"),
                     )
                 self.session_state._log_buffer = []
         except Exception as e:

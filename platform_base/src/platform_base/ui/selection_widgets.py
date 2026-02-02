@@ -35,6 +35,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+
 try:
     import pyqtgraph as pg
     from pyqtgraph import InfiniteLine, LinearRegionItem, PlotWidget
@@ -47,6 +48,7 @@ import contextlib
 
 from platform_base.ui.selection import DataSelector, Selection, SelectionMode
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
@@ -970,7 +972,7 @@ class SelectionToolbar(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self._current_mode = 'single'
+        self._current_mode = "single"
         self._mode_buttons: dict[str, QPushButton] = {}
 
         self._setup_ui()
@@ -983,10 +985,10 @@ class SelectionToolbar(QWidget):
 
         # Selection mode buttons
         modes = [
-            ('single', 'Single', 'Select single point'),
-            ('box', 'Box', 'Box selection'),
-            ('lasso', 'Lasso', 'Freeform lasso selection'),
-            ('range', 'Range', 'Select time range'),
+            ("single", "Single", "Select single point"),
+            ("box", "Box", "Box selection"),
+            ("lasso", "Lasso", "Freeform lasso selection"),
+            ("range", "Range", "Select time range"),
         ]
 
         for mode_id, label, tooltip in modes:
@@ -998,7 +1000,7 @@ class SelectionToolbar(QWidget):
             layout.addWidget(btn)
 
         # Set default mode
-        self._mode_buttons['single'].setChecked(True)
+        self._mode_buttons["single"].setChecked(True)
 
         layout.addStretch()
 

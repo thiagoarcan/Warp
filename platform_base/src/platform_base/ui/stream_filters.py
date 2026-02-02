@@ -39,6 +39,7 @@ from platform_base.viz.streaming import (
     ValuePredicate,
 )
 
+
 logger = get_logger(__name__)
 
 
@@ -715,7 +716,7 @@ class StreamFilter:
         self.fs = fs
         self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply filter to data.
         
@@ -743,9 +744,8 @@ class StreamFilter:
 
     def reset(self):
         """Reset filter state."""
-        pass
 
-    def get_frequency_response(self, n_points: int = 512) -> tuple["np.ndarray", "np.ndarray"]:
+    def get_frequency_response(self, n_points: int = 512) -> tuple[np.ndarray, np.ndarray]:
         """
         Get frequency response of filter.
         
@@ -807,12 +807,12 @@ class LowpassFilter(StreamFilter):
                 normalized_cutoff = 0.01
 
             self._coefficients = scipy_signal.butter(
-                self.order, normalized_cutoff, btype='low'
+                self.order, normalized_cutoff, btype="low",
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply lowpass filter to data.
         
@@ -822,7 +822,6 @@ class LowpassFilter(StreamFilter):
         Returns:
             Filtered signal array
         """
-        import numpy as np
 
         if self._coefficients is None:
             return data
@@ -874,12 +873,12 @@ class HighpassFilter(StreamFilter):
                 normalized_cutoff = 0.01
 
             self._coefficients = scipy_signal.butter(
-                self.order, normalized_cutoff, btype='high'
+                self.order, normalized_cutoff, btype="high",
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply highpass filter to data.
         
@@ -889,7 +888,6 @@ class HighpassFilter(StreamFilter):
         Returns:
             Filtered signal array
         """
-        import numpy as np
 
         if self._coefficients is None:
             return data
@@ -942,12 +940,12 @@ class BandpassFilter(StreamFilter):
             high = max(low + 0.01, min(0.99, high))
 
             self._coefficients = scipy_signal.butter(
-                self.order, [low, high], btype='band'
+                self.order, [low, high], btype="band",
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply bandpass filter to data.
         
@@ -1007,12 +1005,12 @@ class NotchFilter(StreamFilter):
                 normalized_freq = 0.01
 
             self._coefficients = scipy_signal.iirnotch(
-                normalized_freq, self.q
+                normalized_freq, self.q,
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply notch filter to data.
         
@@ -1053,7 +1051,7 @@ class MovingAverageFilter(StreamFilter):
         super().__init__(fs)
         self.window_size = max(1, window_size)
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply moving average filter to data.
         
@@ -1070,7 +1068,7 @@ class MovingAverageFilter(StreamFilter):
 
         # Use convolution for efficient moving average
         kernel = np.ones(self.window_size) / self.window_size
-        filtered = np.convolve(data, kernel, mode='same')
+        filtered = np.convolve(data, kernel, mode="same")
 
         return filtered
 
@@ -1109,7 +1107,7 @@ class FilterChain:
         """Remove all filters from the chain."""
         self._filters.clear()
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply all filters in the chain sequentially.
         
@@ -1170,7 +1168,7 @@ class FilterDialog(QWidget):
             "Highpass",
             "Bandpass",
             "Notch",
-            "Moving Average"
+            "Moving Average",
         ])
         self.filter_type_combo.currentTextChanged.connect(self._on_filter_type_changed)
         type_layout.addRow("Type:", self.filter_type_combo)
@@ -1279,31 +1277,31 @@ class FilterDialog(QWidget):
             self._current_filter = LowpassFilter(
                 cutoff=self.cutoff_spinbox.value(),
                 fs=fs,
-                order=self.order_spinbox.value()
+                order=self.order_spinbox.value(),
             )
         elif filter_type == "Highpass":
             self._current_filter = HighpassFilter(
                 cutoff=self.cutoff_spinbox.value(),
                 fs=fs,
-                order=self.order_spinbox.value()
+                order=self.order_spinbox.value(),
             )
         elif filter_type == "Bandpass":
             self._current_filter = BandpassFilter(
                 low_cutoff=self.cutoff_spinbox.value(),
                 high_cutoff=self.high_cutoff_spinbox.value(),
                 fs=fs,
-                order=self.order_spinbox.value()
+                order=self.order_spinbox.value(),
             )
         elif filter_type == "Notch":
             self._current_filter = NotchFilter(
                 freq=self.cutoff_spinbox.value(),
                 q=self.q_spinbox.value(),
-                fs=fs
+                fs=fs,
             )
         elif filter_type == "Moving Average":
             self._current_filter = MovingAverageFilter(
                 window_size=self.window_spinbox.value(),
-                fs=fs
+                fs=fs,
             )
 
         return self._current_filter

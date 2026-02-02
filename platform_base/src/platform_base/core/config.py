@@ -108,43 +108,51 @@ class ConfigChange:
     new_values: dict[str, Any] = field(default_factory=dict)
 
 
-class ConfigWatcher(FileSystemEventHandler):
-    """File watcher para hot-reload de configurações"""
+if WATCHDOG_AVAILABLE:
+    class ConfigWatcher(FileSystemEventHandler):
+        """File watcher para hot-reload de configurações"""
 
-    def __init__(self, config_manager: ConfigManager):
-        self.config_manager = config_manager
-        self.debounce_time = 0.5  # Segundos
-        self.pending_changes: dict[str, float] = {}
+        def __init__(self, config_manager: ConfigManager):
+            self.config_manager = config_manager
+            self.debounce_time = 0.5  # Segundos
+            self.pending_changes: dict[str, float] = {}
 
-    def on_modified(self, event):
-        if event.is_directory:
-            return
+        def on_modified(self, event):
+            if event.is_directory:
+                return
 
-        file_path = Path(event.src_path)
+            file_path = Path(event.src_path)
 
-        # Check if it's a config file we're watching
-        for source in self.config_manager.sources:
-            if source.path == file_path and source.watch:
-                current_time = time.time()
+            # Check if it's a config file we're watching
+            for source in self.config_manager.sources:
+                if source.path == file_path and source.watch:
+                    current_time = time.time()
 
-                # Debounce rapid changes
-                if file_path.name in self.pending_changes:
-                    if current_time - self.pending_changes[file_path.name] < self.debounce_time:
-                        continue
+                    # Debounce rapid changes
+                    if file_path.name in self.pending_changes:
+                        if current_time - self.pending_changes[file_path.name] < self.debounce_time:
+                            continue
 
-                self.pending_changes[file_path.name] = current_time
+                    self.pending_changes[file_path.name] = current_time
 
-                # Schedule reload
-                threading.Timer(self.debounce_time,
-                              self._reload_source,
-                              args=[source]).start()
+                    # Schedule reload
+                    threading.Timer(self.debounce_time,
+                                  self._reload_source,
+                                  args=[source]).start()
 
-    def _reload_source(self, source: ConfigSource):
-        """Recarrega fonte de configuração"""
-        try:
-            self.config_manager._reload_source(source)
-        except Exception as e:
-            logger.exception("config_reload_failed", source=str(source.path), error=str(e))
+        def _reload_source(self, source: ConfigSource):
+            """Recarrega fonte de configuração"""
+            try:
+                self.config_manager._reload_source(source)
+            except Exception as e:
+                logger.exception("config_reload_failed", source=str(source.path), error=str(e))
+else:
+    # Fallback when watchdog is not available
+    class ConfigWatcher:
+        """Dummy watcher when watchdog is not available"""
+        def __init__(self, config_manager: ConfigManager):
+            self.config_manager = config_manager
+            logger.warning("watchdog_not_available", message="File watching disabled - install watchdog for hot-reload support")
 
 
 class ConfigValidator:

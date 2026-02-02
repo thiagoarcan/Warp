@@ -15,7 +15,7 @@ Category 3.4 - Keyboard Shortcuts
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any
 
@@ -39,6 +39,7 @@ from PyQt6.QtWidgets import (
 
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -411,7 +412,7 @@ class ShortcutManager(QObject):
 
             # Connect generic signal
             shortcut.activated.connect(
-                lambda aid=action_id: self.shortcut_triggered.emit(aid)
+                lambda aid=action_id: self.shortcut_triggered.emit(aid),
             )
 
             self._shortcuts[action_id] = shortcut
@@ -608,10 +609,10 @@ class ShortcutsDialog(QDialog):
         ])
         self._table.horizontalHeader().setStretchLastSection(True)
         self._table.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
+            1, QHeaderView.ResizeMode.Stretch,
         )
         self._table.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
+            QTableWidget.SelectionBehavior.SelectRows,
         )
         self._table.cellDoubleClicked.connect(self._edit_shortcut)
         layout.addWidget(self._table)
@@ -633,12 +634,12 @@ class ShortcutsDialog(QDialog):
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok |
             QDialogButtonBox.StandardButton.Cancel |
-            QDialogButtonBox.StandardButton.Apply
+            QDialogButtonBox.StandardButton.Apply,
         )
         button_box.accepted.connect(self._apply_and_close)
         button_box.rejected.connect(self.reject)
         button_box.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(
-            self._apply_changes
+            self._apply_changes,
         )
         button_layout.addWidget(button_box)
 
@@ -702,7 +703,7 @@ class ShortcutsDialog(QDialog):
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok |
-            QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Cancel,
         )
         button_box.accepted.connect(dialog.accept)
         button_box.rejected.connect(dialog.reject)

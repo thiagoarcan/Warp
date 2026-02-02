@@ -19,6 +19,7 @@ from platform_base.processing.synchronization import synchronize
 from platform_base.ui.export import export_selection, export_session
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 

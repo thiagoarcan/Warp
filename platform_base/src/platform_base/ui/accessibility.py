@@ -8,40 +8,20 @@ and other accessibility features following WCAG 2.1 AA guidelines.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
 
-from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QAction, QColor, QFont, QKeySequence, QPalette, QShortcut
+from PyQt6.QtCore import QObject, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QKeySequence, QPalette, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
-    QCheckBox,
-    QComboBox,
-    QDialog,
     QDockWidget,
-    QDoubleSpinBox,
-    QGroupBox,
-    QLabel,
-    QLineEdit,
-    QListView,
     QMainWindow,
-    QMenuBar,
-    QMessageBox,
-    QPushButton,
-    QRadioButton,
-    QScrollArea,
-    QSlider,
-    QSpinBox,
-    QSplitter,
-    QStackedWidget,
-    QStatusBar,
-    QTableView,
-    QTabWidget,
     QToolBar,
-    QTreeView,
     QWidget,
 )
+
 
 # QAccessible is in QtGui on some versions, QtWidgets on others
 # Try to import from both locations
@@ -74,8 +54,6 @@ except ImportError:
                 self.widget = widget
                 self.event_type = event_type
 
-if TYPE_CHECKING:
-    from platform_base.desktop.main_window import MainWindow
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +122,7 @@ class AccessibleWidget(QObject):
         widget: QWidget,
         accessible_name: str,
         accessible_description: str = "",
-        role: Optional[str] = None,
+        role: str | None = None,
     ):
         super().__init__(widget)
         self.widget = widget
@@ -177,7 +155,7 @@ class AccessibleWidget(QObject):
         # Create accessible event
         event = QAccessibleEvent(
             self.widget,
-            QAccessible.Event.Alert if priority else QAccessible.Event.NameChanged
+            QAccessible.Event.Alert if priority else QAccessible.Event.NameChanged,
         )
         QAccessible.updateAccessibility(event)
         logger.debug(f"Accessibility announcement: {message}")
@@ -200,15 +178,15 @@ class KeyboardNavigationManager(QObject):
         self.config = config
 
         # Navigation regions in logical order
-        self._regions: List[Tuple[str, QWidget]] = []
+        self._regions: list[tuple[str, QWidget]] = []
         self._current_region_index: int = 0
 
         # Focus history for back navigation
-        self._focus_history: List[QWidget] = []
+        self._focus_history: list[QWidget] = []
         self._max_history: int = 50
 
         # Skip link shortcuts
-        self._skip_shortcuts: List[QShortcut] = []
+        self._skip_shortcuts: list[QShortcut] = []
 
         # Setup
         self._setup_focus_tracking()
@@ -234,7 +212,7 @@ class KeyboardNavigationManager(QObject):
             app.focusChanged.connect(self._on_focus_changed)
 
     def _on_focus_changed(
-        self, old_widget: Optional[QWidget], new_widget: Optional[QWidget]
+        self, old_widget: QWidget | None, new_widget: QWidget | None,
     ) -> None:
         """Handle focus change events."""
         if new_widget is None:
@@ -334,7 +312,7 @@ class KeyboardNavigationManager(QObject):
             self.navigation_region_changed.emit(name)
             logger.debug(f"Navigated to region: {name}")
 
-    def _find_first_focusable(self, widget: QWidget) -> Optional[QWidget]:
+    def _find_first_focusable(self, widget: QWidget) -> QWidget | None:
         """Find the first focusable widget."""
         if widget.focusPolicy() not in (Qt.FocusPolicy.NoFocus,):
             return widget
@@ -424,8 +402,8 @@ class ShortcutManager(QObject):
         self.main_window = main_window
 
         # Registered shortcuts
-        self._shortcuts: Dict[str, Tuple[ShortcutDefinition, QShortcut]] = {}
-        self._action_handlers: Dict[str, Callable[[], None]] = {}
+        self._shortcuts: dict[str, tuple[ShortcutDefinition, QShortcut]] = {}
+        self._action_handlers: dict[str, Callable[[], None]] = {}
 
         # Initialize default shortcuts
         self._register_defaults()
@@ -452,7 +430,7 @@ class ShortcutManager(QObject):
             existing = self._shortcuts[key][0]
             self.shortcut_conflict.emit(key, existing.action_name)
             logger.warning(
-                f"Shortcut conflict: {key} already assigned to {existing.action_name}"
+                f"Shortcut conflict: {key} already assigned to {existing.action_name}",
             )
             return False
 
@@ -460,7 +438,7 @@ class ShortcutManager(QObject):
         shortcut = QShortcut(QKeySequence(key), self.main_window)
         shortcut.setContext(definition.context)
         shortcut.activated.connect(
-            lambda name=definition.action_name: self._on_shortcut_activated(name)
+            lambda name=definition.action_name: self._on_shortcut_activated(name),
         )
         shortcut.setEnabled(definition.enabled)
 
@@ -491,16 +469,16 @@ class ShortcutManager(QObject):
         else:
             logger.debug(f"No handler for action: {action_name}")
 
-    def get_shortcut(self, action_name: str) -> Optional[str]:
+    def get_shortcut(self, action_name: str) -> str | None:
         """Get the key sequence for an action."""
         for key, (definition, _) in self._shortcuts.items():
             if definition.action_name == action_name:
                 return key
         return None
 
-    def get_shortcuts_by_category(self) -> Dict[str, List[ShortcutDefinition]]:
+    def get_shortcuts_by_category(self) -> dict[str, list[ShortcutDefinition]]:
         """Get all shortcuts organized by category."""
-        result: Dict[str, List[ShortcutDefinition]] = {}
+        result: dict[str, list[ShortcutDefinition]] = {}
 
         for _, (definition, _) in self._shortcuts.items():
             if definition.category not in result:
@@ -628,17 +606,17 @@ class HighContrastMode:
         palette.setColor(
             QPalette.ColorGroup.Disabled,
             QPalette.ColorRole.Text,
-            QColor(palette_data["disabled_text"])
+            QColor(palette_data["disabled_text"]),
         )
         palette.setColor(
             QPalette.ColorGroup.Disabled,
             QPalette.ColorRole.WindowText,
-            QColor(palette_data["disabled_text"])
+            QColor(palette_data["disabled_text"]),
         )
         palette.setColor(
             QPalette.ColorGroup.Disabled,
             QPalette.ColorRole.ButtonText,
-            QColor(palette_data["disabled_text"])
+            QColor(palette_data["disabled_text"]),
         )
 
         app.setPalette(palette)
@@ -720,10 +698,10 @@ class GraphDescriptionGenerator:
         series_name: str,
         x_label: str,
         y_label: str,
-        x_range: Tuple[float, float],
-        y_range: Tuple[float, float],
+        x_range: tuple[float, float],
+        y_range: tuple[float, float],
         point_count: int,
-        trend: Optional[str] = None,
+        trend: str | None = None,
     ) -> str:
         """
         Generate description for a line plot.
@@ -795,19 +773,19 @@ class AccessibilityManager(QObject):
     def __init__(
         self,
         main_window: QMainWindow,
-        config: Optional[AccessibilityConfig] = None,
+        config: AccessibilityConfig | None = None,
     ):
         super().__init__(main_window)
         self.main_window = main_window
         self.config = config or AccessibilityConfig()
 
         # Sub-managers
-        self.navigation: Optional[KeyboardNavigationManager] = None
-        self.shortcuts: Optional[ShortcutManager] = None
-        self.zoom: Optional[UIZoomManager] = None
+        self.navigation: KeyboardNavigationManager | None = None
+        self.shortcuts: ShortcutManager | None = None
+        self.zoom: UIZoomManager | None = None
 
         # Accessible widgets registry
-        self._accessible_widgets: Dict[int, AccessibleWidget] = {}
+        self._accessible_widgets: dict[int, AccessibleWidget] = {}
 
     def initialize(self) -> None:
         """Initialize all accessibility features."""

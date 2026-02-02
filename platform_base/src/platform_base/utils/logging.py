@@ -2,6 +2,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 try:
     import structlog
     STRUCTLOG_AVAILABLE = True

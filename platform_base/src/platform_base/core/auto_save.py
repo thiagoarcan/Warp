@@ -17,13 +17,12 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import threading
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -42,31 +41,31 @@ class BackupInfo:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'path': str(self.path),
-            'timestamp': self.timestamp.isoformat(),
-            'version': self.version,
-            'size_bytes': self.size_bytes,
-            'checksum': self.checksum,
-            'description': self.description,
+            "path": str(self.path),
+            "timestamp": self.timestamp.isoformat(),
+            "version": self.version,
+            "size_bytes": self.size_bytes,
+            "checksum": self.checksum,
+            "description": self.description,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> BackupInfo:
         """Create from dictionary."""
         return cls(
-            path=Path(data['path']),
-            timestamp=datetime.fromisoformat(data['timestamp']),
-            version=data['version'],
-            size_bytes=data['size_bytes'],
-            checksum=data['checksum'],
-            description=data.get('description', ''),
+            path=Path(data["path"]),
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            version=data["version"],
+            size_bytes=data["size_bytes"],
+            checksum=data["checksum"],
+            description=data.get("description", ""),
         )
 
 
 class AutoSaveStatus:
     """Status of auto-save system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.last_save: datetime | None = None
         self.next_save: datetime | None = None
         self.is_saving = False
@@ -84,6 +83,7 @@ class AutoSaveManager:
 
     _instance: AutoSaveManager | None = None
     _lock = threading.Lock()
+    _initialized: bool = False
 
     def __new__(cls) -> AutoSaveManager:
         if cls._instance is None:
@@ -93,7 +93,7 @@ class AutoSaveManager:
                     cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
 
@@ -145,9 +145,9 @@ class AutoSaveManager:
         metadata_path = self._backup_dir / "metadata.json"
         if metadata_path.exists():
             try:
-                with open(metadata_path, 'r', encoding='utf-8') as f:
+                with open(metadata_path, encoding="utf-8") as f:
                     data = json.load(f)
-                    self._current_version = data.get('current_version', 0)
+                    self._current_version = data.get("current_version", 0)
             except Exception:
                 pass
 
@@ -157,8 +157,8 @@ class AutoSaveManager:
             return
 
         metadata_path = self._backup_dir / "metadata.json"
-        with open(metadata_path, 'w', encoding='utf-8') as f:
-            json.dump({'current_version': self._current_version}, f)
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump({"current_version": self._current_version}, f)
 
     def set_save_callback(self, callback: Callable[[Path], bool]) -> None:
         """
@@ -312,8 +312,8 @@ class AutoSaveManager:
                 )
 
                 # Save info file
-                info_path = backup_path.with_suffix('.json')
-                with open(info_path, 'w', encoding='utf-8') as f:
+                info_path = backup_path.with_suffix(".json")
+                with open(info_path, "w", encoding="utf-8") as f:
                     json.dump(info.to_dict(), f, indent=2)
 
                 # Update status
@@ -340,8 +340,8 @@ class AutoSaveManager:
     def _calculate_checksum(self, path: Path) -> str:
         """Calculate MD5 checksum of file."""
         hash_md5 = hashlib.md5()
-        with open(path, 'rb') as f:
-            for chunk in iter(lambda: f.read(4096), b''):
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
@@ -357,7 +357,7 @@ class AutoSaveManager:
         for old_backup in backups[self._max_versions:]:
             try:
                 old_backup.path.unlink()
-                info_path = old_backup.path.with_suffix('.json')
+                info_path = old_backup.path.with_suffix(".json")
                 if info_path.exists():
                     info_path.unlink()
             except Exception:
@@ -369,7 +369,7 @@ class AutoSaveManager:
             if backup.timestamp < cutoff:
                 try:
                     backup.path.unlink()
-                    info_path = backup.path.with_suffix('.json')
+                    info_path = backup.path.with_suffix(".json")
                     if info_path.exists():
                         info_path.unlink()
                 except Exception:
@@ -388,9 +388,9 @@ class AutoSaveManager:
         backups = []
         for info_path in self._backup_dir.glob("backup_*.json"):
             try:
-                with open(info_path, 'r', encoding='utf-8') as f:
+                with open(info_path, encoding="utf-8") as f:
                     data = json.load(f)
-                    backup_path = Path(data['path'])
+                    backup_path = Path(data["path"])
                     if backup_path.exists():
                         backups.append(BackupInfo.from_dict(data))
             except Exception:

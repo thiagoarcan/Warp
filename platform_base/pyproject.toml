@@ -74,6 +74,17 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "debug_app.py",
+    "demo_*.py",
+    "docs/examples/",
+]
 
 [tool.ruff.lint]
 select = [

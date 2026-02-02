@@ -10,8 +10,16 @@ Tests for:
 import pytest
 from pydantic import ValidationError
 
-from platform_base.api.server import InterpolationRequest, ViewRequest, create_app
-from platform_base.core.dataset_store import DatasetStore
+try:
+    from platform_base.api.server import FASTAPI_AVAILABLE
+except ImportError:
+    FASTAPI_AVAILABLE = False
+
+if FASTAPI_AVAILABLE:
+    from platform_base.api.server import InterpolationRequest, ViewRequest, create_app
+    from platform_base.core.dataset_store import DatasetStore
+
+pytestmark = pytest.mark.skipif(not FASTAPI_AVAILABLE, reason="FastAPI not installed")
 
 
 class TestInterpolationRequest:

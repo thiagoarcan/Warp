@@ -15,16 +15,12 @@ Features:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QLabel, QMessageBox, QWidget
 
-from platform_base.core.auto_save import AutoSaveManager, AutoSaveStatus, get_auto_save_manager
+from platform_base.core.auto_save import AutoSaveStatus, get_auto_save_manager
 from platform_base.utils.logging import get_logger
-
-if TYPE_CHECKING:
-    pass
 
 
 logger = get_logger(__name__)
@@ -43,20 +39,20 @@ class AutoSaveIndicator(QLabel):
 
     # Status icons (using unicode symbols)
     ICONS = {
-        'saved': '✓',           # Checkmark
-        'unsaved': '●',         # Dot
-        'saving': '⟳',          # Circular arrow
-        'error': '✗',           # X mark
-        'disabled': '○',        # Empty circle
+        "saved": "✓",           # Checkmark
+        "unsaved": "●",         # Dot
+        "saving": "⟳",          # Circular arrow
+        "error": "✗",           # X mark
+        "disabled": "○",        # Empty circle
     }
 
     # Colors
     COLORS = {
-        'saved': '#2ecc71',      # Green
-        'unsaved': '#f39c12',    # Orange
-        'saving': '#3498db',     # Blue
-        'error': '#e74c3c',      # Red
-        'disabled': '#95a5a6',   # Gray
+        "saved": "#2ecc71",      # Green
+        "unsaved": "#f39c12",    # Orange
+        "saving": "#3498db",     # Blue
+        "error": "#e74c3c",      # Red
+        "disabled": "#95a5a6",   # Gray
     }
 
     def __init__(self, parent: QWidget | None = None):
@@ -101,19 +97,19 @@ class AutoSaveIndicator(QLabel):
 
         # Determine current state
         if not self._auto_save_manager.is_enabled:
-            state = 'disabled'
+            state = "disabled"
             text = f"{self.ICONS['disabled']} Auto-save disabled"
 
         elif status.is_saving:
-            state = 'saving'
+            state = "saving"
             text = f"{self.ICONS['saving']} Saving..."
 
         elif status.last_error:
-            state = 'error'
+            state = "error"
             text = f"{self.ICONS['error']} Save failed"
 
         elif status.unsaved_changes:
-            state = 'unsaved'
+            state = "unsaved"
             if status.next_save:
                 seconds_until = (status.next_save - datetime.now()).total_seconds()
                 if seconds_until > 0:
@@ -124,7 +120,7 @@ class AutoSaveIndicator(QLabel):
                 text = f"{self.ICONS['unsaved']} Unsaved changes"
 
         else:
-            state = 'saved'
+            state = "saved"
             if status.last_save:
                 elapsed = (datetime.now() - status.last_save).total_seconds()
                 if elapsed < 60:

@@ -34,6 +34,7 @@ from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -316,7 +317,7 @@ class VizPanel(QWidget, UiLoaderMixin):
     
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "desktop/ui_files/vizPanel.ui"
 
@@ -341,7 +342,6 @@ class VizPanel(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        pass
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
@@ -742,7 +742,7 @@ class VizPanel(QWidget, UiLoaderMixin):
                     widget.plot_trajectory_3d(x_data, y_data, z_data, dataset.t_seconds)
                     logger.info("3d_plot_rendered", series_count=len(plot_info["series"]))
                 elif len(plot_info["series"]) < 3:
-                    logger.info("3d_plot_waiting", 
+                    logger.info("3d_plot_waiting",
                                current=len(plot_info["series"]),
                                needed=3,
                                message=f"Adicione mais {3 - len(plot_info['series'])} série(s) para renderizar plot 3D")

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
 try:
     import pyvista as pv
     import vtk
@@ -33,6 +34,7 @@ except ImportError:
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure
 from platform_base.viz.config import ColorScale, VizConfig
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset, Series
@@ -830,7 +832,7 @@ def get_available_colormaps() -> list:
         "viridis", "plasma", "inferno", "magma", "cividis",
         "hot", "cool", "coolwarm", "jet", "rainbow",
         "gray", "bone", "copper", "spring", "summer",
-        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn"
+        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn",
     ]
 
 

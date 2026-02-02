@@ -25,8 +25,9 @@ from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable
 
 logger = get_logger(__name__)
 
@@ -86,12 +87,12 @@ class LRUCache(Generic[T]):
                 return
 
             # Libera espaço se necessário
-            while (len(self._cache) >= self._max_size or 
+            while (len(self._cache) >= self._max_size or
                    self._current_memory + size_bytes > self._max_memory_bytes):
                 if not self._cache:
                     break
                 _, old_value = self._cache.popitem(last=False)
-                if hasattr(old_value, 'nbytes'):
+                if hasattr(old_value, "nbytes"):
                     self._current_memory -= old_value.nbytes
 
             # Adiciona novo item
@@ -103,7 +104,7 @@ class LRUCache(Generic[T]):
         with self._lock:
             if key in self._cache:
                 value = self._cache.pop(key)
-                if hasattr(value, 'nbytes'):
+                if hasattr(value, "nbytes"):
                     self._current_memory -= value.nbytes
                 return True
             return False
@@ -138,7 +139,7 @@ class ChunkLoader(QThread):
         load_func: Callable[[int, int], np.ndarray],
         start_index: int,
         end_index: int,
-        parent: QObject | None = None
+        parent: QObject | None = None,
     ):
         super().__init__(parent)
         self.chunk_id = chunk_id
@@ -421,7 +422,7 @@ class LazyCSVReader(LazyFileReader):
         import csv
 
         # Conta linhas e obtém colunas
-        with open(self.file_path, 'r', encoding=self.encoding) as f:
+        with open(self.file_path, encoding=self.encoding) as f:
             reader = csv.reader(f, delimiter=self.delimiter)
             self._columns = next(reader)  # Header
             self._total_rows = sum(1 for _ in reader)
@@ -524,7 +525,7 @@ def create_lazy_array(
     """
     suffix = file_path.suffix.lower()
 
-    if suffix == '.csv':
+    if suffix == ".csv":
         reader = LazyCSVReader(file_path, chunk_size)
     else:
         raise ValueError(f"Unsupported file format: {suffix}")

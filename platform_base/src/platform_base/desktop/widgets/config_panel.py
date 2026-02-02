@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -241,7 +242,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
     
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "desktop/ui_files/configPanel.ui"
 
@@ -264,7 +265,6 @@ class ConfigPanel(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        pass
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
@@ -446,7 +446,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
 
         except Exception as e:
             logger.exception(f"Preview failed: {e}")
-            self.status_label.setText(f"Preview failed: {str(e)}")
+            self.status_label.setText(f"Preview failed: {e!s}")
 
     @pyqtSlot(object)
     def _on_selection_changed(self, selection_state):

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from platform_base.utils.errors import ValidationError
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -34,7 +35,7 @@ class Orchestrator:
         self._tasks[task.name] = task
 
     def _call_task_func(
-        self, task: Task, results: dict[str, Any], inputs: dict[str, Any]
+        self, task: Task, results: dict[str, Any], inputs: dict[str, Any],
     ) -> Any:
         """Call task function with proper argument passing.
         
@@ -54,15 +55,14 @@ class Orchestrator:
 
         # Check if param names match dep names
         deps_set = set(task.deps)
-        params_match = all(p in deps_set for p in param_names if p not in ('args', 'kwargs'))
+        params_match = all(p in deps_set for p in param_names if p not in ("args", "kwargs"))
 
         if params_match:
             # Use kwargs when parameter names match dependency names
             kwargs = {dep: results.get(dep, inputs.get(dep)) for dep in task.deps}
             return task.func(**kwargs)
-        else:
-            # Use positional args when parameter names don't match
-            return task.func(*dep_values)
+        # Use positional args when parameter names don't match
+        return task.func(*dep_values)
 
     def run(self, inputs: dict[str, Any] | None = None) -> dict[str, Any]:
         inputs = inputs or {}

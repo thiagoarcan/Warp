@@ -40,16 +40,15 @@ def qapp() -> Generator[QApplication, None, None]:
     This fixture is session-scoped to avoid creating multiple QApplication
     instances, which would cause Qt errors.
     """
-    # Check if running in CI without display
-    if os.environ.get("CI") and not os.environ.get("DISPLAY"):
-        pytest.skip("Skipping GUI tests in CI without display")
-
+    from PyQt6.QtCore import Qt
     from PyQt6.QtWidgets import QApplication
 
     # Use existing app if available
     app = QApplication.instance()
     if app is None:
-        app = QApplication([])
+        # Set attributes before creating app for offscreen rendering
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts, False)
+        app = QApplication(["--platform", "offscreen"])
 
     yield app
 
