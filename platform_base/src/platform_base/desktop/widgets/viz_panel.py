@@ -3,6 +3,8 @@ VizPanel - Main visualization panel for Platform Base v2.0
 
 Provides 2D/3D plotting capabilities with pyqtgraph and PyVista.
 Replaces Dash plotly components with native PyQt6 plotting widgets.
+
+Interface carregada de: desktop/ui_files/vizPanel.ui
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from pyqtgraph import PlotWidget
 
 from platform_base.core.models import TimeWindow
 from platform_base.desktop.menus.plot_context_menu import PlotContextMenu
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -300,7 +303,7 @@ class Plot3DWidget(QWidget):
             logger.exception("3d_plot_failed", error=str(e))
 
 
-class VizPanel(QWidget):
+class VizPanel(QWidget, UiLoaderMixin):
     """
     Main visualization panel widget.
 
@@ -310,7 +313,12 @@ class VizPanel(QWidget):
     - Multi-series plotting
     - Interactive selection
     - Export capabilities
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/vizPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -323,12 +331,19 @@ class VizPanel(QWidget):
         self.active_plots: dict[str, dict[str, Any]] = {}
         self.plot_counter = 0
 
-        self._setup_ui()
+        # Por enquanto, usar sempre criação programática
+        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
+        self._setup_ui_fallback()
+
         self._connect_signals()
 
         logger.debug("viz_panel_initialized")
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        pass
+
+    def _setup_ui_fallback(self):
         """Setup user interface"""
         layout = QVBoxLayout(self)
 

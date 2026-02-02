@@ -2,6 +2,8 @@
 ResultsPanel - Results and logging panel for Platform Base v2.0
 
 Displays operation results, logs, and data quality metrics.
+
+Interface carregada de: desktop/ui_files/resultsPanel.ui
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 if TYPE_CHECKING:
@@ -209,7 +212,7 @@ class ResultsTable(QTableWidget):
         self.scrollToItem(self.item(row, 0))
 
 
-class ResultsPanel(QWidget):
+class ResultsPanel(QWidget, UiLoaderMixin):
     """
     Results and logging panel.
 
@@ -218,7 +221,12 @@ class ResultsPanel(QWidget):
     - Real-time logging display
     - Data quality metrics
     - Export capabilities
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/resultsPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -227,7 +235,10 @@ class ResultsPanel(QWidget):
         self.session_state = session_state
         self.signal_hub = signal_hub
 
-        self._setup_ui()
+        # Por enquanto, usar sempre criação programática
+        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
+        self._setup_ui_fallback()
+
         self._connect_signals()
 
         # Start log polling timer
@@ -235,7 +246,11 @@ class ResultsPanel(QWidget):
 
         logger.debug("results_panel_initialized")
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        pass
+
+    def _setup_ui_fallback(self):
         """Setup user interface"""
         layout = QVBoxLayout(self)
 

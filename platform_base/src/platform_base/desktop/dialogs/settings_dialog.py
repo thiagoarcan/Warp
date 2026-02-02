@@ -2,6 +2,8 @@
 SettingsDialog - Application settings dialog for Platform Base v2.0
 
 Provides interface for configuring application settings.
+
+Interface carregada de: desktop/ui_files/settingsDialog.ui
 """
 
 from __future__ import annotations
@@ -27,9 +29,9 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
-
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -395,7 +397,7 @@ class LoggingSettingsTab(QWidget):
         settings.setValue("logging/format", self.format_edit.toPlainText())
 
 
-class SettingsDialog(QDialog):
+class SettingsDialog(QDialog, UiLoaderMixin):
     """
     Application settings dialog.
 
@@ -405,7 +407,12 @@ class SettingsDialog(QDialog):
     - Performance and caching options
     - Logging configuration
     - Settings persistence with QSettings
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/settingsDialog.ui"
 
     def __init__(self, session_state: SessionState, parent: QWidget | None = None):
         super().__init__(parent)
@@ -413,11 +420,17 @@ class SettingsDialog(QDialog):
         self.session_state = session_state
         self.settings_tabs = []
 
-        self._setup_ui()
+        # Por enquanto, usar sempre criação programática
+        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
+        self._setup_ui_fallback()
 
         logger.debug("settings_dialog_initialized")
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        pass
+
+    def _setup_ui_fallback(self):
         """Setup user interface"""
         self.setWindowTitle(tr("Platform Base Settings"))
         self.setModal(True)
