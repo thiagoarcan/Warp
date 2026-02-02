@@ -3,6 +3,8 @@ DataPanel - Dataset and series management widget for Platform Base v2.0
 
 Provides tree view of datasets and series with selection capabilities.
 Replaces Dash data selection components with native PyQt6 tree widget.
+
+Interface carregada de: desktop/ui_files/dataPanel.ui
 """
 
 from __future__ import annotations
@@ -18,11 +20,13 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QTabWidget,
     QTextEdit,
+    QTreeView,
     QVBoxLayout,
     QWidget,
 )
 
 from platform_base.desktop.models.dataset_model import DatasetTreeModel
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -36,7 +40,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class DataPanel(QWidget):
+class DataPanel(QWidget, UiLoaderMixin):
     """
     Data management panel widget.
 
@@ -45,7 +49,12 @@ class DataPanel(QWidget):
     - Dataset/series selection
     - Data summary information
     - Import/export actions
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/dataPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -54,13 +63,60 @@ class DataPanel(QWidget):
         self.session_state = session_state
         self.signal_hub = signal_hub
 
-        self._setup_ui()
+        # Carregar interface do arquivo .ui
+        if not self._load_ui():
+            # Fallback para criação programática se .ui falhar
+            logger.warning("ui_load_failed_using_fallback", cls="DataPanel")
+            self._setup_ui_fallback()
+        else:
+            # Configurar widgets carregados do .ui
+            self._setup_ui_from_file()
+
         self._connect_signals()
 
         logger.debug("data_panel_initialized")
 
-    def _setup_ui(self):
-        """Setup user interface"""
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Os widgets já existem como atributos (criados pelo uic.loadUi)
+        # Aqui apenas configuramos o modelo da tree e comportamentos dinâmicos
+        
+        # Configurar tree model
+        self.tree_model = DatasetTreeModel(self.session_state.dataset_store)
+        self.dataTree.setModel(self.tree_model)
+        
+        # Configurar selection model
+        self.dataTree.selectionModel().selectionChanged.connect(self._on_tree_selection_changed)
+        self.dataTree.doubleClicked.connect(self._on_item_double_clicked)
+        
+        # Configurar colunas do header
+        header = self.dataTree.header()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for i in range(1, 5):
+            if i < header.count():
+                header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
+        
+        # Conectar botões
+        self.loadBtn.clicked.connect(self._load_data)
+        self.removeBtn.clicked.connect(self._remove_selected)
+        self.refreshBtn.clicked.connect(self._refresh_data)
+        
+        # Manter referências com nomes usados no código existente
+        self.data_tree = self.dataTree
+        self.load_btn = self.loadBtn
+        self.remove_btn = self.removeBtn
+        self.refresh_btn = self.refreshBtn
+        self.info_tabs = self.infoTabs
+        self.summary_text = self.summaryText
+        self.metadata_text = self.metadataText
+        self.quality_text = self.qualityText
+        
+        # Set initial summary
+        self._update_summary()
+
+    def _setup_ui_fallback(self):
+        """Fallback: Setup UI programaticamente se arquivo .ui não carregar"""
         layout = QVBoxLayout(self)
 
         # Data tree section
@@ -68,7 +124,6 @@ class DataPanel(QWidget):
         tree_layout = QVBoxLayout(tree_group)
 
         # Tree view with model
-        from PyQt6.QtWidgets import QTreeView
         self.data_tree = QTreeView()
         self.tree_model = DatasetTreeModel(self.session_state.dataset_store)
         self.data_tree.setModel(self.tree_model)

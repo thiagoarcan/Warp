@@ -9,8 +9,8 @@ Este script executa:
 4. Validação de integridade completa
 """
 
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 

@@ -29,6 +29,7 @@
 ### Arquivos .ui Gerados (104 total)
 
 #### MainWindows & Dialogs (16 arquivos)
+
 - modernMainWindow.ui
 - settingsDialog.ui
 - aboutDialog.ui
@@ -37,9 +38,10 @@
 - compareSeriesDialog.ui
 - smoothingDialog.ui
 - annotationDialog.ui
-- + 8 mais
+- - 8 mais
 
 #### Widgets & Painéis (45 arquivos)
+
 - vizPanel.ui
 - dataPanel.ui
 - configPanel.ui
@@ -48,29 +50,32 @@
 - multiViewSynchronizer.ui
 - selectionSync.ui
 - streamingControlWidget.ui
-- + 37 mais
+- - 37 mais
 
 #### Diálogos de Operações (20 arquivos)
+
 - interpolationDialog.ui
 - derivativeDialog.ui
 - integralDialog.ui
 - filterDialog.ui
 - calculusDialog.ui
 - synchronizationDialog.ui
-- + 14 mais
+- - 14 mais
 
 #### Componentes de Acessibilidade (12 arquivos)
+
 - accessibleWidget.ui
 - keyboardNavigationManager.ui
 - shortcutManager.ui
-- + 9 mais
+- - 9 mais
 
 #### Outros Componentes (11 arquivos)
+
 - autoSaveIndicator.ui
 - memoryIndicator.ui
 - logWidget.ui
 - resultsTable.ui
-- + 7 mais
+- - 7 mais
 
 ### Próximas Etapas (Para Refinamento)
 

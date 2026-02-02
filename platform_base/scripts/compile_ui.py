@@ -4,10 +4,11 @@ Build system para compilar arquivos .ui do Qt Designer em Python
 Converte arquivos .ui em módulos Python usando pyuic6
 """
 
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 from typing import List
+
 
 def compile_ui_files(ui_dir: Path, output_dir: Path) -> List[str]:
     """

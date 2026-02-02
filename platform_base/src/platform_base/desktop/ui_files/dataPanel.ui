@@ -1,24 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>DataPanel</class>
- <widget class="QDialog" name="dataPanel">
+ <widget class="QWidget" name="DataPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>350</width>
     <height>600</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>250</width>
+    <height>400</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Data Panel</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>6</number>
+   </property>
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="topMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
+   <property name="bottomMargin">
+    <number>6</number>
+   </property>
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>UI for DataPanel</string>
+    <widget class="QGroupBox" name="treeGroup">
+     <property name="title">
+      <string>Datasets &amp; Series</string>
      </property>
+     <layout class="QVBoxLayout" name="treeLayout">
+      <item>
+       <widget class="QTreeView" name="dataTree">
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
+        <property name="rootIsDecorated">
+         <bool>true</bool>
+        </property>
+        <property name="uniformRowHeights">
+         <bool>true</bool>
+        </property>
+        <property name="animated">
+         <bool>true</bool>
+        </property>
+        <attribute name="headerStretchLastSection">
+         <bool>false</bool>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="treeButtons">
+        <item>
+         <widget class="QPushButton" name="loadBtn">
+          <property name="text">
+           <string>Load Data</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeBtn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Remove</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="refreshBtn">
+          <property name="text">
+           <string>Refresh</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="infoGroup">
+     <property name="title">
+      <string>Data Information</string>
+     </property>
+     <layout class="QVBoxLayout" name="infoLayout">
+      <item>
+       <widget class="QTabWidget" name="infoTabs">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="summaryTab">
+         <attribute name="title">
+          <string>Summary</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="summaryLayout">
+          <item>
+           <widget class="QTextEdit" name="summaryText">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>150</height>
+             </size>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="metadataTab">
+         <attribute name="title">
+          <string>Metadata</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="metadataLayout">
+          <item>
+           <widget class="QTextEdit" name="metadataText">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>150</height>
+             </size>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="qualityTab">
+         <attribute name="title">
+          <string>Quality</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="qualityLayout">
+          <item>
+           <widget class="QTextEdit" name="qualityText">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>150</height>
+             </size>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

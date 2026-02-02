@@ -4,8 +4,8 @@
 Validação Final Simples - Verificar que Fases 1, 2 e 3 estão prontas
 """
 
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 

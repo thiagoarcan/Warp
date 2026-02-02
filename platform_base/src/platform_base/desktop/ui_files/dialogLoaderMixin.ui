@@ -1,28 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>DialogLoaderMixin</class>
- <widget class="QDialog" name="dialogLoaderMixin">
+ <widget class="QDialog" name="DialogLoaderMixin">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>600</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog Loader Mixin</string>
+   <string>DialogLoaderMixin</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="mainLayout">
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>UI for DialogLoaderMixin</string>
+    <widget class="QWidget" name="contentWidget">
+     <layout class="QVBoxLayout" name="contentLayout"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DialogLoaderMixin</receiver>
+   <slot>accept()</slot>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>DialogLoaderMixin</receiver>
+   <slot>reject()</slot>
+  </connection>
+ </connections>
 </ui>

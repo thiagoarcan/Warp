@@ -1,23 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ConfigPanel</class>
- <widget class="QWidget" name="configPanel">
+ <widget class="QWidget" name="ConfigPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>350</width>
+    <height>500</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Config Panel</string>
+  <property name="minimumSize">
+   <size>
+    <width>280</width>
+    <height>400</height>
+   </size>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <property name="windowTitle">
+   <string>Configuration Panel</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QGroupBox" name="operationGroup">
+     <property name="title">
+      <string>Operation</string>
+     </property>
+     <layout class="QFormLayout" name="operationFormLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="operationLabel">
+        <property name="text">
+         <string>Type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="operationCombo">
+        <item>
+         <property name="text">
+          <string>Interpolation</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Derivative</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Integral</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Smoothing</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Filter</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="configTabs">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="interpTab">
+      <attribute name="title">
+       <string>Interpolation</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="interpTabLayout">
+       <item>
+        <widget class="QWidget" name="interpWidget"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="calculusTab">
+      <attribute name="title">
+       <string>Calculus</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="calculusTabLayout">
+       <item>
+        <widget class="QWidget" name="calculusWidget"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="syncTab">
+      <attribute name="title">
+       <string>Synchronization</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="syncTabLayout">
+       <item>
+        <widget class="QWidget" name="syncWidget"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonsLayout">
+     <item>
+      <widget class="QPushButton" name="executeBtn">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Execute</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="previewBtn">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Preview</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="historyGroup">
+     <property name="title">
+      <string>Operation History</string>
+     </property>
+     <layout class="QVBoxLayout" name="historyLayout">
+      <item>
+       <widget class="QTextEdit" name="historyList">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusLabel">
      <property name="text">
-      <string>UI for ConfigPanel</string>
+      <string>Ready</string>
      </property>
     </widget>
    </item>
