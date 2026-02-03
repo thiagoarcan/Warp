@@ -33,7 +33,6 @@ from platform_base.ui.panels.operations_panel import OperationsPanel
 from platform_base.ui.panels.viz_panel import VizPanel
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.ui.state import SessionState
 
@@ -490,6 +489,8 @@ class ModernMainWindow(QMainWindow):
         # Connect panel signals
         if self._data_panel:
             self._data_panel.dataset_loaded.connect(self._on_dataset_loaded)
+            if self._viz_panel and hasattr(self._viz_panel, "create_plot_for_series"):
+                self._data_panel.plot_requested.connect(self._viz_panel.create_plot_for_series)
 
         # Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
@@ -911,6 +912,9 @@ class ModernMainWindow(QMainWindow):
                 # Convert to list of ints
                 try:
                     sizes = [int(s) for s in splitter_sizes]
+                    # CORREÇÃO: Garantir que nenhum tamanho seja 0
+                    min_sizes = [300, 800, 200]  # Tamanhos mínimos para cada painel
+                    sizes = [max(size, min_size) for size, min_size in zip(sizes, min_sizes)]
                     self._main_splitter.setSizes(sizes)
                 except (ValueError, TypeError):
                     pass
@@ -919,24 +923,66 @@ class ModernMainWindow(QMainWindow):
             if splitter_state:
                 self._main_splitter.restoreState(splitter_state)
 
-        # Restore panel visibility
-        data_visible = settings.value("panels/data_panel_visible", True, type=bool)
-        viz_visible = settings.value("panels/viz_panel_visible", True, type=bool)
-        ops_visible = settings.value("panels/operations_panel_visible", True, type=bool)
-
+        # CORREÇÃO: Sempre forçar todos os painéis visíveis!
+        # Configurações anteriores podem ter deixado painéis ocultos incorretamente
         if self._data_panel:
-            self._data_panel.setVisible(data_visible)
+            self._data_panel.setVisible(True)
+            self._data_panel.show()  # Força show() explicitamente
         if self._viz_panel:
-            self._viz_panel.setVisible(viz_visible)
+            self._viz_panel.setVisible(True)
+            self._viz_panel.show()
         if self._operations_panel:
-            self._operations_panel.setVisible(ops_visible)
+            self._operations_panel.setVisible(True)
+            self._operations_panel.show()
 
         # Restore operations panel tab index if applicable
         if self._operations_panel and hasattr(self._operations_panel, "setCurrentIndex"):
             tab_index = settings.value("panels/operations_tab_index", 0, type=int)
             self._operations_panel.setCurrentIndex(tab_index)
 
+        # CORREÇÃO: Garantir que todos os widgets filhos dos painéis estejam visíveis
+        self._ensure_panel_widgets_visible()
+
         logger.debug("layout_restored")
+
+    def _ensure_panel_widgets_visible(self):
+        """Garante que todos os widgets dos painéis estejam visíveis
+        
+        CORREÇÃO: Após restaurar o layout, alguns widgets podem ficar ocultos
+        devido a estados salvos anteriormente. Este método percorre a hierarquia
+        de widgets e garante que todos estejam visíveis.
+        """
+        def show_all_children(widget):
+            """Recursivamente mostra todos os widgets filhos"""
+            if widget is None:
+                return
+            
+            # Mostra este widget
+            widget.setVisible(True)
+            widget.show()
+            
+            # Processa todos os filhos
+            for child in widget.findChildren(QWidget):
+                if hasattr(child, 'setVisible'):
+                    child.setVisible(True)
+                    child.show()
+        
+        # Aplicar aos painéis principais
+        if self._data_panel:
+            show_all_children(self._data_panel)
+            
+        if self._viz_panel:
+            show_all_children(self._viz_panel)
+            
+        if self._operations_panel:
+            show_all_children(self._operations_panel)
+        
+        # Forçar atualização do layout
+        if self._main_splitter:
+            self._main_splitter.update()
+        
+        self.update()
+        logger.debug("panel_widgets_visibility_ensured")
 
     def _clear_cache(self):
         """Limpa cache"""

@@ -46,7 +46,6 @@ from platform_base.ui.panels.performance import (
 )
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.ui.state import SessionState
 
@@ -1886,6 +1885,10 @@ class ModernVizPanel(QWidget):
 
         except Exception as e:
             logger.exception(f"plot_creation_failed: series={series_id}, type={plot_type}, error={e}")
+
+    def create_plot_for_series(self, dataset_id: str, series_id: str, plot_type: str):
+        """Cria gráfico para série específica (API pública)"""
+        self._create_plot(dataset_id, series_id, plot_type)
 
     def _create_plot_widget(self, series, plot_type: str) -> QWidget:
         """Cria widget de gráfico REAL usando matplotlib"""

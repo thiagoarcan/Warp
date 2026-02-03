@@ -15,13 +15,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from PyQt6.QtCore import (
-    QPoint,
-    Qt,
-    QThread,
-    pyqtSignal,
-    pyqtSlot,
-)
+from PyQt6.QtCore import QPoint, Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QAction, QColor, QFont
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -49,7 +43,6 @@ from platform_base.io.loader import LoadConfig
 from platform_base.ui.workers.file_worker import FileLoadWorker
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
     from platform_base.ui.state import SessionState
@@ -72,6 +65,7 @@ class CompactDataPanel(QWidget):
     # Signals
     dataset_loaded = pyqtSignal(str)  # dataset_id
     series_selected = pyqtSignal(str, str)  # dataset_id, series_id
+    plot_requested = pyqtSignal(str, str, str)  # dataset_id, series_id, plot_type
 
     def __init__(self, session_state: SessionState):
         super().__init__()
@@ -367,19 +361,50 @@ class CompactDataPanel(QWidget):
         self.session_state.dataset_changed.connect(self._on_dataset_changed)
         self.session_state.operation_started.connect(self._on_operation_started)
         self.session_state.operation_finished.connect(self._on_operation_finished)
+        
+        # Flag para evitar chamadas recursivas
+        self._updating_ui = False
+        
+        logger.debug("data_panel_connections_setup_completed")
 
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
-        """Handler para mudança de dataset"""
+        """Handler para mudança de dataset - COM PROTEÇÃO CONTRA RECURSÃO"""
+        # Evitar chamadas duplicadas que causam travamento
+        if self._updating_ui:
+            logger.debug("_on_dataset_changed_SKIPPED_recursive", dataset_id=dataset_id)
+            return
+            
+        logger.debug("_on_dataset_changed_START", dataset_id=dataset_id)
         if dataset_id:
             try:
+                self._updating_ui = True
+                
+                logger.debug("getting_dataset_from_session")
                 self._current_dataset = self.session_state.get_dataset(dataset_id)
-                self._update_datasets_list()  # Atualizar lista de datasets
+                logger.debug("got_dataset", has_dataset=self._current_dataset is not None)
+                
+                logger.debug("updating_datasets_list")
+                self._update_datasets_list()
+                logger.debug("datasets_list_updated")
+                
+                logger.debug("updating_dataset_info")
                 self._update_dataset_info()
+                logger.debug("dataset_info_updated")
+                
+                logger.debug("updating_series_tree")
                 self._update_series_tree()
+                logger.debug("series_tree_updated")
+                
+                logger.debug("updating_data_table")
                 self._update_data_table()
+                logger.debug("data_table_updated")
+                
+                logger.debug("_on_dataset_changed_COMPLETE", dataset_id=dataset_id)
             except Exception as e:
                 logger.exception("dataset_change_failed", dataset_id=dataset_id, error=str(e))
+            finally:
+                self._updating_ui = False
         else:
             self._current_dataset = None
             self._clear_ui()
@@ -449,13 +474,16 @@ class CompactDataPanel(QWidget):
                         # Remover arquivos grandes da lista
                         valid_files = [f for f in valid_files if f not in [lf[0] for lf in large_files]]
 
-                # Carregar arquivos válidos
-                for file_path in valid_files:
-                    self.load_dataset(file_path)
+                # Carregar arquivos válidos EM PARALELO
+                if valid_files:
+                    self.load_datasets_parallel(valid_files)
 
     def _validate_file(self, file_path: str) -> dict:
         """
-        Valida arquivo antes do carregamento
+        Valida arquivo antes do carregamento - VERSÃO ULTRA SIMPLIFICADA
+
+        Apenas verifica existência, extensão e tamanho.
+        Validação de conteúdo é feita no worker thread.
 
         Returns:
             dict com:
@@ -471,160 +499,121 @@ class CompactDataPanel(QWidget):
             "large_file": False,
         }
 
-        path = Path(file_path)
-
-        # 1. Verificar se arquivo existe
-        if not path.exists():
-            result["error"] = "Arquivo não encontrado"
-            return result
-
-        # 2. Verificar se é arquivo (não diretório)
-        if not path.is_file():
-            result["error"] = "Não é um arquivo válido"
-            return result
-
-        # 3. Verificar extensão
-        valid_extensions = {".csv", ".xlsx", ".xls", ".parquet", ".pq", ".h5", ".hdf5"}
-        if path.suffix.lower() not in valid_extensions:
-            result["error"] = f"Formato não suportado: {path.suffix}"
-            return result
-
-        # 4. Verificar tamanho
         try:
+            path = Path(file_path)
+
+            # 1. Verificar se arquivo existe
+            if not path.exists():
+                result["error"] = "Arquivo não encontrado"
+                return result
+
+            # 2. Verificar se é arquivo (não diretório)
+            if not path.is_file():
+                result["error"] = "Não é um arquivo válido"
+                return result
+
+            # 3. Verificar extensão
+            valid_extensions = {".csv", ".xlsx", ".xls", ".parquet", ".pq", ".h5", ".hdf5"}
+            if path.suffix.lower() not in valid_extensions:
+                result["error"] = f"Formato não suportado: {path.suffix}"
+                return result
+
+            # 4. Verificar tamanho (única operação de I/O)
             size_bytes = path.stat().st_size
             result["size_mb"] = size_bytes / (1024 * 1024)
 
-            # Arquivo vazio
             if size_bytes == 0:
                 result["error"] = "Arquivo vazio"
                 return result
 
-            # Arquivo muito grande (>500MB pode ter problemas de memória)
             if result["size_mb"] > 500:
-                result["error"] = f"Arquivo muito grande ({result['size_mb']:.1f} MB > 500 MB limite)"
+                result["error"] = f"Arquivo muito grande ({result['size_mb']:.1f} MB)"
                 return result
 
-            # Arquivo grande (>50MB) - aviso
             if result["size_mb"] > 50:
                 result["large_file"] = True
 
-        except OSError as e:
-            result["error"] = f"Erro ao acessar arquivo: {e}"
+            # VALIDAÇÃO SIMPLIFICADA: Não abre arquivos!
+            # Toda validação de conteúdo é feita no worker thread
+            result["valid"] = True
             return result
 
-        # 5. Verificar se arquivo não está corrompido (leitura básica)
-        try:
-            if path.suffix.lower() == ".csv":
-                # Ler apenas primeira linha para validar
-                with open(path, encoding="utf-8", errors="ignore") as f:
-                    first_line = f.readline()
-                    if not first_line.strip():
-                        result["error"] = "Arquivo CSV vazio ou inválido"
-                        return result
-
-            elif path.suffix.lower() in {".xlsx", ".xls"}:
-                # Validar estrutura Excel
-                import openpyxl
-                try:
-                    wb = openpyxl.load_workbook(path, read_only=True)
-                    if not wb.sheetnames:
-                        result["error"] = "Arquivo Excel sem planilhas"
-                        return result
-                    wb.close()
-                except Exception as e:
-                    result["error"] = f"Arquivo Excel corrompido: {e}"
-                    return result
-
-            elif path.suffix.lower() in {".parquet", ".pq"}:
-                import pyarrow.parquet as pq
-                try:
-                    pq.ParquetFile(path)
-                except Exception as e:
-                    result["error"] = f"Arquivo Parquet inválido: {e}"
-                    return result
-
-            elif path.suffix.lower() in {".h5", ".hdf5"}:
-                import h5py
-                try:
-                    with h5py.File(path, "r") as f:
-                        if len(f.keys()) == 0:
-                            result["error"] = "Arquivo HDF5 sem dados"
-                            return result
-                except Exception as e:
-                    result["error"] = f"Arquivo HDF5 inválido: {e}"
-                    return result
-
-        except ImportError as e:
-            # Biblioteca não disponível - permitir tentar carregar
-            logger.warning("validation_library_missing", error=str(e))
         except Exception as e:
-            result["error"] = f"Erro na validação: {e!s}"
+            result["error"] = f"Erro ao verificar arquivo: {e}"
             return result
-
-        # Arquivo válido
-        result["valid"] = True
-        return result
 
     def load_dataset(self, file_path: str):
-        """Carrega dataset usando worker thread - CORRIGIDO para múltiplos arquivos COM THREADS ROBUSTAS"""
-        # Ensure proper path handling for Windows Unicode characters
+        """Carrega dataset usando worker thread - SIMPLIFICADO para evitar travamento"""
+        # Normalize path
         try:
             normalized_path = str(Path(file_path).resolve())
         except Exception as e:
             logger.exception("path_normalization_failed", error=str(e))
             normalized_path = file_path
 
-        # Get load configuration
+        filename = Path(normalized_path).name
+        logger.info("load_dataset_starting", filename=filename)
+
+        # Create load configuration
         load_config = LoadConfig()
 
-        # Create NEW worker thread para cada arquivo - ARMAZENAR REFERÊNCIA
-        worker_thread = QThread(self)  # Parent para evitar garbage collection
+        # Create thread and worker
+        worker_thread = QThread(self)
         worker = FileLoadWorker(normalized_path, load_config)
         worker.moveToThread(worker_thread)
 
-        # CRITICAL: Store references to prevent garbage collection
+        # Store references to prevent garbage collection
         if not hasattr(self, "_active_workers"):
             self._active_workers = []
         self._active_workers.append((worker_thread, worker))
 
-        # Connect worker signals COM ERROR HANDLING ROBUSTO
-        def safe_connect(signal, slot):
-            try:
-                signal.connect(slot)
-            except Exception as e:
-                logger.exception("signal_connection_failed", error=str(e))
+        # Track loading count
+        if not hasattr(self, "_loading_count"):
+            self._loading_count = 0
+        self._loading_count += 1
 
-        safe_connect(worker_thread.started, worker.load_file)
-        safe_connect(worker.progress, self._on_load_progress)
-        safe_connect(worker.finished, self._on_load_finished)
-        safe_connect(worker.error, self._on_load_error)
+        # Connect signals - usando lambda para garantir execução correta
+        worker_thread.started.connect(worker.load_file)
+        worker.progress.connect(self._on_load_progress, Qt.ConnectionType.QueuedConnection)
+        worker.finished.connect(self._on_load_finished, Qt.ConnectionType.QueuedConnection)
+        worker.error.connect(self._on_load_error, Qt.ConnectionType.QueuedConnection)
 
-        # Enhanced cleanup with proper error handling
-        def cleanup_worker():
+        # Cleanup function
+        def cleanup():
             try:
                 if (worker_thread, worker) in self._active_workers:
                     self._active_workers.remove((worker_thread, worker))
-                worker.deleteLater()
+                if hasattr(self, "_loading_count"):
+                    self._loading_count = max(0, self._loading_count - 1)
                 worker_thread.quit()
-                worker_thread.wait(5000)  # Wait max 5 seconds
+                worker_thread.wait(1000)
+                worker.deleteLater()
                 worker_thread.deleteLater()
             except Exception as e:
-                logger.exception("worker_cleanup_failed", error=str(e))
+                logger.warning("cleanup_error", error=str(e))
 
-        safe_connect(worker.finished, cleanup_worker)
-        safe_connect(worker.error, cleanup_worker)
+        worker.finished.connect(cleanup, Qt.ConnectionType.QueuedConnection)
+        worker.error.connect(cleanup, Qt.ConnectionType.QueuedConnection)
 
-        # Start loading with proper error handling
-        try:
-            filename = Path(normalized_path).name
-            self.session_state.start_operation(f"Carregando {filename}")
-            worker_thread.start()
+        # Start operation message
+        if self._loading_count == 1:
+            self.session_state.start_operation(f"Carregando arquivos...")
 
-            # Log with filename only to avoid encoding issues
-            logger.info("dataset_load_started", filename=filename)
-        except Exception as e:
-            logger.exception("thread_start_failed", error=str(e))
-            cleanup_worker()
+        # Start thread
+        worker_thread.start()
+        logger.info("worker_thread_started", filename=filename)
+
+    def load_datasets_parallel(self, file_paths: list[str]):
+        """Carrega múltiplos datasets em paralelo - NOVO MÉTODO"""
+        if not file_paths:
+            return
+
+        logger.info("parallel_load_starting", file_count=len(file_paths))
+        self.session_state.start_operation(f"Carregando {len(file_paths)} arquivo(s)...")
+
+        # Start all workers in parallel
+        for file_path in file_paths:
+            self.load_dataset(file_path)
 
 
     @pyqtSlot(int, str)
@@ -634,31 +623,40 @@ class CompactDataPanel(QWidget):
 
     @pyqtSlot(object)  # Dataset object
     def _on_load_finished(self, dataset: Dataset):
-        """Handler para carregamento concluído"""
+        """Handler para carregamento concluído - OTIMIZADO para carga paralela"""
         try:
+            logger.debug("_on_load_finished_START")
+            
             # Get worker from sender
             worker = self.sender()
             filename = "Unknown"
 
             # Set dataset_id to filename for user-friendly display
             if hasattr(worker, "file_path"):
-                # Use filename as dataset ID (more user-friendly)
                 filename = Path(worker.file_path).stem
                 dataset.dataset_id = filename
 
-            # Add dataset to session - CRITICAL: cada dataset deve ser adicionado
+            # Add dataset to session - Este já emite dataset_changed
+            # e já define como current se for o primeiro
             dataset_id = self.session_state.add_dataset(dataset)
+            logger.debug("dataset_added", dataset_id=dataset_id)
 
-            self.session_state.finish_operation(True, f"Dataset {filename} carregado")
+            # REMOVIDO: set_current_dataset causa duplo emit de dataset_changed
+            # que travava a UI. add_dataset já define como current se for o primeiro.
+
+            # Track loaded count
+            if not hasattr(self, "_loaded_count"):
+                self._loaded_count = 0
+            self._loaded_count += 1
+
+            # Only finish operation when all files are loaded
+            remaining = getattr(self, "_loading_count", 0)
+            if remaining <= 1:
+                self.session_state.finish_operation(True, f"✅ {self._loaded_count} dataset(s) carregado(s)")
+                self._loaded_count = 0
+
             self.dataset_loaded.emit(dataset_id)
-
-            # AUTO-PLOT: Automatically plot in both 2D and 3D after loading
-            self._auto_plot_dataset(dataset_id, dataset)
-
-            # AUTO-CALCULATE: Calculate all derivatives and integrals
-            self._auto_calculate_all(dataset_id, dataset)
-
-            logger.info("dataset_loaded_successfully", dataset_id=dataset_id, filename=filename)
+            logger.info("dataset_loaded_successfully", dataset_id=dataset_id, filename=filename, remaining=remaining)
 
         except Exception as e:
             self.session_state.finish_operation(False, f"Erro: {e}")
@@ -682,6 +680,7 @@ class CompactDataPanel(QWidget):
         self._datasets_tree.clear()
 
         all_datasets = self.session_state.get_all_datasets()
+        logger.debug("_update_datasets_list", count=len(all_datasets), datasets=list(all_datasets.keys()))
 
         for dataset_id, dataset in all_datasets.items():
             item = QTreeWidgetItem()
@@ -709,6 +708,7 @@ class CompactDataPanel(QWidget):
                 item.setBackground(2, QColor("#e3f2fd"))
 
             self._datasets_tree.addTopLevelItem(item)
+            logger.debug("dataset_item_added", dataset_id=dataset_id, filename=filename)
 
     @pyqtSlot(QTreeWidgetItem, int)
     def _on_dataset_selected(self, item: QTreeWidgetItem, column: int):
@@ -774,156 +774,77 @@ class CompactDataPanel(QWidget):
         self._series_tree.resizeColumnToContents(2)
 
     def _update_data_table(self):
-        """Atualiza tabela de dados com colunas de cálculos"""
+        """Atualiza tabela de dados - VERSÃO OTIMIZADA"""
+        logger.debug("_update_data_table_START")
+        
         if not self._current_dataset:
             self._data_table.setRowCount(0)
             self._data_table.setColumnCount(0)
             return
 
-        # Get number of rows
+        # Get number of rows - LIMITADO para performance
         max_rows = int(self._preview_rows_combo.currentText())
         n_points = min(max_rows, len(self._current_dataset.t_seconds))
+        
+        logger.debug("data_table_config", max_rows=max_rows, n_points=n_points)
 
         if n_points == 0:
             self._data_table.setRowCount(0)
             self._data_table.setColumnCount(0)
             return
 
-        # Preparar colunas: Tempo, Valor, Derivadas, Integrais, etc.
-        base_columns = ["⏱️ Tempo", "📅 Data/Hora"]
-        series_columns = []
-        calc_columns = []
-
-        for series in self._current_dataset.series.values():
-            series_columns.append(f"📊 {series.name}")
-            # Adicionar colunas de cálculos completas
-            calc_columns.extend([
-                f"📐 d{series.name}/dt",
-                f"📐📐 d²{series.name}/dt²",
-                f"∫ ∫{series.name}dt (Trap.)",
-                f"∫ ∫{series.name}dt (Simp.)",
-                "📏 Área Total",
-                "🌊 Suavizado (Gauss)",
-                "📈 Interpolado (Linear)",
-                "📈 Interpolado (Cubic)",
-                "🔍 Filtrado",
-            ])
-
-        all_columns = base_columns + series_columns + calc_columns
+        # Colunas simplificadas para melhor performance
+        base_columns = ["⏱️ Tempo (s)", "📅 Data/Hora"]
+        series_columns = [f"📊 {s.name}" for s in self._current_dataset.series.values()]
+        
+        all_columns = base_columns + series_columns
+        
+        logger.debug("setting_up_table", columns=len(all_columns), rows=n_points)
 
         # Setup table
         self._data_table.setRowCount(n_points)
         self._data_table.setColumnCount(len(all_columns))
         self._data_table.setHorizontalHeaderLabels(all_columns)
 
-        # Fill data
+        # Pre-compute series values list for efficiency
+        series_list = list(self._current_dataset.series.values())
+        t_seconds = self._current_dataset.t_seconds
+        t_datetime = self._current_dataset.t_datetime
+
+        logger.debug("filling_data_table")
+        
+        # Fill data - OTIMIZADO
         for row in range(n_points):
             col = 0
 
             # Tempo (s)
-            self._data_table.setItem(row, col,
-                QTableWidgetItem(f"{self._current_dataset.t_seconds[row]:.3f}"))
+            self._data_table.setItem(row, col, QTableWidgetItem(f"{t_seconds[row]:.3f}"))
             col += 1
 
             # Data/Hora
-            dt_str = str(self._current_dataset.t_datetime[row])[:19]
+            dt_str = str(t_datetime[row])[:19]
             self._data_table.setItem(row, col, QTableWidgetItem(dt_str))
             col += 1
 
-            # Valores das séries
-            for series in self._current_dataset.series.values():
+            # Valores das séries (sem cálculos para evitar travamento)
+            for series in series_list:
                 value = series.values[row]
                 if pd.isna(value):
-                    item_text = "NaN"
-                    item = QTableWidgetItem(item_text)
+                    item = QTableWidgetItem("NaN")
                     item.setForeground(Qt.GlobalColor.gray)
                 else:
-                    item_text = f"{value:.6g}"
-                    item = QTableWidgetItem(item_text)
-
+                    item = QTableWidgetItem(f"{value:.6g}")
                 self._data_table.setItem(row, col, item)
                 col += 1
 
-            # Cálculos reais para cada série
-            for series in self._current_dataset.series.values():
-                # Calculate derivatives for this row
-                if row > 0:
-                    dt = self._current_dataset.t_seconds[row] - self._current_dataset.t_seconds[row-1]
-                    dy = series.values[row] - series.values[row-1]
-                    first_deriv = dy / dt if dt != 0 else 0
-                else:
-                    first_deriv = 0
-
-                # Second derivative
-                if row > 1:
-                    dt_prev = self._current_dataset.t_seconds[row-1] - self._current_dataset.t_seconds[row-2]
-                    dy_prev = series.values[row-1] - series.values[row-2]
-                    first_deriv_prev = dy_prev / dt_prev if dt_prev != 0 else 0
-                    dt_curr = self._current_dataset.t_seconds[row] - self._current_dataset.t_seconds[row-1]
-                    second_deriv = (first_deriv - first_deriv_prev) / dt_curr if dt_curr != 0 else 0
-                else:
-                    second_deriv = 0
-
-                # Cumulative integral (trapezoidal)
-                cumulative_integral = 0
-                for i in range(1, row + 1):
-                    dt_int = self._current_dataset.t_seconds[i] - self._current_dataset.t_seconds[i-1]
-                    avg_value = (series.values[i] + series.values[i-1]) / 2
-                    cumulative_integral += avg_value * dt_int
-
-                # Simpson's integral (simplified)
-                simpson_integral = cumulative_integral * 1.05  # Approximation
-
-                # Total area up to this point
-                total_area = abs(cumulative_integral)
-
-                # Gaussian smoothing (simple 3-point average)
-                if 1 <= row < len(series.values) - 1:
-                    gauss_smooth = (series.values[row-1] + 2*series.values[row] + series.values[row+1]) / 4
-                else:
-                    gauss_smooth = series.values[row]
-
-                # Linear interpolation (between neighbors)
-                linear_interp = series.values[row]  # At exact point, no interpolation needed
-
-                # Cubic interpolation (simplified)
-                cubic_interp = series.values[row]  # At exact point
-
-                # Filtered value (simple outlier check)
-                mean_val = np.mean(series.values)
-                std_val = np.std(series.values)
-                if abs(series.values[row] - mean_val) <= 2 * std_val:
-                    filtered_val = series.values[row]
-                else:
-                    filtered_val = mean_val  # Replace outliers with mean
-
-                # Add calculated columns
-                calc_values = [
-                    f"{first_deriv:.4f}",
-                    f"{second_deriv:.4f}",
-                    f"{cumulative_integral:.4f}",
-                    f"{simpson_integral:.4f}",
-                    f"{total_area:.4f}",
-                    f"{gauss_smooth:.4f}",
-                    f"{linear_interp:.4f}",
-                    f"{cubic_interp:.4f}",
-                    f"{filtered_val:.4f}",
-                ]
-
-                for calc_value in calc_values:
-                    item = QTableWidgetItem(calc_value)
-                    item.setForeground(Qt.GlobalColor.darkBlue)
-                    self._data_table.setItem(row, col, item)
-                    col += 1
+        logger.debug("data_table_filled")
 
         # Otimizar larguras das colunas
         header = self._data_table.horizontalHeader()
-        for i in range(len(base_columns)):
+        for i in range(len(all_columns)):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
-
-        # Séries e cálculos podem ser redimensionados
-        for i in range(len(base_columns), len(all_columns)):
-            header.setSectionResizeMode(i, QHeaderView.ResizeMode.Interactive)
+            
+        logger.debug("_update_data_table_COMPLETE")
 
     @pyqtSlot(QTreeWidgetItem, int)
     def _on_series_selected(self, item: QTreeWidgetItem, column: int):
@@ -1055,119 +976,14 @@ class CompactDataPanel(QWidget):
         logger.debug("series_context_menu_shown", series_id=series_id)
 
     def _plot_series_2d(self, dataset_id: str, series_id: str):
-        """Plota série em gráfico 2D - IMPLEMENTAÇÃO COMPLETA"""
-        try:
-            # Get dataset and series
-            dataset = self.session_state.get_dataset(dataset_id)
-            if not dataset or series_id not in dataset.series:
-                logger.error("plot_2d_series_not_found", dataset_id=dataset_id, series_id=series_id)
-                return
-
-            series = dataset.series[series_id]
-
-            # Create matplotlib plot
-            from matplotlib.backends.backend_qt5agg import (
-                FigureCanvasQTAgg as FigureCanvas,
-            )
-            from matplotlib.figure import Figure
-
-            # Create figure
-            fig = Figure(figsize=(12, 8), dpi=100, tight_layout=True)
-            ax = fig.add_subplot(111)
-
-            # Plot data
-            ax.plot(dataset.t_seconds, series.values,
-                   linewidth=2, label=f"{series.name} ({dataset_id})",
-                   alpha=0.8)
-
-            # Customize plot
-            ax.set_xlabel("Tempo (s)", fontsize=12, fontweight="bold")
-            ax.set_ylabel(f"{series.name} ({series.unit})", fontsize=12, fontweight="bold")
-            ax.set_title(f"Gráfico 2D - {series.name} - {dataset_id}", fontsize=14, fontweight="bold")
-            ax.grid(True, alpha=0.3)
-            ax.legend()
-
-            # Create widget and show
-            canvas = FigureCanvas(fig)
-            canvas.setWindowTitle(f"2D - {series.name} - {dataset_id}")
-            canvas.resize(800, 600)
-            canvas.show()
-
-            # Store reference to prevent garbage collection
-            if not hasattr(self, "_plot_windows"):
-                self._plot_windows = []
-            self._plot_windows.append(canvas)
-
-            # Emit signal for viz panel
-            self.series_selected.emit(dataset_id, series_id)
-            logger.info("plot_2d_created", dataset_id=dataset_id, series_id=series_id)
-
-        except Exception as e:
-            logger.exception("plot_2d_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
+        """Solicita criação de gráfico 2D dentro do painel de visualização"""
+        self.plot_requested.emit(dataset_id, series_id, "2d")
+        logger.info("plot_2d_requested", dataset_id=dataset_id, series_id=series_id)
 
     def _plot_series_3d(self, dataset_id: str, series_id: str):
-        """Plota série em gráfico 3D - IMPLEMENTAÇÃO COMPLETA"""
-        try:
-            # Get dataset and series
-            dataset = self.session_state.get_dataset(dataset_id)
-            if not dataset or series_id not in dataset.series:
-                logger.error("plot_3d_series_not_found", dataset_id=dataset_id, series_id=series_id)
-                return
-
-            series = dataset.series[series_id]
-
-            # Create matplotlib 3D plot
-            import numpy as np
-            from matplotlib.backends.backend_qt5agg import (
-                FigureCanvasQTAgg as FigureCanvas,
-            )
-            from matplotlib.figure import Figure
-
-            # Create figure with 3D projection
-            fig = Figure(figsize=(12, 8), dpi=100, tight_layout=True)
-            ax = fig.add_subplot(111, projection="3d")
-
-            # Create 3D data (time, value, index)
-            t_data = dataset.t_seconds
-            y_data = series.values
-            z_data = np.arange(len(y_data))  # Index as Z axis
-
-            # Plot 3D line
-            ax.plot(t_data, y_data, z_data,
-                   linewidth=2, label=f"{series.name} ({dataset_id})",
-                   alpha=0.8)
-
-            # Also plot surface if enough data
-            if len(t_data) > 10:
-                # Create surface data
-                T, Z = np.meshgrid(t_data[::max(1, len(t_data)//20)],
-                                  z_data[::max(1, len(z_data)//20)])
-                Y = np.interp(T.ravel(), t_data, y_data).reshape(T.shape)
-
-                ax.plot_surface(T, Y, Z, alpha=0.3, cmap="viridis")
-
-            # Customize 3D plot
-            ax.set_xlabel("Tempo (s)", fontsize=12, fontweight="bold")
-            ax.set_ylabel(f"{series.name} ({series.unit})", fontsize=12, fontweight="bold")
-            ax.set_zlabel("Índice", fontsize=12, fontweight="bold")
-            ax.set_title(f"Gráfico 3D - {series.name} - {dataset_id}", fontsize=14, fontweight="bold")
-            ax.legend()
-
-            # Create widget and show
-            canvas = FigureCanvas(fig)
-            canvas.setWindowTitle(f"3D - {series.name} - {dataset_id}")
-            canvas.resize(800, 600)
-            canvas.show()
-
-            # Store reference
-            if not hasattr(self, "_plot_windows"):
-                self._plot_windows = []
-            self._plot_windows.append(canvas)
-
-            logger.info("plot_3d_created", dataset_id=dataset_id, series_id=series_id)
-
-        except Exception as e:
-            logger.exception("plot_3d_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
+        """Solicita criação de gráfico 3D dentro do painel de visualização"""
+        self.plot_requested.emit(dataset_id, series_id, "3d")
+        logger.info("plot_3d_requested", dataset_id=dataset_id, series_id=series_id)
 
     def _interpolate_series(self, dataset_id: str, series_id: str):
         """Interpola série selecionada - IMPLEMENTAÇÃO COMPLETA"""
@@ -1423,43 +1239,6 @@ class CompactDataPanel(QWidget):
         # Execute drag
         drag.exec(supportedActions)
 
-    def _auto_plot_dataset(self, dataset_id: str, dataset):
-        """Automatically plot dataset in both 2D and 3D"""
-        try:
-            for series in dataset.series.values():
-                # Plot 2D for each series
-                self._plot_series_2d(dataset_id, series.series_id)
-                # Plot 3D for each series
-                self._plot_series_3d(dataset_id, series.series_id)
-
-            logger.info("auto_plot_completed", dataset_id=dataset_id, n_series=len(dataset.series))
-
-        except Exception as e:
-            logger.exception("auto_plot_failed", dataset_id=dataset_id, error=str(e))
-
-    def _auto_calculate_all(self, dataset_id: str, dataset):
-        """Automatically calculate all derivatives, integrals and interpolations"""
-        try:
-            for series in dataset.series.values():
-                # Calculate derivative
-                self._calculate_derivative(dataset_id, series.series_id)
-
-                # Calculate integral
-                self._calculate_integral(dataset_id, series.series_id)
-
-                # Calculate area under curve
-                self._calculate_area(dataset_id, series.series_id)
-
-                # Apply smoothing
-                self._smooth_series(dataset_id, series.series_id)
-
-                # Apply interpolation
-                self._interpolate_series(dataset_id, series.series_id)
-
-            logger.info("auto_calculate_completed", dataset_id=dataset_id, n_series=len(dataset.series))
-
-        except Exception as e:
-            logger.exception("auto_calculate_failed", dataset_id=dataset_id, error=str(e))
 
 
 # Alias para compatibilidade
