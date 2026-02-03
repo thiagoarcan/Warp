@@ -612,15 +612,68 @@ class TestCreateLazyArray:
 class TestChunkLoader:
     """Tests for ChunkLoader worker."""
     
-    @pytest.mark.skip(reason="Requires Qt event loop")
-    def test_chunk_loader_success(self):
+    def test_chunk_loader_success(self, qapp, qtbot):
         """Test successful chunk loading."""
-        pass
+        from platform_base.processing.lazy_loading import ChunkLoader
+
+        # Função de load mock
+        def load_func(start: int, end: int) -> np.ndarray:
+            return np.arange(start, end, dtype=np.float64)
+        
+        loader = ChunkLoader(
+            chunk_id=0,
+            load_func=load_func,
+            start_index=0,
+            end_index=100
+        )
+        
+        # Variável para capturar resultado
+        result = {}
+        
+        def on_loaded(chunk_id, data):
+            result['chunk_id'] = chunk_id
+            result['data'] = data
+        
+        loader.chunk_loaded.connect(on_loaded)
+        
+        # Use waitSignal para esperar o signal
+        with qtbot.waitSignal(loader.chunk_loaded, timeout=5000):
+            loader.start()
+        
+        assert result.get('chunk_id') == 0
+        assert result.get('data') is not None
+        assert len(result['data']) == 100
     
-    @pytest.mark.skip(reason="Requires Qt event loop")
-    def test_chunk_loader_failure(self):
+    def test_chunk_loader_failure(self, qapp, qtbot):
         """Test chunk loading failure."""
-        pass
+        from platform_base.processing.lazy_loading import ChunkLoader
+
+        # Função de load que falha
+        def load_func(start: int, end: int) -> np.ndarray:
+            raise ValueError("Simulated error")
+        
+        loader = ChunkLoader(
+            chunk_id=1,
+            load_func=load_func,
+            start_index=0,
+            end_index=100
+        )
+        
+        # Variável para capturar erro
+        error_info = {}
+        
+        def on_failed(chunk_id, error):
+            error_info['chunk_id'] = chunk_id
+            error_info['error'] = error
+        
+        loader.load_failed.connect(on_failed)
+        
+        # Use waitSignal para esperar o signal
+        with qtbot.waitSignal(loader.load_failed, timeout=5000):
+            loader.start()
+        
+        assert error_info.get('chunk_id') == 1
+        assert 'Simulated error' in error_info.get('error', '')
 
 
 # =============================================================================

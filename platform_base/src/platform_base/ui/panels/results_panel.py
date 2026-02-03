@@ -50,6 +50,19 @@ class StatisticsResult:
     category: str = "Geral"
 
 
+@dataclass
+class ComparisonResult:
+    """Resultado de comparação entre séries"""
+    series_a: str
+    series_b: str
+    correlation: float = 0.0
+    rmse: float = 0.0
+    mae: float = 0.0
+    dtw_distance: float | None = None
+    lag: int = 0
+    description: str = ""
+
+
 class StatCard(QFrame):
     """Card para exibição de estatística individual"""
 
@@ -757,4 +770,5 @@ __all__ = [
     "StatCard",
     "StatisticsResult",
     "StatisticsTable",
+    "ComparisonResult",
 ]

@@ -18,7 +18,6 @@ from PyQt6.QtCore import QObject, pyqtSignal
 from platform_base.core.models import DatasetID, SeriesID, TimeWindow, ViewID
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.core.dataset_store import DatasetStore
 
@@ -41,6 +40,12 @@ class ViewState:
     active_views: dict[ViewID, dict] = field(default_factory=dict)
     synchronized_views: list[ViewID] = field(default_factory=list)
     plot_configs: dict[ViewID, dict] = field(default_factory=dict)
+    # Time window bounds for visualization
+    time_start: float | None = None
+    time_end: float | None = None
+    # Zoom and pan state
+    zoom_level: float = 1.0
+    pan_offset: tuple[float, float] = (0.0, 0.0)
 
 
 @dataclass

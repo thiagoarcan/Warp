@@ -29,7 +29,6 @@ from platform_base.utils.errors import DataLoadError
 from platform_base.utils.ids import new_id
 from platform_base.utils.logging import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -414,3 +413,108 @@ def get_file_info(path: str) -> dict[str, Any]:
             "size_mb": round(path_obj.stat().st_size / 1024 / 1024, 2),
             "preview_error": str(e),
         }
+
+
+class DataLoaderService:
+    """
+    Serviço de carregamento de dados com gerenciamento de cache e validação.
+    
+    Fornece interface de alto nível para carregar arquivos de dados
+    com suporte a múltiplos formatos e validação automática.
+    """
+    
+    def __init__(self, default_config: LoadConfig | None = None):
+        """
+        Inicializa o serviço.
+        
+        Args:
+            default_config: Configuração padrão para carregamentos
+        """
+        self._default_config = default_config or LoadConfig()
+        self._cache: dict[str, pd.DataFrame] = {}
+        self._loaded_files: list[str] = []
+        
+    def load_file(
+        self,
+        path: str | Path,
+        config: LoadConfig | None = None,
+        use_cache: bool = True
+    ) -> pd.DataFrame:
+        """
+        Carrega arquivo como DataFrame.
+        
+        Args:
+            path: Caminho do arquivo
+            config: Configuração de carregamento (opcional)
+            use_cache: Se deve usar cache
+            
+        Returns:
+            DataFrame com os dados carregados
+        """
+        path_obj = Path(path)
+        path_str = str(path_obj.absolute())
+        
+        # Verifica cache
+        if use_cache and path_str in self._cache:
+            logger.debug("data_loader_cache_hit", path=path_str)
+            return self._cache[path_str]
+        
+        # Usa configuração fornecida ou padrão
+        load_config = config or self._default_config
+        
+        # Detecta formato
+        fmt = FileFormat.from_extension(path_obj.suffix)
+        strategy = _get_default_strategy(fmt)
+        
+        # Carrega dados
+        df = strategy.read_file(path_obj, load_config)
+        
+        # Armazena em cache
+        if use_cache:
+            self._cache[path_str] = df
+            self._loaded_files.append(path_str)
+        
+        logger.info("data_loader_file_loaded", 
+                   path=path_str, 
+                   shape=df.shape)
+        
+        return df
+    
+    def load_dataset(
+        self,
+        path: str | Path,
+        config: LoadConfig | None = None
+    ) -> Dataset:
+        """
+        Carrega arquivo como Dataset completo.
+        
+        Args:
+            path: Caminho do arquivo
+            config: Configuração de carregamento
+            
+        Returns:
+            Dataset com séries de dados
+        """
+        load_config = config or self._default_config
+        return load(path, load_config)
+    
+    def clear_cache(self) -> None:
+        """Limpa o cache de dados."""
+        self._cache.clear()
+        logger.debug("data_loader_cache_cleared")
+    
+    def get_loaded_files(self) -> list[str]:
+        """Retorna lista de arquivos carregados."""
+        return self._loaded_files.copy()
+    
+    def get_file_info(self, path: str | Path) -> dict[str, Any]:
+        """
+        Obtém informações sobre um arquivo.
+        
+        Args:
+            path: Caminho do arquivo
+            
+        Returns:
+            Dicionário com informações do arquivo
+        """
+        return get_file_info(path)

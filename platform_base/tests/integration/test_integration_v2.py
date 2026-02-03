@@ -772,15 +772,37 @@ class TestMultiStepPipelineV2:
 class TestSessionStateIntegrationV2:
     """Testes de integração com session state"""
     
-    @pytest.mark.skip(reason="SessionState está em desktop, não em core")
-    def test_session_state_signals(self):
+    def test_session_state_signals(self, qapp):
         """Testa signals do session state"""
-        pass
+        from unittest.mock import MagicMock
+
+        from platform_base.core.dataset_store import DatasetStore
+        from platform_base.desktop.session_state import SessionState
+
+        # Criar mock do dataset store
+        dataset_store = MagicMock(spec=DatasetStore)
+        session = SessionState(dataset_store)
+        
+        # Verifica que tem os signals esperados
+        assert hasattr(session, 'selection_changed')
+        assert hasattr(session, 'view_state_changed')
+        assert hasattr(session, 'processing_state_changed')
     
-    @pytest.mark.skip(reason="SessionState está em desktop, não em core")
-    def test_session_state_time_window(self):
+    def test_session_state_time_window(self, qapp):
         """Testa janela de tempo no session state"""
-        pass
+        from unittest.mock import MagicMock
+
+        from platform_base.core.dataset_store import DatasetStore
+        from platform_base.desktop.session_state import SessionState
+
+        # Criar mock do dataset store
+        dataset_store = MagicMock(spec=DatasetStore)
+        session = SessionState(dataset_store)
+        
+        # Verifica que view existe (contém time_start/time_end)
+        assert hasattr(session, 'view')
+        assert hasattr(session.view, 'time_start')
+        assert hasattr(session.view, 'time_end')
 
 
 class TestCachingIntegrationV2:

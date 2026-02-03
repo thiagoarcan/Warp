@@ -158,7 +158,6 @@ class TestShortcutManager:
         # Cleanup
         ShortcutManager.reset_instance()
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_creation(self, clean_manager):
         """Testa criação do manager."""
         assert clean_manager is not None
@@ -166,7 +165,6 @@ class TestShortcutManager:
         assert hasattr(clean_manager, '_bindings')
         assert len(clean_manager._bindings) > 0
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_get_binding(self, clean_manager):
         """Testa obtenção de binding."""
         if hasattr(clean_manager, 'get_binding'):
@@ -175,7 +173,6 @@ class TestShortcutManager:
             if binding:
                 assert binding.action_id == "file.open"
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_set_binding(self, clean_manager):
         """Testa definição de binding."""
         if hasattr(clean_manager, 'set_binding'):
@@ -185,14 +182,12 @@ class TestShortcutManager:
             # Verificar se foi definido
             assert binding is None or binding.key_sequence == "Ctrl+T"
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_reset_binding(self, clean_manager):
         """Testa reset de binding."""
         if hasattr(clean_manager, 'reset_binding'):
             clean_manager.reset_binding("file.open")
             # Após reset, deve voltar ao padrão
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_check_conflict(self, clean_manager):
         """Testa verificação de conflito."""
         if hasattr(clean_manager, 'check_conflict'):
@@ -200,21 +195,18 @@ class TestShortcutManager:
             # Pode ter ou não conflito
             assert isinstance(conflict, (bool, str, type(None), list))
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_get_all_bindings(self, clean_manager):
         """Testa obtenção de todos os bindings."""
         if hasattr(clean_manager, 'get_all_bindings'):
             bindings = clean_manager.get_all_bindings()
             assert isinstance(bindings, (list, dict))
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_save_settings(self, clean_manager):
         """Testa salvamento de configurações."""
         if hasattr(clean_manager, 'save_settings'):
             clean_manager.save_settings()
             # Não deve lançar exceção
     
-    @pytest.mark.skip(reason="ShortcutManager requer QApplication - stack overflow sem ela")
     def test_load_settings(self, clean_manager):
         """Testa carregamento de configurações."""
         if hasattr(clean_manager, 'load_settings'):
@@ -231,7 +223,6 @@ class TestShortcutDialog:
 
         assert ShortcutDialog is not None
 
-    @pytest.mark.skip(reason="ShortcutDialog requer QApplication - stack overflow sem ela")
     def test_creation(self, qapp):
         """Testa criação do diálogo."""
         from platform_base.ui.shortcuts import ShortcutDialog, ShortcutManager

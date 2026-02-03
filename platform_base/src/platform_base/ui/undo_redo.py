@@ -19,7 +19,6 @@ from PyQt6.QtGui import QUndoCommand, QUndoStack
 
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -185,21 +184,25 @@ class UndoRedoManager(QObject):
     index_changed = pyqtSignal(int)
 
     _instance: UndoRedoManager | None = None
-    _initialized: bool = False
+    _is_initialized: bool = False
 
-    def __new__(cls):
-        """Singleton pattern"""
+    def __new__(cls, undo_limit: int = 100):
+        """Singleton pattern - compatible with QObject"""
         if cls._instance is None:
-            cls._instance = object.__new__(cls)
-            cls._instance._initialized = False
+            # Use QObject's __new__ for proper Qt initialization
+            instance = super().__new__(cls)
+            cls._instance = instance
         return cls._instance
 
     def __init__(self, undo_limit: int = 100):
-        if self._initialized:
+        # Check class-level flag to avoid re-initialization
+        if UndoRedoManager._is_initialized:
             return
+        
+        # Mark as initialized BEFORE calling super().__init__
+        UndoRedoManager._is_initialized = True
 
         super().__init__()
-        self._initialized = True
 
         # QUndoStack principal
         self._stack = QUndoStack()
@@ -214,6 +217,12 @@ class UndoRedoManager(QObject):
         self._stack.indexChanged.connect(self.index_changed.emit)
 
         logger.debug(f"UndoRedoManager initialized with limit={undo_limit}")
+
+    @classmethod
+    def reset_instance(cls):
+        """Reset singleton instance - useful for testing"""
+        cls._instance = None
+        cls._is_initialized = False
 
     @property
     def stack(self) -> QUndoStack:
