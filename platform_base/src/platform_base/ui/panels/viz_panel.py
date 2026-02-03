@@ -2115,7 +2115,7 @@ class ModernVizPanel(QWidget):
     def _on_dataset_changed(self, dataset_id: str):
         """Handler para mudança de dataset"""
         # Update UI quando dataset mudar
-        logger.debug(f"viz_panel_dataset_changed: {dataset_id}")
+        logger.info(f">>> VizPanel._on_dataset_changed: {dataset_id}")
 
     # Handlers para drop de séries
     @pyqtSlot(str, str)

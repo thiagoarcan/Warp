@@ -375,12 +375,13 @@ class CompactDataPanel(QWidget):
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
         """Handler para mudança de dataset - COM PROTEÇÃO CONTRA RECURSÃO"""
+        logger.info(f">>> DataPanel._on_dataset_changed RECEIVED signal: {dataset_id}")
         # Evitar chamadas duplicadas que causam travamento
         if self._updating_ui:
-            logger.debug("_on_dataset_changed_SKIPPED_recursive", dataset_id=dataset_id)
+            logger.info(f">>> DataPanel._on_dataset_changed SKIPPED (updating_ui=True)")
             return
             
-        logger.debug("_on_dataset_changed_START", dataset_id=dataset_id)
+        logger.info(f">>> DataPanel._on_dataset_changed PROCESSING: {dataset_id}")
         if dataset_id:
             try:
                 self._updating_ui = True
@@ -752,10 +753,17 @@ class CompactDataPanel(QWidget):
     @pyqtSlot(QTreeWidgetItem, int)
     def _on_dataset_selected(self, item: QTreeWidgetItem, column: int):
         """Handler para seleção de dataset na lista"""
-        dataset_id = item.data(0, Qt.ItemDataRole.UserRole)
-        if dataset_id and dataset_id != self.session_state.current_dataset:
-            self.session_state.set_current_dataset(dataset_id)
-            logger.info("user_selected_dataset", dataset_id=dataset_id)
+        logger.info(">>> _on_dataset_selected START")
+        try:
+            dataset_id = item.data(0, Qt.ItemDataRole.UserRole)
+            logger.info(f">>> dataset_id={dataset_id}, current={self.session_state.current_dataset}")
+            if dataset_id and dataset_id != self.session_state.current_dataset:
+                logger.info(f">>> Calling set_current_dataset({dataset_id})")
+                self.session_state.set_current_dataset(dataset_id)
+                logger.info(">>> set_current_dataset completed")
+        except Exception as e:
+            logger.exception(f">>> ERROR in _on_dataset_selected: {e}")
+        logger.info(">>> _on_dataset_selected END")
 
     def _update_dataset_info(self):
         """Atualiza informações do dataset"""

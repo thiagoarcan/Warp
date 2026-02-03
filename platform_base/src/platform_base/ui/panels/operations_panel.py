@@ -209,6 +209,7 @@ class OperationsPanel(QWidget):
         self._create_interpolation_tab()
         self._create_calculus_tab()
         self._create_filters_tab()
+        self._create_sync_tab()  # Tab de sincronização
         self._create_export_tab()
         self._create_history_tab()
 
@@ -558,6 +559,365 @@ class OperationsPanel(QWidget):
         tab.setWidget(content)
         self._tabs.addTab(tab, "🎚️")
 
+    def _create_sync_tab(self):
+        """Tab de sincronização de timestamps entre datasets"""
+        tab = QScrollArea()
+        tab.setWidgetResizable(True)
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setSpacing(8)
+
+        # === SELEÇÃO DE DATASETS ===
+        datasets_group = QGroupBox("📊 Datasets para Sincronizar")
+        datasets_layout = QVBoxLayout(datasets_group)
+
+        # Lista de datasets disponíveis com checkboxes
+        self._sync_datasets_list = QListWidget()
+        self._sync_datasets_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        self._sync_datasets_list.setToolTip("Selecione os datasets para sincronizar (mínimo 2)")
+        self._sync_datasets_list.setMaximumHeight(150)
+        datasets_layout.addWidget(self._sync_datasets_list)
+
+        # Botão de atualizar lista
+        refresh_btn = QPushButton("🔄 Atualizar Lista")
+        refresh_btn.setToolTip("Recarregar lista de datasets disponíveis")
+        refresh_btn.clicked.connect(self._refresh_sync_datasets)
+        datasets_layout.addWidget(refresh_btn)
+
+        layout.addWidget(datasets_group)
+
+        # === MÉTODO DE SINCRONIZAÇÃO ===
+        method_group = QGroupBox("⚙️ Método de Sincronização")
+        method_layout = QFormLayout(method_group)
+
+        self._sync_method = self._create_combo_box()
+        self._sync_method.addItems([
+            "common_grid_interpolate",  # Interpolação para grade comum
+            "kalman_align",             # Alinhamento via Kalman
+        ])
+        self._sync_method.setToolTip(
+            "common_grid_interpolate: Interpola todas as séries para uma grade temporal comum\n"
+            "kalman_align: Usa filtro de Kalman para alinhamento suave"
+        )
+        self._sync_method.currentTextChanged.connect(self._on_sync_method_changed)
+        method_layout.addRow("Método:", self._sync_method)
+
+        layout.addWidget(method_group)
+
+        # === PARÂMETROS DA GRADE TEMPORAL ===
+        grid_group = QGroupBox("📏 Grade Temporal")
+        grid_layout = QFormLayout(grid_group)
+
+        self._sync_grid_method = self._create_combo_box()
+        self._sync_grid_method.addItems(["median", "min", "max", "mean"])
+        self._sync_grid_method.setToolTip(
+            "Como calcular o intervalo de tempo (dt):\n"
+            "median: Mediana dos intervalos (mais robusto)\n"
+            "min: Menor intervalo (mais pontos)\n"
+            "max: Maior intervalo (menos pontos)\n"
+            "mean: Média dos intervalos"
+        )
+        grid_layout.addRow("Cálculo dt:", self._sync_grid_method)
+
+        self._sync_dt_fixed = QCheckBox("Usar dt fixo")
+        self._sync_dt_fixed.setToolTip("Definir intervalo de tempo manualmente")
+        self._sync_dt_fixed.toggled.connect(self._on_sync_dt_fixed_changed)
+        grid_layout.addRow(self._sync_dt_fixed)
+
+        self._sync_dt_value = QDoubleSpinBox()
+        self._sync_dt_value.setRange(0.001, 1000.0)
+        self._sync_dt_value.setValue(1.0)
+        self._sync_dt_value.setDecimals(3)
+        self._sync_dt_value.setSuffix(" s")
+        self._sync_dt_value.setToolTip("Intervalo de tempo fixo em segundos")
+        self._sync_dt_value.setEnabled(False)
+        grid_layout.addRow("dt fixo:", self._sync_dt_value)
+
+        layout.addWidget(grid_group)
+
+        # === PARÂMETROS DE INTERPOLAÇÃO ===
+        interp_group = QGroupBox("📐 Interpolação")
+        interp_layout = QFormLayout(interp_group)
+
+        self._sync_interp_method = self._create_combo_box()
+        self._sync_interp_method.addItems(["linear", "cubic", "nearest"])
+        self._sync_interp_method.setToolTip(
+            "Método de interpolação para grade comum:\n"
+            "linear: Interpolação linear (rápido)\n"
+            "cubic: Spline cúbica (suave)\n"
+            "nearest: Vizinho mais próximo (preserva valores)"
+        )
+        interp_layout.addRow("Método:", self._sync_interp_method)
+
+        layout.addWidget(interp_group)
+
+        # === PARÂMETROS KALMAN (ocultos por padrão) ===
+        self._kalman_group = QGroupBox("🎯 Filtro Kalman")
+        kalman_layout = QFormLayout(self._kalman_group)
+
+        self._sync_process_noise = QDoubleSpinBox()
+        self._sync_process_noise.setRange(0.0001, 1.0)
+        self._sync_process_noise.setValue(0.01)
+        self._sync_process_noise.setDecimals(4)
+        self._sync_process_noise.setToolTip("Ruído do processo (menor = mais suave)")
+        kalman_layout.addRow("Process Noise:", self._sync_process_noise)
+
+        self._sync_measurement_noise = QDoubleSpinBox()
+        self._sync_measurement_noise.setRange(0.001, 10.0)
+        self._sync_measurement_noise.setValue(0.1)
+        self._sync_measurement_noise.setDecimals(3)
+        self._sync_measurement_noise.setToolTip("Ruído da medição (menor = mais confiança nos dados)")
+        kalman_layout.addRow("Measurement Noise:", self._sync_measurement_noise)
+
+        self._kalman_group.setVisible(False)
+        layout.addWidget(self._kalman_group)
+
+        # === OPÇÕES DE SAÍDA ===
+        output_group = QGroupBox("📤 Saída")
+        output_layout = QVBoxLayout(output_group)
+
+        self._sync_create_new = QCheckBox("Criar novo dataset sincronizado")
+        self._sync_create_new.setChecked(True)
+        self._sync_create_new.setToolTip("Criar um novo dataset com todas as séries sincronizadas")
+        output_layout.addWidget(self._sync_create_new)
+
+        self._sync_keep_original = QCheckBox("Manter datasets originais")
+        self._sync_keep_original.setChecked(True)
+        self._sync_keep_original.setToolTip("Não modificar os datasets originais")
+        output_layout.addWidget(self._sync_keep_original)
+
+        layout.addWidget(output_group)
+
+        # === BOTÕES DE AÇÃO ===
+        btn_layout = QHBoxLayout()
+
+        preview_btn = QPushButton("👁️ Preview")
+        preview_btn.setToolTip("Visualizar resultado da sincronização")
+        preview_btn.clicked.connect(self._preview_sync)
+        btn_layout.addWidget(preview_btn)
+
+        apply_btn = QPushButton("🔗 Sincronizar")
+        apply_btn.setObjectName("success")
+        apply_btn.setToolTip("Aplicar sincronização aos datasets selecionados")
+        apply_btn.clicked.connect(self._apply_sync)
+        btn_layout.addWidget(apply_btn)
+
+        layout.addLayout(btn_layout)
+
+        # === INFO ===
+        info_label = QLabel(
+            "💡 A sincronização alinha múltiplos datasets para uma\n"
+            "grade temporal comum, permitindo comparações diretas."
+        )
+        info_label.setStyleSheet("color: #6c757d; font-size: 10px;")
+        info_label.setWordWrap(True)
+        layout.addWidget(info_label)
+
+        layout.addStretch()
+
+        tab.setWidget(content)
+        self._tabs.addTab(tab, "🔗")
+
+        # Inicializar lista de datasets
+        QTimer.singleShot(100, self._refresh_sync_datasets)
+
+    def _on_sync_method_changed(self, method: str):
+        """Mostra/oculta parâmetros Kalman conforme método selecionado"""
+        self._kalman_group.setVisible(method == "kalman_align")
+
+    def _on_sync_dt_fixed_changed(self, checked: bool):
+        """Habilita/desabilita campo de dt fixo"""
+        self._sync_dt_value.setEnabled(checked)
+        self._sync_grid_method.setEnabled(not checked)
+
+    def _refresh_sync_datasets(self):
+        """Atualiza lista de datasets disponíveis para sincronização"""
+        self._sync_datasets_list.clear()
+
+        if not self.session_state:
+            return
+
+        # Obter todos os datasets carregados
+        dataset_ids = self.session_state.list_datasets()
+
+        for dataset_id in dataset_ids:
+            dataset = self.session_state.get_dataset(dataset_id)
+            if dataset:
+                n_series = len(dataset.series) if dataset.series else 0
+                item_text = f"{dataset_id} ({n_series} séries)"
+                self._sync_datasets_list.addItem(item_text)
+
+        if len(dataset_ids) < 2:
+            info_item = self._sync_datasets_list.item(0)
+            if info_item:
+                info_item.setToolTip("Carregue pelo menos 2 datasets para sincronizar")
+
+    def _get_sync_params(self) -> dict:
+        """Coleta parâmetros de sincronização"""
+        params = {
+            "method": self._sync_method.currentText(),
+            "grid_method": self._sync_grid_method.currentText(),
+            "interp_method": self._sync_interp_method.currentText(),
+        }
+
+        if self._sync_dt_fixed.isChecked():
+            params["dt"] = self._sync_dt_value.value()
+
+        if self._sync_method.currentText() == "kalman_align":
+            params["process_noise"] = self._sync_process_noise.value()
+            params["measurement_noise"] = self._sync_measurement_noise.value()
+
+        return params
+
+    def _get_selected_sync_datasets(self) -> list[str]:
+        """Retorna IDs dos datasets selecionados para sincronização"""
+        selected = []
+        for item in self._sync_datasets_list.selectedItems():
+            # Extrair ID do texto (formato: "dataset_id (N séries)")
+            text = item.text()
+            dataset_id = text.split(" (")[0]
+            selected.append(dataset_id)
+        return selected
+
+    def _preview_sync(self):
+        """Preview da sincronização"""
+        selected_datasets = self._get_selected_sync_datasets()
+
+        if len(selected_datasets) < 2:
+            QMessageBox.warning(
+                self, "Aviso",
+                "Selecione pelo menos 2 datasets para sincronizar.\n"
+                "Use Ctrl+Click para selecionar múltiplos."
+            )
+            return
+
+        params = self._get_sync_params()
+        params["datasets"] = selected_datasets
+
+        logger.info(f"sync_preview_requested: {params}")
+
+        # TODO: Implementar preview com visualização gráfica
+        QMessageBox.information(
+            self, "Preview de Sincronização",
+            f"Datasets selecionados: {', '.join(selected_datasets)}\n\n"
+            f"Método: {params['method']}\n"
+            f"Interpolação: {params['interp_method']}\n"
+            f"Cálculo dt: {params.get('dt', params['grid_method'])}\n\n"
+            "Preview gráfico será implementado em breve."
+        )
+
+    def _apply_sync(self):
+        """Aplica sincronização aos datasets selecionados"""
+        import numpy as np
+
+        from platform_base.processing.synchronization import synchronize
+
+        selected_datasets = self._get_selected_sync_datasets()
+
+        if len(selected_datasets) < 2:
+            QMessageBox.warning(
+                self, "Aviso",
+                "Selecione pelo menos 2 datasets para sincronizar.\n"
+                "Use Ctrl+Click para selecionar múltiplos."
+            )
+            return
+
+        params = self._get_sync_params()
+
+        logger.info(f"sync_requested: datasets={selected_datasets}, params={params}")
+
+        try:
+            # Coletar todas as séries de todos os datasets
+            series_dict = {}  # nome -> valores
+            t_dict = {}       # nome -> timestamps
+
+            for dataset_id in selected_datasets:
+                dataset = self.session_state.get_dataset(dataset_id)
+                if not dataset or not dataset.series:
+                    continue
+
+                for series_id, series in dataset.series.items():
+                    key = f"{dataset_id}/{series_id}"
+
+                    if series.values is not None and len(series.values) > 0:
+                        series_dict[key] = np.array(series.values, dtype=float)
+
+                        # Usar timestamps se disponível, senão criar índice
+                        if hasattr(series, 't') and series.t is not None:
+                            t_dict[key] = np.array(series.t, dtype=float)
+                        else:
+                            t_dict[key] = np.arange(len(series.values), dtype=float)
+
+            if len(series_dict) < 2:
+                QMessageBox.warning(
+                    self, "Aviso",
+                    "Não há séries suficientes para sincronizar."
+                )
+                return
+
+            # Executar sincronização
+            result = synchronize(
+                series_dict=series_dict,
+                t_dict=t_dict,
+                method=params["method"],
+                params=params,
+            )
+
+            # Criar novo dataset com séries sincronizadas se solicitado
+            if self._sync_create_new.isChecked():
+                from platform_base.core.models import Dataset, Series
+
+                synced_series = {}
+                for key, values in result.synced_series.items():
+                    series = Series(
+                        id=key.replace("/", "_"),
+                        name=key,
+                        values=values,
+                        t=result.t_common,
+                    )
+                    synced_series[series.id] = series
+
+                synced_dataset = Dataset(
+                    id="synchronized",
+                    name="Datasets Sincronizados",
+                    series=synced_series,
+                    metadata={
+                        "source_datasets": selected_datasets,
+                        "sync_method": params["method"],
+                        "alignment_error": result.alignment_error,
+                        "confidence": result.confidence,
+                    },
+                )
+
+                self.session_state.add_dataset(synced_dataset)
+
+            # Adicionar ao histórico
+            self._add_to_history("synchronize", {
+                **params,
+                "datasets": selected_datasets,
+                "n_series": len(result.synced_series),
+            })
+
+            # Mostrar resultado
+            QMessageBox.information(
+                self, "Sincronização Concluída",
+                f"Séries sincronizadas: {len(result.synced_series)}\n"
+                f"Pontos na grade comum: {len(result.t_common):,}\n"
+                f"Erro de alinhamento: {result.alignment_error:.4f}\n"
+                f"Confiança: {result.confidence:.1%}\n\n"
+                "Novo dataset 'synchronized' criado."
+            )
+
+            logger.info(f"sync_completed: n_series={len(result.synced_series)}, "
+                       f"error={result.alignment_error:.4f}, confidence={result.confidence:.2f}")
+
+        except Exception as e:
+            logger.exception(f"sync_failed: {e}")
+            QMessageBox.critical(
+                self, "Erro na Sincronização",
+                f"Falha ao sincronizar datasets:\n{e!s}"
+            )
+
     def _create_export_tab(self):
         """Tab de exportação"""
         tab = QScrollArea()
@@ -665,33 +1025,42 @@ class OperationsPanel(QWidget):
     @pyqtSlot(str)
     def _update_series_selector(self, dataset_id: str):
         """Atualiza o combobox de seleção de série com as séries do dataset atual"""
-        self._series_combo.clear()
-        
-        if not dataset_id:
-            self._series_combo.addItem("(Nenhum dataset carregado)")
-            self._series_combo.setEnabled(False)
-            return
+        logger.info(f">>> OperationsPanel._update_series_selector START: {dataset_id}")
+        try:
+            self._series_combo.clear()
             
-        dataset = self.session_state.get_dataset(dataset_id)
-        if not dataset or not dataset.series:
-            self._series_combo.addItem("(Nenhuma série disponível)")
-            self._series_combo.setEnabled(False)
-            return
-            
-        # Adicionar séries ao combobox
-        for series_id, series in dataset.series.items():
-            # Usar nome do dataset + nome da série para melhor identificação
-            display_name = f"{dataset_id} / {series.name if series.name else series_id}"
-            n_points = len(series.values) if series.values is not None else 0
-            self._series_combo.addItem(f"{display_name} ({n_points:,} pts)", series_id)
-            
-        self._series_combo.setEnabled(True)
-        logger.debug(f"series_selector_updated: {self._series_combo.count()} series")
+            if not dataset_id:
+                self._series_combo.addItem("(Nenhum dataset carregado)")
+                self._series_combo.setEnabled(False)
+                logger.info(">>> OperationsPanel._update_series_selector END (no dataset)")
+                return
+                
+            logger.info(f">>> Getting dataset {dataset_id}")
+            dataset = self.session_state.get_dataset(dataset_id)
+            logger.info(f">>> Got dataset: {dataset is not None}")
+            if not dataset or not dataset.series:
+                self._series_combo.addItem("(Nenhuma série disponível)")
+                self._series_combo.setEnabled(False)
+                logger.info(">>> OperationsPanel._update_series_selector END (no series)")
+                return
+                
+            # Adicionar séries ao combobox
+            logger.info(f">>> Adding {len(dataset.series)} series to combo")
+            for series_id, series in dataset.series.items():
+                # Usar nome do dataset + nome da série para melhor identificação
+                display_name = f"{dataset_id} / {series.name if series.name else series_id}"
+                n_points = len(series.values) if series.values is not None else 0
+                self._series_combo.addItem(f"{display_name} ({n_points:,} pts)", series_id)
+                
+            self._series_combo.setEnabled(True)
+            logger.info(f">>> OperationsPanel._update_series_selector END: {self._series_combo.count()} series")
+        except Exception as e:
+            logger.exception(f">>> ERROR in _update_series_selector: {e}")
 
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
         """Callback quando dataset muda"""
-        logger.debug(f"operations_panel_dataset_changed: {dataset_id}")
+        logger.info(f">>> OperationsPanel._on_dataset_changed: {dataset_id}")
 
     @pyqtSlot(str, bool)
     def _on_operation_finished(self, operation: str, success: bool):
