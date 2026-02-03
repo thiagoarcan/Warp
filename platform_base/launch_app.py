@@ -5,7 +5,6 @@ Ensures proper GUI initialization and error handling
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
@@ -14,14 +13,14 @@ src_dir = current_dir / "src"
 sys.path.insert(0, str(src_dir))
 
 try:
-    from PyQt6.QtWidgets import QApplication, QMessageBox
     from PyQt6.QtCore import Qt
     from PyQt6.QtGui import QIcon
-    
+    from PyQt6.QtWidgets import QApplication, QMessageBox
+
     # Import main window
+    from platform_base.core.dataset_store import DatasetStore
     from platform_base.ui.main_window import ModernMainWindow
     from platform_base.ui.state import SessionState
-    from platform_base.core.dataset_store import DatasetStore
     from platform_base.utils.logging import get_logger
     
     logger = get_logger(__name__)

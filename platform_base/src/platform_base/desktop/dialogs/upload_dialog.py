@@ -885,6 +885,10 @@ class UploadDialog(QDialog, UiLoaderMixin):
         # Remove from loading dict
         if filepath in self.loading_files:
             worker = self.loading_files.pop(filepath)
+            # Ensure thread is properly stopped before cleanup
+            if worker.isRunning():
+                worker.quit()
+                worker.wait(1000)
             worker.deleteLater()
 
         # Check if all files are done

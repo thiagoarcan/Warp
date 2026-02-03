@@ -184,24 +184,9 @@ class UndoRedoManager(QObject):
     index_changed = pyqtSignal(int)
 
     _instance: UndoRedoManager | None = None
-    _is_initialized: bool = False
-
-    def __new__(cls, undo_limit: int = 100):
-        """Singleton pattern - compatible with QObject"""
-        if cls._instance is None:
-            # Use QObject's __new__ for proper Qt initialization
-            instance = super().__new__(cls)
-            cls._instance = instance
-        return cls._instance
 
     def __init__(self, undo_limit: int = 100):
-        # Check class-level flag to avoid re-initialization
-        if UndoRedoManager._is_initialized:
-            return
-        
-        # Mark as initialized BEFORE calling super().__init__
-        UndoRedoManager._is_initialized = True
-
+        # Standard QObject initialization - no singleton __new__ with QObject
         super().__init__()
 
         # QUndoStack principal
@@ -222,7 +207,6 @@ class UndoRedoManager(QObject):
     def reset_instance(cls):
         """Reset singleton instance - useful for testing"""
         cls._instance = None
-        cls._is_initialized = False
 
     @property
     def stack(self) -> QUndoStack:
@@ -380,4 +364,6 @@ class UndoRedoManager(QObject):
 
 def get_undo_manager() -> UndoRedoManager:
     """Retorna instância singleton do UndoRedoManager"""
-    return UndoRedoManager()
+    if UndoRedoManager._instance is None:
+        UndoRedoManager._instance = UndoRedoManager()
+    return UndoRedoManager._instance

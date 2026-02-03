@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from PyQt6.QtCore import QPoint, Qt, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QMutex, QMutexLocker, QPoint, Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QAction, QColor, QFont
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -73,7 +73,12 @@ class CompactDataPanel(QWidget):
         self.session_state = session_state
         self._current_dataset: Dataset | None = None
 
-        # Removed old worker management - now each file gets its own worker
+        # Thread-safe loading counter
+        self._load_mutex = QMutex()
+        self._loading_count = 0
+        self._loaded_count = 0
+        self._total_files = 0
+        self._active_workers: list = []
 
         self._setup_modern_ui()
         self._setup_connections()
@@ -543,7 +548,7 @@ class CompactDataPanel(QWidget):
             return result
 
     def load_dataset(self, file_path: str):
-        """Carrega dataset usando worker thread - SIMPLIFICADO para evitar travamento"""
+        """Carrega dataset usando worker thread - THREAD-SAFE"""
         # Normalize path
         try:
             normalized_path = str(Path(file_path).resolve())
@@ -562,15 +567,12 @@ class CompactDataPanel(QWidget):
         worker = FileLoadWorker(normalized_path, load_config)
         worker.moveToThread(worker_thread)
 
-        # Store references to prevent garbage collection
-        if not hasattr(self, "_active_workers"):
-            self._active_workers = []
-        self._active_workers.append((worker_thread, worker))
-
-        # Track loading count
-        if not hasattr(self, "_loading_count"):
-            self._loading_count = 0
-        self._loading_count += 1
+        # Store references to prevent garbage collection (thread-safe)
+        with QMutexLocker(self._load_mutex):
+            self._active_workers.append((worker_thread, worker))
+            self._loading_count += 1
+            current_count = self._loading_count
+            self._total_files = current_count  # Track total for progress
 
         # Connect signals - usando lambda para garantir execução correta
         worker_thread.started.connect(worker.load_file)
@@ -578,25 +580,8 @@ class CompactDataPanel(QWidget):
         worker.finished.connect(self._on_load_finished, Qt.ConnectionType.QueuedConnection)
         worker.error.connect(self._on_load_error, Qt.ConnectionType.QueuedConnection)
 
-        # Cleanup function
-        def cleanup():
-            try:
-                if (worker_thread, worker) in self._active_workers:
-                    self._active_workers.remove((worker_thread, worker))
-                if hasattr(self, "_loading_count"):
-                    self._loading_count = max(0, self._loading_count - 1)
-                worker_thread.quit()
-                worker_thread.wait(1000)
-                worker.deleteLater()
-                worker_thread.deleteLater()
-            except Exception as e:
-                logger.warning("cleanup_error", error=str(e))
-
-        worker.finished.connect(cleanup, Qt.ConnectionType.QueuedConnection)
-        worker.error.connect(cleanup, Qt.ConnectionType.QueuedConnection)
-
-        # Start operation message
-        if self._loading_count == 1:
+        # Start operation message (apenas no primeiro)
+        if current_count == 1:
             self.session_state.start_operation(f"Carregando arquivos...")
 
         # Start thread
@@ -623,7 +608,7 @@ class CompactDataPanel(QWidget):
 
     @pyqtSlot(object)  # Dataset object
     def _on_load_finished(self, dataset: Dataset):
-        """Handler para carregamento concluído - OTIMIZADO para carga paralela"""
+        """Handler para carregamento concluído - THREAD-SAFE com mutex"""
         try:
             logger.debug("_on_load_finished_START")
             
@@ -641,19 +626,39 @@ class CompactDataPanel(QWidget):
             dataset_id = self.session_state.add_dataset(dataset)
             logger.debug("dataset_added", dataset_id=dataset_id)
 
-            # REMOVIDO: set_current_dataset causa duplo emit de dataset_changed
-            # que travava a UI. add_dataset já define como current se for o primeiro.
+            # Track loaded count and cleanup worker (thread-safe)
+            with QMutexLocker(self._load_mutex):
+                self._loaded_count += 1
+                self._loading_count = max(0, self._loading_count - 1)
+                loaded = self._loaded_count
+                remaining = self._loading_count
+                
+                # Find and remove worker from active list
+                worker_to_cleanup = None
+                for wt, w in self._active_workers:
+                    if w == worker:
+                        worker_to_cleanup = (wt, w)
+                        break
+                if worker_to_cleanup:
+                    self._active_workers.remove(worker_to_cleanup)
 
-            # Track loaded count
-            if not hasattr(self, "_loaded_count"):
-                self._loaded_count = 0
-            self._loaded_count += 1
+            # Cleanup worker thread
+            if worker_to_cleanup:
+                wt, w = worker_to_cleanup
+                try:
+                    wt.quit()
+                    wt.wait(1000)
+                    w.deleteLater()
+                    wt.deleteLater()
+                except Exception as e:
+                    logger.warning("cleanup_error", error=str(e))
 
             # Only finish operation when all files are loaded
-            remaining = getattr(self, "_loading_count", 0)
-            if remaining <= 1:
-                self.session_state.finish_operation(True, f"✅ {self._loaded_count} dataset(s) carregado(s)")
-                self._loaded_count = 0
+            if remaining <= 0:
+                self.session_state.finish_operation(True, f"✅ {loaded} dataset(s) carregado(s)")
+                with QMutexLocker(self._load_mutex):
+                    self._loaded_count = 0
+                    self._total_files = 0
 
             self.dataset_loaded.emit(dataset_id)
             logger.info("dataset_loaded_successfully", dataset_id=dataset_id, filename=filename, remaining=remaining)
@@ -664,16 +669,50 @@ class CompactDataPanel(QWidget):
 
     @pyqtSlot(str)
     def _on_load_error(self, error_message: str):
-        """Handler para erro"""
-        self.session_state.finish_operation(False, f"Erro: {error_message}")
+        """Handler para erro - THREAD-SAFE com cleanup"""
+        try:
+            # Get worker from sender
+            worker = self.sender()
+            
+            # Track error and cleanup worker (thread-safe)
+            with QMutexLocker(self._load_mutex):
+                self._loading_count = max(0, self._loading_count - 1)
+                remaining = self._loading_count
+                
+                # Find and remove worker from active list
+                worker_to_cleanup = None
+                for wt, w in self._active_workers:
+                    if w == worker:
+                        worker_to_cleanup = (wt, w)
+                        break
+                if worker_to_cleanup:
+                    self._active_workers.remove(worker_to_cleanup)
 
-        QMessageBox.critical(
-            self,
-            "❌ Erro no Carregamento",
-            f"Falha ao carregar arquivo:\n\n{error_message}",
-        )
+            # Cleanup worker thread
+            if worker_to_cleanup:
+                wt, w = worker_to_cleanup
+                try:
+                    wt.quit()
+                    wt.wait(1000)
+                    w.deleteLater()
+                    wt.deleteLater()
+                except Exception as e:
+                    logger.warning("cleanup_error", error=str(e))
 
-        logger.error("dataset_load_failed", error=error_message)
+            # Only show message and finish if all done
+            if remaining <= 0:
+                self.session_state.finish_operation(False, f"Erro: {error_message}")
+
+            QMessageBox.critical(
+                self,
+                "❌ Erro no Carregamento",
+                f"Falha ao carregar arquivo:\n\n{error_message}",
+            )
+
+            logger.error("dataset_load_failed", error=error_message)
+            
+        except Exception as e:
+            logger.exception("error_handler_failed", error=str(e))
 
     def _update_datasets_list(self):
         """Atualiza lista de todos os datasets carregados"""

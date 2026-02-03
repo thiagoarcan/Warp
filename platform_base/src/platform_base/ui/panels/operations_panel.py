@@ -14,7 +14,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -43,6 +43,16 @@ if TYPE_CHECKING:
 
 
 logger = get_logger(__name__)
+
+
+class StableComboBox(QComboBox):
+    """ComboBox com configurações corretas para evitar problemas no Windows."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumHeight(28)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setMaxVisibleItems(15)
 
 
 class OperationHistoryItem:
@@ -83,6 +93,10 @@ class OperationsPanel(QWidget):
 
         logger.debug("operations_panel_initialized")
 
+    def _create_combo_box(self) -> StableComboBox:
+        """Cria um ComboBox estável que não fecha automaticamente"""
+        return StableComboBox()
+    
     def _setup_ui(self):
         """Configura interface completa"""
         self.setMinimumWidth(200)
@@ -133,11 +147,19 @@ class OperationsPanel(QWidget):
             QPushButton[objectName="success"] {
                 background-color: #198754;
             }
-            QComboBox, QSpinBox, QDoubleSpinBox {
+            QSpinBox, QDoubleSpinBox {
                 border: 1px solid #ced4da;
                 border-radius: 4px;
                 padding: 4px 8px;
                 background-color: white;
+                min-height: 24px;
+            }
+            QComboBox {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 4px 8px;
+                background-color: white;
+                min-height: 24px;
             }
             QTabWidget::pane {
                 border: 1px solid #e9ecef;
@@ -170,7 +192,7 @@ class OperationsPanel(QWidget):
         series_layout = QFormLayout(series_group)
         series_layout.setContentsMargins(6, 10, 6, 6)
         
-        self._series_combo = QComboBox()
+        self._series_combo = self._create_combo_box()
         self._series_combo.setMinimumWidth(150)
         self._series_combo.setToolTip("Selecione a série para aplicar as operações")
         self._series_combo.addItem("(Nenhum dataset carregado)")
@@ -202,7 +224,7 @@ class OperationsPanel(QWidget):
         method_group = QGroupBox("📐 Método")
         method_layout = QFormLayout(method_group)
 
-        self._interp_method = QComboBox()
+        self._interp_method = self._create_combo_box()
         self._interp_method.addItems([
             "linear", "cubic_spline", "smoothing_spline",
             "akima", "pchip", "polynomial",
@@ -274,12 +296,12 @@ class OperationsPanel(QWidget):
         deriv_group = QGroupBox("📈 Derivadas")
         deriv_layout = QFormLayout(deriv_group)
 
-        self._deriv_order = QComboBox()
+        self._deriv_order = self._create_combo_box()
         self._deriv_order.addItems(["1ª Ordem", "2ª Ordem", "3ª Ordem"])
         self._deriv_order.setToolTip("Ordem da derivada")
         deriv_layout.addRow("Ordem:", self._deriv_order)
 
-        self._deriv_method = QComboBox()
+        self._deriv_method = self._create_combo_box()
         self._deriv_method.addItems(["finite_diff", "savitzky_golay", "spline_derivative"])
         self._deriv_method.setToolTip("Método de cálculo da derivada")
         deriv_layout.addRow("Método:", self._deriv_method)
@@ -296,9 +318,11 @@ class OperationsPanel(QWidget):
         deriv_layout.addRow(self._deriv_smooth)
 
         deriv_btn = QPushButton("📊 Calcular Derivada")
+        deriv_btn.setToolTip("Calcular derivada da série selecionada")
         deriv_btn.clicked.connect(self._calculate_derivative)
 
         deriv_preview_btn = QPushButton("👁️ Preview")
+        deriv_preview_btn.setToolTip("Visualizar derivada antes de aplicar")
         deriv_preview_btn.setObjectName("secondary")
         deriv_preview_btn.clicked.connect(self._preview_derivative)
 
@@ -313,15 +337,17 @@ class OperationsPanel(QWidget):
         integ_group = QGroupBox("∫ Integrais")
         integ_layout = QFormLayout(integ_group)
 
-        self._integ_method = QComboBox()
+        self._integ_method = self._create_combo_box()
         self._integ_method.addItems(["trapezoid", "simpson", "cumulative"])
         self._integ_method.setToolTip("Método de integração numérica")
         integ_layout.addRow("Método:", self._integ_method)
 
         integ_btn = QPushButton("📊 Calcular Integral")
+        integ_btn.setToolTip("Calcular integral da série selecionada")
         integ_btn.clicked.connect(self._calculate_integral)
 
         integ_preview_btn = QPushButton("👁️ Preview")
+        integ_preview_btn.setToolTip("Visualizar integral antes de aplicar")
         integ_preview_btn.setObjectName("secondary")
         integ_preview_btn.clicked.connect(self._preview_integral)
 
@@ -336,12 +362,13 @@ class OperationsPanel(QWidget):
         area_group = QGroupBox("📏 Área")
         area_layout = QFormLayout(area_group)
 
-        self._area_type = QComboBox()
+        self._area_type = self._create_combo_box()
         self._area_type.addItems(["Área sob a curva", "Área entre curvas"])
         self._area_type.setToolTip("Tipo de cálculo de área")
         area_layout.addRow("Tipo:", self._area_type)
 
         area_btn = QPushButton("📊 Calcular Área")
+        area_btn.setToolTip("Calcular área sob a curva ou entre curvas")
         area_btn.clicked.connect(self._calculate_area)
         area_layout.addRow(area_btn)
 
@@ -363,7 +390,7 @@ class OperationsPanel(QWidget):
         smooth_group = QGroupBox("〰️ Suavização")
         smooth_layout = QFormLayout(smooth_group)
 
-        self._smooth_method = QComboBox()
+        self._smooth_method = self._create_combo_box()
         self._smooth_method.addItems([
             "gaussian", "moving_average", "savitzky_golay",
             "median", "exponential",
@@ -385,9 +412,11 @@ class OperationsPanel(QWidget):
         smooth_layout.addRow("Sigma:", self._smooth_sigma)
 
         smooth_btn = QPushButton("〰️ Aplicar Suavização")
+        smooth_btn.setToolTip("Aplicar filtro de suavização à série")
         smooth_btn.clicked.connect(self._apply_smoothing)
 
         smooth_preview_btn = QPushButton("👁️ Preview")
+        smooth_preview_btn.setToolTip("Visualizar suavização antes de aplicar")
         smooth_preview_btn.setObjectName("secondary")
         smooth_preview_btn.clicked.connect(self._preview_smoothing)
 
@@ -402,7 +431,7 @@ class OperationsPanel(QWidget):
         outlier_group = QGroupBox("🚫 Outliers")
         outlier_layout = QFormLayout(outlier_group)
 
-        self._outlier_method = QComboBox()
+        self._outlier_method = self._create_combo_box()
         self._outlier_method.addItems(["zscore", "iqr", "mad"])
         self._outlier_method.setToolTip("Método de detecção de outliers")
         outlier_layout.addRow("Método:", self._outlier_method)
@@ -414,9 +443,11 @@ class OperationsPanel(QWidget):
         outlier_layout.addRow("Limiar:", self._outlier_threshold)
 
         outlier_btn = QPushButton("🚫 Remover Outliers")
+        outlier_btn.setToolTip("Detectar e remover valores atípicos")
         outlier_btn.clicked.connect(self._remove_outliers)
 
         outlier_preview_btn = QPushButton("👁️ Preview")
+        outlier_preview_btn.setToolTip("Visualizar detecção de outliers")
         outlier_preview_btn.setObjectName("secondary")
         outlier_preview_btn.clicked.connect(self._preview_remove_outliers)
 
@@ -431,7 +462,7 @@ class OperationsPanel(QWidget):
         fft_group = QGroupBox("📊 FFT Analysis")
         fft_layout = QFormLayout(fft_group)
 
-        self._fft_window = QComboBox()
+        self._fft_window = self._create_combo_box()
         self._fft_window.addItems(["hann", "hamming", "blackman", "bartlett", "none"])
         self._fft_window.setToolTip("Window function for FFT")
         fft_layout.addRow("Window:", self._fft_window)
@@ -442,6 +473,7 @@ class OperationsPanel(QWidget):
         fft_layout.addRow(self._fft_detrend)
 
         fft_btn = QPushButton("📊 Compute FFT")
+        fft_btn.setToolTip("Calcular Transformada Rápida de Fourier")
         fft_btn.clicked.connect(self._compute_fft)
         fft_layout.addRow(fft_btn)
 
@@ -451,7 +483,7 @@ class OperationsPanel(QWidget):
         corr_group = QGroupBox("🔗 Correlation")
         corr_layout = QFormLayout(corr_group)
 
-        self._corr_mode = QComboBox()
+        self._corr_mode = self._create_combo_box()
         self._corr_mode.addItems(["auto", "cross"])
         self._corr_mode.setToolTip("Auto-correlation or cross-correlation")
         corr_layout.addRow("Mode:", self._corr_mode)
@@ -462,6 +494,7 @@ class OperationsPanel(QWidget):
         corr_layout.addRow(self._corr_normalize)
 
         corr_btn = QPushButton("🔗 Compute Correlation")
+        corr_btn.setToolTip("Calcular auto-correlação ou correlação cruzada")
         corr_btn.clicked.connect(self._compute_correlation)
         corr_layout.addRow(corr_btn)
 
@@ -471,7 +504,7 @@ class OperationsPanel(QWidget):
         filters_group = QGroupBox("🎛️ Digital Filters")
         filters_layout = QFormLayout(filters_group)
 
-        self._filter_type = QComboBox()
+        self._filter_type = self._create_combo_box()
         self._filter_type.addItems(["lowpass", "highpass", "bandpass", "bandstop"])
         self._filter_type.setToolTip("Filter type")
         self._filter_type.currentTextChanged.connect(self._on_filter_type_changed)
@@ -499,15 +532,17 @@ class OperationsPanel(QWidget):
         self._filter_order.setToolTip("Filter order (higher = sharper)")
         filters_layout.addRow("Order:", self._filter_order)
 
-        self._filter_method = QComboBox()
+        self._filter_method = self._create_combo_box()
         self._filter_method.addItems(["butter", "chebyshev1", "chebyshev2", "elliptic", "bessel"])
         self._filter_method.setToolTip("Filter design method")
         filters_layout.addRow("Method:", self._filter_method)
 
         filter_btn = QPushButton("🎛️ Apply Filter")
+        filter_btn.setToolTip("Aplicar filtro digital à série")
         filter_btn.clicked.connect(self._apply_filter)
 
         filter_preview_btn = QPushButton("👁️ Preview")
+        filter_preview_btn.setToolTip("Visualizar resultado do filtro")
         filter_preview_btn.setObjectName("secondary")
         filter_preview_btn.clicked.connect(self._preview_filter)
 
@@ -535,7 +570,7 @@ class OperationsPanel(QWidget):
         format_group = QGroupBox("📄 Formato")
         format_layout = QFormLayout(format_group)
 
-        self._export_format = QComboBox()
+        self._export_format = self._create_combo_box()
         self._export_format.addItems(["CSV", "Excel (.xlsx)", "Parquet", "HDF5", "JSON"])
         self._export_format.setToolTip("Formato de exportação")
         format_layout.addRow("Formato:", self._export_format)

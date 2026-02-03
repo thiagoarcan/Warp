@@ -32,8 +32,6 @@ from platform_base.desktop.widgets.config_panel import ConfigPanel
 from platform_base.desktop.widgets.data_panel import DataPanel
 from platform_base.desktop.widgets.results_panel import ResultsPanel
 from platform_base.desktop.widgets.viz_panel import VizPanel
-from platform_base.ui.panels.operations_panel import OperationsPanel
-from platform_base.ui.undo_redo import get_undo_manager
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -64,7 +62,8 @@ class MainWindow(QMainWindow):
         self.session_state = session_state
         self.signal_hub = signal_hub
 
-        # Initialize undo/redo manager
+        # Initialize undo/redo manager (lazy import to avoid loading matplotlib at startup)
+        from platform_base.ui.undo_redo import get_undo_manager
         self.undo_manager = get_undo_manager()
 
         # Initialize processing worker manager
@@ -131,7 +130,8 @@ class MainWindow(QMainWindow):
         self.config_dock.setObjectName("ConfigPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
 
-        # Operations Panel (Right - tabbed with Config)
+        # Operations Panel (Right - tabbed with Config) - lazy import to avoid matplotlib at startup
+        from platform_base.ui.panels.operations_panel import OperationsPanel
         self.operations_panel = OperationsPanel(self.session_state)
         self.operations_dock = QDockWidget(tr("Operations Panel"), self)
         self.operations_dock.setWidget(self.operations_panel)

@@ -95,6 +95,10 @@ class SessionState(QObject):
     processing_state_changed = pyqtSignal(object)  # ProcessingState
     streaming_state_changed = pyqtSignal(object)  # StreamingState
     ui_state_changed = pyqtSignal(object)  # UIState
+    
+    # Dataset signals (used by OperationsPanel)
+    dataset_changed = pyqtSignal(str)  # dataset_id
+    operation_finished = pyqtSignal(str, bool)  # operation_name, success
 
     # Session signals
     session_loaded = pyqtSignal(str)  # session_path
@@ -129,6 +133,9 @@ class SessionState(QObject):
             self.selection.selected_points.clear()
             self._update_modified()
             self.selection_changed.emit(self.selection)
+            # Emit dataset_changed for OperationsPanel compatibility
+            if dataset_id:
+                self.dataset_changed.emit(str(dataset_id))
             logger.debug("current_dataset_changed", dataset_id=dataset_id)
 
     def add_series_selection(self, series_id: SeriesID):

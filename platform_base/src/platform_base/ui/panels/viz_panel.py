@@ -52,6 +52,8 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+# Nota: emojis removidos dos labels do matplotlib para evitar warnings de fonte
+
 # Configuração de performance para grandes volumes
 _perf_config = PerformanceConfig(
     direct_render_limit=10_000,
@@ -63,7 +65,7 @@ _perf_config = PerformanceConfig(
 
 
 class MatplotlibWidget(QWidget):
-    """Widget real de matplotlib para visualização de dados"""
+    """Widget real de matplotlib para visualização de dados com suporte a múltiplas séries"""
 
     # Signal para coordenadas do crosshair
     coordinates_changed = pyqtSignal(float, float)  # x, y
@@ -71,12 +73,17 @@ class MatplotlibWidget(QWidget):
     region_selected = pyqtSignal(float, float, float, float)  # x1, x2, y1, y2
     # Signal para dados extraídos
     data_extracted = pyqtSignal(object)  # numpy array
+    # Signal para solicitar adição de série
+    series_drop_requested = pyqtSignal(str, str)  # dataset_id, series_id
 
-    def __init__(self, series, plot_type: str = "2d", parent=None):
+    def __init__(self, series, plot_type: str = "2d", parent=None, dataset_name: str = ""):
         super().__init__(parent)
 
-        self.series = series
+        # Suporte a múltiplas séries
+        self.series_list = []  # Lista de (series, dataset_name, line_obj)
+        self.series = series  # Série principal (compatibilidade)
         self.plot_type = plot_type
+        self._dataset_name = dataset_name or "Dataset"
 
         # Configurar matplotlib com estilo moderno
         plt.style.use("default")
@@ -109,6 +116,9 @@ class MatplotlibWidget(QWidget):
         self._pan_enabled = False
         self._pan_start = None
 
+        # Legend pick event connection ID
+        self._pick_cid = None
+
         # Layout principal
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -124,6 +134,10 @@ class MatplotlibWidget(QWidget):
         # Enable context menu
         self.canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.canvas.customContextMenuRequested.connect(self._show_context_menu)
+
+        # Enable drop de séries no canvas
+        self.setAcceptDrops(True)
+        self.canvas.setAcceptDrops(True)
 
         # Criar o gráfico
         self._create_plot()
@@ -238,6 +252,7 @@ class MatplotlibWidget(QWidget):
     def _create_plot(self):
         """Cria o gráfico com base no tipo"""
         self.figure.clear()
+        self.series_list = []  # Reset lista de séries
 
         try:
             if self.plot_type == "2d":
@@ -258,16 +273,37 @@ class MatplotlibWidget(QWidget):
             self._create_error_plot(str(e))
 
     def _create_2d_plot(self):
-        """Cria gráfico 2D de linha com design moderno e performance otimizada"""
+        """Cria gráfico 2D de linha com design moderno, suporte a múltiplas séries, legenda interativa"""
         ax = self.figure.add_subplot(111)
+        self._ax = ax  # Guardar referência para adicionar séries depois
 
-        # Dados da série
-        values = self.series.values
+        # Plotar série principal
+        line_obj = self._plot_single_series(ax, self.series, self._dataset_name, self.current_color_idx)
+        self.series_list.append({
+            "series": self.series,
+            "dataset_name": self._dataset_name,
+            "line": line_obj,
+            "visible": True,
+            "color_idx": self.current_color_idx,
+        })
+        self.current_color_idx += 1
+
+        # Configuração do eixo
+        self._setup_ax_style(ax)
+
+        # Legenda interativa (clicável e arrastável)
+        self._setup_interactive_legend(ax)
+
+        # Estatísticas da série principal
+        self._add_stats_box(ax, self.series)
+
+    def _plot_single_series(self, ax, series, dataset_name: str, color_idx: int):
+        """Plota uma única série no eixo e retorna o objeto de linha"""
+        values = series.values
         n_points = len(values)
         x_data = np.arange(n_points)
 
-        # Otimização de performance para grandes volumes
-        # Aplica decimação se necessário (MinMax preserva picos)
+        # Otimização de performance
         if n_points > _perf_config.direct_render_limit:
             x_render, y_render = decimate_for_plot(
                 x_data, values,
@@ -275,40 +311,48 @@ class MatplotlibWidget(QWidget):
                 method=DecimationMethod.MINMAX,
             )
             n_render = len(y_render)
-            decimation_info = f"({n_render:,} de {n_points:,} pontos)"
         else:
             x_render, y_render = x_data, values
             n_render = n_points
-            decimation_info = ""
 
-        # Cor moderna baseada no índice
-        color = self.colors[self.current_color_idx % len(self.colors)]
+        # Cor
+        color = self.colors[color_idx % len(self.colors)]
 
-        # Plot principal com linha mais moderna (markers desabilitados para performance)
+        # Label com nome do dataset (não "valor")
+        series_name = series.name if series.name != "valor" else dataset_name
+        label = f"{dataset_name} - {series_name}" if series.name != "valor" else dataset_name
+
+        # Plot
         if n_render > 1000:
-            # Sem markers para muitos pontos
-            ax.plot(x_render, y_render, linewidth=1.5, color=color, alpha=0.9,
-                          label=f"{self.series.name} ({self.series.unit})")
+            (line,) = ax.plot(x_render, y_render, linewidth=1.5, color=color, alpha=0.9,
+                              label=label, picker=5)  # picker para clicável
         else:
-            ax.plot(x_render, y_render, linewidth=2.0, color=color, alpha=0.9,
-                          label=f"{self.series.name} ({self.series.unit})",
-                          markevery=max(1, n_render//50), marker="o", markersize=3,
-                          markerfacecolor=color, markeredgecolor="white", markeredgewidth=0.5)
+            (line,) = ax.plot(x_render, y_render, linewidth=2.0, color=color, alpha=0.9,
+                              label=label, picker=5,
+                              markevery=max(1, n_render//50), marker="o", markersize=3,
+                              markerfacecolor=color, markeredgecolor="white", markeredgewidth=0.5)
 
-        # Personalização moderna
-        title = f"📊 {self.series.name} - Análise Temporal"
-        if decimation_info:
-            title += f" {decimation_info}"
+        return line
+
+    def _setup_ax_style(self, ax):
+        """Configura estilo moderno do eixo"""
+        # Título dinâmico
+        n_series = len(self.series_list) if self.series_list else 1
+        if n_series == 1:
+            title = "Análise Temporal"
+        else:
+            title = f"Comparativo ({n_series} séries)"
         ax.set_title(title, fontsize=16, fontweight="bold", color="#212529", pad=20)
-        ax.set_xlabel("🔢 Índice da Amostra", fontsize=13, color="#495057", fontweight="500")
-        ax.set_ylabel(f"📈 Valor ({self.series.unit})", fontsize=13, color="#495057", fontweight="500")
+
+        ax.set_xlabel("Índice da Amostra", fontsize=13, color="#495057", fontweight="500")
+        ax.set_ylabel("Valor", fontsize=13, color="#495057", fontweight="500")
 
         # Grid moderno
         ax.grid(True, alpha=0.2, linestyle="-", linewidth=0.8, color="#dee2e6")
         ax.set_axisbelow(True)
         ax.set_facecolor("#fafbfc")
 
-        # Bordas mais modernas
+        # Bordas
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.spines["left"].set_color("#dee2e6")
@@ -316,26 +360,143 @@ class MatplotlibWidget(QWidget):
         ax.spines["left"].set_linewidth(1.2)
         ax.spines["bottom"].set_linewidth(1.2)
 
-        # Legenda moderna
+    def _setup_interactive_legend(self, ax):
+        """Configura legenda interativa (clicável para ocultar/mostrar, arrastável)"""
+        if not ax.get_legend_handles_labels()[1]:
+            return
+
         legend = ax.legend(loc="upper right", frameon=True, fancybox=True, shadow=False,
                           facecolor="white", edgecolor="#e9ecef", framealpha=0.98,
                           fontsize=11)
         legend.get_frame().set_linewidth(1.5)
         legend.get_frame().set_boxstyle("round,pad=0.3")
+        
+        # Tornar legenda arrastável (método compatível com várias versões)
+        try:
+            legend.set_draggable(True)
+        except AttributeError:
+            try:
+                legend.draggable(True)
+            except Exception:
+                pass  # Ignorar se não suportado
 
-        # Estatísticas no canto com design moderno
+        self._legend = legend
+        self._legend_line_map = {}
+
+        # Mapear linhas da legenda para linhas do plot
+        legend_lines = legend.get_lines()
+        for i, legend_line in enumerate(legend_lines):
+            if i < len(self.series_list):
+                legend_line.set_picker(5)  # Tornar clicável
+                self._legend_line_map[legend_line] = self.series_list[i]
+
+        # Conectar evento de clique na legenda (apenas uma vez)
+        if not hasattr(self, "_pick_cid") or self._pick_cid is None:
+            self._pick_cid = self.canvas.mpl_connect("pick_event", self._on_legend_pick)
+
+    def _on_legend_pick(self, event):
+        """Handler para clique na legenda - oculta/mostra série"""
+        legend_line = event.artist
+
+        # Verificar se é uma linha da legenda
+        if legend_line not in self._legend_line_map:
+            return
+
+        series_info = self._legend_line_map[legend_line]
+        plot_line = series_info["line"]
+        visible = series_info["visible"]
+
+        # Toggle visibilidade
+        new_visible = not visible
+        plot_line.set_visible(new_visible)
+        series_info["visible"] = new_visible
+
+        # Atualizar alpha da linha da legenda
+        legend_line.set_alpha(1.0 if new_visible else 0.2)
+
+        self.canvas.draw_idle()
+        logger.debug(f"series_visibility_toggled: visible={new_visible}")
+
+    def _add_stats_box(self, ax, series):
+        """Adiciona caixa de estatísticas"""
+        values = series.values
+        n_points = len(values)
         std_val = np.std(values)
-        stats_text = f"📊 ESTATÍSTICAS\n" \
+
+        stats_text = f"ESTATÍSTICAS\n" \
                     f"Pontos: {n_points:,}\n" \
                     f"Min: {np.min(values):.3f}\n" \
                     f"Max: {np.max(values):.3f}\n" \
                     f"Média: {np.mean(values):.3f}\n" \
                     f"Desvio: {std_val:.3f}"
 
-        ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+        self._stats_text = ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
                verticalalignment="top", fontsize=9, fontweight="500",
                bbox={"boxstyle": "round,pad=0.6", "facecolor": "white",
                         "edgecolor": "#e9ecef", "alpha": 0.95, "linewidth": 1.2})
+
+    def add_series(self, series, dataset_name: str = ""):
+        """Adiciona uma nova série ao gráfico existente (para múltiplas séries no mesmo plot)"""
+        if self.plot_type != "2d" or not hasattr(self, "_ax"):
+            logger.warning("add_series: only supported for 2d plots")
+            return False
+
+        try:
+            ax = self._ax
+
+            # Plotar nova série
+            line_obj = self._plot_single_series(ax, series, dataset_name, self.current_color_idx)
+            self.series_list.append({
+                "series": series,
+                "dataset_name": dataset_name,
+                "line": line_obj,
+                "visible": True,
+                "color_idx": self.current_color_idx,
+            })
+            self.current_color_idx += 1
+
+            # Atualizar título
+            n_series = len(self.series_list)
+            ax.set_title(f"Comparativo ({n_series} séries)", fontsize=16, fontweight="bold", color="#212529", pad=20)
+
+            # Recriar legenda interativa
+            self._setup_interactive_legend(ax)
+
+            # Ajustar limites do eixo
+            ax.relim()
+            ax.autoscale_view()
+
+            self.canvas.draw()
+            logger.info(f"series_added_to_plot: {dataset_name}/{series.name}, total={n_series}")
+            return True
+
+        except Exception as e:
+            logger.exception(f"add_series_error: {e}")
+            return False
+
+    # === DRAG & DROP para adicionar séries ===
+    def dragEnterEvent(self, event):
+        """Aceita drag de séries"""
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+            # Visual feedback
+            self.canvas.setStyleSheet("border: 3px solid #198754;")
+
+    def dragLeaveEvent(self, event):
+        """Remove visual feedback"""
+        self.canvas.setStyleSheet("")
+
+    def dropEvent(self, event):
+        """Adiciona série dropada ao gráfico"""
+        if event.mimeData().hasText():
+            data = event.mimeData().text().split("|")
+            if len(data) == 2:
+                dataset_id, series_id = data
+                self.series_drop_requested.emit(dataset_id, series_id)
+                event.acceptProposedAction()
+                logger.info(f"series_drop_on_plot: {dataset_id}/{series_id}")
+        self.canvas.setStyleSheet("")
+
 
     def _create_3d_plot(self):
         """Cria visualização 3D (superfície)"""
@@ -682,6 +843,25 @@ class MatplotlibWidget(QWidget):
 
             menu.addSeparator()
 
+            # === OPÇÕES DE VISUALIZAÇÃO AVANÇADAS ===
+            # Sombrear área sob curva
+            shade_action = QAction("🎨 Sombrear Área sob Curva", self)
+            shade_action.triggered.connect(self._toggle_area_shade)
+            menu.addAction(shade_action)
+
+            # Eixo Y secundário (se tiver mais de uma série)
+            if len(self.series_list) > 1:
+                secondary_menu = menu.addMenu("📊 Eixo Y Secundário")
+                for i, series_info in enumerate(self.series_list[1:], 1):
+                    series_name = series_info["dataset_name"]
+                    is_secondary = series_info.get("secondary_axis", False)
+                    prefix = "✓ " if is_secondary else ""
+                    action = QAction(f"{prefix}{series_name}", self)
+                    action.triggered.connect(lambda checked, idx=i: self._toggle_secondary_axis(idx))
+                    secondary_menu.addAction(action)
+
+            menu.addSeparator()
+
             # Copiar para clipboard
             copy_action = QAction("📋 Copiar para Clipboard", self)
             copy_action.triggered.connect(self.copy_to_clipboard)
@@ -773,6 +953,109 @@ class MatplotlibWidget(QWidget):
 
         except Exception as e:
             logger.exception(f"toggle_legend_error: {e}")
+
+    def _toggle_area_shade(self):
+        """Alterna sombreamento da área sob a curva"""
+        try:
+            if not hasattr(self, "_area_fills"):
+                self._area_fills = []
+
+            ax = self.figure.get_axes()[0] if self.figure.get_axes() else None
+            if not ax:
+                return
+
+            # Se já tem preenchimento, remove
+            if self._area_fills:
+                for fill in self._area_fills:
+                    try:
+                        fill.remove()
+                    except Exception:
+                        pass
+                self._area_fills = []
+                self.canvas.draw()
+                self._info_label.setText("Área removida")
+                logger.info("area_shade_removed")
+                return
+
+            # Adicionar preenchimento para cada série
+            for series_info in self.series_list:
+                line = series_info["line"]
+                if not line.get_visible():
+                    continue
+
+                x_data = line.get_xdata()
+                y_data = line.get_ydata()
+                color = line.get_color()
+
+                fill = ax.fill_between(x_data, y_data, alpha=0.3, color=color)
+                self._area_fills.append(fill)
+
+            self.canvas.draw()
+            self._info_label.setText("Área sombreada")
+            logger.info("area_shade_added")
+
+        except Exception as e:
+            logger.exception(f"toggle_area_shade_error: {e}")
+
+    def _toggle_secondary_axis(self, series_idx: int):
+        """Move uma série para o eixo Y secundário"""
+        try:
+            if series_idx >= len(self.series_list):
+                return
+
+            series_info = self.series_list[series_idx]
+            is_secondary = series_info.get("secondary_axis", False)
+
+            ax = self.figure.get_axes()[0]
+            line = series_info["line"]
+
+            if is_secondary:
+                # Mover de volta para eixo principal
+                # Remover linha do eixo secundário
+                if hasattr(self, "_secondary_ax") and self._secondary_ax:
+                    line.remove()
+                    # Replotar no eixo principal
+                    series = series_info["series"]
+                    new_line = self._plot_single_series(ax, series, series_info["dataset_name"], series_info["color_idx"])
+                    series_info["line"] = new_line
+                    series_info["secondary_axis"] = False
+
+                    # Remover eixo secundário se não houver mais séries nele
+                    has_secondary = any(s.get("secondary_axis", False) for s in self.series_list)
+                    if not has_secondary and hasattr(self, "_secondary_ax"):
+                        self._secondary_ax.remove()
+                        self._secondary_ax = None
+            else:
+                # Mover para eixo secundário
+                # Criar eixo secundário se necessário
+                if not hasattr(self, "_secondary_ax") or not self._secondary_ax:
+                    self._secondary_ax = ax.twinx()
+                    self._secondary_ax.set_ylabel("Eixo Secundário", fontsize=13, color="#495057")
+
+                # Remover linha do eixo principal
+                line.remove()
+
+                # Replotar no eixo secundário
+                series = series_info["series"]
+                color = self.colors[series_info["color_idx"] % len(self.colors)]
+                values = series.values
+                x_data = np.arange(len(values))
+
+                (new_line,) = self._secondary_ax.plot(x_data, values, linewidth=1.5, color=color,
+                                                       linestyle="--", alpha=0.9,
+                                                       label=f"{series_info['dataset_name']} (sec)",
+                                                       picker=5)
+                series_info["line"] = new_line
+                series_info["secondary_axis"] = True
+
+            # Recriar legenda
+            self._setup_interactive_legend(ax)
+            self.canvas.draw()
+
+            logger.info(f"secondary_axis_toggled: series={series_idx}, is_secondary={not is_secondary}")
+
+        except Exception as e:
+            logger.exception(f"toggle_secondary_axis_error: {e}")
 
     def _show_properties(self):
         """Mostra dialog de propriedades do gráfico"""
@@ -1856,7 +2139,7 @@ class ModernVizPanel(QWidget):
         self._create_plot(dataset_id, series_id, "scatter")
 
     def _create_plot(self, dataset_id: str, series_id: str, plot_type: str):
-        """Cria novo gráfico"""
+        """Cria novo gráfico ou adiciona série a gráfico existente (se tab 2D estiver ativa)"""
         try:
             # Get series data
             dataset = self.session_state.get_dataset(dataset_id)
@@ -1864,12 +2147,33 @@ class ModernVizPanel(QWidget):
                 return
 
             series = dataset.series[series_id]
+            dataset_name = dataset.source.filename if dataset.source else dataset_id
 
-            # Create plot widget (placeholder por enquanto)
-            plot_widget = self._create_plot_widget(series, plot_type)
+            # Verificar se tab atual é um gráfico 2D que pode receber mais séries
+            current_idx = self._viz_tabs.currentIndex()
+            if current_idx > 0 and plot_type == "2d":
+                current_widget = self._viz_tabs.widget(current_idx)
+                if isinstance(current_widget, MatplotlibWidget) and current_widget.plot_type == "2d":
+                    # Adicionar série ao gráfico existente
+                    if current_widget.add_series(series, dataset_name):
+                        # Atualizar título da tab
+                        n_series = len(current_widget.series_list)
+                        tab_title = f"Comparativo ({n_series} séries)"
+                        self._viz_tabs.setTabText(current_idx, tab_title)
+                        logger.info(f"series_added_to_existing_plot: {dataset_id}/{series_id}")
+                        return
+
+            # Criar novo gráfico em nova tab
+            plot_widget = self._create_plot_widget(series, plot_type, dataset_name)
+
+            # Conectar signal de drop para adicionar mais séries
+            if isinstance(plot_widget, MatplotlibWidget):
+                plot_widget.series_drop_requested.connect(
+                    lambda ds_id, sr_id, pw=plot_widget: self._on_series_drop_on_plot(pw, ds_id, sr_id)
+                )
 
             # Add as new tab
-            tab_title = f"{series.name} ({plot_type.upper()})"
+            tab_title = f"{dataset_name} ({plot_type.upper()})"
             tab_index = self._viz_tabs.addTab(plot_widget, tab_title)
             self._viz_tabs.setCurrentIndex(tab_index)
 
@@ -1877,6 +2181,7 @@ class ModernVizPanel(QWidget):
             self._plots.append({
                 "widget": plot_widget,
                 "series": series,
+                "dataset_id": dataset_id,
                 "type": plot_type,
                 "tab_index": tab_index,
             })
@@ -1886,15 +2191,35 @@ class ModernVizPanel(QWidget):
         except Exception as e:
             logger.exception(f"plot_creation_failed: series={series_id}, type={plot_type}, error={e}")
 
+    def _on_series_drop_on_plot(self, plot_widget: MatplotlibWidget, dataset_id: str, series_id: str):
+        """Handler para série dropada em um gráfico existente"""
+        try:
+            dataset = self.session_state.get_dataset(dataset_id)
+            if not dataset or series_id not in dataset.series:
+                return
+
+            series = dataset.series[series_id]
+            dataset_name = dataset.source.filename if dataset.source else dataset_id
+
+            if plot_widget.add_series(series, dataset_name):
+                # Atualizar título da tab
+                tab_idx = self._viz_tabs.indexOf(plot_widget)
+                if tab_idx >= 0:
+                    n_series = len(plot_widget.series_list)
+                    self._viz_tabs.setTabText(tab_idx, f"Comparativo ({n_series} séries)")
+
+        except Exception as e:
+            logger.exception(f"series_drop_on_plot_error: {e}")
+
     def create_plot_for_series(self, dataset_id: str, series_id: str, plot_type: str):
         """Cria gráfico para série específica (API pública)"""
         self._create_plot(dataset_id, series_id, plot_type)
 
-    def _create_plot_widget(self, series, plot_type: str) -> QWidget:
+    def _create_plot_widget(self, series, plot_type: str, dataset_name: str = "") -> QWidget:
         """Cria widget de gráfico REAL usando matplotlib"""
         try:
-            # Criar widget matplotlib real
-            return MatplotlibWidget(series, plot_type)
+            # Criar widget matplotlib real com nome do dataset
+            return MatplotlibWidget(series, plot_type, dataset_name=dataset_name)
 
         except Exception as e:
             logger.exception(f"matplotlib_widget_creation_failed: {e}, plot_type={plot_type}")
