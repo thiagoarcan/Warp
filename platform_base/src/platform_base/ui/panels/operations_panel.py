@@ -38,7 +38,6 @@ from PyQt6.QtWidgets import (
 from platform_base.ui.preview_dialog import OperationPreviewDialog
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from platform_base.ui.state import SessionState
 
@@ -165,6 +164,19 @@ class OperationsPanel(QWidget):
         header.setFont(QFont("", 12, QFont.Weight.Bold))
         header.setStyleSheet("color: #0d6efd; padding: 4px;")
         layout.addWidget(header)
+
+        # === SELETOR DE SÉRIE GLOBAL ===
+        series_group = QGroupBox("🎯 Série para Operações")
+        series_layout = QFormLayout(series_group)
+        series_layout.setContentsMargins(6, 10, 6, 6)
+        
+        self._series_combo = QComboBox()
+        self._series_combo.setMinimumWidth(150)
+        self._series_combo.setToolTip("Selecione a série para aplicar as operações")
+        self._series_combo.addItem("(Nenhum dataset carregado)")
+        self._series_combo.setEnabled(False)
+        series_layout.addRow("Série:", self._series_combo)
+        layout.addWidget(series_group)
 
         # Tab widget principal
         self._tabs = QTabWidget()
@@ -612,7 +624,34 @@ class OperationsPanel(QWidget):
     def _setup_connections(self):
         """Configura conexões de sinais"""
         self.session_state.dataset_changed.connect(self._on_dataset_changed)
+        self.session_state.dataset_changed.connect(self._update_series_selector)
         self.session_state.operation_finished.connect(self._on_operation_finished)
+
+    @pyqtSlot(str)
+    def _update_series_selector(self, dataset_id: str):
+        """Atualiza o combobox de seleção de série com as séries do dataset atual"""
+        self._series_combo.clear()
+        
+        if not dataset_id:
+            self._series_combo.addItem("(Nenhum dataset carregado)")
+            self._series_combo.setEnabled(False)
+            return
+            
+        dataset = self.session_state.get_dataset(dataset_id)
+        if not dataset or not dataset.series:
+            self._series_combo.addItem("(Nenhuma série disponível)")
+            self._series_combo.setEnabled(False)
+            return
+            
+        # Adicionar séries ao combobox
+        for series_id, series in dataset.series.items():
+            # Usar nome do dataset + nome da série para melhor identificação
+            display_name = f"{dataset_id} / {series.name if series.name else series_id}"
+            n_points = len(series.values) if series.values is not None else 0
+            self._series_combo.addItem(f"{display_name} ({n_points:,} pts)", series_id)
+            
+        self._series_combo.setEnabled(True)
+        logger.debug(f"series_selector_updated: {self._series_combo.count()} series")
 
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
@@ -1020,29 +1059,27 @@ class OperationsPanel(QWidget):
         """
         import numpy as np
 
-        # Tentar obter dados do SessionState
-        if self.session_state:
-            # Verificar se há dados carregados
-            loaded_data = getattr(self.session_state, "_loaded_data", None)
-
-            if loaded_data is not None:
-                # Se for DataFrame pandas
-                if hasattr(loaded_data, "iloc"):
-                    # Pegar primeira coluna numérica
-                    for col in loaded_data.columns:
-                        if loaded_data[col].dtype in ("float64", "float32", "int64", "int32"):
-                            return loaded_data[col].values
-
-                # Se for array numpy
-                if isinstance(loaded_data, np.ndarray):
-                    return loaded_data if loaded_data.ndim == 1 else loaded_data[:, 0]
-
-            # Se não houver dados carregados, gerar dados de exemplo para demonstração
-            logger.debug("No data loaded, generating sample data for preview")
-
-        # Gerar dados de exemplo (senóide com ruído)
-        x = np.linspace(0, 10, 500)
-        return np.sin(x) + 0.2 * np.random.randn(len(x))
+        # Obter série selecionada do combobox
+        if not hasattr(self, '_series_combo') or self._series_combo.count() == 0:
+            logger.debug("No series selector available")
+            return None
+            
+        series_id = self._series_combo.currentData()
+        if not series_id:
+            logger.debug("No series selected in combo")
+            return None
+            
+        # Obter dados do SessionState
+        if self.session_state and self.session_state.current_dataset:
+            dataset = self.session_state.get_dataset(self.session_state.current_dataset)
+            if dataset and series_id in dataset.series:
+                series = dataset.series[series_id]
+                if hasattr(series, 'values') and series.values is not None:
+                    logger.debug(f"Got series data: {series_id}, {len(series.values)} points")
+                    return series.values
+                    
+        logger.debug("No series data available")
+        return None
 
     def set_data(self, data):
         """

@@ -492,6 +492,11 @@ class ModernMainWindow(QMainWindow):
             if self._viz_panel and hasattr(self._viz_panel, "create_plot_for_series"):
                 self._data_panel.plot_requested.connect(self._viz_panel.create_plot_for_series)
 
+        # Connect operations panel signals
+        if self._operations_panel:
+            self._operations_panel.operation_requested.connect(self._handle_operation_request)
+            self._operations_panel.export_requested.connect(self._handle_export_request)
+
         # Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
 
@@ -749,6 +754,274 @@ class ModernMainWindow(QMainWindow):
         if dataset and hasattr(dataset, "source_file"):
             filename = Path(dataset.source_file).name
             self._status_label.setText(f"✅ Carregado: {filename}")
+
+    @pyqtSlot(str, dict)
+    def _handle_operation_request(self, operation_name: str, params: dict):
+        """
+        Handler para requisições de operações matemáticas do OperationsPanel.
+        
+        Conecta a UI ao backend de processamento.
+        """
+        logger.info("operation_requested", operation=operation_name, params=params)
+
+        # Obter série selecionada do combobox do operations panel
+        series_id = None
+        dataset_id = self.session_state.current_dataset
+        
+        if self._operations_panel and hasattr(self._operations_panel, '_series_combo'):
+            series_id = self._operations_panel._series_combo.currentData()
+        
+        if not dataset_id or not series_id:
+            QMessageBox.warning(
+                self,
+                "⚠️ Nenhuma Série Selecionada",
+                "Por favor, selecione uma série no painel de operações antes de realizar o cálculo."
+            )
+            return
+
+        try:
+            # Obter dataset e série
+            dataset = self.session_state.get_dataset(dataset_id)
+            if not dataset or series_id not in dataset.series:
+                QMessageBox.warning(
+                    self,
+                    "⚠️ Dados Inválidos",
+                    "Não foi possível encontrar a série selecionada."
+                )
+                return
+                
+            series = dataset.series[series_id]
+            
+            # Processar operação
+            self.session_state.start_operation(f"Calculando {operation_name}...")
+            
+            try:
+                result = self._execute_operation(operation_name, series, dataset, params)
+                
+                if result is not None:
+                    # Adicionar resultado como nova série
+                    new_series_id = f"{series_id}_{operation_name}"
+                    self._add_result_series(dataset_id, new_series_id, result, operation_name)
+                    self.session_state.finish_operation(True, f"✅ {operation_name} calculada com sucesso")
+                else:
+                    self.session_state.finish_operation(False, f"❌ {operation_name} não retornou resultado")
+                    
+            except Exception as e:
+                self.session_state.finish_operation(False, f"❌ Erro: {e}")
+                raise
+
+        except Exception as e:
+            logger.exception("operation_request_failed", operation=operation_name, error=str(e))
+            QMessageBox.critical(
+                self,
+                "❌ Operação Falhou",
+                f"Falha ao executar '{operation_name}':\n{str(e)}"
+            )
+
+    def _execute_operation(self, operation_name: str, series, dataset, params: dict):
+        """Executa a operação matemática especificada"""
+        import numpy as np
+        
+        values = series.values
+        t_seconds = dataset.t_seconds
+        
+        if operation_name == "derivative":
+            order = params.get("order", 1)
+            method = params.get("method", "finite_diff")
+            
+            if method == "finite_diff":
+                # Derivada numérica simples
+                result = np.gradient(values, t_seconds)
+                for _ in range(order - 1):
+                    result = np.gradient(result, t_seconds)
+            elif method == "savitzky_golay":
+                from scipy.signal import savgol_filter
+                window = params.get("window_length", 7)
+                # Garantir que window seja ímpar
+                if window % 2 == 0:
+                    window += 1
+                result = savgol_filter(values, window, polyorder=min(3, window-1), deriv=order)
+            else:
+                result = np.gradient(values, t_seconds)
+                
+            return result
+            
+        elif operation_name == "integral":
+            method = params.get("method", "trapezoid")
+            
+            if method == "trapezoid":
+                from scipy import integrate
+                result = integrate.cumulative_trapezoid(values, t_seconds, initial=0)
+            elif method == "simpson":
+                # Simpson precisa de número ímpar de pontos
+                from scipy import integrate
+                result = integrate.cumulative_trapezoid(values, t_seconds, initial=0)
+            else:  # cumulative
+                result = np.cumsum(values) * np.gradient(t_seconds).mean()
+                
+            return result
+            
+        elif operation_name == "smoothing":
+            method = params.get("method", "moving_average")
+            window = params.get("window", 5)
+            
+            if method == "moving_average":
+                result = np.convolve(values, np.ones(window)/window, mode='same')
+            elif method == "gaussian":
+                from scipy.ndimage import gaussian_filter1d
+                sigma = params.get("sigma", 2.0)
+                result = gaussian_filter1d(values, sigma)
+            else:
+                result = values.copy()
+                
+            return result
+            
+        elif operation_name == "remove_outliers":
+            threshold = params.get("threshold", 3.0)
+            mean = np.mean(values)
+            std = np.std(values)
+            mask = np.abs(values - mean) < threshold * std
+            result = np.where(mask, values, np.nan)
+            # Interpolar NaNs
+            nans = np.isnan(result)
+            if np.any(nans):
+                result[nans] = np.interp(
+                    np.flatnonzero(nans),
+                    np.flatnonzero(~nans),
+                    result[~nans]
+                )
+            return result
+            
+        else:
+            logger.warning(f"Unknown operation: {operation_name}")
+            return None
+
+    def _add_result_series(self, dataset_id: str, series_id: str, values, operation_name: str):
+        """Adiciona resultado como nova série no dataset"""
+        from datetime import datetime, timezone
+
+        import numpy as np
+        from pint import UnitRegistry
+
+        from platform_base.core.models import (
+            InterpolationInfo,
+            Lineage,
+            Series,
+            SeriesMetadata,
+        )
+        
+        ureg = UnitRegistry()
+        
+        dataset = self.session_state.get_dataset(dataset_id)
+        if not dataset:
+            return
+            
+        # Criar nova série
+        new_series = Series(
+            series_id=series_id,
+            name=f"{series_id}",
+            unit=ureg.dimensionless,
+            values=np.array(values),
+            interpolation_info=InterpolationInfo(
+                is_interpolated=np.zeros(len(values), dtype=bool),
+                method_used=np.array([operation_name] * len(values), dtype='<U32'),
+            ),
+            metadata=SeriesMetadata(
+                original_name=series_id,
+                source_column=operation_name,
+                description=f"Resultado de {operation_name}",
+            ),
+            lineage=Lineage(
+                origin_series=[],
+                operation=operation_name,
+                parameters={},
+                timestamp=datetime.now(timezone.utc),
+                version="2.0.0",
+            ),
+        )
+        
+        # Adicionar ao dataset
+        dataset.series[series_id] = new_series
+        
+        # Emitir sinal de mudança
+        self.session_state.dataset_changed.emit(dataset_id)
+        
+        logger.info(f"result_series_added: {series_id}")
+
+    @pyqtSlot(str, dict)
+    def _handle_export_request(self, format_type: str, options: dict):
+        """Handler para requisições de exportação"""
+        logger.info("export_requested", format=format_type, options=options)
+
+        # Mapear filtros de arquivo
+        file_filters = {
+            'csv': "Arquivos CSV (*.csv)",
+            'excel': "Arquivos Excel (*.xlsx)",
+            'parquet': "Arquivos Parquet (*.parquet)",
+            'hdf5': "Arquivos HDF5 (*.h5 *.hdf5)",
+            'json': "Arquivos JSON (*.json)",
+        }
+
+        file_filter = file_filters.get(format_type, "Todos os Arquivos (*.*)")
+        
+        # Obter dataset atual
+        dataset_id = self.session_state.current_dataset
+        if not dataset_id:
+            QMessageBox.warning(
+                self,
+                "⚠️ Nenhum Dataset",
+                "Por favor, carregue um dataset antes de exportar."
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            f"Exportar como {format_type.upper()}",
+            "",
+            file_filter
+        )
+
+        if file_path:
+            try:
+                self._export_to_file(dataset_id, file_path, format_type, options)
+                self._status_label.setText(f"✅ Exportado: {Path(file_path).name}")
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "❌ Erro na Exportação",
+                    f"Falha ao exportar:\n{str(e)}"
+                )
+
+    def _export_to_file(self, dataset_id: str, file_path: str, format_type: str, options: dict):
+        """Exporta dataset para arquivo"""
+        import pandas as pd
+        
+        dataset = self.session_state.get_dataset(dataset_id)
+        if not dataset:
+            raise ValueError("Dataset não encontrado")
+            
+        # Criar DataFrame
+        data = {"timestamp": dataset.t_datetime}
+        for series_id, series in dataset.series.items():
+            data[series_id] = series.values
+            
+        df = pd.DataFrame(data)
+        
+        # Exportar conforme formato
+        if format_type == "csv":
+            df.to_csv(file_path, index=False)
+        elif format_type == "excel":
+            df.to_excel(file_path, index=False)
+        elif format_type == "parquet":
+            df.to_parquet(file_path, index=False)
+        elif format_type == "hdf5":
+            df.to_hdf(file_path, key="data", mode="w")
+        elif format_type == "json":
+            df.to_json(file_path, orient="records", date_format="iso")
+        else:
+            raise ValueError(f"Formato não suportado: {format_type}")
+            
+        logger.info(f"export_completed: {file_path}")
 
     # Action handlers
     def _open_dataset(self):

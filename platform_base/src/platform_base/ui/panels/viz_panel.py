@@ -631,10 +631,10 @@ class MatplotlibWidget(QWidget):
                 }
             """)
 
-            # Título
+            # Título (usando widget label para estilização em vez de QAction.setStyleSheet)
             title_action = QAction(f"📊 Gráfico {self.plot_type.upper()}", self)
             title_action.setEnabled(False)
-            title_action.setStyleSheet("font-weight: bold; color: #0d6efd;")
+            # Nota: QAction não suporta setStyleSheet em PyQt6 - o estilo é definido no QMenu
             menu.addAction(title_action)
             menu.addSeparator()
 

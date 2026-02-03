@@ -749,10 +749,21 @@ class CompactDataPanel(QWidget):
         if not self._current_dataset:
             return
 
+        # Obter nome do dataset para prefixo
+        dataset_name = self._current_dataset.dataset_id
+        if hasattr(self._current_dataset, "source") and self._current_dataset.source:
+            dataset_name = Path(self._current_dataset.source.filename).stem
+
         # Add series items (sem hierarquia, mais direto)
         for series in self._current_dataset.series.values():
             item = QTreeWidgetItem(self._series_tree)
-            item.setText(0, f"📈 {series.name}")
+            
+            # Usar nome do dataset + nome da série para melhor identificação
+            # Ex: "BAR_DT-OP10 / valor" em vez de apenas "valor"
+            display_name = f"📈 {dataset_name}"
+            if series.name and series.name != "valor":
+                display_name = f"📈 {series.name}"
+            item.setText(0, display_name)
 
             # Formato compacto de pontos
             n_points = len(series.values)
