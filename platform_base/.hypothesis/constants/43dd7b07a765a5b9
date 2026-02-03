@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\themes.py
+# hypothesis_version: 6.151.4
+
+[100, '#000000', '#0D6EFD', '#0DCAF0', '#17A2B8', '#198754', '#1E1E1E', '#20C997', '#212529', '#252526', '#2D2D2D', '#3FB950', '#404040', '#56D4DD', '#58A6FF', '#6610F2', '#6C757D', '#6E7681', '#6F42C1', '#79C0FF', '#8B5CF6', '#8B949E', '#A371F7', '#ADB5BD', '#D29922', '#DC3545', '#DEE2E6', '#E0E0E0', '#E83E8C', '#E9ECEF', '#F85149', '#F8F9FA', '#FD7E14', '#FF7B72', '#FFA657', '#FFC107', '#FFFFFF', '-g', 'AppleInterfaceStyle', 'AppsUseLightTheme', 'DARK_THEME', 'Dark', 'LIGHT', 'LIGHT_THEME', 'PlatformBase', 'Theme', 'ThemeColors', 'ThemeManager', 'ThemeMode', 'apply_theme', 'custom_colors', 'defaults', 'get_current_colors', 'get_system_theme', 'get_theme_manager', 'mode', 'read', 'theme_applied', 'theme_changed', '{}']

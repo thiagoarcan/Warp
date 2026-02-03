@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\dialogs\smoothing_dialog.py
+# hypothesis_version: 6.151.4
+
+[0.001, 0.01, 0.05, 0.1, 0.3, 1.0, 1.5, 10.0, 20.0, 100.0, 101, 200, 400, 450, 'Alpha:', 'Cancelar', 'Delta:', 'Derivada:', 'Janela:', 'Modo Borda:', 'Método:', 'Ordem Polinômio:', 'Preservar NaN', 'Sigma:', 'adjust', 'alpha', 'boundary_mode', 'constant', 'delta', 'deriv', 'exponential', 'gaussian', 'median', 'method', 'moving_average', 'nearest', 'polyorder', 'preserve_nan', 'preview', 'reflect', 'savitzky_golay', 'secondary', 'sigma', 'success', 'window', 'wrap', '⚙️ Opções', '✅ Aplicar', '👁️ Preview', '📉 Exponencial', '📐 Savitzky-Golay', '🔧 Parâmetros']

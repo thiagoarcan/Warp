@@ -263,8 +263,30 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.debug("config_panel_initialized")
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        pass
+        """Configura widgets carregados do arquivo .ui
+        
+        Conecta widgets definidos no arquivo .ui aos handlers Python.
+        Este método é chamado após o UiLoaderMixin carregar a interface.
+        """
+        # Tentar obter widgets do arquivo .ui
+        # Se não existirem, a interface será criada via _setup_ui_fallback
+        try:
+            self.config_tabs = self.findChild(QTabWidget, "configTabs")
+            self.execute_btn = self.findChild(QPushButton, "executeButton")
+            
+            if self.config_tabs is None:
+                # Arquivo .ui não tem os widgets necessários
+                logger.debug("config_panel_ui_widgets_not_found")
+                return
+                
+            # Conectar sinais se widgets foram encontrados
+            if self.execute_btn:
+                self.execute_btn.clicked.connect(self._execute_operation)
+                
+            logger.debug("config_panel_ui_loaded_from_file")
+            
+        except Exception as e:
+            logger.warning(f"config_panel_ui_setup_failed: {e}")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""

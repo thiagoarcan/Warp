@@ -95,16 +95,14 @@ class TestDatetimeAxis:
         from platform_base.viz.datetime_axis import DateTimeAxisItem
         assert DateTimeAxisItem is not None
     
-    @pytest.mark.skip(reason="Requer ambiente Qt completo")
-    def test_axis_creation(self):
+    def test_axis_creation(self, qapp):
         """Testa criação do eixo."""
         from platform_base.viz.datetime_axis import DateTimeAxisItem
         
         axis = DateTimeAxisItem()
         assert axis is not None
     
-    @pytest.mark.skip(reason="Requer ambiente Qt completo")
-    def test_tick_strings(self):
+    def test_tick_strings(self, qapp):
         """Testa geração de strings para ticks."""
         from platform_base.viz.datetime_axis import DateTimeAxisItem
         

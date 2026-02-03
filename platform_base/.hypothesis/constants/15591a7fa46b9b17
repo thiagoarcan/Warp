@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\ui\dialogs\__init__.py
+# hypothesis_version: 6.151.4
+
+['AppSettings', 'FilterDialog', 'SettingsDialog', 'SmoothingDialog', 'load_app_settings', 'show_filter_dialog', 'show_settings_dialog']

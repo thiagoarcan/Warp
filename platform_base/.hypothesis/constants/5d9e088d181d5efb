@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\viz\figures_2d.py
+# hypothesis_version: 6.151.4
+
+[100, 120, 165, 200, 255, 1000, 1080, 1920, 100000, '#', 'Less than 2 panels', 'Time (s)', 'Time Series Plot', 'Value', 'X', 'Y', '_brush_selection', '_current_x_data', 'bottom', 'color', 'connect', 'data', 'edges', 'finite', 'height', 'left', 'legend_added_to_plot', 'lttb', 'name', 'o', 'opts', 'panel_x_linked', 'peaks', 'pen', 'plot_export_failed', 'plot_exported', 'plot_item', 'selection_changed', 'selection_synced', 'series_added_to_plot', 'series_updated', 'setData', 'symbol', 'symbolBrush', 'symbolSize', 'sync_x_axes_skipped', 'uniform', 'valleys', 'width', 'x', 'x_axes_synchronized', 'x_original', 'x_plot', 'y', 'y_original', 'y_plot']

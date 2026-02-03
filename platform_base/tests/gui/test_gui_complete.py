@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QPushButton, QWidget
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 pytestmark = pytest.mark.gui
 
@@ -186,8 +186,12 @@ class TestVizPanelGUI:
         try:
             from platform_base.desktop.widgets.viz_panel import VizPanel
             from platform_base.core.models import Series
-            
-            panel = VizPanel()
+            from platform_base.core.session_state import SessionState
+            from platform_base.core.signal_hub import SignalHub
+
+            session_state = MagicMock(spec=SessionState)
+            signal_hub = MagicMock(spec=SignalHub)
+            panel = VizPanel(session_state, signal_hub)
             qtbot.addWidget(panel)
             
             # Create test series

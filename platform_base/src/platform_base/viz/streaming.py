@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from platform_base.core.models import SeriesID, SessionID, ViewID
 from platform_base.utils.logging import get_logger
 
-
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
@@ -619,8 +618,19 @@ class VideoExporter:
                       streaming_session: StreamingEngine,
                       output_path: Path,
                       fps: int,
-                      resolution: tuple[int, int]) -> None:
-        """Exporta usando OpenCV"""
+                      resolution: tuple[int, int],
+                      plot_widget: "QWidget | None" = None,
+                      frame_callback: "Callable[[int], None] | None" = None) -> None:
+        """Exporta vídeo usando OpenCV.
+        
+        Args:
+            streaming_session: Engine de streaming com dados
+            output_path: Caminho do arquivo de saída
+            fps: Frames por segundo
+            resolution: Tupla (width, height)
+            plot_widget: Widget Qt opcional para captura de frames
+            frame_callback: Callback para cada frame processado (progress)
+        """
         try:
             import cv2
         except ImportError as exc:
@@ -635,13 +645,61 @@ class VideoExporter:
         )
 
         try:
-            # Simula captura de frames (implementação real capturaria plots)
             total_frames = len(streaming_session.eligible_indices) if streaming_session.eligible_indices.size > 0 else 100
-
-            for _frame_idx in range(total_frames):
-                # Placeholder: geraria frame real do plot
-                frame = np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+            
+            for frame_idx in range(total_frames):
+                if plot_widget is not None:
+                    # Capture real frame from Qt widget
+                    try:
+                        # Update streaming position
+                        streaming_session.tick_forward()
+                        
+                        # Capture widget as image
+                        pixmap = plot_widget.grab()
+                        
+                        # Scale to target resolution
+                        scaled = pixmap.scaled(
+                            resolution[0], resolution[1],
+                            aspectRatioMode=1  # Qt.KeepAspectRatio
+                        )
+                        
+                        # Convert QPixmap to numpy array for OpenCV
+                        qimage = scaled.toImage()
+                        width = qimage.width()
+                        height = qimage.height()
+                        
+                        # Get raw bytes and convert to numpy
+                        ptr = qimage.bits()
+                        ptr.setsize(height * width * 4)  # 4 bytes per pixel (RGBA)
+                        arr = np.array(ptr).reshape(height, width, 4)
+                        
+                        # Convert RGBA to BGR for OpenCV
+                        frame = cv2.cvtColor(arr, cv2.COLOR_RGBA2BGR)
+                        
+                        # Ensure correct resolution
+                        if frame.shape[:2] != (resolution[1], resolution[0]):
+                            frame = cv2.resize(frame, resolution)
+                            
+                    except Exception as e:
+                        logger.warning(f"Frame capture failed at {frame_idx}: {e}")
+                        # Fallback to black frame
+                        frame = np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+                else:
+                    # No widget provided - create placeholder frame with info text
+                    frame = np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+                    # Add frame info text
+                    cv2.putText(frame, f"Frame {frame_idx + 1}/{total_frames}",
+                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                
                 writer.write(frame)
+                
+                # Progress callback
+                if frame_callback is not None:
+                    frame_callback(frame_idx)
+                    
+            logger.info("opencv_export_complete", 
+                       total_frames=total_frames, 
+                       output_path=str(output_path))
 
         finally:
             writer.release()
@@ -651,12 +709,75 @@ class VideoExporter:
                        output_path: Path,
                        fps: int,
                        resolution: tuple[int, int]) -> None:
-        """Exporta usando MoviePy (placeholder)"""
+        """Exporta usando MoviePy com VideoClip e frame generator"""
         try:
-            import moviepy
+            from moviepy import VideoClip
         except ImportError as exc:
             raise RuntimeError("moviepy not available for video export") from exc
-
-        logger.info("moviepy_export_placeholder",
-                   message="MoviePy export would be implemented here")
-        # Implementation would use moviepy.VideoClip
+        
+        plot_widget = getattr(streaming_session, '_plot_widget', None)
+        total_frames = len(streaming_session.eligible_indices) if streaming_session.eligible_indices.size > 0 else 100
+        duration = total_frames / fps
+        
+        def make_frame(t: float) -> np.ndarray:
+            """Generate frame at time t (seconds)"""
+            frame_idx = int(t * fps)
+            frame_idx = min(frame_idx, total_frames - 1)
+            
+            if plot_widget is not None:
+                try:
+                    # Update streaming position
+                    streaming_session.state.current_time_index = frame_idx
+                    streaming_session.tick()
+                    
+                    # Capture widget as image
+                    pixmap = plot_widget.grab()
+                    scaled = pixmap.scaled(resolution[0], resolution[1], aspectRatioMode=1)
+                    
+                    # Convert QPixmap to numpy array (RGB for moviepy)
+                    qimage = scaled.toImage()
+                    width = qimage.width()
+                    height = qimage.height()
+                    
+                    ptr = qimage.bits()
+                    ptr.setsize(height * width * 4)
+                    arr = np.array(ptr).reshape(height, width, 4)
+                    
+                    # Convert RGBA to RGB (moviepy expects RGB)
+                    frame = arr[:, :, :3]
+                    
+                    # Ensure correct resolution
+                    if frame.shape[:2] != (resolution[1], resolution[0]):
+                        import cv2
+                        frame = cv2.resize(frame, resolution)
+                    
+                    return frame
+                    
+                except Exception as e:
+                    logger.warning(f"MoviePy frame capture failed at {frame_idx}: {e}")
+            
+            # Fallback: create placeholder frame
+            frame = np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+            return frame
+        
+        logger.info("moviepy_export_start", 
+                   total_frames=total_frames,
+                   duration=duration,
+                   output_path=str(output_path))
+        
+        # Create video clip from frame generator
+        clip = VideoClip(make_frame, duration=duration)
+        
+        # Write video file
+        clip.write_videofile(
+            str(output_path),
+            fps=fps,
+            codec='libx264',
+            audio=False,
+            logger=None  # Suppress moviepy's verbose logging
+        )
+        
+        clip.close()
+        
+        logger.info("moviepy_export_complete",
+                   output_path=str(output_path))

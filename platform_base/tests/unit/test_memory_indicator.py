@@ -236,21 +236,20 @@ class TestMemoryIndicatorSignals:
         assert hasattr(MemoryIndicator, 'memory_critical')
 
 
-@pytest.mark.skipif(True, reason="Requires Qt event loop")
 class TestMemoryIndicatorWidget:
-    """Integration tests requiring Qt - skipped without Qt environment"""
+    """Integration tests requiring Qt"""
 
-    def test_widget_creation(self, qtbot):
+    def test_widget_creation(self, qapp):
         """Test widget can be created"""
         from platform_base.desktop.widgets.memory_indicator import MemoryIndicator
         widget = MemoryIndicator()
-        qtbot.addWidget(widget)
         assert widget is not None
+        widget.close()
 
-    def test_widget_updates_display(self, qtbot):
+    def test_widget_updates_display(self, qapp):
         """Test widget updates its display"""
         from platform_base.desktop.widgets.memory_indicator import MemoryIndicator
         widget = MemoryIndicator()
-        qtbot.addWidget(widget)
         # Initial text should show RAM info
         assert "RAM:" in widget.text()
+        widget.close()

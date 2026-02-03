@@ -404,8 +404,52 @@ class Trajectory3D(BaseFigure):
         return self._widget
 
     def update_selection(self, selection_indices: np.ndarray):
-        """Atualiza seleção visual"""
-        # Placeholder implementation
+        """Atualiza seleção visual na trajetória 3D
+        
+        Destaca pontos selecionados usando esferas de marcação.
+        
+        Args:
+            selection_indices: Índices dos pontos a destacar
+        """
+        if self._widget is None or self._widget.plotter is None:
+            return
+        
+        # Remove previous selection markers
+        try:
+            self._widget.plotter.remove_actor("selection_markers")
+        except Exception:
+            pass
+        
+        if len(selection_indices) == 0:
+            return
+        
+        # Get trajectory mesh to access points
+        meshes = self._widget.plotter.mesh.values() if hasattr(self._widget.plotter, 'mesh') else []
+        
+        for mesh in meshes:
+            if hasattr(mesh, 'points') and len(mesh.points) > 0:
+                # Get selected points
+                valid_indices = selection_indices[selection_indices < len(mesh.points)]
+                if len(valid_indices) == 0:
+                    continue
+                    
+                selected_points = mesh.points[valid_indices]
+                
+                # Create point cloud for selection
+                selection_cloud = pv.PolyData(selected_points)
+                
+                # Add highlighted markers
+                self._widget.plotter.add_mesh(
+                    selection_cloud,
+                    color="orange",
+                    point_size=12,
+                    render_points_as_spheres=True,
+                    name="selection_markers"
+                )
+                
+                logger.debug("trajectory3d_selection_updated",
+                           n_selected=len(valid_indices))
+                break
 
     def export(self, file_path: str, format: str, **kwargs):
         """Exporta trajetória 3D"""
@@ -472,7 +516,54 @@ class Surface3D(BaseFigure):
         return self._widget
 
     def update_selection(self, selection_indices: np.ndarray):
-        """Atualiza seleção visual"""
+        """Atualiza seleção visual na superfície 3D
+        
+        Destaca células/regiões selecionadas da superfície.
+        
+        Args:
+            selection_indices: Índices dos pontos/células a destacar
+        """
+        if self._widget is None or self._widget.plotter is None:
+            return
+        
+        # Remove previous selection overlay
+        try:
+            self._widget.plotter.remove_actor("surface_selection")
+        except Exception:
+            pass
+        
+        if len(selection_indices) == 0:
+            return
+        
+        # Get surface mesh
+        meshes = list(self._widget.plotter.mesh.values()) if hasattr(self._widget.plotter, 'mesh') else []
+        
+        for mesh in meshes:
+            if hasattr(mesh, 'points') and len(mesh.points) > 0:
+                # Get selected points from the surface
+                valid_indices = selection_indices[selection_indices < len(mesh.points)]
+                if len(valid_indices) == 0:
+                    continue
+                
+                # Create extraction of selected region
+                selected_points = mesh.points[valid_indices]
+                
+                # Create highlighted point cloud
+                selection_cloud = pv.PolyData(selected_points)
+                
+                # Add selection overlay with distinct color
+                self._widget.plotter.add_mesh(
+                    selection_cloud,
+                    color="orange",
+                    point_size=8,
+                    render_points_as_spheres=True,
+                    opacity=0.9,
+                    name="surface_selection"
+                )
+                
+                logger.debug("surface3d_selection_updated",
+                           n_selected=len(valid_indices))
+                break
 
     def export(self, file_path: str, format: str, **kwargs):
         """Exporta superfície 3D"""
@@ -832,6 +923,60 @@ def get_available_colormaps() -> list:
         "gray", "bone", "copper", "spring", "summer",
         "autumn", "winter", "spectral", "RdYlBu", "RdYlGn"
     ]
+
+
+def create_mesh(vertices: np.ndarray, faces: np.ndarray) -> "pv.PolyData":
+    """
+    Create a PyVista mesh from vertices and faces.
+    
+    Args:
+        vertices: Vertex coordinates (Nx3)
+        faces: Face indices in VTK format (e.g., [3, v0, v1, v2] for triangles)
+        
+    Returns:
+        PyVista PolyData mesh
+    """
+    if not PYVISTA_AVAILABLE:
+        raise ImportError("PyVista not available")
+    
+    # Create the mesh
+    mesh = pv.PolyData(vertices, faces)
+    return mesh
+
+
+def apply_colormap(values: np.ndarray, colormap: str = "viridis", 
+                   vmin: float = None, vmax: float = None) -> np.ndarray:
+    """
+    Apply a colormap to scalar values.
+    
+    Args:
+        values: Scalar values to color
+        colormap: Name of the colormap
+        vmin: Minimum value for normalization (default: min of values)
+        vmax: Maximum value for normalization (default: max of values)
+        
+    Returns:
+        RGBA color array (Nx4)
+    """
+    import matplotlib.pyplot as plt
+
+    # Get the colormap
+    cmap = plt.get_cmap(colormap)
+    
+    # Normalize values
+    if vmin is None:
+        vmin = np.min(values)
+    if vmax is None:
+        vmax = np.max(values)
+    
+    if vmax == vmin:
+        normalized = np.zeros_like(values)
+    else:
+        normalized = (values - vmin) / (vmax - vmin)
+    
+    # Apply colormap
+    colors = cmap(normalized)
+    return colors
 
 
 def export_stl(figure: Figure3D, filepath: str):

@@ -880,14 +880,91 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def _export_data(self):
         """Export data to file"""
-        # Placeholder for export functionality
-        self.status_label.setText("Export functionality - Coming soon")
         logger.info("export_data_requested")
-        QMessageBox.information(
-            self, "Export Data",
-            "Export functionality will be available in Sprint 2-3.\\n"
-            "This will support CSV, Excel, Parquet, HDF5, and JSON formats.",
+        
+        # Get current dataset selection
+        dataset_id = None
+        series_ids = None
+        
+        if hasattr(self.data_panel, 'get_selected_dataset_id'):
+            dataset_id = self.data_panel.get_selected_dataset_id()
+        
+        if hasattr(self.data_panel, 'get_selected_series_ids'):
+            series_ids = self.data_panel.get_selected_series_ids()
+        
+        if not dataset_id:
+            QMessageBox.warning(
+                self, "No Data Selected",
+                "Please select a dataset to export."
+            )
+            return
+        
+        # Show file dialog for export
+        file_filters = (
+            "CSV Files (*.csv);;Excel Files (*.xlsx);;Parquet Files (*.parquet);;"
+            "HDF5 Files (*.h5 *.hdf5);;All Files (*.*)"
         )
+        
+        file_path, selected_filter = QFileDialog.getSaveFileName(
+            self, "Export Data", "", file_filters
+        )
+        
+        if not file_path:
+            return
+        
+        # Determine format from filter or extension
+        if "CSV" in selected_filter or file_path.endswith('.csv'):
+            format_type = "csv"
+        elif "Excel" in selected_filter or file_path.endswith('.xlsx'):
+            format_type = "xlsx"
+        elif "Parquet" in selected_filter or file_path.endswith('.parquet'):
+            format_type = "parquet"
+        elif "HDF5" in selected_filter or file_path.endswith(('.h5', '.hdf5')):
+            format_type = "hdf5"
+        else:
+            format_type = "csv"
+            if not file_path.endswith('.csv'):
+                file_path += '.csv'
+        
+        # Start export worker
+        self.status_label.setText(f"Exporting to {format_type}...")
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        
+        from platform_base.desktop.workers.export_worker import DataExportWorker
+        
+        export_config = {
+            'delimiter': ',',
+            'encoding': 'utf-8',
+            'include_metadata': True,
+        }
+        
+        self._export_worker = DataExportWorker(
+            dataset_store=self.session_state.dataset_store,
+            dataset_id=dataset_id,
+            series_ids=series_ids,
+            output_path=file_path,
+            format_type=format_type,
+            export_config=export_config
+        )
+        
+        # Connect worker signals
+        self._export_worker.progress.connect(lambda p, m: (
+            self.progress_bar.setValue(p),
+            self.status_label.setText(m)
+        ))
+        self._export_worker.error.connect(lambda e: (
+            QMessageBox.critical(self, "Export Error", str(e)),
+            self.progress_bar.setVisible(False)
+        ))
+        self._export_worker.finished.connect(lambda: (
+            self.progress_bar.setVisible(False),
+            self.status_label.setText("Export completed"),
+            QMessageBox.information(self, "Export Complete", f"Data exported to:\n{file_path}")
+        ))
+        
+        self._export_worker.start()
+        logger.info("export_started", path=file_path, format=format_type)
 
     @pyqtSlot()
     def _undo_operation(self):
@@ -918,28 +995,107 @@ class MainWindow(QMainWindow):
         """Find/filter series in data panel"""
         self.status_label.setText("Find series")
         logger.info("find_series_requested")
+        
         # Focus data panel search if it exists
         if hasattr(self.data_panel, "show_search"):
             self.data_panel.show_search()
-        else:
-            QMessageBox.information(
-                self, "Find Series",
-                "Search functionality will be enhanced in Sprint 1.\\n"
-                "Use the Data Panel to browse available series.",
-            )
+            return
+            
+        # Try to find search field in data panel
+        if hasattr(self.data_panel, "_search_edit"):
+            self.data_panel._search_edit.setFocus()
+            self.data_panel._search_edit.selectAll()
+            return
+        
+        # Try to find filter edit
+        if hasattr(self.data_panel, "_filter_edit"):
+            self.data_panel._filter_edit.setFocus()
+            self.data_panel._filter_edit.selectAll()
+            return
+        
+        # Ensure data panel is visible and try generic focus
+        if hasattr(self, 'data_dock'):
+            self.data_dock.raise_()
+            self.data_dock.setFocus()
+            
+        # Show search dialog as fallback
+        from PyQt6.QtWidgets import QInputDialog
+        
+        search_text, ok = QInputDialog.getText(
+            self, "Find Series",
+            "Enter series name to search:"
+        )
+        
+        if ok and search_text:
+            # Try to apply filter to data panel
+            if hasattr(self.data_panel, "filter_series"):
+                self.data_panel.filter_series(search_text)
+            elif hasattr(self.data_panel, "set_filter"):
+                self.data_panel.set_filter(search_text)
+            self.status_label.setText(f"Filtering: '{search_text}'")
 
     @pyqtSlot()
     def _refresh_data(self):
-        """Refresh/reload current data"""
+        """Refresh/reload current data from source file"""
         self.status_label.setText("Refreshing data...")
         logger.info("refresh_data_requested")
-        # Signal to panels to refresh their data
-        self.signal_hub.status_updated.emit("Data refreshed")
-        QMessageBox.information(
-            self, "Refresh Data",
-            "Data refresh functionality will reload the current dataset.\\n"
-            "This feature will be fully implemented in Sprint 1.",
-        )
+        
+        # Get current dataset
+        dataset_id = None
+        if hasattr(self.data_panel, 'get_selected_dataset_id'):
+            dataset_id = self.data_panel.get_selected_dataset_id()
+        
+        if not dataset_id:
+            self.status_label.setText("No dataset selected")
+            QMessageBox.warning(
+                self, "No Dataset",
+                "Please select a dataset to refresh."
+            )
+            return
+        
+        try:
+            # Get dataset info
+            dataset = self.session_state.dataset_store.get_dataset(dataset_id)
+            source_path = dataset.source.filepath if hasattr(dataset.source, 'filepath') else None
+            
+            if source_path and Path(source_path).exists():
+                # Reload from source
+                self.progress_bar.setVisible(True)
+                self.progress_bar.setValue(0)
+                
+                # Emit signal to reload - data panel handles actual reload
+                if hasattr(self.signal_hub, 'dataset_reload_requested'):
+                    self.signal_hub.dataset_reload_requested.emit(dataset_id)
+                elif hasattr(self.data_panel, 'reload_dataset'):
+                    self.data_panel.reload_dataset(dataset_id)
+                else:
+                    # Manual reload via data panel
+                    self.signal_hub.status_updated.emit(f"Reloading {dataset_id}...")
+                    
+                self.progress_bar.setValue(100)
+                self.progress_bar.setVisible(False)
+                self.status_label.setText(f"Refreshed: {dataset_id}")
+                logger.info("dataset_refreshed", dataset_id=dataset_id)
+            else:
+                # No source file - just refresh views
+                self.signal_hub.status_updated.emit("Views refreshed")
+                self.status_label.setText("Views refreshed (no source file)")
+                logger.info("views_refreshed", dataset_id=dataset_id)
+                
+            # Update all connected views
+            if hasattr(self.signal_hub, 'data_changed'):
+                self.signal_hub.data_changed.emit()
+            if hasattr(self.viz_panel, 'refresh'):
+                self.viz_panel.refresh()
+                
+        except Exception as e:
+            logger.exception("refresh_failed", error=str(e))
+            self.status_label.setText("Refresh failed")
+            self.progress_bar.setVisible(False)
+            QMessageBox.warning(
+                self, "Refresh Failed",
+                f"Could not refresh data:\n{e!s}"
+            )
 
     @pyqtSlot()
     def _toggle_fullscreen(self):
@@ -955,17 +1111,131 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def _show_contextual_help(self):
-        """Show contextual help for current widget"""
-        self.status_label.setText("Contextual help")
-        logger.info("contextual_help_requested")
-        QMessageBox.information(
-            self, "Contextual Help (F1)",
-            "Contextual help system will be implemented in Sprint 6.\\n\\n"
-            "Features:\\n"
-            "• Press F1 to get help for the current widget\\n"
-            "• Hover tooltips provide quick guidance\\n"
-            "• Full user guide accessible from Help menu",
-        )
+        """Show contextual help for current widget
+        
+        Identifies the focused widget and displays relevant help content.
+        """
+        from PyQt6.QtWidgets import QApplication
+
+        # Get currently focused widget
+        focused = QApplication.focusWidget()
+        
+        # Help content mapping based on widget type and object name
+        help_content = {
+            # Panel types
+            "DataPanel": {
+                "title": "Data Panel Help",
+                "content": """<h3>Data Panel</h3>
+<p>The Data Panel displays all loaded datasets and their series.</p>
+<h4>Features:</h4>
+<ul>
+<li><b>Search:</b> Type to filter series by name</li>
+<li><b>Selection:</b> Click to select series for visualization</li>
+<li><b>Multi-select:</b> Use Ctrl+Click for multiple selections</li>
+<li><b>Right-click:</b> Context menu with additional options</li>
+</ul>
+<h4>Shortcuts:</h4>
+<ul>
+<li><b>Ctrl+F:</b> Focus search field</li>
+<li><b>Ctrl+A:</b> Select all series</li>
+<li><b>Delete:</b> Remove selected series</li>
+</ul>"""
+            },
+            "VizPanel": {
+                "title": "Visualization Panel Help",
+                "content": """<h3>Visualization Panel</h3>
+<p>Create and customize plots and visualizations.</p>
+<h4>Plot Types:</h4>
+<ul>
+<li><b>Time Series:</b> Line plots over time</li>
+<li><b>Scatter Plot:</b> X-Y relationship plots</li>
+<li><b>Heatmap:</b> Correlation matrices</li>
+<li><b>3D Plots:</b> Surface and trajectory views</li>
+</ul>
+<h4>Interactions:</h4>
+<ul>
+<li><b>Pan:</b> Click and drag</li>
+<li><b>Zoom:</b> Scroll wheel or select region</li>
+<li><b>Right-click:</b> Plot context menu</li>
+</ul>"""
+            },
+            "ResultsPanel": {
+                "title": "Results Panel Help",
+                "content": """<h3>Results Panel</h3>
+<p>View statistical analysis and operation results.</p>
+<h4>Tabs:</h4>
+<ul>
+<li><b>Statistics:</b> Min, max, mean, std, etc.</li>
+<li><b>Distribution:</b> Histogram and distribution stats</li>
+<li><b>Correlation:</b> Cross-series correlation</li>
+</ul>"""
+            },
+            "StreamingControls": {
+                "title": "Streaming Controls Help",
+                "content": """<h3>Streaming Controls</h3>
+<p>Control time-series playback and animation.</p>
+<h4>Controls:</h4>
+<ul>
+<li><b>Play/Pause:</b> Start/stop streaming</li>
+<li><b>Speed:</b> Adjust playback speed</li>
+<li><b>Window:</b> Set visible time window</li>
+<li><b>Loop:</b> Enable continuous playback</li>
+</ul>"""
+            },
+        }
+        
+        # Default help content
+        default_help = {
+            "title": "Platform Base Help",
+            "content": """<h3>Platform Base - Time Series Analysis</h3>
+<p>Welcome to Platform Base! Press F1 on any panel for contextual help.</p>
+<h4>Quick Start:</h4>
+<ol>
+<li><b>Load Data:</b> Ctrl+L to load CSV, Excel, or Parquet files</li>
+<li><b>Select Series:</b> Click series in Data Panel</li>
+<li><b>Visualize:</b> Use Visualization panel to create plots</li>
+<li><b>Analyze:</b> Right-click plots for analysis options</li>
+</ol>
+<h4>Key Shortcuts:</h4>
+<ul>
+<li><b>F1:</b> This help dialog</li>
+<li><b>F5:</b> Refresh data</li>
+<li><b>F11:</b> Fullscreen</li>
+<li><b>Ctrl+Z/Y:</b> Undo/Redo</li>
+</ul>"""
+        }
+        
+        # Find help content for focused widget
+        help_info = default_help
+        
+        if focused is not None:
+            # Check widget and its parents for matching help
+            widget = focused
+            while widget is not None:
+                widget_class = widget.__class__.__name__
+                widget_name = widget.objectName()
+                
+                # Check by class name
+                if widget_class in help_content:
+                    help_info = help_content[widget_class]
+                    break
+                # Check by object name
+                if widget_name in help_content:
+                    help_info = help_content[widget_name]
+                    break
+                    
+                widget = widget.parent()
+        
+        # Show help dialog
+        msg = QMessageBox(self)
+        msg.setWindowTitle(help_info["title"])
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(help_info["content"])
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+        
+        self.status_label.setText(f"Help: {help_info['title']}")
+        logger.info("contextual_help_shown", title=help_info["title"])
 
     @pyqtSlot()
     def _show_keyboard_shortcuts(self):

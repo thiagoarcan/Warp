@@ -146,39 +146,38 @@ class TestTooltipManager:
 
 
 class TestTooltipApplyFunction:
-    """Testes para função apply_tooltip."""
+    """Testes para função apply_tooltip do TooltipManager."""
     
-    def test_apply_tooltip(self, qtbot):
+    def test_apply_tooltip(self, qapp):
         """Testa aplicação de tooltip a widget."""
-        try:
-            from PyQt6.QtWidgets import QPushButton
+        from PyQt6.QtWidgets import QPushButton
 
-            from platform_base.ui.tooltips import apply_tooltip
-            
-            button = QPushButton("Test")
-            qtbot.addWidget(button)
-            
-            apply_tooltip(button, "Test tooltip")
-            
-            assert button.toolTip() != ""
-        except ImportError:
-            pytest.skip("apply_tooltip não disponível")
+        from platform_base.ui.tooltips import TooltipManager
+        
+        manager = TooltipManager()
+        button = QPushButton("Test")
+        
+        # Registra tooltip personalizado
+        manager.register_tooltip("test_btn", "Test tooltip")
+        manager.apply_tooltip(button, "test_btn")
+        
+        assert button.toolTip() == "Test tooltip"
     
-    def test_apply_tooltip_with_shortcut(self, qtbot):
+    def test_apply_tooltip_with_shortcut(self, qapp):
         """Testa aplicação de tooltip com shortcut."""
-        try:
-            from PyQt6.QtWidgets import QPushButton
+        from PyQt6.QtWidgets import QPushButton
 
-            from platform_base.ui.tooltips import apply_tooltip
-            
-            button = QPushButton("Test")
-            qtbot.addWidget(button)
-            
-            apply_tooltip(button, "Test tooltip", shortcut="Ctrl+T")
-            
-            assert "Test tooltip" in button.toolTip()
-        except ImportError:
-            pytest.skip("apply_tooltip não disponível")
+        from platform_base.ui.tooltips import TooltipManager
+        
+        manager = TooltipManager()
+        button = QPushButton("Test")
+        
+        # Registra tooltip com shortcut
+        manager.register_tooltip("test_btn2", "Test tooltip", shortcut="file.save")
+        manager.apply_tooltip(button, "test_btn2")
+        
+        # Tooltip deve conter o texto
+        assert "Test tooltip" in button.toolTip()
 
 
 class TestTooltipHelperFunctions:
@@ -213,15 +212,27 @@ class TestRichTooltip:
     
     def test_import(self):
         """Testa importação do widget."""
-        try:
-            from platform_base.ui.tooltips import RichTooltip
-            assert True
-        except ImportError:
-            pytest.skip("RichTooltip não disponível")
+        from platform_base.ui.tooltips import RichTooltip
+        assert RichTooltip is not None
     
-    def test_creation(self, qtbot):
+    def test_creation(self, qapp):
         """Testa criação do widget."""
-        pytest.skip("RichTooltip requer API específica")
+        from platform_base.ui.tooltips import RichTooltip
+        
+        tooltip = RichTooltip()
+        assert tooltip is not None
+        tooltip.close()
+    
+    def test_show_tooltip_method(self, qapp):
+        """Testa método show_tooltip."""
+        from PyQt6.QtCore import QPoint
+
+        from platform_base.ui.tooltips import RichTooltip
+        
+        tooltip = RichTooltip()
+        tooltip.show_tooltip("<b>Test</b> tooltip", QPoint(100, 100), delay_ms=0)
+        # Não deve lançar exceção
+        tooltip.close()
 
 
 class TestTooltipModuleImports:

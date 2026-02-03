@@ -247,8 +247,26 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         logger.debug("results_panel_initialized")
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        pass
+        """Configura widgets carregados do arquivo .ui
+        
+        Conecta widgets definidos no arquivo .ui aos handlers Python.
+        """
+        try:
+            self.results_tabs = self.findChild(QTabWidget, "resultsTabs")
+            self.stats_table = self.findChild(QTableWidget, "statsTable")
+            self.export_btn = self.findChild(QPushButton, "exportButton")
+            
+            if self.results_tabs is None:
+                logger.debug("results_panel_ui_widgets_not_found")
+                return
+                
+            if self.export_btn:
+                self.export_btn.clicked.connect(self._export_results)
+                
+            logger.debug("results_panel_ui_loaded_from_file")
+            
+        except Exception as e:
+            logger.warning(f"results_panel_ui_setup_failed: {e}")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""

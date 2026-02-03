@@ -1,0 +1,4 @@
+# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\viz\streaming.py
+# hypothesis_version: 6.151.4
+
+[0.0, 0.7, 1.0, 100, 255, 1080, 1920, 5000, '!=', '<', '<=', '==', '>', '>=', 'QWidget | None', '_plot_widget', 'adaptive', 'gaussian', 'libx264', 'linear', 'log', 'lowpass', 'lttb', 'median', 'minmax', 'moviepy', 'moviepy_export_start', 'mp4v', 'normalized', 'opencv', 'savitzky_golay', 'streaming_data_setup', 'streaming_loop', 'streaming_pause', 'streaming_play', 'streaming_seek', 'streaming_stop', 'streaming_sync_views', 'sync_callback_failed', 'sync_view_failed', 'video_export_start', 'view_subscribed', 'view_unsubscribed']

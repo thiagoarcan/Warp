@@ -10,25 +10,18 @@ import pytest
 class TestHexToQColor:
     """Tests for _hex_to_qcolor function."""
     
-    @pytest.fixture
-    def hex_to_qcolor(self):
-        """Get function with Qt mocked."""
-        with patch('platform_base.viz.figures_2d.PYQTGRAPH_AVAILABLE', True):
-            from platform_base.viz.figures_2d import _hex_to_qcolor
-            return _hex_to_qcolor
-    
-    @pytest.mark.skipif(True, reason="Requires Qt environment")
-    def test_hex_with_hash(self, hex_to_qcolor):
+    def test_hex_with_hash(self, qapp):
         """Test converting hex color with hash."""
-        color = hex_to_qcolor("#FF0000")
+        from platform_base.viz.figures_2d import _hex_to_qcolor
+        color = _hex_to_qcolor("#FF0000")
         assert color.red() == 255
         assert color.green() == 0
         assert color.blue() == 0
     
-    @pytest.mark.skipif(True, reason="Requires Qt environment")
-    def test_hex_without_hash(self, hex_to_qcolor):
+    def test_hex_without_hash(self, qapp):
         """Test converting hex color without hash."""
-        color = hex_to_qcolor("00FF00")
+        from platform_base.viz.figures_2d import _hex_to_qcolor
+        color = _hex_to_qcolor("00FF00")
         assert color.red() == 0
         assert color.green() == 255
         assert color.blue() == 0

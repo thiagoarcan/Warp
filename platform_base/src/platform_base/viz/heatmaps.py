@@ -833,3 +833,17 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
     except ImportError:
         logger.warning("scipy not available for spectrogram")
         return Heatmap(title="Spectrogram (scipy required)")
+
+
+# =============================================================================
+# Standalone utility functions
+# =============================================================================
+
+def get_available_colormaps() -> list:
+    """
+    Get list of available colormaps for heatmaps.
+    
+    Returns:
+        List of colormap names
+    """
+    return Heatmap.AVAILABLE_COLORMAPS.copy()

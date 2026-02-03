@@ -1,0 +1,97 @@
+         14787 function calls (14785 primitive calls) in 0.151 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.151    0.151 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\profiling\decorators.py:107(wrapper)
+        1    0.001    0.001    0.150    0.150 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py:486(downsample)
+        1    0.078    0.078    0.148    0.148 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py:111(_lttb_downsample)
+      994    0.008    0.000    0.057    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:3385(mean)
+      994    0.029    0.000    0.049    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\_methods.py:101(_mean)
+     1498    0.008    0.000    0.008    0.000 {method 'append' of 'list' objects}
+      994    0.007    0.000    0.007    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\_methods.py:67(_count_reduce_items)
+      996    0.007    0.000    0.007    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+      995    0.003    0.000    0.003    0.000 {built-in method builtins.min}
+     1988    0.002    0.000    0.002    0.000 {built-in method builtins.issubclass}
+     1021    0.002    0.000    0.002    0.000 {built-in method builtins.len}
+      994    0.002    0.000    0.002    0.000 {built-in method builtins.hasattr}
+        2    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:263(_proxy_to_logger)
+        2    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:192(_proxy_to_logger)
+     1017    0.001    0.000    0.001    0.000 {built-in method builtins.isinstance}
+        2    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:122(_process_event)
+        2    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:892(__call__)
+        1    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:212(info)
+       13    0.000    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:297(__call__)
+      994    0.001    0.000    0.001    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:3380(_mean_dispatcher)
+        1    0.000    0.000    0.001    0.001 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:206(debug)
+       77    0.000    0.000    0.000    0.000 {method 'write' of '_io.StringIO' objects}
+      995    0.000    0.000    0.000    0.000 {built-in method numpy.core._multiarray_umath.normalize_axis_index}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\function_base.py:1324(diff)
+      995    0.000    0.000    0.000    0.000 {built-in method numpy.asanyarray}
+        2    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:118(__getattr__)
+      6/4    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:415(__getattr__)
+        3    0.000    0.000    0.000    0.000 {built-in method numpy.array}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:349(bind)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        9    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:877(_repr)
+       15    0.000    0.000    0.000    0.000 {method 'getvalue' of '_io.StringIO' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:492(__call__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:547(stamper_iso_utc)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:71(_wrapreduction)
+        3    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\pydantic\main.py:243(__init__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1529(info)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1790(isEnabledFor)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2421(all)
+        3    0.000    0.000    0.000    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:123(get_logger)
+       15    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:110(_pad)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2177(sum)
+        4    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:601(_figure_out_exc_info)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:366(__call__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:414(__call__)
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\processing\downsampling.py:42(_build_metadata)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\stdlib.py:707(__call__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:2149(getLogger)
+        2    0.000    0.000    0.000    0.000 {method 'join' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:113(get_logger)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1377(getLogger)
+        2    0.000    0.000    0.000    0.000 {method 'isoformat' of 'datetime.datetime' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:522(now)
+       22    0.000    0.000    0.000    0.000 {method 'pop' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:154(wrap_logger)
+        2    0.000    0.000    0.000    0.000 {method 'astype' of 'numpy.ndarray' objects}
+        6    0.000    0.000    0.000    0.000 {built-in method builtins.repr}
+       15    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:964(columns)
+        2    0.000    0.000    0.000    0.000 {built-in method builtins.sorted}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\processors.py:712(__call__)
+        3    0.000    0.000    0.000    0.000 {built-in method now}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:234(_acquireLock)
+        6    0.000    0.000    0.000    0.000 {built-in method time.perf_counter}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:322(__init__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:243(_releaseLock)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1776(getEffectiveLevel)
+       17    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\dev.py:909(<genexpr>)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_log_levels.py:61(add_log_level)
+        2    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1517(debug)
+        2    0.000    0.000    0.000    0.000 {method 'replace' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\tdyb\OneDrive - TRANSPETRO\햞ea de Trabalho\Warp\platform_base\src\platform_base\utils\logging.py:109(__init__)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_config.py:376(finalized_bind)
+        2    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 {method 'update' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+        2    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.RLock' objects}
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\typing.py:2173(cast)
+        2    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+        2    0.000    0.000    0.000    0.000 {method 'copy' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\lib\function_base.py:1320(_diff_dispatcher)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2172(_sum_dispatcher)
+        2    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_log_levels.py:49(map_method_name)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\logging\__init__.py:1369(disable)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\numpy\core\fromnumeric.py:2416(_all_dispatcher)
+        2    0.000    0.000    0.000    0.000 <string>:2(__init__)
+        1    0.000    0.000    0.000    0.000 C:\ProgramData\anaconda3\Lib\site-packages\structlog\_base.py:51(__init__)
+
+

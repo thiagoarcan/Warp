@@ -340,8 +340,29 @@ class VizPanel(QWidget, UiLoaderMixin):
         logger.debug("viz_panel_initialized")
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        pass
+        """Configura widgets carregados do arquivo .ui
+        
+        Conecta widgets definidos no arquivo .ui aos handlers Python.
+        """
+        try:
+            self.plot_tabs = self.findChild(QTabWidget, "plotTabs")
+            self.new_plot_btn = self.findChild(QPushButton, "newPlotButton")
+            self.plot_type_combo = self.findChild(QComboBox, "plotTypeCombo")
+            
+            if self.plot_tabs is None:
+                logger.debug("viz_panel_ui_widgets_not_found")
+                return
+                
+            if self.new_plot_btn:
+                self.new_plot_btn.clicked.connect(self._create_new_plot)
+                
+            if self.plot_type_combo:
+                self.plot_type_combo.currentTextChanged.connect(self._on_plot_type_changed)
+                
+            logger.debug("viz_panel_ui_loaded_from_file")
+            
+        except Exception as e:
+            logger.warning(f"viz_panel_ui_setup_failed: {e}")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""

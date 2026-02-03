@@ -37,7 +37,6 @@ from PyQt6.QtWidgets import (
 
 from platform_base.utils.logging import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -387,23 +386,217 @@ class ResultsPanel(QWidget):
         return tabs
 
     def _create_distribution_tab(self) -> QWidget:
-        """Cria tab de distribuição"""
+        """Cria tab de distribuição com histograma e box plot."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-
-        # Placeholder - seria um histograma ou box plot
-        info = QLabel(
-            "📊 Visualização de distribuição\n\n"
-            "• Histograma dos valores\n"
-            "• Box plot\n"
-            "• Curva de densidade\n\n"
-            "(Selecione uma série para visualizar)",
-        )
-        info.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info.setStyleSheet("color: #6c757d; padding: 40px;")
-        layout.addWidget(info)
-
+        layout.setContentsMargins(8, 8, 8, 8)
+        
+        # Import pyqtgraph for plotting
+        try:
+            import pyqtgraph as pg
+            pg.setConfigOptions(antialias=True)
+            
+            # Create splitter for histogram and stats
+            splitter = QSplitter(Qt.Orientation.Vertical)
+            
+            # === Histogram Section ===
+            hist_widget = QWidget()
+            hist_layout = QVBoxLayout(hist_widget)
+            hist_layout.setContentsMargins(0, 0, 0, 0)
+            
+            hist_label = QLabel("📊 Histograma de Distribuição")
+            hist_label.setStyleSheet("font-weight: bold; font-size: 12px; padding: 4px;")
+            hist_layout.addWidget(hist_label)
+            
+            # Create plot widget for histogram
+            self._hist_plot = pg.PlotWidget()
+            self._hist_plot.setBackground('w')
+            self._hist_plot.setLabel('left', 'Frequência')
+            self._hist_plot.setLabel('bottom', 'Valor')
+            self._hist_plot.showGrid(x=True, y=True, alpha=0.3)
+            hist_layout.addWidget(self._hist_plot)
+            
+            splitter.addWidget(hist_widget)
+            
+            # === Box Plot Statistics Section ===
+            box_widget = QWidget()
+            box_layout = QVBoxLayout(box_widget)
+            box_layout.setContentsMargins(0, 0, 0, 0)
+            
+            box_label = QLabel("📦 Estatísticas de Distribuição")
+            box_label.setStyleSheet("font-weight: bold; font-size: 12px; padding: 4px;")
+            box_layout.addWidget(box_label)
+            
+            # Distribution stats grid
+            self._dist_stats_widget = QWidget()
+            dist_grid = QGridLayout(self._dist_stats_widget)
+            dist_grid.setSpacing(8)
+            
+            # Create stat labels
+            self._dist_labels = {}
+            stats_items = [
+                ('min', 'Mínimo', 0, 0),
+                ('q1', 'Q1 (25%)', 0, 1),
+                ('median', 'Mediana (Q2)', 0, 2),
+                ('q3', 'Q3 (75%)', 0, 3),
+                ('max', 'Máximo', 1, 0),
+                ('iqr', 'IQR (Q3-Q1)', 1, 1),
+                ('skewness', 'Assimetria', 1, 2),
+                ('kurtosis', 'Curtose', 1, 3),
+            ]
+            
+            for key, label_text, row, col in stats_items:
+                frame = QFrame()
+                frame.setFrameStyle(QFrame.Shape.StyledPanel)
+                frame.setStyleSheet("""
+                    QFrame {
+                        background-color: #f8f9fa;
+                        border: 1px solid #dee2e6;
+                        border-radius: 4px;
+                        padding: 8px;
+                    }
+                """)
+                frame_layout = QVBoxLayout(frame)
+                frame_layout.setContentsMargins(8, 4, 8, 4)
+                frame_layout.setSpacing(2)
+                
+                name_label = QLabel(label_text)
+                name_label.setStyleSheet("color: #6c757d; font-size: 10px;")
+                frame_layout.addWidget(name_label)
+                
+                value_label = QLabel("--")
+                value_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #212529;")
+                frame_layout.addWidget(value_label)
+                
+                self._dist_labels[key] = value_label
+                dist_grid.addWidget(frame, row, col)
+            
+            box_layout.addWidget(self._dist_stats_widget)
+            
+            # Info label for empty state
+            self._dist_info = QLabel(
+                "Selecione uma série para visualizar a distribuição dos valores"
+            )
+            self._dist_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._dist_info.setStyleSheet("color: #6c757d; padding: 20px;")
+            box_layout.addWidget(self._dist_info)
+            self._dist_info.setVisible(False)
+            
+            splitter.addWidget(box_widget)
+            
+            # Set splitter sizes
+            splitter.setSizes([300, 150])
+            
+            layout.addWidget(splitter)
+            
+        except ImportError:
+            # Fallback if pyqtgraph not available
+            info = QLabel(
+                "📊 Visualização de distribuição\n\n"
+                "pyqtgraph não disponível para gráficos.\n"
+                "Instale com: pip install pyqtgraph"
+            )
+            info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            info.setStyleSheet("color: #6c757d; padding: 40px;")
+            layout.addWidget(info)
+            self._hist_plot = None
+            self._dist_labels = {}
+        
         return widget
+    
+    def update_distribution(self, values: np.ndarray):
+        """Atualiza o histograma e estatísticas de distribuição.
+        
+        Args:
+            values: Array de valores para análise de distribuição.
+        """
+        if not hasattr(self, '_hist_plot') or self._hist_plot is None:
+            return
+            
+        try:
+            import pyqtgraph as pg
+            from scipy import stats as scipy_stats
+
+            # Filter out NaN values
+            clean_values = values[~np.isnan(values)]
+            
+            if len(clean_values) == 0:
+                return
+            
+            # Clear previous plot
+            self._hist_plot.clear()
+            
+            # Calculate histogram
+            n_bins = min(50, max(10, int(np.sqrt(len(clean_values)))))
+            hist, bins = np.histogram(clean_values, bins=n_bins)
+            
+            # Create bar graph for histogram
+            bin_centers = (bins[:-1] + bins[1:]) / 2
+            bar_width = bins[1] - bins[0]
+            
+            bar_item = pg.BarGraphItem(
+                x=bin_centers,
+                height=hist,
+                width=bar_width * 0.9,
+                brush=pg.mkBrush(100, 150, 255, 180),
+                pen=pg.mkPen(color=(50, 100, 200), width=1)
+            )
+            self._hist_plot.addItem(bar_item)
+            
+            # Add mean line
+            mean_val = np.mean(clean_values)
+            mean_line = pg.InfiniteLine(
+                pos=mean_val,
+                angle=90,
+                pen=pg.mkPen(color='r', width=2, style=2),  # Dashed red
+                label=f'Média: {mean_val:.2f}'
+            )
+            self._hist_plot.addItem(mean_line)
+            
+            # Add median line
+            median_val = np.median(clean_values)
+            median_line = pg.InfiniteLine(
+                pos=median_val,
+                angle=90,
+                pen=pg.mkPen(color='g', width=2, style=3),  # Dot-dash green
+                label=f'Mediana: {median_val:.2f}'
+            )
+            self._hist_plot.addItem(median_line)
+            
+            # Update distribution statistics
+            q1 = np.percentile(clean_values, 25)
+            q3 = np.percentile(clean_values, 75)
+            iqr = q3 - q1
+            
+            # Calculate skewness and kurtosis
+            try:
+                skewness = scipy_stats.skew(clean_values)
+                kurtosis = scipy_stats.kurtosis(clean_values)
+            except Exception:
+                skewness = 0.0
+                kurtosis = 0.0
+            
+            # Update labels
+            if hasattr(self, '_dist_labels') and self._dist_labels:
+                self._dist_labels['min'].setText(f"{np.min(clean_values):.4g}")
+                self._dist_labels['max'].setText(f"{np.max(clean_values):.4g}")
+                self._dist_labels['q1'].setText(f"{q1:.4g}")
+                self._dist_labels['median'].setText(f"{median_val:.4g}")
+                self._dist_labels['q3'].setText(f"{q3:.4g}")
+                self._dist_labels['iqr'].setText(f"{iqr:.4g}")
+                self._dist_labels['skewness'].setText(f"{skewness:.4f}")
+                self._dist_labels['kurtosis'].setText(f"{kurtosis:.4f}")
+            
+            # Hide info label
+            if hasattr(self, '_dist_info'):
+                self._dist_info.setVisible(False)
+            if hasattr(self, '_dist_stats_widget'):
+                self._dist_stats_widget.setVisible(True)
+                
+            logger.debug("distribution_updated", n_values=len(clean_values), n_bins=n_bins)
+            
+        except Exception as e:
+            logger.warning(f"distribution_update_failed: {e}")
 
     def _connect_signals(self):
         """Conecta signals internos"""

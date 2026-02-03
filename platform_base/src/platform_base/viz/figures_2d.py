@@ -520,8 +520,50 @@ class ScatterPlot(BaseFigure):
         return self._widget
 
     def update_selection(self, selection_indices: np.ndarray):
-        """Atualiza seleção visual"""
-        # Placeholder implementation
+        """Atualiza seleção visual no scatter plot.
+        
+        Args:
+            selection_indices: Array of indices to highlight in the scatter plot.
+        """
+        if self._widget is None or len(selection_indices) == 0:
+            return
+            
+        try:
+            # Get scatter plot item
+            scatter_items = [item for item in self._widget.plot_widget.items() 
+                           if hasattr(item, 'setData') and hasattr(item, 'opts')]
+            
+            if not scatter_items:
+                return
+                
+            scatter_item = scatter_items[0]
+            
+            # Get current point data
+            x_data = scatter_item.data['x'] if hasattr(scatter_item, 'data') else None
+            y_data = scatter_item.data['y'] if hasattr(scatter_item, 'data') else None
+            
+            if x_data is None or y_data is None:
+                return
+            
+            # Create brush array for highlighting
+            import pyqtgraph as pg
+            from PyQt6.QtGui import QColor
+            
+            n_points = len(x_data)
+            brushes = [pg.mkBrush(100, 100, 255, 120)] * n_points  # Default: blue semi-transparent
+            
+            # Highlight selected points in orange
+            for idx in selection_indices:
+                if 0 <= idx < n_points:
+                    brushes[idx] = pg.mkBrush(255, 165, 0, 200)  # Orange highlight
+            
+            # Update scatter plot brushes
+            scatter_item.setBrush(brushes)
+            
+            logger.debug("scatter_selection_updated", n_selected=len(selection_indices))
+            
+        except Exception as e:
+            logger.debug("scatter_selection_update_failed", error=str(e))
 
     def export(self, file_path: str, format: str, **kwargs):
         """Exporta scatter plot"""

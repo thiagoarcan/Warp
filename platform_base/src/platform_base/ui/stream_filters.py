@@ -742,8 +742,13 @@ class StreamFilter:
         return np.asarray(data)
 
     def reset(self):
-        """Reset filter state."""
-        pass
+        """Reset filter state.
+        
+        Clears any internal state (coefficients, buffers) and 
+        re-designs the filter. Useful when changing filter parameters
+        or switching between data streams.
+        """
+        self._coefficients = None
 
     def get_frequency_response(self, n_points: int = 512) -> tuple["np.ndarray", "np.ndarray"]:
         """

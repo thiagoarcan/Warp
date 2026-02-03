@@ -327,19 +327,21 @@ class ShortcutManager(QObject):
     shortcut_changed = pyqtSignal(str, str)  # action_id, new_key
     shortcut_triggered = pyqtSignal(str)  # action_id
 
-    def __new__(cls):
+    @classmethod
+    def instance(cls) -> ShortcutManager:
+        """Get the singleton instance."""
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialized = False
+            cls._instance = cls()
         return cls._instance
 
-    def __init__(self):
-        if self._initialized:
-            return
+    @classmethod
+    def reset_instance(cls):
+        """Reset singleton instance (for testing)."""
+        cls._instance = None
 
-        super().__init__()
-        self._initialized = True
-
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        
         self._bindings: dict[str, ShortcutBinding] = {}
         self._shortcuts: dict[str, QShortcut] = {}
         self._parent_widget: QWidget | None = None
@@ -775,10 +777,15 @@ def get_shortcut_manager() -> ShortcutManager:
     return ShortcutManager()
 
 
+# Alias for compatibility
+ShortcutDialog = ShortcutsDialog
+
+
 __all__ = [
     "DEFAULT_SHORTCUTS",
     "ShortcutBinding",
     "ShortcutCategory",
+    "ShortcutDialog",
     "ShortcutManager",
     "ShortcutsDialog",
     "get_shortcut_manager",

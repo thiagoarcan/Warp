@@ -427,8 +427,31 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         logger.debug("settings_dialog_initialized")
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        pass
+        """Configura widgets carregados do arquivo .ui
+        
+        Conecta widgets definidos no arquivo .ui aos handlers Python.
+        """
+        try:
+            self.tabs = self.findChild(QTabWidget, "settingsTabs")
+            self.apply_btn = self.findChild(QPushButton, "applyButton")
+            self.ok_btn = self.findChild(QPushButton, "okButton")
+            self.cancel_btn = self.findChild(QPushButton, "cancelButton")
+            
+            if self.tabs is None:
+                logger.debug("settings_dialog_ui_widgets_not_found")
+                return
+                
+            if self.apply_btn:
+                self.apply_btn.clicked.connect(self._apply_settings)
+            if self.ok_btn:
+                self.ok_btn.clicked.connect(self.accept)
+            if self.cancel_btn:
+                self.cancel_btn.clicked.connect(self.reject)
+                
+            logger.debug("settings_dialog_ui_loaded_from_file")
+            
+        except Exception as e:
+            logger.warning(f"settings_dialog_ui_setup_failed: {e}")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
