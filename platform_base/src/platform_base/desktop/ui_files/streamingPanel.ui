@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>StreamingPanel</class>
+ <widget class="QWidget" name="StreamingPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>350</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>200</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Streaming Panel</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QWidget {
+    background-color: #ffffff;
+}
+QGroupBox {
+    font-weight: bold;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    background-color: #f8f9fa;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 2px 6px;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+}
+QPushButton {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #0b5ed7;
+}
+QPushButton:disabled {
+    background-color: #6c757d;
+}
+QPushButton#playBtn {
+    background-color: #198754;
+}
+QPushButton#playBtn:hover {
+    background-color: #157347;
+}
+QPushButton#pauseBtn {
+    background-color: #ffc107;
+    color: #212529;
+}
+QPushButton#stopBtn {
+    background-color: #dc3545;
+}
+QSlider::groove:horizontal {
+    border: 1px solid #ced4da;
+    height: 8px;
+    background: #e9ecef;
+    margin: 2px 0;
+    border-radius: 4px;
+}
+QSlider::handle:horizontal {
+    background: #0d6efd;
+    border: 1px solid #0b5ed7;
+    width: 18px;
+    margin: -5px 0;
+    border-radius: 9px;
+}
+QProgressBar {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    text-align: center;
+    background-color: #e9ecef;
+}
+QProgressBar::chunk {
+    background-color: #0d6efd;
+    border-radius: 3px;
+}
+   </string>
+  </property>
+  
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>8</number>
+   </property>
+   <property name="leftMargin">
+    <number>8</number>
+   </property>
+   <property name="topMargin">
+    <number>8</number>
+   </property>
+   <property name="rightMargin">
+    <number>8</number>
+   </property>
+   <property name="bottomMargin">
+    <number>8</number>
+   </property>
+   
+   <!-- Header -->
+   <item>
+    <widget class="QLabel" name="headerLabel">
+     <property name="text">
+      <string>▶️ Streaming de Dados</string>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string>color: #198754; padding: 4px;</string>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Connection Status -->
+   <item>
+    <widget class="QGroupBox" name="statusGroup">
+     <property name="title">
+      <string>📡 Status da Conexão</string>
+     </property>
+     <layout class="QGridLayout" name="statusLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>12</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="statusIconLabel">
+        <property name="text">
+         <string>⚪</string>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="statusTextLabel">
+        <property name="text">
+         <string>Desconectado</string>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="rateLabel">
+        <property name="text">
+         <string>Taxa:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="rateValueLabel">
+        <property name="text">
+         <string>0 pts/s</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="bufferLabel">
+        <property name="text">
+         <string>Buffer:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QProgressBar" name="bufferProgress">
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+        <property name="textVisible">
+         <bool>true</bool>
+        </property>
+        <property name="format">
+         <string>%p%</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Playback Controls -->
+   <item>
+    <widget class="QGroupBox" name="controlsGroup">
+     <property name="title">
+      <string>🎮 Controles de Playback</string>
+     </property>
+     <layout class="QVBoxLayout" name="controlsLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>12</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      
+      <!-- Main Control Buttons -->
+      <item>
+       <layout class="QHBoxLayout" name="playbackButtonsLayout">
+        <item>
+         <widget class="QPushButton" name="playBtn">
+          <property name="text">
+           <string>▶ Play</string>
+          </property>
+          <property name="toolTip">
+           <string>Iniciar reprodução do streaming</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pauseBtn">
+          <property name="text">
+           <string>⏸ Pause</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Pausar reprodução</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="stopBtn">
+          <property name="text">
+           <string>⏹ Stop</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Parar reprodução</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      
+      <!-- Position Slider -->
+      <item>
+       <layout class="QHBoxLayout" name="positionLayout">
+        <item>
+         <widget class="QLabel" name="positionLabel">
+          <property name="text">
+           <string>00:00</string>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="positionSlider">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+          <property name="tickInterval">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="durationLabel">
+          <property name="text">
+           <string>00:00</string>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>50</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      
+      <!-- Speed Control -->
+      <item>
+       <layout class="QHBoxLayout" name="speedLayout">
+        <item>
+         <widget class="QLabel" name="speedLabel">
+          <property name="text">
+           <string>Velocidade:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="speedSlider">
+          <property name="minimum">
+           <number>25</number>
+          </property>
+          <property name="maximum">
+           <number>400</number>
+          </property>
+          <property name="value">
+           <number>100</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="speedValueLabel">
+          <property name="text">
+           <string>1.0x</string>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Data Source Configuration -->
+   <item>
+    <widget class="QGroupBox" name="sourceGroup">
+     <property name="title">
+      <string>📂 Fonte de Dados</string>
+     </property>
+     <layout class="QFormLayout" name="sourceLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>12</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="sourceTypeLabel">
+        <property name="text">
+         <string>Tipo:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="sourceTypeCombo">
+        <property name="toolTip">
+         <string>Tipo de fonte de dados</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Arquivo Local</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Simulação</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TCP/IP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Serial</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>OPC-UA</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="sourcePathLabel">
+        <property name="text">
+         <string>Endereço:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="pathLayout">
+        <item>
+         <widget class="QLineEdit" name="sourcePathEdit">
+          <property name="placeholderText">
+           <string>Caminho ou endereço da fonte</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="browseBtn">
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Selecionar arquivo</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="connectLayout">
+        <item>
+         <widget class="QPushButton" name="connectBtn">
+          <property name="text">
+           <string>🔗 Conectar</string>
+          </property>
+          <property name="toolTip">
+           <string>Conectar à fonte de dados</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="disconnectBtn">
+          <property name="text">
+           <string>🔌 Desconectar</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Desconectar da fonte</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Settings -->
+   <item>
+    <widget class="QGroupBox" name="settingsGroup">
+     <property name="title">
+      <string>⚙️ Configurações</string>
+     </property>
+     <layout class="QFormLayout" name="settingsLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>12</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="bufferSizeLabel">
+        <property name="text">
+         <string>Buffer (pts):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="bufferSizeSpin">
+        <property name="minimum">
+         <number>100</number>
+        </property>
+        <property name="maximum">
+         <number>100000</number>
+        </property>
+        <property name="value">
+         <number>10000</number>
+        </property>
+        <property name="toolTip">
+         <string>Tamanho do buffer de dados</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="updateRateLabel">
+        <property name="text">
+         <string>Atualização (ms):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="updateRateSpin">
+        <property name="minimum">
+         <number>10</number>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="value">
+         <number>100</number>
+        </property>
+        <property name="toolTip">
+         <string>Taxa de atualização da visualização</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QCheckBox" name="autoScrollCheck">
+        <property name="text">
+         <string>Auto-scroll</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Rolar automaticamente para novos dados</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="recordCheck">
+        <property name="text">
+         <string>Gravar dados</string>
+        </property>
+        <property name="toolTip">
+         <string>Salvar dados recebidos em arquivo</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Spacer -->
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   
+  </layout>
+ </widget>
+ 
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Platform Base - Promoted Widgets para Qt Designer
+
+Este arquivo define widgets customizados do projeto que podem ser usados
+no Qt Designer através do mecanismo de "promoted widgets".
+
+Para usar um promoted widget no Qt Designer:
+1. Arraste um QWidget para o formulário
+2. Clique com botão direito -> "Promote to..."
+3. Selecione a classe do widget customizado
+4. O widget será renderizado como QWidget mas carregará a classe customizada em runtime
+
+Categorias de widgets:
+- Visualização: Plot2DWidget, Plot3DWidget, HeatmapWidget, MatplotlibWidget
+- Seleção: RangePickerWidget, BrushSelectionWidget, QueryBuilderWidget
+- Streaming: StreamingControlWidget, MinimapWidget, TimelineSlider
+- Configuração: InterpolationConfigWidget, CalculusConfigWidget
+- Resultados: LogWidget, ResultsTable, StatisticsWidget
+-->
+<ui_plugin_registration>
+    
+    <!-- ==================== WIDGETS DE VISUALIZAÇÃO ==================== -->
+    
+    <customwidget>
+        <class>Plot2DWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.plot_2d_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/chart-line.png</pixmap>
+        <tooltip>Widget de visualização 2D com pyqtgraph</tooltip>
+        <whatsthis>Widget para plotagem de séries temporais em 2D usando pyqtgraph para alto desempenho.</whatsthis>
+    </customwidget>
+    
+    <customwidget>
+        <class>Plot3DWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.plot_3d_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/cube.png</pixmap>
+        <tooltip>Widget de visualização 3D com PyVista</tooltip>
+        <whatsthis>Widget para visualização 3D de dados usando PyVista/VTK.</whatsthis>
+    </customwidget>
+    
+    <customwidget>
+        <class>HeatmapWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.heatmap_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/grid.png</pixmap>
+        <tooltip>Widget de heatmap/mapa de calor</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>MatplotlibWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.matplotlib_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/chart-bar.png</pixmap>
+        <tooltip>Widget genérico matplotlib</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>PreviewCanvas</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.preview_canvas</header>
+        <container>0</container>
+        <tooltip>Canvas de preview para operações</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>PreviewWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.preview_widget</header>
+        <container>0</container>
+        <tooltip>Widget de preview com controles</tooltip>
+    </customwidget>
+    
+    <!-- ==================== WIDGETS DE SELEÇÃO ==================== -->
+    
+    <customwidget>
+        <class>RangePickerWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.range_picker_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/selection.png</pixmap>
+        <tooltip>Seletor de intervalo temporal</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>BrushSelectionWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.brush_selection_widget</header>
+        <container>0</container>
+        <tooltip>Widget de seleção por pincel</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>QueryBuilderWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.query_builder_widget</header>
+        <container>0</container>
+        <tooltip>Construtor de queries para seleção</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>SelectionHistoryWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.selection_history_widget</header>
+        <container>0</container>
+        <tooltip>Histórico de seleções</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>SelectionManagerWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.selection_manager_widget</header>
+        <container>0</container>
+        <tooltip>Gerenciador de seleções</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>SelectionToolbar</class>
+        <extends>QToolBar</extends>
+        <header>platform_base.ui.selection.selection_toolbar</header>
+        <container>0</container>
+        <tooltip>Toolbar de ferramentas de seleção</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>SelectionInfo</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.selection_info</header>
+        <container>0</container>
+        <tooltip>Informações sobre seleção atual</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>StatisticsWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.selection.statistics_widget</header>
+        <container>0</container>
+        <tooltip>Estatísticas da seleção</tooltip>
+    </customwidget>
+    
+    <!-- ==================== WIDGETS DE STREAMING ==================== -->
+    
+    <customwidget>
+        <class>StreamingControlWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.streaming.streaming_control_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/play.png</pixmap>
+        <tooltip>Controles de streaming/playback</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>MinimapWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.streaming.minimap_widget</header>
+        <container>0</container>
+        <tooltip>Minimap de navegação</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>TimelineSlider</class>
+        <extends>QSlider</extends>
+        <header>platform_base.ui.streaming.timeline_slider</header>
+        <container>0</container>
+        <tooltip>Slider de timeline</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>TimeIntervalWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.filters.time_interval_widget</header>
+        <container>0</container>
+        <tooltip>Widget de intervalo temporal</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>ValuePredicateWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.filters.value_predicate_widget</header>
+        <container>0</container>
+        <tooltip>Widget de predicado de valor</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>StreamFiltersWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.filters.stream_filters_widget</header>
+        <container>0</container>
+        <tooltip>Filtros de streaming</tooltip>
+    </customwidget>
+    
+    <!-- ==================== WIDGETS DE CONFIGURAÇÃO ==================== -->
+    
+    <customwidget>
+        <class>InterpolationConfigWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.interpolation_config_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/settings.png</pixmap>
+        <tooltip>Configuração de interpolação</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>CalculusConfigWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.calculus_config_widget</header>
+        <container>0</container>
+        <tooltip>Configuração de cálculo (derivada/integral)</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>ParameterWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.parameter_widget</header>
+        <container>0</container>
+        <tooltip>Widget base de parâmetro</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>NumericParameterWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.numeric_parameter_widget</header>
+        <container>0</container>
+        <tooltip>Widget de parâmetro numérico</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>ChoiceParameterWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.choice_parameter_widget</header>
+        <container>0</container>
+        <tooltip>Widget de parâmetro de escolha</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>BooleanParameterWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.boolean_parameter_widget</header>
+        <container>0</container>
+        <tooltip>Widget de parâmetro booleano</tooltip>
+    </customwidget>
+    
+    <!-- ==================== WIDGETS DE RESULTADOS ==================== -->
+    
+    <customwidget>
+        <class>LogWidget</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.log_widget</header>
+        <container>0</container>
+        <pixmap>:/icons/list.png</pixmap>
+        <tooltip>Widget de log/histórico</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>ResultsTable</class>
+        <extends>QTableWidget</extends>
+        <header>platform_base.desktop.widgets.results_table</header>
+        <container>0</container>
+        <tooltip>Tabela de resultados</tooltip>
+    </customwidget>
+    
+    <!-- ==================== WIDGETS AUXILIARES ==================== -->
+    
+    <customwidget>
+        <class>RichTooltip</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.widgets.rich_tooltip</header>
+        <container>0</container>
+        <tooltip>Tooltip com formatação rica</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>MemoryIndicator</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.memory_indicator</header>
+        <container>0</container>
+        <tooltip>Indicador de uso de memória</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>AutoSaveIndicator</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.auto_save_indicator</header>
+        <container>0</container>
+        <tooltip>Indicador de auto-save</tooltip>
+    </customwidget>
+    
+    <!-- ==================== TABS DE SETTINGS ==================== -->
+    
+    <customwidget>
+        <class>GeneralSettingsTab</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.general_settings_tab</header>
+        <container>0</container>
+        <tooltip>Tab de configurações gerais</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>PerformanceSettingsTab</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.performance_settings_tab</header>
+        <container>0</container>
+        <tooltip>Tab de configurações de desempenho</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>LoggingSettingsTab</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.logging_settings_tab</header>
+        <container>0</container>
+        <tooltip>Tab de configurações de logging</tooltip>
+    </customwidget>
+    
+    <!-- ==================== PAINÉIS PRINCIPAIS ==================== -->
+    
+    <customwidget>
+        <class>DataPanel</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.data_panel</header>
+        <container>0</container>
+        <pixmap>:/icons/database.png</pixmap>
+        <tooltip>Painel de gerenciamento de dados</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>VizPanel</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.viz_panel</header>
+        <container>0</container>
+        <pixmap>:/icons/chart.png</pixmap>
+        <tooltip>Painel de visualização</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>ConfigPanel</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.config_panel</header>
+        <container>0</container>
+        <pixmap>:/icons/cog.png</pixmap>
+        <tooltip>Painel de configuração</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>ResultsPanel</class>
+        <extends>QWidget</extends>
+        <header>platform_base.desktop.widgets.results_panel</header>
+        <container>0</container>
+        <pixmap>:/icons/table.png</pixmap>
+        <tooltip>Painel de resultados</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>OperationsPanel</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.panels.operations_panel</header>
+        <container>0</container>
+        <pixmap>:/icons/calculator.png</pixmap>
+        <tooltip>Painel de operações matemáticas</tooltip>
+    </customwidget>
+    
+    <customwidget>
+        <class>StreamingPanel</class>
+        <extends>QWidget</extends>
+        <header>platform_base.ui.panels.streaming_panel</header>
+        <container>0</container>
+        <pixmap>:/icons/play-circle.png</pixmap>
+        <tooltip>Painel de streaming/playback</tooltip>
+    </customwidget>
+    
+</ui_plugin_registration>

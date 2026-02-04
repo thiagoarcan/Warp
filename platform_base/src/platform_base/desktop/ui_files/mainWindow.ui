@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1400</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Platform Base v2.0 - Time Series Analysis</string>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
+  </property>
+  
+  <!-- Central Widget - Placeholder para VizPanel -->
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="centralLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="vizPanelPlaceholder" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  
+  <!-- Menu Bar -->
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1400</width>
+     <height>22</height>
+    </rect>
+   </property>
+   
+   <!-- File Menu -->
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionNewSession"/>
+    <addaction name="actionOpenSession"/>
+    <addaction name="actionSaveSession"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadData"/>
+    <addaction name="actionExportData"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   
+   <!-- Edit Menu -->
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="actionFindSeries"/>
+   </widget>
+   
+   <!-- View Menu -->
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="menuPanels">
+     <property name="title">
+      <string>Panels</string>
+     </property>
+    </widget>
+    <addaction name="menuPanels"/>
+    <addaction name="separator"/>
+    <addaction name="actionRefreshData"/>
+    <addaction name="actionFullscreen"/>
+    <addaction name="separator"/>
+    <widget class="QMenu" name="menuTheme">
+     <property name="title">
+      <string>Theme</string>
+     </property>
+     <addaction name="actionThemeLight"/>
+     <addaction name="actionThemeDark"/>
+     <addaction name="actionThemeAuto"/>
+    </widget>
+    <addaction name="menuTheme"/>
+   </widget>
+   
+   <!-- Tools Menu -->
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="actionSettings"/>
+   </widget>
+   
+   <!-- Help Menu -->
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionContextualHelp"/>
+    <addaction name="actionKeyboardShortcuts"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
+   </widget>
+   
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  
+  <!-- Status Bar -->
+  <widget class="QStatusBar" name="statusBar"/>
+  
+  <!-- Main Toolbar -->
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="windowTitle">
+    <string>Main</string>
+   </property>
+   <property name="movable">
+    <bool>true</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionLoadData"/>
+   <addaction name="separator"/>
+   <addaction name="actionNewSession"/>
+   <addaction name="actionSaveSession"/>
+   <addaction name="separator"/>
+   <addaction name="actionSettings"/>
+  </widget>
+  
+  <!-- Data Panel Dock -->
+  <widget class="QDockWidget" name="dataDock">
+   <property name="windowTitle">
+    <string>Data Panel</string>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dataPanelPlaceholder">
+    <property name="minimumSize">
+     <size>
+      <width>250</width>
+      <height>0</height>
+     </size>
+    </property>
+   </widget>
+  </widget>
+  
+  <!-- Config Panel Dock -->
+  <widget class="QDockWidget" name="configDock">
+   <property name="windowTitle">
+    <string>Configuration</string>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="configPanelPlaceholder">
+    <property name="minimumSize">
+     <size>
+      <width>280</width>
+      <height>0</height>
+     </size>
+    </property>
+   </widget>
+  </widget>
+  
+  <!-- Operations Panel Dock -->
+  <widget class="QDockWidget" name="operationsDock">
+   <property name="windowTitle">
+    <string>Operations</string>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="operationsPanelPlaceholder">
+    <property name="minimumSize">
+     <size>
+      <width>280</width>
+      <height>0</height>
+     </size>
+    </property>
+   </widget>
+  </widget>
+  
+  <!-- Streaming Panel Dock -->
+  <widget class="QDockWidget" name="streamingDock">
+   <property name="windowTitle">
+    <string>Streaming Controls</string>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="streamingPanelPlaceholder">
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>150</height>
+     </size>
+    </property>
+   </widget>
+  </widget>
+  
+  <!-- Results Panel Dock -->
+  <widget class="QDockWidget" name="resultsDock">
+   <property name="windowTitle">
+    <string>Results</string>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="resultsPanelPlaceholder">
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>200</height>
+     </size>
+    </property>
+   </widget>
+  </widget>
+  
+  <!-- Actions -->
+  <action name="actionNewSession">
+   <property name="text">
+    <string>&amp;New Session</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new session (Ctrl+N)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  
+  <action name="actionOpenSession">
+   <property name="text">
+    <string>&amp;Open Session...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open an existing session (Ctrl+O)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  
+  <action name="actionSaveSession">
+   <property name="text">
+    <string>&amp;Save Session...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current session (Ctrl+S)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  
+  <action name="actionLoadData">
+   <property name="text">
+    <string>&amp;Load Data...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load data from file (Ctrl+L)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  
+  <action name="actionExportData">
+   <property name="text">
+    <string>&amp;Export Data...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export data to file (Ctrl+E)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  
+  <action name="actionExit">
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="toolTip">
+    <string>Exit application (Ctrl+Q)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  
+  <action name="actionUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Undo</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo last operation (Ctrl+Z)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  
+  <action name="actionRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>Redo last undone operation (Ctrl+Y)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  
+  <action name="actionFindSeries">
+   <property name="text">
+    <string>&amp;Find Series...</string>
+   </property>
+   <property name="toolTip">
+    <string>Find/filter series (Ctrl+F)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  
+  <action name="actionRefreshData">
+   <property name="text">
+    <string>&amp;Refresh Data</string>
+   </property>
+   <property name="toolTip">
+    <string>Refresh/reload current data (F5)</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  
+  <action name="actionFullscreen">
+   <property name="text">
+    <string>&amp;Fullscreen</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle fullscreen mode (F11)</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  
+  <action name="actionThemeLight">
+   <property name="text">
+    <string>Light Theme</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to light theme</string>
+   </property>
+  </action>
+  
+  <action name="actionThemeDark">
+   <property name="text">
+    <string>Dark Theme</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to dark theme</string>
+   </property>
+  </action>
+  
+  <action name="actionThemeAuto">
+   <property name="text">
+    <string>Auto Theme</string>
+   </property>
+   <property name="toolTip">
+    <string>Use system theme</string>
+   </property>
+  </action>
+  
+  <action name="actionSettings">
+   <property name="text">
+    <string>&amp;Settings...</string>
+   </property>
+   <property name="toolTip">
+    <string>Application settings</string>
+   </property>
+  </action>
+  
+  <action name="actionContextualHelp">
+   <property name="text">
+    <string>&amp;Contextual Help</string>
+   </property>
+   <property name="toolTip">
+    <string>Show help for current context (F1)</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  
+  <action name="actionKeyboardShortcuts">
+   <property name="text">
+    <string>&amp;Keyboard Shortcuts</string>
+   </property>
+   <property name="toolTip">
+    <string>Show all keyboard shortcuts</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+?</string>
+   </property>
+  </action>
+  
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About...</string>
+   </property>
+   <property name="toolTip">
+    <string>About Platform Base</string>
+   </property>
+  </action>
+  
+ </widget>
+ 
+ <resources/>
+ <connections/>
+</ui>

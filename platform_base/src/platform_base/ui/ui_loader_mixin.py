@@ -6,7 +6,7 @@ em vez de criá-la programaticamente.
 
 Uso:
     class MyDialog(QDialog, UiLoaderMixin):
-        UI_FILE = "desktop/ui_files/myDialog.ui"
+        UI_FILE = "myDialog.ui"  # Apenas o nome do arquivo
         
         def __init__(self):
             super().__init__()
@@ -14,6 +14,11 @@ Uso:
             self._connect_signals()  # Conecta signals após carregar
             
 Nota: PyQt6 usa PyQt6.uic.loadUi() para carregar .ui diretamente no widget.
+
+IMPORTANTE: Todos os arquivos .ui devem estar em:
+    platform_base/desktop/ui_files/
+    
+Este é o diretório ÚNICO e padronizado para arquivos .ui.
 """
 
 from __future__ import annotations
@@ -33,9 +38,18 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
+# Diretório padrão único para arquivos .ui
+UI_FILES_DIR = Path(__file__).parent.parent / "desktop" / "ui_files"
+
+
 def _get_package_root() -> Path:
     """Retorna o diretório raiz do pacote platform_base"""
     return Path(__file__).parent.parent
+
+
+def get_ui_files_directory() -> Path:
+    """Retorna o diretório padrão para arquivos .ui"""
+    return UI_FILES_DIR
 
 
 class UiLoaderMixin:
@@ -61,7 +75,13 @@ class UiLoaderMixin:
         """
         Carrega arquivo .ui e integra sua interface ao widget atual.
         
-        O arquivo .ui é localizado relativo ao diretório do pacote platform_base.
+        O arquivo .ui é localizado no diretório padrão:
+            platform_base/desktop/ui_files/
+        
+        UI_FILE pode ser:
+            - Nome simples: "myDialog.ui"
+            - Caminho legado: "desktop/ui_files/myDialog.ui" (será normalizado)
+        
         Usa PyQt6.uic.loadUi() para carregar diretamente no widget.
         
         Returns:
@@ -75,34 +95,39 @@ class UiLoaderMixin:
             # Importar uic aqui para evitar problemas de import circular
             from PyQt6 import uic
 
-            # Resolver caminho do arquivo .ui
-            package_root = _get_package_root()
-            ui_path = package_root / self.UI_FILE
+            # Normalizar caminho - extrair apenas o nome do arquivo
+            ui_filename = Path(self.UI_FILE).name
             
-            # Tentar localizações alternativas
+            # Caminho padrão único
+            ui_path = UI_FILES_DIR / ui_filename
+            
+            # Verificar se arquivo existe
             if not ui_path.exists():
-                alt_paths = [
-                    package_root / "desktop" / "ui_files" / Path(self.UI_FILE).name,
-                    package_root / "ui" / "designer" / Path(self.UI_FILE).name,
-                    Path(__file__).parent / "ui_files" / Path(self.UI_FILE).name,
+                # Tentar caminhos legados para compatibilidade
+                package_root = _get_package_root()
+                legacy_paths = [
+                    package_root / self.UI_FILE,  # Caminho completo legado
+                    package_root / "ui" / "designer" / ui_filename,  # Pasta designer
                 ]
                 
-                for alt_path in alt_paths:
-                    if alt_path.exists():
-                        ui_path = alt_path
+                for legacy_path in legacy_paths:
+                    if legacy_path.exists():
+                        ui_path = legacy_path
+                        logger.warning(
+                            "ui_file_legacy_path",
+                            ui_file=ui_filename,
+                            legacy_path=str(legacy_path),
+                            recommended_path=str(UI_FILES_DIR / ui_filename)
+                        )
                         break
                 else:
                     logger.error(
                         "ui_file_not_found",
-                        ui_file=self.UI_FILE,
-                        searched_paths=[str(p) for p in [ui_path] + alt_paths]
+                        ui_file=ui_filename,
+                        searched_path=str(UI_FILES_DIR),
+                        legacy_paths=[str(p) for p in legacy_paths]
                     )
                     return False
-            
-            # Verificar se arquivo existe
-            if not ui_path.exists():
-                logger.error("ui_file_does_not_exist", path=str(ui_path))
-                return False
             
             # Carregar UI diretamente no widget
             uic.loadUi(str(ui_path), self)

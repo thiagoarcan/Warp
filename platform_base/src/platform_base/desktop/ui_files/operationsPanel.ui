@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OperationsPanel</class>
+ <widget class="QWidget" name="OperationsPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>350</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>150</width>
+    <height>400</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Operations Panel</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QWidget {
+    background-color: #ffffff;
+}
+QGroupBox {
+    font-weight: bold;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    background-color: #f8f9fa;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 2px 6px;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+}
+QPushButton {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #0b5ed7;
+}
+QPushButton:disabled {
+    background-color: #6c757d;
+}
+QPushButton[objectName="secondary"] {
+    background-color: #6c757d;
+}
+QPushButton[objectName="success"] {
+    background-color: #198754;
+}
+QSpinBox, QDoubleSpinBox {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 4px 8px;
+    background-color: white;
+    min-height: 24px;
+}
+QComboBox {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 4px 8px;
+    background-color: white;
+    min-height: 24px;
+}
+QTabWidget::pane {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: white;
+}
+QTabBar::tab {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 6px 10px;
+    margin-right: 2px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-size: 11px;
+}
+QTabBar::tab:selected {
+    background-color: white;
+    border-bottom-color: white;
+}
+   </string>
+  </property>
+  
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   
+   <!-- Header -->
+   <item>
+    <widget class="QLabel" name="headerLabel">
+     <property name="text">
+      <string>⚙️ Operações</string>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string>color: #0d6efd; padding: 4px;</string>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Series Selector -->
+   <item>
+    <widget class="QGroupBox" name="seriesGroup">
+     <property name="title">
+      <string>🎯 Série para Operações</string>
+     </property>
+     <layout class="QFormLayout" name="seriesLayout">
+      <property name="leftMargin">
+       <number>6</number>
+      </property>
+      <property name="topMargin">
+       <number>10</number>
+      </property>
+      <property name="rightMargin">
+       <number>6</number>
+      </property>
+      <property name="bottomMargin">
+       <number>6</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="seriesLabel">
+        <property name="text">
+         <string>Série:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="seriesCombo">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Selecione a série para aplicar as operações</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>(Nenhum dataset carregado)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Main Tab Widget -->
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>true</bool>
+     </property>
+     
+     <!-- Interpolation Tab -->
+     <widget class="QWidget" name="interpTab">
+      <attribute name="title">
+       <string>📐</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Interpolação</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="interpTabLayout">
+       <item>
+        <widget class="QScrollArea" name="interpScrollArea">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="interpScrollContent">
+          <layout class="QVBoxLayout" name="interpContentLayout">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           
+           <!-- Method Group -->
+           <item>
+            <widget class="QGroupBox" name="interpMethodGroup">
+             <property name="title">
+              <string>📐 Método</string>
+             </property>
+             <layout class="QFormLayout" name="interpMethodLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="interpMethodLabel">
+                <property name="text">
+                 <string>Método:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="interpMethodCombo">
+                <property name="toolTip">
+                 <string>Método de interpolação a utilizar</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>linear</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>cubic_spline</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>smoothing_spline</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>akima</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>pchip</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>polynomial</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>mls</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>gpr</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>lomb_scargle</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>resample_grid</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Parameters Group -->
+           <item>
+            <widget class="QGroupBox" name="interpParamsGroup">
+             <property name="title">
+              <string>🔧 Parâmetros</string>
+             </property>
+             <layout class="QFormLayout" name="interpParamsLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="interpPointsLabel">
+                <property name="text">
+                 <string>Pontos:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="interpPointsSpin">
+                <property name="toolTip">
+                 <string>Número de pontos de saída</string>
+                </property>
+                <property name="minimum">
+                 <number>10</number>
+                </property>
+                <property name="maximum">
+                 <number>100000</number>
+                </property>
+                <property name="value">
+                 <number>1000</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="interpSmoothLabel">
+                <property name="text">
+                 <string>Suavização:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="interpSmoothSpin">
+                <property name="toolTip">
+                 <string>Fator de suavização (0 = nenhuma)</string>
+                </property>
+                <property name="decimals">
+                 <number>2</number>
+                </property>
+                <property name="maximum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="interpDegreeLabel">
+                <property name="text">
+                 <string>Grau:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="interpDegreeSpin">
+                <property name="toolTip">
+                 <string>Grau do polinômio (para métodos polinomiais)</string>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>10</number>
+                </property>
+                <property name="value">
+                 <number>3</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="interpExtrapolateCheck">
+                <property name="text">
+                 <string>Permitir extrapolação</string>
+                </property>
+                <property name="toolTip">
+                 <string>Extrapolar além do range dos dados</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Action Buttons -->
+           <item>
+            <layout class="QHBoxLayout" name="interpButtonsLayout">
+             <item>
+              <widget class="QPushButton" name="interpPreviewBtn">
+               <property name="text">
+                <string>👁️ Preview</string>
+               </property>
+               <property name="toolTip">
+                <string>Visualizar resultado antes de aplicar</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="interpApplyBtn">
+               <property name="text">
+                <string>✅ Aplicar</string>
+               </property>
+               <property name="toolTip">
+                <string>Aplicar interpolação à série selecionada</string>
+               </property>
+               <property name="objectName">
+                <string>success</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           
+           <!-- Spacer -->
+           <item>
+            <spacer name="interpSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- Calculus Tab -->
+     <widget class="QWidget" name="calculusTab">
+      <attribute name="title">
+       <string>📈</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Cálculos (Derivadas/Integrais)</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="calculusTabLayout">
+       <item>
+        <widget class="QScrollArea" name="calculusScrollArea">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="calculusScrollContent">
+          <layout class="QVBoxLayout" name="calculusContentLayout">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           
+           <!-- Derivatives Group -->
+           <item>
+            <widget class="QGroupBox" name="derivGroup">
+             <property name="title">
+              <string>📈 Derivadas</string>
+             </property>
+             <layout class="QFormLayout" name="derivLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="derivOrderLabel">
+                <property name="text">
+                 <string>Ordem:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="derivOrderCombo">
+                <property name="toolTip">
+                 <string>Ordem da derivada</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>1ª Ordem</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2ª Ordem</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>3ª Ordem</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="derivMethodLabel">
+                <property name="text">
+                 <string>Método:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="derivMethodCombo">
+                <property name="toolTip">
+                 <string>Método de cálculo da derivada</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>finite_diff</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>savitzky_golay</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>spline_derivative</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="derivWindowLabel">
+                <property name="text">
+                 <string>Janela:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="derivWindowSpin">
+                <property name="toolTip">
+                 <string>Tamanho da janela (para Savitzky-Golay)</string>
+                </property>
+                <property name="minimum">
+                 <number>3</number>
+                </property>
+                <property name="maximum">
+                 <number>51</number>
+                </property>
+                <property name="singleStep">
+                 <number>2</number>
+                </property>
+                <property name="value">
+                 <number>7</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="derivSmoothCheck">
+                <property name="text">
+                 <string>Suavizar antes</string>
+                </property>
+                <property name="toolTip">
+                 <string>Aplicar suavização antes de derivar</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="derivButtonsLayout">
+                <item>
+                 <widget class="QPushButton" name="derivPreviewBtn">
+                  <property name="text">
+                   <string>👁️ Preview</string>
+                  </property>
+                  <property name="objectName">
+                   <string>secondary</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="derivApplyBtn">
+                  <property name="text">
+                   <string>📊 Calcular Derivada</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Integrals Group -->
+           <item>
+            <widget class="QGroupBox" name="integGroup">
+             <property name="title">
+              <string>∫ Integrais</string>
+             </property>
+             <layout class="QFormLayout" name="integLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="integMethodLabel">
+                <property name="text">
+                 <string>Método:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="integMethodCombo">
+                <property name="toolTip">
+                 <string>Método de integração numérica</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>trapezoid</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>simpson</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>cumulative</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="integButtonsLayout">
+                <item>
+                 <widget class="QPushButton" name="integPreviewBtn">
+                  <property name="text">
+                   <string>👁️ Preview</string>
+                  </property>
+                  <property name="objectName">
+                   <string>secondary</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="integApplyBtn">
+                  <property name="text">
+                   <string>📊 Calcular Integral</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Spacer -->
+           <item>
+            <spacer name="calculusSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- Filters Tab -->
+     <widget class="QWidget" name="filtersTab">
+      <attribute name="title">
+       <string>🔧</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Filtros</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="filtersTabLayout">
+       <item>
+        <widget class="QLabel" name="filtersPlaceholder">
+         <property name="text">
+          <string>Filtros (a ser implementado via promoted widget)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- Sync Tab -->
+     <widget class="QWidget" name="syncTab">
+      <attribute name="title">
+       <string>🔄</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Sincronização</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="syncTabLayout">
+       <item>
+        <widget class="QLabel" name="syncPlaceholder">
+         <property name="text">
+          <string>Sincronização (a ser implementado via promoted widget)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- Streaming Tab -->
+     <widget class="QWidget" name="streamingTab">
+      <attribute name="title">
+       <string>▶️</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Streaming</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="streamingTabLayout">
+       <item>
+        <widget class="QLabel" name="streamingPlaceholder">
+         <property name="text">
+          <string>Streaming (a ser implementado via promoted widget)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- Export Tab -->
+     <widget class="QWidget" name="exportTab">
+      <attribute name="title">
+       <string>📤</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Exportação</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="exportTabLayout">
+       <item>
+        <widget class="QLabel" name="exportPlaceholder">
+         <property name="text">
+          <string>Exportação (a ser implementado via promoted widget)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- History Tab -->
+     <widget class="QWidget" name="historyTab">
+      <attribute name="title">
+       <string>📜</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Histórico</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="historyTabLayout">
+       <item>
+        <widget class="QListWidget" name="historyList">
+         <property name="toolTip">
+          <string>Histórico de operações realizadas</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="clearHistoryBtn">
+         <property name="text">
+          <string>🗑️ Limpar Histórico</string>
+         </property>
+         <property name="objectName">
+          <string>secondary</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+    </widget>
+   </item>
+   
+  </layout>
+ </widget>
+ 
+ <customwidgets>
+  <customwidget>
+   <class>StableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>platform_base.ui.panels.operations_panel</header>
+  </customwidget>
+ </customwidgets>
+ 
+ <resources/>
+ <connections/>
+</ui>
