@@ -443,6 +443,9 @@ class MainWindow(QMainWindow):
         # Operations panel signals (BUG-004 FIX)
         self.operations_panel.operation_requested.connect(self._handle_operation_request)
         self.operations_panel.export_requested.connect(self._handle_export_request)
+        
+        # Streaming signal - conecta streaming do OperationsPanel ao VizPanel
+        self.operations_panel.streaming_data_updated.connect(self._on_streaming_data_updated)
 
         # Connect undo/redo manager signals to update menu actions
         self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
@@ -863,6 +866,60 @@ class MainWindow(QMainWindow):
             "Export Complete",
             "Data exported successfully."
         )
+
+    @pyqtSlot(str, object, object)
+    def _on_streaming_data_updated(self, series_id: str, x_data, y_data):
+        """
+        Handle streaming data update from OperationsPanel.
+        Updates VizPanel with new data chunk for real-time visualization.
+        """
+        try:
+            # Atualizar o gráfico 2D atual no VizPanel
+            if hasattr(self.viz_panel, 'plot_tabs'):
+                current_tab = self.viz_panel.plot_tabs.currentWidget()
+                
+                # Se for um Plot2DWidget, atualizar diretamente
+                from platform_base.desktop.widgets.viz_panel import Plot2DWidget
+
+                # Buscar Plot2DWidget no tab atual ou criar um se não existir
+                plot_widget = None
+                if isinstance(current_tab, Plot2DWidget):
+                    plot_widget = current_tab
+                else:
+                    # Procurar Plot2DWidget dentro do widget atual
+                    for child in current_tab.findChildren(Plot2DWidget) if current_tab else []:
+                        plot_widget = child
+                        break
+                
+                # Se não encontrar, criar um novo plot tab
+                if plot_widget is None:
+                    # Criar novo tab de streaming
+                    plot_widget = Plot2DWidget(self.session_state, self.signal_hub)
+                    plot_widget.setLabel("left", "Value")
+                    plot_widget.setLabel("bottom", "Time")
+                    self.viz_panel.plot_tabs.addTab(plot_widget, "📡 Streaming")
+                    self.viz_panel.plot_tabs.setCurrentWidget(plot_widget)
+                    self.viz_panel.active_plots["streaming"] = {
+                        "widget": plot_widget,
+                        "type": "2d",
+                        "series": {}
+                    }
+                
+                # Atualizar dados da série
+                if series_id in plot_widget._series_data:
+                    # Série já existe - atualizar dados
+                    plot_item = plot_widget._series_data[series_id]["plot_item"]
+                    plot_item.setData(x_data, y_data)
+                else:
+                    # Nova série - adicionar ao gráfico
+                    series_index = len(plot_widget._series_data)
+                    plot_widget.add_series(series_id, x_data, y_data, series_index, series_id)
+                
+                # Auto-range para ajustar visualização
+                plot_widget.enableAutoRange()
+                
+        except Exception as e:
+            logger.exception("streaming_update_failed", error=str(e))
 
     def _update_memory_usage(self):
         """Update memory usage display"""

@@ -11,9 +11,11 @@ Funcionalidades:
 
 from __future__ import annotations
 
+import time
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
@@ -29,6 +31,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QTabWidget,
     QVBoxLayout,
@@ -49,7 +52,8 @@ class StableComboBox(QComboBox):
     """
     ComboBox estável que não fecha automaticamente no Windows.
     
-    Solução para o problema de QWindowsWindow::setMouseGrabEnabled.
+    Solução robusta para o problema de QWindowsWindow::setMouseGrabEnabled.
+    Usa QTimer para evitar fechamento prematuro e gerencia eventos de mouse.
     """
     
     def __init__(self, parent=None):
@@ -57,6 +61,10 @@ class StableComboBox(QComboBox):
         self.setMinimumHeight(30)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setMaxVisibleItems(20)
+        
+        # Flag para controlar estado do popup
+        self._popup_visible = False
+        self._ignore_hide = False
         
         # Configurações específicas para Windows
         self.setStyleSheet("""
@@ -81,24 +89,95 @@ class StableComboBox(QComboBox):
                 selection-background-color: #0d6efd;
                 selection-color: white;
                 background-color: white;
+                outline: none;
+            }
+            QComboBox QAbstractItemView::item {
+                padding: 4px 8px;
+                min-height: 24px;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background-color: #e9ecef;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #0d6efd;
+                color: white;
             }
         """)
         
         # Desabilitar context menu para evitar interferências
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         
+        # Configurar a view para não fechar em eventos de mouse
+        self.view().setMouseTracking(True)
+        self.view().viewport().installEventFilter(self)
+        
     def showPopup(self):
         """Override para garantir que o popup seja mostrado corretamente"""
+        self._ignore_hide = True
+        self._popup_visible = True
         super().showPopup()
-        # Garantir que o popup não seja fechado imediatamente
+        
+        # Usar QTimer para garantir que o popup permaneça aberto
+        QTimer.singleShot(100, self._enable_hide)
+        
+        # Focar na view para permitir navegação por teclado
         self.view().setFocus()
+        
+    def _enable_hide(self):
+        """Re-habilita o fechamento após delay inicial"""
+        self._ignore_hide = False
+        
+    def hidePopup(self):
+        """Override para controlar quando o popup pode fechar"""
+        if self._ignore_hide:
+            return
+        self._popup_visible = False
+        super().hidePopup()
+        
+    def eventFilter(self, obj, event):
+        """Filtrar eventos para evitar fechamento prematuro"""
+        from PyQt6.QtCore import QEvent
+
+        # Ignorar eventos que podem causar fechamento prematuro
+        if obj == self.view().viewport():
+            if event.type() == QEvent.Type.MouseButtonRelease:
+                # Permitir seleção mas com delay para evitar bug do Windows
+                index = self.view().indexAt(event.pos())
+                if index.isValid():
+                    QTimer.singleShot(50, lambda: self._select_item(index.row()))
+                    return True
+        return super().eventFilter(obj, event)
+    
+    def _select_item(self, row: int):
+        """Seleciona item de forma segura"""
+        if 0 <= row < self.count():
+            self.setCurrentIndex(row)
+            self._popup_visible = False
+            super().hidePopup()
         
     def focusOutEvent(self, event):
         """Evitar fechamento prematuro do popup"""
         # Não propagar se o popup estiver visível
-        if self.view().isVisible():
+        if self._popup_visible:
             return
         super().focusOutEvent(event)
+        
+    def keyPressEvent(self, event):
+        """Permitir navegação por teclado e seleção com Enter"""
+        from PyQt6.QtCore import QEvent
+        
+        if self._popup_visible:
+            if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+                # Selecionar item atual e fechar
+                self._popup_visible = False
+                super().hidePopup()
+                return
+            elif event.key() == Qt.Key.Key_Escape:
+                # Fechar sem selecionar
+                self._popup_visible = False
+                super().hidePopup()
+                return
+        super().keyPressEvent(event)
 
 
 class OperationHistoryItem:
@@ -126,6 +205,7 @@ class OperationsPanel(QWidget):
     # Signals
     operation_requested = pyqtSignal(str, dict)  # operation_name, params
     export_requested = pyqtSignal(str, dict)     # format, options
+    streaming_data_updated = pyqtSignal(str, object, object)  # series_id, x_data, y_data
 
     def __init__(self, session_state: SessionState):
         super().__init__()
@@ -133,6 +213,16 @@ class OperationsPanel(QWidget):
         self.session_state = session_state
         self._history: list[OperationHistoryItem] = []
         self._max_history = 50
+
+        # Streaming state
+        self._streaming_timer: QTimer | None = None
+        self._streaming_position: int = 0
+        self._streaming_data: dict[str, Any] = {}  # {series_id: {x, y}}
+        self._streaming_paused: bool = False
+        self._streaming_start_time: float = 0.0
+        self._frame_count: int = 0
+        self._last_fps_update: float = 0.0
+        self._total_points_sent: int = 0
 
         self._setup_ui()
         self._setup_connections()
@@ -145,8 +235,10 @@ class OperationsPanel(QWidget):
     
     def _setup_ui(self):
         """Configura interface completa"""
-        self.setMinimumWidth(200)
-        self.setMaximumWidth(320)
+        # Apenas mínimo para permitir redimensionamento total
+        self.setMinimumWidth(150)
+        # Política de tamanho expansível
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -1379,25 +1471,197 @@ class OperationsPanel(QWidget):
     # === HANDLERS DE STREAMING ===
 
     def _start_streaming(self):
-        """Inicia streaming de dados"""
+        """Inicia streaming de dados históricos do dataset carregado"""
+        # Verificar se há dataset carregado
+        all_datasets = self.session_state.get_all_datasets()
+        if not all_datasets:
+            QMessageBox.warning(self, "Aviso", 
+                "Nenhum dataset carregado.\n\n"
+                "Carregue um arquivo Excel/CSV primeiro para fazer streaming dos dados históricos.")
+            return
+        
+        # Obter dados do dataset atual
+        dataset_id = list(all_datasets.keys())[0]  # Primeiro dataset
+        dataset = all_datasets[dataset_id]
+        
+        if not dataset.series:
+            QMessageBox.warning(self, "Aviso", 
+                "O dataset não contém séries de dados.")
+            return
+        
+        # Configurar dados para streaming
+        self._streaming_data = {}
+        total_points = 0
+        
+        for series_id, series in dataset.series.items():
+            if series.values is not None and len(series.values) > 0:
+                x_data = np.arange(len(series.values))  # Índice como tempo
+                # Usar t_seconds se disponível
+                if hasattr(dataset, 't_seconds') and dataset.t_seconds is not None:
+                    x_data = np.array(dataset.t_seconds)
+                    if len(x_data) > len(series.values):
+                        x_data = x_data[:len(series.values)]
+                    elif len(x_data) < len(series.values):
+                        x_data = np.arange(len(series.values))
+                
+                y_data = np.array(series.values)
+                self._streaming_data[series_id] = {
+                    'x': x_data,
+                    'y': y_data,
+                    'name': series.name or series_id
+                }
+                total_points = max(total_points, len(y_data))
+        
+        if not self._streaming_data:
+            QMessageBox.warning(self, "Aviso", 
+                "Não há dados válidos para streaming.")
+            return
+        
+        # Configurar parâmetros de streaming
+        self._streaming_position = 0
+        self._streaming_paused = False
+        self._frame_count = 0
+        self._total_points_sent = 0
+        self._streaming_start_time = time.time()
+        self._last_fps_update = time.time()
+        
+        # Calcular intervalo do timer baseado no FPS configurado
+        fps = self._stream_rate.value()
+        interval_ms = int(1000 / fps)  # Converter FPS para milissegundos
+        
+        # Calcular pontos por frame baseado na janela
+        window_size = self._stream_window.value()
+        total_frames_needed = total_points // window_size
+        if total_frames_needed == 0:
+            total_frames_needed = 1
+        
+        # Criar e iniciar timer
+        if self._streaming_timer is None:
+            self._streaming_timer = QTimer(self)
+            self._streaming_timer.timeout.connect(self._streaming_update)
+        
+        self._streaming_timer.setInterval(interval_ms)
+        self._streaming_timer.start()
+        
+        # Atualizar UI
         self._stream_status.setText("▶️ Streaming")
         self._stream_status.setStyleSheet("font-weight: bold; color: #28a745;")
-        logger.info("streaming_started")
-        QMessageBox.information(self, "Streaming", 
-            "Streaming iniciado.\n\n"
-            "Para conectar a uma fonte de dados em tempo real,\n"
-            "implemente a integração com seu sistema de aquisição.")
+        
+        # Atualizar info do buffer
+        buffer_size = self._buffer_size.value()
+        self._buffer_current.setText(f"0 / {buffer_size:,}")
+        
+        logger.info(f"streaming_started_historical: dataset={dataset_id}, "
+                   f"series_count={len(self._streaming_data)}, "
+                   f"total_points={total_points}, fps={fps}")
+
+    def _streaming_update(self):
+        """Atualiza streaming com próximo chunk de dados"""
+        if self._streaming_paused:
+            return
+        
+        window_size = self._stream_window.value()
+        scroll_mode = self._stream_scroll.currentText()
+        buffer_size = self._buffer_size.value()
+        
+        # Determinar chunk de dados a enviar
+        end_pos = self._streaming_position + window_size
+        
+        # Para cada série, enviar o chunk atual
+        points_this_frame = 0
+        all_done = True
+        
+        for series_id, data in self._streaming_data.items():
+            x_data = data['x']
+            y_data = data['y']
+            series_name = data['name']
+            
+            if self._streaming_position < len(y_data):
+                all_done = False
+                
+                # Calcular slice de dados
+                start_idx = max(0, self._streaming_position - buffer_size) if scroll_mode == "Janela Deslizante" else 0
+                end_idx = min(end_pos, len(y_data))
+                
+                x_chunk = x_data[start_idx:end_idx]
+                y_chunk = y_data[start_idx:end_idx]
+                
+                points_this_frame += len(y_chunk)
+                
+                # Emitir sinal com dados atualizados
+                self.streaming_data_updated.emit(series_id, x_chunk, y_chunk)
+        
+        # Atualizar posição
+        self._streaming_position = end_pos
+        self._frame_count += 1
+        self._total_points_sent += points_this_frame
+        
+        # Atualizar estatísticas a cada 0.5 segundos
+        current_time = time.time()
+        if current_time - self._last_fps_update >= 0.5:
+            elapsed = current_time - self._streaming_start_time
+            
+            # FPS real
+            real_fps = self._frame_count / elapsed if elapsed > 0 else 0
+            self._stream_fps_label.setText(f"{real_fps:.1f} FPS")
+            
+            # Latência (estimada como tempo por frame)
+            latency_ms = (1000 / real_fps) if real_fps > 0 else 0
+            self._stream_latency.setText(f"{latency_ms:.1f} ms")
+            
+            # Pontos por segundo
+            points_per_sec = self._total_points_sent / elapsed if elapsed > 0 else 0
+            self._stream_points_sec.setText(f"{points_per_sec:,.0f} pts/s")
+            
+            # Buffer atual
+            buffer_used = min(self._streaming_position, buffer_size)
+            self._buffer_current.setText(f"{buffer_used:,} / {buffer_size:,}")
+            
+            self._last_fps_update = current_time
+        
+        # Verificar se chegou ao fim
+        if all_done:
+            self._stop_streaming()
+            QMessageBox.information(self, "Streaming Concluído", 
+                f"Streaming finalizado!\n\n"
+                f"Total de frames: {self._frame_count:,}\n"
+                f"Total de pontos: {self._total_points_sent:,}\n"
+                f"Tempo total: {current_time - self._streaming_start_time:.1f}s")
 
     def _pause_streaming(self):
         """Pausa streaming"""
-        self._stream_status.setText("⏸️ Pausado")
-        self._stream_status.setStyleSheet("font-weight: bold; color: #ffc107;")
-        logger.info("streaming_paused")
+        if self._streaming_timer and self._streaming_timer.isActive():
+            self._streaming_paused = True
+            self._streaming_timer.stop()
+            self._stream_status.setText("⏸️ Pausado")
+            self._stream_status.setStyleSheet("font-weight: bold; color: #ffc107;")
+            logger.info("streaming_paused")
+        else:
+            # Retomar se estava pausado
+            if self._streaming_paused and self._streaming_timer:
+                self._streaming_paused = False
+                self._streaming_timer.start()
+                self._stream_status.setText("▶️ Streaming")
+                self._stream_status.setStyleSheet("font-weight: bold; color: #28a745;")
+                logger.info("streaming_resumed")
 
     def _stop_streaming(self):
-        """Para streaming"""
+        """Para streaming e reseta estado"""
+        if self._streaming_timer:
+            self._streaming_timer.stop()
+        
+        self._streaming_position = 0
+        self._streaming_paused = False
+        self._streaming_data = {}
+        
+        # Resetar estatísticas
         self._stream_status.setText("⏹️ Parado")
         self._stream_status.setStyleSheet("font-weight: bold; color: #6c757d;")
+        self._stream_fps_label.setText("0 FPS")
+        self._stream_latency.setText("0 ms")
+        self._stream_points_sec.setText("0 pts/s")
+        self._buffer_current.setText("0 / 100000")
+        
         logger.info("streaming_stopped")
 
     # === HANDLERS DE CONFIGURAÇÃO ===

@@ -15,7 +15,16 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from PyQt6.QtCore import QMutex, QMutexLocker, QPoint, Qt, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import (
+    QMutex,
+    QMutexLocker,
+    QPoint,
+    Qt,
+    QThread,
+    QTimer,
+    pyqtSignal,
+    pyqtSlot,
+)
 from PyQt6.QtGui import QAction, QColor, QFont
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -30,6 +39,7 @@ from PyQt6.QtWidgets import (
     QMenu,
     QMessageBox,
     QPushButton,
+    QSizePolicy,
     QSplitter,
     QTableWidget,
     QTableWidgetItem,
@@ -52,16 +62,71 @@ logger = get_logger(__name__)
 
 
 class StableComboBox(QComboBox):
-    """ComboBox estável que não fecha automaticamente no Windows."""
+    """
+    ComboBox estável que não fecha automaticamente no Windows.
+    
+    Solução robusta para o problema de QWindowsWindow::setMouseGrabEnabled.
+    """
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        self.setMaxVisibleItems(20)
+        
+        # Flag para controlar estado do popup
+        self._popup_visible = False
+        self._ignore_hide = False
+        
+        # Configurar a view para não fechar em eventos de mouse
+        self.view().setMouseTracking(True)
+        self.view().viewport().installEventFilter(self)
         
     def showPopup(self):
+        """Override para garantir que o popup seja mostrado corretamente"""
+        self._ignore_hide = True
+        self._popup_visible = True
         super().showPopup()
+        
+        # Usar QTimer para garantir que o popup permaneça aberto
+        QTimer.singleShot(100, self._enable_hide)
         self.view().setFocus()
+        
+    def _enable_hide(self):
+        """Re-habilita o fechamento após delay inicial"""
+        self._ignore_hide = False
+        
+    def hidePopup(self):
+        """Override para controlar quando o popup pode fechar"""
+        if self._ignore_hide:
+            return
+        self._popup_visible = False
+        super().hidePopup()
+        
+    def eventFilter(self, obj, event):
+        """Filtrar eventos para evitar fechamento prematuro"""
+        from PyQt6.QtCore import QEvent
+        
+        if obj == self.view().viewport():
+            if event.type() == QEvent.Type.MouseButtonRelease:
+                index = self.view().indexAt(event.pos())
+                if index.isValid():
+                    QTimer.singleShot(50, lambda: self._select_item(index.row()))
+                    return True
+        return super().eventFilter(obj, event)
+    
+    def _select_item(self, row: int):
+        """Seleciona item de forma segura"""
+        if 0 <= row < self.count():
+            self.setCurrentIndex(row)
+            self._popup_visible = False
+            super().hidePopup()
+        
+    def focusOutEvent(self, event):
+        """Evitar fechamento prematuro do popup"""
+        if self._popup_visible:
+            return
+        super().focusOutEvent(event)
 
 
 class CompactDataPanel(QWidget):
@@ -100,8 +165,10 @@ class CompactDataPanel(QWidget):
 
     def _setup_modern_ui(self):
         """Interface ultra compacta e otimizada"""
-        self.setMaximumWidth(300)  # Reduzido de 350
-        self.setMinimumWidth(240)  # Reduzido de 280
+        # Apenas mínimo para permitir redimensionamento total
+        self.setMinimumWidth(150)
+        # Política de tamanho expansível
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # Main layout ultra compacto
         layout = QVBoxLayout(self)

@@ -6,6 +6,7 @@ Layout moderno com:
 - Painéis compactos e organizados
 - Sistema drag-and-drop para gráficos
 - Interface responsiva e moderna
+- 5 temas visuais profissionais
 """
 
 from __future__ import annotations
@@ -14,15 +15,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QSettings, QSize, Qt, QTimer, pyqtSlot
-from PyQt6.QtGui import QAction, QKeySequence, QShortcut
+from PyQt6.QtGui import QAction, QActionGroup, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QProgressBar,
+    QSizePolicy,
     QSplitter,
     QVBoxLayout,
     QWidget,
@@ -31,6 +34,7 @@ from PyQt6.QtWidgets import (
 from platform_base.ui.panels.data_panel import DataPanel
 from platform_base.ui.panels.operations_panel import OperationsPanel
 from platform_base.ui.panels.viz_panel import VizPanel
+from platform_base.ui.themes import AVAILABLE_THEMES, ThemeMode, get_theme_manager
 from platform_base.utils.logging import get_logger
 
 if TYPE_CHECKING:
@@ -51,6 +55,7 @@ class ModernMainWindow(QMainWindow):
     - Tradução completa PT-BR
     - Design moderno seguindo guidelines de UX
     - Persistência de layout com QSettings
+    - 5 temas visuais: Light, Dark, Ocean, Forest, Sunset
     """
 
     # Chave para QSettings
@@ -62,6 +67,7 @@ class ModernMainWindow(QMainWindow):
 
         self.session_state = session_state
         self._main_splitter: QSplitter | None = None  # Referência ao splitter principal
+        self._theme_manager = get_theme_manager()  # Gerenciador de temas
 
         # Components
         self._data_panel: DataPanel | None = None
@@ -69,6 +75,7 @@ class ModernMainWindow(QMainWindow):
         self._operations_panel: OperationsPanel | None = None
         self._progress_bar: QProgressBar | None = None
         self._status_label: QLabel | None = None
+        self._theme_actions: dict = {}  # Ações do menu de temas
 
         # Auto-save timer
         self._autosave_timer = QTimer()
@@ -82,6 +89,9 @@ class ModernMainWindow(QMainWindow):
 
         # Restore layout after UI is setup
         self._restore_layout()
+
+        # Conecta mudança de tema
+        self._theme_manager.theme_changed.connect(self._on_theme_changed)
 
         logger.info("modern_main_window_initialized")
 
@@ -103,48 +113,8 @@ class ModernMainWindow(QMainWindow):
                 self.resize(int(available.width() * 0.95), int(available.height() * 0.9))
                 self.move(int(available.width() * 0.025), int(available.height() * 0.05))
 
-        # Modern styling
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #f8f9fa;
-            }
-            QToolBar {
-                background-color: #ffffff;
-                border: 1px solid #e9ecef;
-                border-radius: 6px;
-                padding: 4px;
-                margin: 2px;
-            }
-            QToolBar QToolButton {
-                background-color: transparent;
-                border: 1px solid transparent;
-                border-radius: 4px;
-                padding: 8px;
-                margin: 2px;
-                min-width: 32px;
-                min-height: 32px;
-            }
-            QToolBar QToolButton:hover {
-                background-color: #e9ecef;
-                border: 1px solid #ced4da;
-            }
-            QToolBar QToolButton:pressed {
-                background-color: #dee2e6;
-            }
-            QStatusBar {
-                background-color: #ffffff;
-                border-top: 1px solid #e9ecef;
-                padding: 4px 8px;
-            }
-            QSplitter::handle {
-                background-color: #e9ecef;
-                width: 2px;
-                height: 2px;
-            }
-            QSplitter::handle:hover {
-                background-color: #0d6efd;
-            }
-        """)
+        # O tema vai aplicar o stylesheet global
+        # Não definir stylesheet aqui para evitar conflitos
 
         # Create central layout
         self._setup_central_layout()
@@ -163,99 +133,70 @@ class ModernMainWindow(QMainWindow):
 
         # Main horizontal layout com margens mínimas
         main_layout = QHBoxLayout(central_widget)
-        main_layout.setContentsMargins(2, 2, 2, 2)
-        main_layout.setSpacing(1)
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(2)
 
-        # Create main splitter (horizontal) otimizado - TOTALMENTE REDIMENSIONÁVEL
+        # Create main splitter (horizontal) - TOTALMENTE REDIMENSIONÁVEL
         self._main_splitter = QSplitter(Qt.Orientation.Horizontal)
-        self._main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
-        self._main_splitter.setHandleWidth(6)  # Handle maior para fácil arraste
+        self._main_splitter.setChildrenCollapsible(False)  # Não colapsar
+        self._main_splitter.setHandleWidth(6)  # Handle funcional
+        self._main_splitter.setOpaqueResize(True)  # Feedback visual
         main_layout.addWidget(self._main_splitter)
 
-        # Left panel: Data management - SEM LIMITES MÁXIMOS para ser redimensionável
+        # Left panel: Data management
         left_frame = QFrame()
-        left_frame.setMinimumWidth(200)  # Apenas mínimo
+        left_frame.setMinimumWidth(150)
+        left_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         left_frame.setFrameStyle(QFrame.Shape.StyledPanel)
-        left_frame.setStyleSheet("""
-            QFrame {
-                border: 1px solid #e9ecef;
-                border-radius: 4px;
-                background-color: #fafafa;
-            }
-        """)
+        left_frame.setObjectName("leftPanel")
         left_layout = QVBoxLayout(left_frame)
-        left_layout.setContentsMargins(2, 2, 2, 2)
+        left_layout.setContentsMargins(4, 4, 4, 4)
         left_layout.setSpacing(2)
 
-        # Data panel ultra compacto
         self._data_panel = DataPanel(self.session_state)
+        self._data_panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         left_layout.addWidget(self._data_panel)
 
-        # Center panel: Visualizations (área principal maximizada) - REDIMENSIONÁVEL
+        # Center panel: Visualizations
         center_frame = QFrame()
-        center_frame.setMinimumWidth(400)  # Apenas mínimo para área de visualização
+        center_frame.setMinimumWidth(300)
+        center_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         center_frame.setFrameStyle(QFrame.Shape.StyledPanel)
-        center_frame.setStyleSheet("""
-            QFrame {
-                border: 1px solid #e9ecef;
-                border-radius: 4px;
-                background-color: #ffffff;
-            }
-        """)
+        center_frame.setObjectName("centerPanel")
         center_layout = QVBoxLayout(center_frame)
-        center_layout.setContentsMargins(2, 2, 2, 2)
+        center_layout.setContentsMargins(4, 4, 4, 4)
         center_layout.setSpacing(2)
 
         self._viz_panel = VizPanel(self.session_state)
+        self._viz_panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         center_layout.addWidget(self._viz_panel)
 
-        # Right panel: Operations - SEM LIMITES MÁXIMOS para ser redimensionável
+        # Right panel: Operations
         right_frame = QFrame()
-        right_frame.setMinimumWidth(200)  # Apenas mínimo
+        right_frame.setMinimumWidth(150)
+        right_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         right_frame.setFrameStyle(QFrame.Shape.StyledPanel)
-        right_frame.setStyleSheet("""
-            QFrame {
-                border: 1px solid #e9ecef;
-                border-radius: 4px;
-                background-color: #fafafa;
-            }
-        """)
+        right_frame.setObjectName("rightPanel")
         right_layout = QVBoxLayout(right_frame)
-        right_layout.setContentsMargins(2, 2, 2, 2)
+        right_layout.setContentsMargins(4, 4, 4, 4)
         right_layout.setSpacing(2)
 
         self._operations_panel = OperationsPanel(self.session_state)
+        self._operations_panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         right_layout.addWidget(self._operations_panel)
 
-        # Add panels to main splitter
+        # Add panels to splitter
         self._main_splitter.addWidget(left_frame)
         self._main_splitter.addWidget(center_frame)
         self._main_splitter.addWidget(right_frame)
 
-        # Proporções para Full HD (1920x1080): Left(15%) - Center(65%) - Right(20%)
+        # Proporções: Left(15%) - Center(65%) - Right(20%)
         self._main_splitter.setStretchFactor(0, 15)
         self._main_splitter.setStretchFactor(1, 65)
         self._main_splitter.setStretchFactor(2, 20)
 
-        # Set initial sizes para Full HD (1920px largura útil ~1900px)
+        # Tamanhos iniciais para Full HD
         self._main_splitter.setSizes([285, 1235, 380])
-
-        # Styling for splitter handles - mais visíveis para arraste
-        self._main_splitter.setStyleSheet("""
-            QSplitter::handle {
-                background-color: #dee2e6;
-                border: 1px solid #ced4da;
-            }
-            QSplitter::handle:hover {
-                background-color: #0d6efd;
-            }
-            QSplitter::handle:horizontal {
-                width: 6px;
-            }
-            QSplitter::handle:pressed {
-                background-color: #0a58ca;
-            }
-        """)
 
     def _create_modern_toolbar(self):
         """Toolbar moderna horizontal com ícones intuitivos"""
@@ -332,37 +273,9 @@ class ModernMainWindow(QMainWindow):
         toolbar.addAction(settings_action)
 
     def _create_modern_menu(self):
-        """Menu moderno com tradução completa PT-BR"""
+        """Menu moderno com tradução completa PT-BR e suporte a temas"""
         menubar = self.menuBar()
-        menubar.setStyleSheet("""
-            QMenuBar {
-                background-color: #ffffff;
-                border-bottom: 1px solid #e9ecef;
-                padding: 4px;
-            }
-            QMenuBar::item {
-                background: transparent;
-                padding: 6px 12px;
-                border-radius: 4px;
-            }
-            QMenuBar::item:selected {
-                background-color: #e9ecef;
-            }
-            QMenu {
-                background-color: #ffffff;
-                border: 1px solid #e9ecef;
-                border-radius: 6px;
-                padding: 4px;
-            }
-            QMenu::item {
-                padding: 8px 24px;
-                border-radius: 4px;
-            }
-            QMenu::item:selected {
-                background-color: #0d6efd;
-                color: white;
-            }
-        """)
+        # Stylesheet do menu é controlado pelo tema global
 
         # Menu Arquivo
         file_menu = menubar.addMenu("📁 &Arquivo")
@@ -442,6 +355,50 @@ class ModernMainWindow(QMainWindow):
         settings_action.triggered.connect(self._show_settings)
         tools_menu.addAction(settings_action)
 
+        # Menu Temas 🎨
+        themes_menu = menubar.addMenu("🎨 &Temas")
+        
+        # Grupo de ações para seleção exclusiva
+        theme_group = QActionGroup(self)
+        theme_group.setExclusive(True)
+        
+        # Adiciona cada tema disponível
+        theme_map = {
+            "light": ThemeMode.LIGHT,
+            "dark": ThemeMode.DARK,
+            "ocean": ThemeMode.OCEAN,
+            "forest": ThemeMode.FOREST,
+            "sunset": ThemeMode.SUNSET,
+        }
+        
+        for theme_id, theme_info in AVAILABLE_THEMES.items():
+            action = QAction(theme_info["name"], self)
+            action.setCheckable(True)
+            action.setStatusTip(theme_info["description"])
+            action.setData(theme_map[theme_id])
+            action.triggered.connect(self._on_theme_action_triggered)
+            theme_group.addAction(action)
+            themes_menu.addAction(action)
+            self._theme_actions[theme_id] = action
+            
+            # Marca o tema atual como selecionado
+            if self._theme_manager.current_mode == theme_map[theme_id]:
+                action.setChecked(True)
+        
+        themes_menu.addSeparator()
+        
+        # Opção de seguir sistema
+        system_theme_action = QAction("🖥️ Seguir Sistema", self)
+        system_theme_action.setCheckable(True)
+        system_theme_action.setData(ThemeMode.SYSTEM)
+        system_theme_action.triggered.connect(self._on_theme_action_triggered)
+        theme_group.addAction(system_theme_action)
+        themes_menu.addAction(system_theme_action)
+        self._theme_actions["system"] = system_theme_action
+        
+        if self._theme_manager.current_mode == ThemeMode.SYSTEM:
+            system_theme_action.setChecked(True)
+
         # Menu Ajuda
         help_menu = menubar.addMenu("❓ &Ajuda")
 
@@ -455,35 +412,20 @@ class ModernMainWindow(QMainWindow):
 
         # Status principal
         self._status_label = QLabel("🟢 Pronto")
-        self._status_label.setStyleSheet("color: #198754; font-weight: bold;")
         statusbar.addWidget(self._status_label)
 
-        # Progress bar moderna
+        # Progress bar moderna (estilo controlado pelo tema)
         self._progress_bar = QProgressBar()
         self._progress_bar.setVisible(False)
         self._progress_bar.setMaximumWidth(200)
-        self._progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 1px solid #e9ecef;
-                border-radius: 4px;
-                background-color: #f8f9fa;
-                height: 20px;
-            }
-            QProgressBar::chunk {
-                background-color: #0d6efd;
-                border-radius: 3px;
-            }
-        """)
         statusbar.addPermanentWidget(self._progress_bar)
 
         # Dataset info
         dataset_label = QLabel("📊 Nenhum dataset")
-        dataset_label.setStyleSheet("color: #6c757d;")
         statusbar.addPermanentWidget(dataset_label)
 
         # Session info
         session_label = QLabel(f"🔑 {self.session_state.session_id[:8]}...")
-        session_label.setStyleSheet("color: #6c757d;")
         statusbar.addPermanentWidget(session_label)
 
     def _setup_icons(self):
@@ -1270,14 +1212,15 @@ class ModernMainWindow(QMainWindow):
 
         # Save window geometry
         settings.setValue("mainwindow/geometry", self.saveGeometry())
-        settings.setValue("mainwindow/state", self.saveState())
+        # NÃO salvar mainwindow/state - pode interferir com splitter ao restaurar
+        # settings.setValue("mainwindow/state", self.saveState())
         settings.setValue("mainwindow/maximized", self.isMaximized())
         settings.setValue("mainwindow/fullscreen", self.isFullScreen())
 
-        # Save splitter sizes
+        # Save splitter sizes apenas (não salvar splitter_state que pode corromper)
         if self._main_splitter:
             settings.setValue("mainwindow/splitter_sizes", self._main_splitter.sizes())
-            settings.setValue("mainwindow/splitter_state", self._main_splitter.saveState())
+            # NÃO salvar splitter_state - pode causar travamento ao restaurar
 
         # Save panel visibility/collapsed states
         if self._data_panel:
@@ -1303,9 +1246,11 @@ class ModernMainWindow(QMainWindow):
         if geometry:
             self.restoreGeometry(geometry)
 
-        state = settings.value("mainwindow/state")
-        if state:
-            self.restoreState(state)
+        # NÃO restaurar mainwindow/state - pode interferir com o splitter
+        # O restoreState() da QMainWindow afeta toolbars e pode travar o layout
+        # state = settings.value("mainwindow/state")
+        # if state:
+        #     self.restoreState(state)
 
         # Restore maximized/fullscreen state
         was_maximized = settings.value("mainwindow/maximized", False, type=bool)
@@ -1316,29 +1261,31 @@ class ModernMainWindow(QMainWindow):
         elif was_maximized:
             self.showMaximized()
 
-        # Restore splitter sizes
+        # Restore splitter sizes - NÃO usar restoreState() que pode estar corrompido
         if self._main_splitter:
             splitter_sizes = settings.value("mainwindow/splitter_sizes")
             if splitter_sizes:
                 # Convert to list of ints
                 try:
                     sizes = [int(s) for s in splitter_sizes]
-                    # CORREÇÃO: Garantir que nenhum tamanho seja 0
-                    min_sizes = [300, 800, 200]  # Tamanhos mínimos para cada painel
+                    # Garantir tamanhos mínimos razoáveis
+                    min_sizes = [200, 600, 200]  # Tamanhos mínimos para cada painel
                     sizes = [max(size, min_size) for size, min_size in zip(sizes, min_sizes)]
                     self._main_splitter.setSizes(sizes)
                 except (ValueError, TypeError):
-                    pass
+                    # Em caso de erro, usar tamanhos padrão
+                    self._main_splitter.setSizes([300, 1000, 300])
+            else:
+                # Sem sizes salvos, usar padrão
+                self._main_splitter.setSizes([300, 1000, 300])
+            
+            # NÃO restaurar splitter_state - pode estar corrompido e travar o splitter
+            # O setSizes() acima é suficiente para restaurar as proporções
 
-            splitter_state = settings.value("mainwindow/splitter_state")
-            if splitter_state:
-                self._main_splitter.restoreState(splitter_state)
-
-        # CORREÇÃO: Sempre forçar todos os painéis visíveis!
-        # Configurações anteriores podem ter deixado painéis ocultos incorretamente
+        # Sempre forçar todos os painéis visíveis
         if self._data_panel:
             self._data_panel.setVisible(True)
-            self._data_panel.show()  # Força show() explicitamente
+            self._data_panel.show()
         if self._viz_panel:
             self._viz_panel.setVisible(True)
             self._viz_panel.show()
@@ -1351,7 +1298,7 @@ class ModernMainWindow(QMainWindow):
             tab_index = settings.value("panels/operations_tab_index", 0, type=int)
             self._operations_panel.setCurrentIndex(tab_index)
 
-        # CORREÇÃO: Garantir que todos os widgets filhos dos painéis estejam visíveis
+        # Garantir que todos os widgets filhos dos painéis estejam visíveis
         self._ensure_panel_widgets_visible()
 
         logger.debug("layout_restored")
@@ -1442,6 +1389,45 @@ class ModernMainWindow(QMainWindow):
     def _show_info(self, title: str, message: str):
         """Mostra informação"""
         QMessageBox.information(self, f"ℹ️ {title}", message)
+
+    # =========================================================================
+    # GERENCIAMENTO DE TEMAS
+    # =========================================================================
+    
+    def _on_theme_action_triggered(self):
+        """Chamado quando um tema é selecionado no menu"""
+        action = self.sender()
+        if action and action.data():
+            theme_mode = action.data()
+            self._theme_manager.set_theme(theme_mode)
+            
+            # Mensagem de confirmação
+            theme_names = {
+                ThemeMode.LIGHT: "☀️ Clássico",
+                ThemeMode.DARK: "🌙 Noturno",
+                ThemeMode.OCEAN: "🌊 Oceano",
+                ThemeMode.FOREST: "🌲 Floresta",
+                ThemeMode.SUNSET: "🌅 Pôr do Sol",
+                ThemeMode.SYSTEM: "🖥️ Sistema",
+            }
+            self._status_label.setText(f"🎨 Tema: {theme_names.get(theme_mode, 'Desconhecido')}")
+            logger.info("theme_changed_by_user", theme=theme_mode.name)
+    
+    def _on_theme_changed(self, mode: ThemeMode):
+        """Chamado quando o tema muda (para atualizar checkmarks no menu)"""
+        # Atualiza os checkmarks
+        theme_map_reverse = {
+            ThemeMode.LIGHT: "light",
+            ThemeMode.DARK: "dark",
+            ThemeMode.OCEAN: "ocean",
+            ThemeMode.FOREST: "forest",
+            ThemeMode.SUNSET: "sunset",
+            ThemeMode.SYSTEM: "system",
+        }
+        
+        theme_id = theme_map_reverse.get(mode)
+        if theme_id and theme_id in self._theme_actions:
+            self._theme_actions[theme_id].setChecked(True)
 
     def _auto_save_session(self):
         """Auto-save da sessão"""

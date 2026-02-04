@@ -35,7 +35,20 @@ class ThemeMode(Enum):
     """Modos de tema disponíveis"""
     LIGHT = auto()
     DARK = auto()
+    OCEAN = auto()
+    FOREST = auto()
+    SUNSET = auto()
     SYSTEM = auto()  # Segue o tema do OS
+
+
+# Mapeamento de ThemeMode para nome do tema
+THEME_MODE_MAP = {
+    ThemeMode.LIGHT: "light",
+    ThemeMode.DARK: "dark",
+    ThemeMode.OCEAN: "ocean",
+    ThemeMode.FOREST: "forest",
+    ThemeMode.SUNSET: "sunset",
+}
 
 
 @dataclass
@@ -83,10 +96,16 @@ class ThemeColors:
     ])
 
 
-# Tema Claro
+# =============================================================================
+# TEMA 1: LIGHT (Clássico)
+# Limpo, profissional, alta legibilidade - PADRÃO
+# =============================================================================
 LIGHT_THEME = ThemeColors()
 
-# Tema Escuro
+# =============================================================================
+# TEMA 2: DARK (Noturno)
+# Escuro elegante, reduz fadiga ocular em longas sessões
+# =============================================================================
 DARK_THEME = ThemeColors(
     background="#1E1E1E",
     foreground="#E0E0E0",
@@ -123,6 +142,167 @@ DARK_THEME = ThemeColors(
         "#79C0FF",  # Cyan
     ]
 )
+
+
+# =============================================================================
+# TEMA 3: OCEAN (Oceano) 🌊
+# Azul científico inspirado em instrumentação oceanográfica
+# Para engenheiros de petróleo, oceanógrafos, geofísicos
+# =============================================================================
+OCEAN_THEME = ThemeColors(
+    background="#0a1929",
+    foreground="#e3f2fd",
+    primary="#00bcd4",
+    secondary="#5c6bc0",
+
+    success="#4caf50",
+    warning="#ff9800",
+    error="#f44336",
+    info="#03a9f4",
+
+    surface="#001e3c",
+    surface_variant="#0d47a1",
+    border="#1e3a5f",
+
+    text_primary="#e3f2fd",
+    text_secondary="#90caf9",
+    text_disabled="#5c6bc0",
+
+    plot_background="#001e3c",
+    plot_foreground="#e3f2fd",
+    plot_grid="#1e3a5f",
+
+    series_colors=[
+        "#00bcd4",  # Ciano principal
+        "#4caf50",  # Verde
+        "#f44336",  # Vermelho
+        "#ff9800",  # Laranja
+        "#9c27b0",  # Roxo
+        "#009688",  # Teal
+        "#ff5722",  # Deep Orange
+        "#673ab7",  # Deep Purple
+        "#e91e63",  # Pink
+        "#03a9f4",  # Light Blue
+    ]
+)
+
+
+# =============================================================================
+# TEMA 4: FOREST (Floresta) 🌲
+# Verde natural para análise ambiental e geociências
+# Para engenheiros ambientais, geólogos, biólogos
+# =============================================================================
+FOREST_THEME = ThemeColors(
+    background="#1b2d1b",
+    foreground="#e8f5e9",
+    primary="#76ff03",
+    secondary="#66bb6a",
+
+    success="#00e676",
+    warning="#ffea00",
+    error="#ff1744",
+    info="#00e5ff",
+
+    surface="#2d4a2d",
+    surface_variant="#3d5a3d",
+    border="#4d6a4d",
+
+    text_primary="#e8f5e9",
+    text_secondary="#a5d6a7",
+    text_disabled="#66bb6a",
+
+    plot_background="#2d4a2d",
+    plot_foreground="#e8f5e9",
+    plot_grid="#4d6a4d",
+
+    series_colors=[
+        "#76ff03",  # Lime
+        "#00e676",  # Green Accent
+        "#ff1744",  # Red Accent
+        "#ffea00",  # Yellow Accent
+        "#651fff",  # Deep Purple Accent
+        "#1de9b6",  # Teal Accent
+        "#ff6e40",  # Deep Orange Accent
+        "#7c4dff",  # Deep Purple A200
+        "#f50057",  # Pink Accent
+        "#00b0ff",  # Light Blue Accent
+    ]
+)
+
+
+# =============================================================================
+# TEMA 5: SUNSET (Pôr do Sol) 🌅
+# Tons quentes de âmbar para ambientes industriais
+# Para engenheiros de processos, operadores de plataforma
+# =============================================================================
+SUNSET_THEME = ThemeColors(
+    background="#1c1410",
+    foreground="#fff3e0",
+    primary="#ff6d00",
+    secondary="#ff9800",
+
+    success="#aeea00",
+    warning="#ffd600",
+    error="#ff3d00",
+    info="#00b8d4",
+
+    surface="#2d2118",
+    surface_variant="#3e2e20",
+    border="#5e4e40",
+
+    text_primary="#fff3e0",
+    text_secondary="#ffcc80",
+    text_disabled="#8d6e63",
+
+    plot_background="#2d2118",
+    plot_foreground="#fff3e0",
+    plot_grid="#5e4e40",
+
+    series_colors=[
+        "#ff6d00",  # Orange Accent
+        "#aeea00",  # Lime Accent
+        "#ff3d00",  # Deep Orange Accent
+        "#ffd600",  # Yellow Accent
+        "#aa00ff",  # Purple Accent
+        "#64ffda",  # Teal Accent
+        "#ff6e40",  # Deep Orange
+        "#7c4dff",  # Deep Purple A200
+        "#ff4081",  # Pink Accent
+        "#18ffff",  # Cyan Accent
+    ]
+)
+
+
+# =============================================================================
+# REGISTRO DE TEMAS DISPONÍVEIS
+# =============================================================================
+AVAILABLE_THEMES = {
+    "light": {
+        "name": "☀️ Clássico",
+        "description": "Interface clara e profissional, ideal para escritórios bem iluminados",
+        "colors": LIGHT_THEME,
+    },
+    "dark": {
+        "name": "🌙 Noturno",
+        "description": "Tema escuro elegante, reduz fadiga ocular em longas sessões",
+        "colors": DARK_THEME,
+    },
+    "ocean": {
+        "name": "🌊 Oceano",
+        "description": "Azul científico inspirado em instrumentação oceanográfica",
+        "colors": OCEAN_THEME,
+    },
+    "forest": {
+        "name": "🌲 Floresta",
+        "description": "Verde natural para análise ambiental e geociências",
+        "colors": FOREST_THEME,
+    },
+    "sunset": {
+        "name": "🌅 Pôr do Sol",
+        "description": "Tons quentes de âmbar para ambientes industriais",
+        "colors": SUNSET_THEME,
+    },
+}
 
 
 def get_system_theme() -> ThemeMode:
@@ -231,6 +411,12 @@ class ThemeManager(QObject):
             self._current_colors = DARK_THEME if system_mode == ThemeMode.DARK else LIGHT_THEME
         elif mode == ThemeMode.DARK:
             self._current_colors = DARK_THEME
+        elif mode == ThemeMode.OCEAN:
+            self._current_colors = OCEAN_THEME
+        elif mode == ThemeMode.FOREST:
+            self._current_colors = FOREST_THEME
+        elif mode == ThemeMode.SUNSET:
+            self._current_colors = SUNSET_THEME
         else:
             self._current_colors = LIGHT_THEME
 
@@ -642,6 +828,46 @@ class ThemeManager(QObject):
                 border-radius: 4px;
                 padding: 4px 8px;
             }}
+            
+            /* ============================================= */
+            /* SPLITTER - CRÍTICO PARA REDIMENSIONAMENTO    */
+            /* ============================================= */
+            
+            QSplitter {{
+                background-color: transparent;
+            }}
+            
+            QSplitter::handle {{
+                background-color: {colors.border};
+                border: none;
+                border-radius: 2px;
+                margin: 4px 0px;
+            }}
+            
+            QSplitter::handle:hover {{
+                background-color: {colors.primary};
+            }}
+            
+            QSplitter::handle:horizontal {{
+                width: 6px;
+                min-width: 6px;
+            }}
+            
+            QSplitter::handle:vertical {{
+                height: 6px;
+                min-height: 6px;
+            }}
+            
+            QSplitter::handle:pressed {{
+                background-color: {self._darken_color(colors.primary, 15)};
+            }}
+            
+            /* Frame styles */
+            QFrame {{
+                background-color: {colors.surface};
+                border: 1px solid {colors.border};
+                border-radius: 4px;
+            }}
         """
 
     def _darken_color(self, hex_color: str, percent: int) -> str:
@@ -709,14 +935,26 @@ def get_current_colors() -> ThemeColors:
     return get_theme_manager().colors
 
 
+def get_available_themes() -> dict:
+    """Retorna dicionário com todos os temas disponíveis."""
+    return AVAILABLE_THEMES
+
+
 __all__ = [
+    "AVAILABLE_THEMES",
     "DARK_THEME",
+    "FOREST_THEME",
     "LIGHT_THEME",
+    "OCEAN_THEME",
+    "SUNSET_THEME",
+    "THEME_MODE_MAP",
     "ThemeColors",
     "ThemeManager",
     "ThemeMode",
     "apply_theme",
+    "get_available_themes",
     "get_current_colors",
     "get_system_theme",
     "get_theme_manager",
+    "reset_theme_manager",
 ]
