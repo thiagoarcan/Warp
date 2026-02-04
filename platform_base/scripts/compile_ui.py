@@ -61,15 +61,20 @@ def compile_ui_files(ui_dir: Path, output_dir: Path) -> List[str]:
     return compiled
 
 def main():
-    """Compila todos os arquivos .ui do projeto"""
+    """Compila todos os arquivos .ui do projeto
+    
+    Diretório único consolidado: desktop/ui_files/
+    Arquivos compilados ficam no mesmo diretório como {nome}_ui.py
+    """
     base_path = Path(__file__).parent.parent
     
+    # Diretório único consolidado para arquivos .ui
     ui_dirs = [
         base_path / 'src/platform_base/desktop/ui_files',
-        base_path / 'src/platform_base/ui/ui_files',
     ]
     
-    output_dir = base_path / 'src/platform_base/desktop/ui_compiled'
+    # Arquivos compilados ficam no mesmo diretório
+    output_dir = base_path / 'src/platform_base/desktop/ui_files'
     
     total_compiled = 0
     

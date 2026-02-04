@@ -3,6 +3,8 @@ MainWindow - Main PyQt6 desktop window for Platform Base v2.0
 
 Implements the main application window with dockable panels layout.
 Replaces Dash web interface with native desktop interface.
+
+Interface carregada do arquivo mainWindow.ui via UiLoaderMixin.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QTabWidget,
     QToolBar,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -32,6 +35,7 @@ from platform_base.desktop.widgets.config_panel import ConfigPanel
 from platform_base.desktop.widgets.data_panel import DataPanel
 from platform_base.desktop.widgets.results_panel import ResultsPanel
 from platform_base.desktop.widgets.viz_panel import VizPanel
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -43,7 +47,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, UiLoaderMixin):
     """
     Main application window.
 
@@ -54,7 +58,12 @@ class MainWindow(QMainWindow):
     - Status bar with progress indication
     - Auto-save session state
     - Keyboard shortcuts
+    
+    Interface carregada do arquivo mainWindow.ui.
     """
+    
+    # Arquivo .ui que define a interface base
+    UI_FILE = "mainWindow.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub):
         super().__init__()
@@ -74,13 +83,20 @@ class MainWindow(QMainWindow):
             session_state.dataset_store, signal_hub
         )
 
-        # Initialize UI components
-        self._setup_window()
-        self._create_dockable_panels()
-        self._create_menu_bar()
-        self._create_tool_bar()
-        self._create_status_bar()
-        self._setup_keyboard_shortcuts()  # Enhanced keyboard shortcuts
+        # Carregar interface do arquivo .ui
+        if self._load_ui():
+            # Configurar UI carregada do .ui
+            self._setup_ui_from_file()
+        else:
+            # Fallback para criação programática
+            logger.warning("ui_load_failed_using_fallback", cls="MainWindow")
+            self._setup_window()
+            self._create_dockable_panels()
+            self._create_menu_bar()
+            self._create_tool_bar()
+            self._create_status_bar()
+        
+        self._setup_keyboard_shortcuts()
         self._connect_signals()
 
         # Auto-save timer
@@ -89,6 +105,210 @@ class MainWindow(QMainWindow):
         self._auto_save_timer.start(300000)  # Save every 5 minutes
 
         logger.info("main_window_initialized")
+
+    def _setup_ui_from_file(self):
+        """Configura a UI carregada do arquivo .ui"""
+        # Inserir painéis reais nos placeholders do .ui
+        self._insert_panels_into_placeholders()
+        
+        # Conectar actions do .ui aos métodos
+        self._connect_ui_actions()
+        
+        # Configurar status bar
+        self._setup_status_bar_widgets()
+        
+        logger.debug("main_window_ui_from_file_configured")
+    
+    def _insert_panels_into_placeholders(self):
+        """Insere os painéis reais nos placeholders definidos no .ui"""
+        
+        # Data Panel - placeholder: dataPanelPlaceholder no dataDock
+        self.data_panel = DataPanel(self.session_state, self.signal_hub)
+        if hasattr(self, 'dataDock') and hasattr(self, 'dataPanelPlaceholder'):
+            layout = QVBoxLayout(self.dataPanelPlaceholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.data_panel)
+            self.data_dock = self.dataDock
+        else:
+            # Criar dock programaticamente se não existir no .ui
+            self.data_dock = QDockWidget(tr("Data Panel"), self)
+            self.data_dock.setWidget(self.data_panel)
+            self.data_dock.setObjectName("DataPanel")
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.data_dock)
+        
+        # Visualization Panel - placeholder: vizPanelPlaceholder no centralWidget
+        self.viz_panel = VizPanel(self.session_state, self.signal_hub)
+        if hasattr(self, 'vizPanelPlaceholder'):
+            layout = QVBoxLayout(self.vizPanelPlaceholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.viz_panel)
+        else:
+            # Fallback: adicionar ao central widget
+            central_layout = QHBoxLayout()
+            central_layout.addWidget(self.viz_panel)
+            self.centralWidget().setLayout(central_layout)
+        
+        # Config Panel - placeholder: configPanelPlaceholder no configDock
+        self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
+        if hasattr(self, 'configDock') and hasattr(self, 'configPanelPlaceholder'):
+            layout = QVBoxLayout(self.configPanelPlaceholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.config_panel)
+            self.config_dock = self.configDock
+        else:
+            self.config_dock = QDockWidget(tr("Configuration Panel"), self)
+            self.config_dock.setWidget(self.config_panel)
+            self.config_dock.setObjectName("ConfigPanel")
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
+        
+        # Operations Panel - placeholder: operationsPanelPlaceholder no operationsDock
+        from platform_base.ui.panels.operations_panel import OperationsPanel
+        self.operations_panel = OperationsPanel(self.session_state)
+        if hasattr(self, 'operationsDock') and hasattr(self, 'operationsPanelPlaceholder'):
+            layout = QVBoxLayout(self.operationsPanelPlaceholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.operations_panel)
+            self.operations_dock = self.operationsDock
+        else:
+            self.operations_dock = QDockWidget(tr("Operations Panel"), self)
+            self.operations_dock.setWidget(self.operations_panel)
+            self.operations_dock.setObjectName("OperationsPanel")
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
+        
+        # Tabify config e operations
+        self.tabifyDockWidget(self.config_dock, self.operations_dock)
+        self.config_dock.raise_()
+        
+        # Streaming Panel - placeholder: streamingPanelPlaceholder no streamingDock
+        from platform_base.ui.panels.streaming_panel import StreamingPanel
+        self.streaming_panel = StreamingPanel()
+        self.streaming_panel.position_changed.connect(self._on_streaming_position_changed)
+        self.streaming_panel.state_changed.connect(self._on_streaming_state_changed)
+        if hasattr(self, 'streamingDock') and hasattr(self, 'streamingPanelPlaceholder'):
+            layout = QVBoxLayout(self.streamingPanelPlaceholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.streaming_panel)
+            self.streaming_dock = self.streamingDock
+        else:
+            self.streaming_dock = QDockWidget(tr("Streaming Controls"), self)
+            self.streaming_dock.setWidget(self.streaming_panel)
+            self.streaming_dock.setObjectName("StreamingPanel")
+            self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.streaming_dock)
+        
+        # Results Panel - placeholder: resultsPanelPlaceholder no resultsDock
+        self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
+        if hasattr(self, 'resultsDock') and hasattr(self, 'resultsPanelPlaceholder'):
+            layout = QVBoxLayout(self.resultsPanelPlaceholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.results_panel)
+            self.results_dock = self.resultsDock
+        else:
+            self.results_dock = QDockWidget(tr("Results Panel"), self)
+            self.results_dock.setWidget(self.results_panel)
+            self.results_dock.setObjectName("ResultsPanel")
+            self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
+        
+        # Tabify bottom panels
+        self.tabifyDockWidget(self.streaming_dock, self.results_dock)
+        self.streaming_dock.raise_()
+        
+        logger.debug("panels_inserted_into_placeholders")
+    
+    def _connect_ui_actions(self):
+        """Conecta as QActions do .ui aos métodos da classe"""
+        
+        # File menu actions
+        if hasattr(self, 'actionNewSession'):
+            self.actionNewSession.triggered.connect(self._new_session)
+        if hasattr(self, 'actionOpenSession'):
+            self.actionOpenSession.triggered.connect(self._open_session)
+        if hasattr(self, 'actionSaveSession'):
+            self.actionSaveSession.triggered.connect(self._save_session)
+        if hasattr(self, 'actionLoadData'):
+            self.actionLoadData.triggered.connect(self._load_data)
+        if hasattr(self, 'actionExportData'):
+            self.actionExportData.triggered.connect(self._export_data)
+        if hasattr(self, 'actionExit'):
+            self.actionExit.triggered.connect(self.close)
+        
+        # Edit menu actions
+        if hasattr(self, 'actionUndo'):
+            self.undo_action = self.actionUndo
+            self.actionUndo.triggered.connect(self._undo_operation)
+        else:
+            self.undo_action = QAction(tr("&Undo"), self)
+            self.undo_action.setEnabled(False)
+        
+        if hasattr(self, 'actionRedo'):
+            self.redo_action = self.actionRedo
+            self.actionRedo.triggered.connect(self._redo_operation)
+        else:
+            self.redo_action = QAction(tr("&Redo"), self)
+            self.redo_action.setEnabled(False)
+        
+        if hasattr(self, 'actionFindSeries'):
+            self.actionFindSeries.triggered.connect(self._find_series)
+        
+        # View menu actions
+        if hasattr(self, 'actionRefreshData'):
+            self.actionRefreshData.triggered.connect(self._refresh_data)
+        if hasattr(self, 'actionFullscreen'):
+            self.actionFullscreen.triggered.connect(self._toggle_fullscreen)
+        if hasattr(self, 'actionThemeLight'):
+            self.actionThemeLight.triggered.connect(lambda: self._set_theme("light"))
+        if hasattr(self, 'actionThemeDark'):
+            self.actionThemeDark.triggered.connect(lambda: self._set_theme("dark"))
+        if hasattr(self, 'actionThemeAuto'):
+            self.actionThemeAuto.triggered.connect(lambda: self._set_theme("auto"))
+        
+        # Tools menu actions
+        if hasattr(self, 'actionSettings'):
+            self.actionSettings.triggered.connect(self._show_settings)
+        
+        # Help menu actions
+        if hasattr(self, 'actionContextualHelp'):
+            self.actionContextualHelp.triggered.connect(self._show_contextual_help)
+        if hasattr(self, 'actionKeyboardShortcuts'):
+            self.actionKeyboardShortcuts.triggered.connect(self._show_keyboard_shortcuts)
+        if hasattr(self, 'actionAbout'):
+            self.actionAbout.triggered.connect(self._show_about)
+        
+        # Adicionar toggle actions dos painéis ao menu View/Panels
+        if hasattr(self, 'menuPanels'):
+            self.menuPanels.addAction(self.data_dock.toggleViewAction())
+            self.menuPanels.addAction(self.config_dock.toggleViewAction())
+            self.menuPanels.addAction(self.operations_dock.toggleViewAction())
+            self.menuPanels.addAction(self.streaming_dock.toggleViewAction())
+            self.menuPanels.addAction(self.results_dock.toggleViewAction())
+        
+        logger.debug("ui_actions_connected")
+    
+    def _setup_status_bar_widgets(self):
+        """Configura widgets adicionais na status bar"""
+        # statusBar pode ser um atributo (do .ui) ou um método (fallback)
+        if hasattr(self, 'statusBar') and isinstance(self.statusBar, QWidget):
+            status_bar = self.statusBar
+        else:
+            status_bar = super().statusBar()
+        
+        # Status label
+        self.status_label = QLabel("Ready")
+        status_bar.addWidget(self.status_label)
+        
+        # Progress bar (initially hidden)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setMaximumWidth(200)
+        status_bar.addPermanentWidget(self.progress_bar)
+        
+        # Memory usage label
+        self.memory_label = QLabel()
+        status_bar.addPermanentWidget(self.memory_label)
+        
+        # Update memory usage periodically
+        self.memory_timer = QTimer()
+        self.memory_timer.timeout.connect(self._update_memory_usage)
+        self.memory_timer.start(5000)
 
     def _setup_window(self):
         """Configure main window properties"""
