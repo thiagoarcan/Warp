@@ -171,21 +171,13 @@ class SessionState(QObject):
 
     def get_dataset(self, dataset_id: DatasetID) -> Dataset:
         """Wrapper thread-safe para dataset store"""
-        logger.info(f">>> get_dataset START: {dataset_id}")
-        result = self._dataset_store.get_dataset(dataset_id)
-        logger.info(f">>> get_dataset END: {result is not None}")
-        return result
+        return self._dataset_store.get_dataset(dataset_id)
 
     def get_current_dataset(self) -> Dataset | None:
         """Obtém dataset atual"""
-        logger.info(">>> get_current_dataset START")
         with QMutexLocker(self._mutex):
-            logger.info(f">>> get_current_dataset mutex acquired, current={self._current_dataset}")
             if self._current_dataset:
-                result = self._dataset_store.get_dataset(self._current_dataset)
-                logger.info(f">>> get_current_dataset END: {result is not None}")
-                return result
-        logger.info(">>> get_current_dataset END: None")
+                return self._dataset_store.get_dataset(self._current_dataset)
         return None
 
     def get_all_datasets(self) -> dict[DatasetID, Dataset]:
@@ -200,24 +192,15 @@ class SessionState(QObject):
 
     def set_current_dataset(self, dataset_id: DatasetID) -> bool:
         """Define dataset atual"""
-        logger.info(f">>> set_current_dataset START: {dataset_id}")
-        try:
-            with QMutexLocker(self._mutex):
-                logger.info(f">>> Mutex acquired, checking if {dataset_id} in loaded_datasets")
-                if dataset_id in self._loaded_datasets:
-                    self._current_dataset = dataset_id
-                    logger.info(f">>> About to emit dataset_changed signal for {dataset_id}")
-                # Emitir fora do mutex para evitar deadlock
-            # Emitir sinal fora do mutex
-            if self._current_dataset == dataset_id:
-                logger.info(f">>> Emitting dataset_changed signal")
-                self.dataset_changed.emit(dataset_id)
-                logger.info(f">>> Signal emitted successfully")
-                return True
-            return False
-        except Exception as e:
-            logger.exception(f">>> ERROR in set_current_dataset: {e}")
-            return False
+        changed = False
+        with QMutexLocker(self._mutex):
+            if dataset_id in self._loaded_datasets:
+                self._current_dataset = dataset_id
+                changed = True
+        # Emitir sinal FORA do mutex para evitar deadlock
+        if changed:
+            self.dataset_changed.emit(dataset_id)
+        return changed
 
     def create_view(self, series_ids: list[SeriesID],
                    time_window: TimeWindow | None = None) -> ViewData | None:

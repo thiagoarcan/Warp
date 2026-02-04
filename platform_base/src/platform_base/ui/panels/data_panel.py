@@ -51,6 +51,19 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
+class StableComboBox(QComboBox):
+    """ComboBox estável que não fecha automaticamente no Windows."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        
+    def showPopup(self):
+        super().showPopup()
+        self.view().setFocus()
+
+
 class CompactDataPanel(QWidget):
     """
     Painel de dados moderno e compacto
@@ -224,9 +237,9 @@ class CompactDataPanel(QWidget):
         datasets_layout.setContentsMargins(4, 4, 4, 4)
 
         self._datasets_tree = QTreeWidget()
-        self._datasets_tree.setHeaderLabels(["Dataset", "Séries", "Pontos"])
+        self._datasets_tree.setHeaderLabels(["Dataset", "Séries", "Pontos", "Período"])
         self._datasets_tree.setRootIsDecorated(False)
-        self._datasets_tree.setMaximumHeight(120)
+        self._datasets_tree.setMaximumHeight(150)  # Aumentar altura para mais info
         self._datasets_tree.setAlternatingRowColors(True)
         self._datasets_tree.itemClicked.connect(self._on_dataset_selected)
         self._datasets_tree.setToolTip(
@@ -240,6 +253,7 @@ class CompactDataPanel(QWidget):
         datasets_header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         datasets_header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         datasets_header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        datasets_header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # Período
 
         datasets_layout.addWidget(self._datasets_tree)
         info_layout.addWidget(datasets_group)
@@ -317,7 +331,7 @@ class CompactDataPanel(QWidget):
         table_header_layout.addWidget(table_title)
 
         # Controle de linhas
-        self._preview_rows_combo = QComboBox()
+        self._preview_rows_combo = StableComboBox()
         self._preview_rows_combo.addItems(["10", "25", "50", "100"])
         self._preview_rows_combo.setCurrentText("25")
         self._preview_rows_combo.setMaximumWidth(60)
@@ -375,38 +389,18 @@ class CompactDataPanel(QWidget):
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
         """Handler para mudança de dataset - COM PROTEÇÃO CONTRA RECURSÃO"""
-        logger.info(f">>> DataPanel._on_dataset_changed RECEIVED signal: {dataset_id}")
         # Evitar chamadas duplicadas que causam travamento
         if self._updating_ui:
-            logger.info(f">>> DataPanel._on_dataset_changed SKIPPED (updating_ui=True)")
             return
             
-        logger.info(f">>> DataPanel._on_dataset_changed PROCESSING: {dataset_id}")
         if dataset_id:
             try:
                 self._updating_ui = True
-                
-                logger.debug("getting_dataset_from_session")
                 self._current_dataset = self.session_state.get_dataset(dataset_id)
-                logger.debug("got_dataset", has_dataset=self._current_dataset is not None)
-                
-                logger.debug("updating_datasets_list")
                 self._update_datasets_list()
-                logger.debug("datasets_list_updated")
-                
-                logger.debug("updating_dataset_info")
                 self._update_dataset_info()
-                logger.debug("dataset_info_updated")
-                
-                logger.debug("updating_series_tree")
                 self._update_series_tree()
-                logger.debug("series_tree_updated")
-                
-                logger.debug("updating_data_table")
                 self._update_data_table()
-                logger.debug("data_table_updated")
-                
-                logger.debug("_on_dataset_changed_COMPLETE", dataset_id=dataset_id)
             except Exception as e:
                 logger.exception("dataset_change_failed", dataset_id=dataset_id, error=str(e))
             finally:
@@ -737,6 +731,24 @@ class CompactDataPanel(QWidget):
             # Contar total de pontos
             total_points = sum(len(series.values) for series in dataset.series.values()) if dataset.series else 0
             item.setText(2, f"{total_points:,}")
+            
+            # Período de datetime (primeiro e último ponto)
+            try:
+                if hasattr(dataset, 't_datetime') and dataset.t_datetime is not None and len(dataset.t_datetime) > 0:
+                    import numpy as np
+                    first_dt = dataset.t_datetime[0]
+                    last_dt = dataset.t_datetime[-1]
+                    # Formatar como string legível
+                    first_str = str(np.datetime_as_string(first_dt, unit='m'))[:16].replace('T', ' ')
+                    last_str = str(np.datetime_as_string(last_dt, unit='m'))[:16].replace('T', ' ')
+                    period_str = f"{first_str} → {last_str}"
+                    item.setText(3, period_str)
+                    item.setToolTip(3, f"Início: {first_str}\nFim: {last_str}")
+                else:
+                    item.setText(3, "N/D")
+                    item.setToolTip(3, "Datetime não disponível")
+            except Exception:
+                item.setText(3, "Erro")
 
             # Armazenar dataset_id no item
             item.setData(0, Qt.ItemDataRole.UserRole, dataset_id)
@@ -746,6 +758,7 @@ class CompactDataPanel(QWidget):
                 item.setBackground(0, QColor("#e3f2fd"))
                 item.setBackground(1, QColor("#e3f2fd"))
                 item.setBackground(2, QColor("#e3f2fd"))
+                item.setBackground(3, QColor("#e3f2fd"))
 
             self._datasets_tree.addTopLevelItem(item)
             logger.debug("dataset_item_added", dataset_id=dataset_id, filename=filename)
@@ -753,17 +766,12 @@ class CompactDataPanel(QWidget):
     @pyqtSlot(QTreeWidgetItem, int)
     def _on_dataset_selected(self, item: QTreeWidgetItem, column: int):
         """Handler para seleção de dataset na lista"""
-        logger.info(">>> _on_dataset_selected START")
         try:
             dataset_id = item.data(0, Qt.ItemDataRole.UserRole)
-            logger.info(f">>> dataset_id={dataset_id}, current={self.session_state.current_dataset}")
             if dataset_id and dataset_id != self.session_state.current_dataset:
-                logger.info(f">>> Calling set_current_dataset({dataset_id})")
                 self.session_state.set_current_dataset(dataset_id)
-                logger.info(">>> set_current_dataset completed")
         except Exception as e:
-            logger.exception(f">>> ERROR in _on_dataset_selected: {e}")
-        logger.info(">>> _on_dataset_selected END")
+            logger.exception("_on_dataset_selected_failed", error=str(e))
 
     def _update_dataset_info(self):
         """Atualiza informações do dataset"""

@@ -86,11 +86,22 @@ class ModernMainWindow(QMainWindow):
         logger.info("modern_main_window_initialized")
 
     def _setup_modern_ui(self):
-        """Configura interface moderna e responsiva"""
-        # Window properties
+        """Configura interface moderna e responsiva para Full HD (1920x1080)"""
+        # Window properties - Full HD otimizado
         self.setWindowTitle("Platform Base v2.0 - Análise de Séries Temporais")
-        self.setMinimumSize(1400, 900)
-        self.resize(1800, 1100)
+        self.setMinimumSize(1280, 720)  # Mínimo HD
+        self.resize(1920, 1080)  # Full HD padrão
+        
+        # Tentar maximizar se a tela suportar
+        from PyQt6.QtWidgets import QApplication
+        screen = QApplication.primaryScreen()
+        if screen:
+            available = screen.availableGeometry()
+            if available.width() >= 1920 and available.height() >= 1080:
+                self.showMaximized()
+            elif available.width() >= 1600:
+                self.resize(int(available.width() * 0.95), int(available.height() * 0.9))
+                self.move(int(available.width() * 0.025), int(available.height() * 0.05))
 
         # Modern styling
         self.setStyleSheet("""
@@ -155,16 +166,15 @@ class ModernMainWindow(QMainWindow):
         main_layout.setContentsMargins(2, 2, 2, 2)
         main_layout.setSpacing(1)
 
-        # Create main splitter (horizontal) otimizado
+        # Create main splitter (horizontal) otimizado - TOTALMENTE REDIMENSIONÁVEL
         self._main_splitter = QSplitter(Qt.Orientation.Horizontal)
         self._main_splitter.setChildrenCollapsible(True)  # Permitir collapse para eficiência
-        self._main_splitter.setHandleWidth(3)  # Handle mais fino
+        self._main_splitter.setHandleWidth(6)  # Handle maior para fácil arraste
         main_layout.addWidget(self._main_splitter)
 
-        # Left panel: Data management (ultra compacto)
+        # Left panel: Data management - SEM LIMITES MÁXIMOS para ser redimensionável
         left_frame = QFrame()
-        left_frame.setMaximumWidth(300)  # Reduzido de 350
-        left_frame.setMinimumWidth(240)  # Reduzido de 280
+        left_frame.setMinimumWidth(200)  # Apenas mínimo
         left_frame.setFrameStyle(QFrame.Shape.StyledPanel)
         left_frame.setStyleSheet("""
             QFrame {
@@ -181,8 +191,9 @@ class ModernMainWindow(QMainWindow):
         self._data_panel = DataPanel(self.session_state)
         left_layout.addWidget(self._data_panel)
 
-        # Center panel: Visualizations (área principal maximizada)
+        # Center panel: Visualizations (área principal maximizada) - REDIMENSIONÁVEL
         center_frame = QFrame()
+        center_frame.setMinimumWidth(400)  # Apenas mínimo para área de visualização
         center_frame.setFrameStyle(QFrame.Shape.StyledPanel)
         center_frame.setStyleSheet("""
             QFrame {
@@ -198,10 +209,9 @@ class ModernMainWindow(QMainWindow):
         self._viz_panel = VizPanel(self.session_state)
         center_layout.addWidget(self._viz_panel)
 
-        # Right panel: Operations minimized (collapsible)
+        # Right panel: Operations - SEM LIMITES MÁXIMOS para ser redimensionável
         right_frame = QFrame()
-        right_frame.setMaximumWidth(280)  # Reduzido de 320
-        right_frame.setMinimumWidth(200)  # Reduzido de 250
+        right_frame.setMinimumWidth(200)  # Apenas mínimo
         right_frame.setFrameStyle(QFrame.Shape.StyledPanel)
         right_frame.setStyleSheet("""
             QFrame {
@@ -222,16 +232,15 @@ class ModernMainWindow(QMainWindow):
         self._main_splitter.addWidget(center_frame)
         self._main_splitter.addWidget(right_frame)
 
-        # Otimizações de proporções: Left(20%) - Center(65%) - Right(15%)
-        # para maximizar área de visualização
-        self._main_splitter.setStretchFactor(0, 20)
+        # Proporções para Full HD (1920x1080): Left(15%) - Center(65%) - Right(20%)
+        self._main_splitter.setStretchFactor(0, 15)
         self._main_splitter.setStretchFactor(1, 65)
-        self._main_splitter.setStretchFactor(2, 15)
+        self._main_splitter.setStretchFactor(2, 20)
 
-        # Set initial sizes more precisely
-        self._main_splitter.setSizes([240, 800, 200])  # Valores absolutos otimizados
+        # Set initial sizes para Full HD (1920px largura útil ~1900px)
+        self._main_splitter.setSizes([285, 1235, 380])
 
-        # Styling for splitter handles
+        # Styling for splitter handles - mais visíveis para arraste
         self._main_splitter.setStyleSheet("""
             QSplitter::handle {
                 background-color: #dee2e6;
@@ -241,7 +250,10 @@ class ModernMainWindow(QMainWindow):
                 background-color: #0d6efd;
             }
             QSplitter::handle:horizontal {
-                width: 3px;
+                width: 6px;
+            }
+            QSplitter::handle:pressed {
+                background-color: #0a58ca;
             }
         """)
 
@@ -496,6 +508,11 @@ class ModernMainWindow(QMainWindow):
         if self._operations_panel:
             self._operations_panel.operation_requested.connect(self._handle_operation_request)
             self._operations_panel.export_requested.connect(self._handle_export_request)
+        
+        # Connect viz panel calculation requests to operations panel
+        if self._viz_panel and self._operations_panel:
+            if hasattr(self._viz_panel, "calculation_requested"):
+                self._viz_panel.calculation_requested.connect(self._handle_viz_calculation_request)
 
         # Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
@@ -891,6 +908,84 @@ class ModernMainWindow(QMainWindow):
                     result[~nans]
                 )
             return result
+        
+        elif operation_name == "fft":
+            # Transformada Rápida de Fourier
+            from scipy import signal
+            
+            window_type = params.get("window", "hann")
+            detrend = params.get("detrend", True)
+            
+            # Remover tendência se solicitado
+            data = values.copy()
+            if detrend:
+                data = signal.detrend(data)
+            
+            # Aplicar janela se especificada
+            n = len(data)
+            if window_type and window_type != "none":
+                if window_type == "hann":
+                    window = np.hanning(n)
+                elif window_type == "hamming":
+                    window = np.hamming(n)
+                elif window_type == "blackman":
+                    window = np.blackman(n)
+                elif window_type == "bartlett":
+                    window = np.bartlett(n)
+                else:
+                    window = np.ones(n)
+                data = data * window
+            
+            # Calcular FFT
+            fft_result = np.fft.fft(data)
+            
+            # Retornar magnitude (metade positiva)
+            n_half = n // 2
+            magnitude = np.abs(fft_result[:n_half]) * 2.0 / n
+            
+            return magnitude
+        
+        elif operation_name == "filter":
+            from scipy import signal
+            
+            filter_type = params.get("filter_type", "lowpass")
+            cutoff = params.get("cutoff_frequency", 0.1)
+            order = params.get("filter_order", 4)
+            method = params.get("method", "butter")
+            
+            # Calcular frequência de amostragem
+            dt = np.mean(np.diff(t_seconds)) if len(t_seconds) > 1 else 1.0
+            fs = 1.0 / dt
+            nyq = fs / 2.0
+            
+            # Normalizar frequência de corte
+            if isinstance(cutoff, tuple):
+                wn = (cutoff[0] / nyq, cutoff[1] / nyq)
+            else:
+                wn = cutoff / nyq
+            
+            # Limitar wn para evitar erros
+            if isinstance(wn, tuple):
+                wn = (max(0.001, min(0.999, wn[0])), max(0.001, min(0.999, wn[1])))
+            else:
+                wn = max(0.001, min(0.999, wn))
+            
+            # Criar filtro
+            if method == "butter":
+                b, a = signal.butter(order, wn, btype=filter_type)
+            elif method == "cheby1":
+                b, a = signal.cheby1(order, 0.5, wn, btype=filter_type)
+            elif method == "cheby2":
+                b, a = signal.cheby2(order, 20, wn, btype=filter_type)
+            elif method == "ellip":
+                b, a = signal.ellip(order, 0.5, 20, wn, btype=filter_type)
+            else:
+                b, a = signal.butter(order, wn, btype=filter_type)
+            
+            # Aplicar filtro
+            result = signal.filtfilt(b, a, values)
+            
+            return result
             
         else:
             logger.warning(f"Unknown operation: {operation_name}")
@@ -947,6 +1042,49 @@ class ModernMainWindow(QMainWindow):
         self.session_state.dataset_changed.emit(dataset_id)
         
         logger.info(f"result_series_added: {series_id}")
+
+    @pyqtSlot(str, str, str, dict)
+    def _handle_viz_calculation_request(self, dataset_name: str, series_id: str, calc_type: str, params: dict):
+        """Handler para requisições de cálculo vindas do menu de contexto do gráfico"""
+        logger.info("viz_calculation_requested", calc_type=calc_type, series=series_id, params=params)
+        
+        # Mapear calc_type para operation_name
+        operation_map = {
+            "derivative": "derivative",
+            "integral": "integral",
+            "area": "area_under_curve",
+            "interpolation": "interpolation",
+            "filter": "smoothing",
+        }
+        
+        operation_name = operation_map.get(calc_type, calc_type)
+        
+        # Encontrar dataset_id pelo nome do dataset
+        dataset_id = None
+        all_datasets = self.session_state.get_all_datasets()
+        for ds_id, ds in all_datasets.items():
+            if hasattr(ds, "source") and ds.source and ds.source.filename:
+                if Path(ds.source.filename).stem == dataset_name:
+                    dataset_id = ds_id
+                    break
+            if ds_id == dataset_name:
+                dataset_id = ds_id
+                break
+        
+        if not dataset_id:
+            # Usar dataset atual se não encontrou
+            dataset_id = self.session_state.current_dataset
+        
+        if not dataset_id:
+            QMessageBox.warning(
+                self,
+                "⚠️ Nenhum Dataset",
+                "Não foi possível identificar o dataset para o cálculo."
+            )
+            return
+        
+        # Delegar para handler principal
+        self._handle_operation_request(operation_name, params)
 
     @pyqtSlot(str, dict)
     def _handle_export_request(self, format_type: str, options: dict):

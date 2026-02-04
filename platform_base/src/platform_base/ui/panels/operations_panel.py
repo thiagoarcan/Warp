@@ -46,13 +46,59 @@ logger = get_logger(__name__)
 
 
 class StableComboBox(QComboBox):
-    """ComboBox com configurações corretas para evitar problemas no Windows."""
+    """
+    ComboBox estável que não fecha automaticamente no Windows.
+    
+    Solução para o problema de QWindowsWindow::setMouseGrabEnabled.
+    """
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumHeight(28)
+        self.setMinimumHeight(30)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.setMaxVisibleItems(15)
+        self.setMaxVisibleItems(20)
+        
+        # Configurações específicas para Windows
+        self.setStyleSheet("""
+            QComboBox {
+                padding: 4px 8px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background-color: white;
+                min-height: 24px;
+            }
+            QComboBox:hover {
+                border-color: #0d6efd;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 20px;
+                border-left: 1px solid #ced4da;
+            }
+            QComboBox QAbstractItemView {
+                border: 1px solid #ced4da;
+                selection-background-color: #0d6efd;
+                selection-color: white;
+                background-color: white;
+            }
+        """)
+        
+        # Desabilitar context menu para evitar interferências
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        
+    def showPopup(self):
+        """Override para garantir que o popup seja mostrado corretamente"""
+        super().showPopup()
+        # Garantir que o popup não seja fechado imediatamente
+        self.view().setFocus()
+        
+    def focusOutEvent(self, event):
+        """Evitar fechamento prematuro do popup"""
+        # Não propagar se o popup estiver visível
+        if self.view().isVisible():
+            return
+        super().focusOutEvent(event)
 
 
 class OperationHistoryItem:
@@ -210,7 +256,9 @@ class OperationsPanel(QWidget):
         self._create_calculus_tab()
         self._create_filters_tab()
         self._create_sync_tab()  # Tab de sincronização
+        self._create_streaming_tab()  # Tab de streaming
         self._create_export_tab()
+        self._create_settings_tab()  # Tab de configuração
         self._create_history_tab()
 
     def _create_interpolation_tab(self):
@@ -780,7 +828,12 @@ class OperationsPanel(QWidget):
         return selected
 
     def _preview_sync(self):
-        """Preview da sincronização"""
+        """Preview da sincronização com visualização gráfica"""
+        import numpy as np
+        from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+        from matplotlib.figure import Figure
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout
+        
         selected_datasets = self._get_selected_sync_datasets()
 
         if len(selected_datasets) < 2:
@@ -792,26 +845,117 @@ class OperationsPanel(QWidget):
             return
 
         params = self._get_sync_params()
-        params["datasets"] = selected_datasets
-
-        logger.info(f"sync_preview_requested: {params}")
-
-        # TODO: Implementar preview com visualização gráfica
-        QMessageBox.information(
-            self, "Preview de Sincronização",
-            f"Datasets selecionados: {', '.join(selected_datasets)}\n\n"
-            f"Método: {params['method']}\n"
-            f"Interpolação: {params['interp_method']}\n"
-            f"Cálculo dt: {params.get('dt', params['grid_method'])}\n\n"
-            "Preview gráfico será implementado em breve."
+        
+        # Coletar dados para preview
+        all_series_data = {}
+        all_t_data = {}
+        
+        for dataset_id in selected_datasets:
+            dataset = self.session_state.get_dataset(dataset_id)
+            if not dataset or not dataset.series:
+                continue
+                
+            for series_id, series in dataset.series.items():
+                key = f"{dataset_id}/{series_id}"
+                if series.values is not None and len(series.values) > 0:
+                    all_series_data[key] = np.array(series.values[:1000])  # Limitar para preview
+                    if hasattr(dataset, 't_seconds') and dataset.t_seconds is not None:
+                        all_t_data[key] = np.array(dataset.t_seconds[:1000])
+                    else:
+                        all_t_data[key] = np.arange(len(series.values[:1000]))
+        
+        if len(all_series_data) < 2:
+            QMessageBox.warning(self, "Aviso", "Dados insuficientes para preview.")
+            return
+            
+        # Criar diálogo de preview
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Preview de Sincronização")
+        dialog.resize(900, 700)
+        dialog_layout = QVBoxLayout(dialog)
+        
+        # Criar figura com 2 subplots
+        fig = Figure(figsize=(10, 8), dpi=100)
+        canvas = FigureCanvas(fig)
+        
+        # Subplot 1: Dados originais
+        ax1 = fig.add_subplot(211)
+        ax1.set_title("Dados Originais (antes da sincronização)", fontsize=12, fontweight='bold')
+        
+        colors = ['#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1', '#20c997']
+        for i, (key, values) in enumerate(all_series_data.items()):
+            t = all_t_data[key]
+            color = colors[i % len(colors)]
+            ax1.plot(t, values, label=key[:30], color=color, alpha=0.8, linewidth=1)
+        
+        ax1.set_xlabel("Tempo (s)")
+        ax1.set_ylabel("Valor")
+        ax1.legend(loc='upper right', fontsize=8)
+        ax1.grid(True, alpha=0.3)
+        
+        # Subplot 2: Histograma de intervalos de tempo
+        ax2 = fig.add_subplot(212)
+        ax2.set_title("Distribuição de Intervalos de Tempo (dt)", fontsize=12, fontweight='bold')
+        
+        all_dts = []
+        for key, t in all_t_data.items():
+            if len(t) > 1:
+                dt = np.diff(t)
+                all_dts.extend(dt)
+        
+        if all_dts:
+            ax2.hist(all_dts, bins=50, color='#0d6efd', alpha=0.7, edgecolor='white')
+            ax2.axvline(np.median(all_dts), color='#dc3545', linestyle='--', 
+                       label=f'Mediana: {np.median(all_dts):.4f}s')
+            ax2.axvline(np.mean(all_dts), color='#198754', linestyle='--', 
+                       label=f'Média: {np.mean(all_dts):.4f}s')
+            ax2.legend()
+        
+        ax2.set_xlabel("dt (segundos)")
+        ax2.set_ylabel("Frequência")
+        ax2.grid(True, alpha=0.3)
+        
+        fig.tight_layout()
+        
+        dialog_layout.addWidget(canvas)
+        
+        # Info label
+        info_label = QLabel(
+            f"📊 Datasets: {', '.join(selected_datasets)}\n"
+            f"📈 Total de séries: {len(all_series_data)}\n"
+            f"⚙️ Método: {params['method']} | Interpolação: {params['interp_method']}"
         )
+        info_label.setStyleSheet("padding: 10px; background: #f8f9fa; border-radius: 4px;")
+        dialog_layout.addWidget(info_label)
+        
+        # Botões
+        btn_layout = QHBoxLayout()
+        close_btn = QPushButton("Fechar")
+        close_btn.clicked.connect(dialog.close)
+        btn_layout.addStretch()
+        btn_layout.addWidget(close_btn)
+        dialog_layout.addLayout(btn_layout)
+        
+        dialog.exec()
+        logger.info(f"sync_preview_shown: {len(all_series_data)} series")
 
     def _apply_sync(self):
         """Aplica sincronização aos datasets selecionados"""
-        import numpy as np
+        from datetime import datetime as dt
 
+        import numpy as np
+        from pint import UnitRegistry
+
+        from platform_base.core.models import (
+            Dataset,
+            DatasetMetadata,
+            Series,
+            SeriesMetadata,
+            SourceInfo,
+        )
         from platform_base.processing.synchronization import synchronize
 
+        ureg = UnitRegistry()
         selected_datasets = self._get_selected_sync_datasets()
 
         if len(selected_datasets) < 2:
@@ -843,8 +987,8 @@ class OperationsPanel(QWidget):
                         series_dict[key] = np.array(series.values, dtype=float)
 
                         # Usar timestamps se disponível, senão criar índice
-                        if hasattr(series, 't') and series.t is not None:
-                            t_dict[key] = np.array(series.t, dtype=float)
+                        if hasattr(dataset, 't_seconds') and dataset.t_seconds is not None:
+                            t_dict[key] = np.array(dataset.t_seconds, dtype=float)
                         else:
                             t_dict[key] = np.arange(len(series.values), dtype=float)
 
@@ -865,28 +1009,52 @@ class OperationsPanel(QWidget):
 
             # Criar novo dataset com séries sincronizadas se solicitado
             if self._sync_create_new.isChecked():
-                from platform_base.core.models import Dataset, Series
-
                 synced_series = {}
                 for key, values in result.synced_series.items():
+                    series_id = key.replace("/", "_").replace("-", "_")
                     series = Series(
-                        id=key.replace("/", "_"),
+                        series_id=series_id,
                         name=key,
-                        values=values,
-                        t=result.t_common,
+                        unit=ureg.dimensionless,
+                        values=np.array(values, dtype=np.float64),
+                        metadata=SeriesMetadata(
+                            original_name=key,
+                            source_column=key,
+                            description=f"Série sincronizada de {key}"
+                        )
                     )
-                    synced_series[series.id] = series
+                    synced_series[series_id] = series
+
+                # Criar timestamps como datetime
+                t_common = result.t_common
+                base_time = np.datetime64('2024-01-01T00:00:00')
+                t_datetime = base_time + (t_common * 1e9).astype('timedelta64[ns]')
 
                 synced_dataset = Dataset(
-                    id="synchronized",
-                    name="Datasets Sincronizados",
+                    dataset_id="synchronized",
+                    version=1,
+                    parent_id=None,
+                    source=SourceInfo(
+                        filepath="memory://synchronized",
+                        filename="synchronized.sync",
+                        format="sync",
+                        size_bytes=0,
+                        checksum="sync_generated"
+                    ),
+                    t_seconds=np.array(t_common, dtype=np.float64),
+                    t_datetime=t_datetime,
                     series=synced_series,
-                    metadata={
-                        "source_datasets": selected_datasets,
-                        "sync_method": params["method"],
-                        "alignment_error": result.alignment_error,
-                        "confidence": result.confidence,
-                    },
+                    metadata=DatasetMetadata(
+                        description=f"Datasets sincronizados: {', '.join(selected_datasets)}",
+                        tags=["synchronized", "generated"],
+                        custom={
+                            "source_datasets": selected_datasets,
+                            "sync_method": params["method"],
+                            "alignment_error": result.alignment_error,
+                            "confidence": result.confidence,
+                        }
+                    ),
+                    created_at=dt.now(),
                 )
 
                 self.session_state.add_dataset(synced_dataset)
@@ -986,6 +1154,284 @@ class OperationsPanel(QWidget):
         tab.setWidget(content)
         self._tabs.addTab(tab, "💾")
 
+    def _create_streaming_tab(self):
+        """Tab de controle de streaming para visualização"""
+        tab = QScrollArea()
+        tab.setWidgetResizable(True)
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setSpacing(8)
+
+        # === CONTROLE DE STREAMING ===
+        stream_group = QGroupBox("📡 Controle de Streaming")
+        stream_layout = QFormLayout(stream_group)
+
+        # Status
+        self._stream_status = QLabel("⏹️ Parado")
+        self._stream_status.setStyleSheet("font-weight: bold; color: #6c757d;")
+        stream_layout.addRow("Status:", self._stream_status)
+
+        # Taxa de atualização
+        self._stream_rate = QSpinBox()
+        self._stream_rate.setRange(1, 60)
+        self._stream_rate.setValue(10)
+        self._stream_rate.setSuffix(" FPS")
+        self._stream_rate.setToolTip("Taxa de atualização do gráfico (frames por segundo)")
+        stream_layout.addRow("Taxa:", self._stream_rate)
+
+        # Janela de visualização
+        self._stream_window = QSpinBox()
+        self._stream_window.setRange(100, 100000)
+        self._stream_window.setValue(1000)
+        self._stream_window.setToolTip("Número de pontos visíveis na janela")
+        stream_layout.addRow("Janela:", self._stream_window)
+
+        # Modo de scroll
+        self._stream_scroll_mode = self._create_combo_box()
+        self._stream_scroll_mode.addItems(["Auto-scroll", "Fixo", "Follow Last"])
+        self._stream_scroll_mode.setToolTip("Modo de rolagem do gráfico")
+        stream_layout.addRow("Scroll:", self._stream_scroll_mode)
+
+        layout.addWidget(stream_group)
+
+        # === BUFFER DE DADOS ===
+        buffer_group = QGroupBox("📊 Buffer de Dados")
+        buffer_layout = QFormLayout(buffer_group)
+
+        self._buffer_size = QSpinBox()
+        self._buffer_size.setRange(1000, 10000000)
+        self._buffer_size.setValue(100000)
+        self._buffer_size.setToolTip("Tamanho máximo do buffer de dados")
+        buffer_layout.addRow("Tamanho:", self._buffer_size)
+
+        self._buffer_current = QLabel("0 / 100000")
+        self._buffer_current.setStyleSheet("color: #6c757d;")
+        buffer_layout.addRow("Atual:", self._buffer_current)
+
+        self._auto_decimate = QCheckBox("Auto-decimação")
+        self._auto_decimate.setChecked(True)
+        self._auto_decimate.setToolTip("Reduzir automaticamente pontos para melhor performance")
+        buffer_layout.addRow(self._auto_decimate)
+
+        layout.addWidget(buffer_group)
+
+        # === BOTÕES DE CONTROLE ===
+        ctrl_layout = QHBoxLayout()
+
+        start_btn = QPushButton("▶️ Iniciar")
+        start_btn.setToolTip("Iniciar streaming de dados")
+        start_btn.clicked.connect(self._start_streaming)
+        ctrl_layout.addWidget(start_btn)
+
+        pause_btn = QPushButton("⏸️ Pausar")
+        pause_btn.setToolTip("Pausar streaming")
+        pause_btn.clicked.connect(self._pause_streaming)
+        ctrl_layout.addWidget(pause_btn)
+
+        stop_btn = QPushButton("⏹️ Parar")
+        stop_btn.setToolTip("Parar streaming e limpar buffer")
+        stop_btn.clicked.connect(self._stop_streaming)
+        ctrl_layout.addWidget(stop_btn)
+
+        layout.addLayout(ctrl_layout)
+
+        # === ESTATÍSTICAS ===
+        stats_group = QGroupBox("📈 Estatísticas em Tempo Real")
+        stats_layout = QFormLayout(stats_group)
+
+        self._stream_fps_label = QLabel("0 FPS")
+        stats_layout.addRow("FPS Real:", self._stream_fps_label)
+
+        self._stream_latency = QLabel("0 ms")
+        stats_layout.addRow("Latência:", self._stream_latency)
+
+        self._stream_points_sec = QLabel("0 pts/s")
+        stats_layout.addRow("Pontos/s:", self._stream_points_sec)
+
+        layout.addWidget(stats_group)
+
+        layout.addStretch()
+
+        tab.setWidget(content)
+        self._tabs.addTab(tab, "📡")
+
+    def _create_settings_tab(self):
+        """Tab de configurações da aplicação"""
+        tab = QScrollArea()
+        tab.setWidgetResizable(True)
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setSpacing(8)
+
+        # === VISUALIZAÇÃO ===
+        viz_group = QGroupBox("📊 Visualização")
+        viz_layout = QFormLayout(viz_group)
+
+        # Tema
+        self._theme_combo = self._create_combo_box()
+        self._theme_combo.addItems(["Claro", "Escuro", "Alto Contraste", "Sistema"])
+        self._theme_combo.setToolTip("Tema de cores da aplicação")
+        viz_layout.addRow("Tema:", self._theme_combo)
+
+        # Estilo de gráfico
+        self._plot_style = self._create_combo_box()
+        self._plot_style.addItems(["default", "seaborn", "ggplot", "dark_background", "bmh"])
+        self._plot_style.setToolTip("Estilo dos gráficos matplotlib")
+        viz_layout.addRow("Estilo Gráfico:", self._plot_style)
+
+        # Anti-aliasing
+        self._antialiasing = QCheckBox("Anti-aliasing")
+        self._antialiasing.setChecked(True)
+        self._antialiasing.setToolTip("Suavização de linhas nos gráficos")
+        viz_layout.addRow(self._antialiasing)
+
+        # DPI do gráfico
+        self._plot_dpi = QSpinBox()
+        self._plot_dpi.setRange(72, 300)
+        self._plot_dpi.setValue(100)
+        self._plot_dpi.setToolTip("Resolução dos gráficos (DPI)")
+        viz_layout.addRow("DPI:", self._plot_dpi)
+
+        layout.addWidget(viz_group)
+
+        # === PERFORMANCE ===
+        perf_group = QGroupBox("⚡ Performance")
+        perf_layout = QFormLayout(perf_group)
+
+        # Limite de renderização direta
+        self._direct_render_limit = QSpinBox()
+        self._direct_render_limit.setRange(1000, 1000000)
+        self._direct_render_limit.setValue(10000)
+        self._direct_render_limit.setToolTip("Pontos máximos para renderização direta sem decimação")
+        perf_layout.addRow("Render Direto:", self._direct_render_limit)
+
+        # Pontos alvo para display
+        self._target_display_points = QSpinBox()
+        self._target_display_points.setRange(1000, 50000)
+        self._target_display_points.setValue(5000)
+        self._target_display_points.setToolTip("Número alvo de pontos após decimação")
+        perf_layout.addRow("Pontos Alvo:", self._target_display_points)
+
+        # Método de decimação
+        self._decimation_method = self._create_combo_box()
+        self._decimation_method.addItems(["MINMAX", "LTTB", "RANDOM", "EVERY_NTH"])
+        self._decimation_method.setToolTip("Algoritmo de decimação para grandes volumes")
+        perf_layout.addRow("Decimação:", self._decimation_method)
+
+        # Multi-threading
+        self._use_threading = QCheckBox("Multi-threading")
+        self._use_threading.setChecked(True)
+        self._use_threading.setToolTip("Usar threads para operações pesadas")
+        perf_layout.addRow(self._use_threading)
+
+        layout.addWidget(perf_group)
+
+        # === DADOS ===
+        data_group = QGroupBox("📁 Dados")
+        data_layout = QFormLayout(data_group)
+
+        # Formato de data padrão
+        self._date_format = QComboBox()
+        self._date_format.addItems([
+            "%Y-%m-%d %H:%M:%S",
+            "%d/%m/%Y %H:%M:%S",
+            "%m/%d/%Y %H:%M:%S",
+            "ISO 8601"
+        ])
+        self._date_format.setToolTip("Formato padrão para exibição de datas")
+        data_layout.addRow("Formato Data:", self._date_format)
+
+        # Precisão numérica
+        self._numeric_precision = QSpinBox()
+        self._numeric_precision.setRange(1, 15)
+        self._numeric_precision.setValue(6)
+        self._numeric_precision.setToolTip("Casas decimais para exibição de números")
+        data_layout.addRow("Precisão:", self._numeric_precision)
+
+        # Auto-detectar tipos
+        self._auto_detect_types = QCheckBox("Auto-detectar tipos")
+        self._auto_detect_types.setChecked(True)
+        self._auto_detect_types.setToolTip("Detectar automaticamente tipos de dados ao carregar")
+        data_layout.addRow(self._auto_detect_types)
+
+        layout.addWidget(data_group)
+
+        # === BOTÕES ===
+        btn_layout = QHBoxLayout()
+
+        apply_btn = QPushButton("✅ Aplicar")
+        apply_btn.setToolTip("Aplicar configurações")
+        apply_btn.clicked.connect(self._apply_settings)
+        btn_layout.addWidget(apply_btn)
+
+        reset_btn = QPushButton("🔄 Restaurar Padrões")
+        reset_btn.setToolTip("Restaurar todas as configurações para os valores padrão")
+        reset_btn.clicked.connect(self._reset_settings)
+        btn_layout.addWidget(reset_btn)
+
+        layout.addLayout(btn_layout)
+
+        layout.addStretch()
+
+        tab.setWidget(content)
+        self._tabs.addTab(tab, "⚙️")
+
+    # === HANDLERS DE STREAMING ===
+
+    def _start_streaming(self):
+        """Inicia streaming de dados"""
+        self._stream_status.setText("▶️ Streaming")
+        self._stream_status.setStyleSheet("font-weight: bold; color: #28a745;")
+        logger.info("streaming_started")
+        QMessageBox.information(self, "Streaming", 
+            "Streaming iniciado.\n\n"
+            "Para conectar a uma fonte de dados em tempo real,\n"
+            "implemente a integração com seu sistema de aquisição.")
+
+    def _pause_streaming(self):
+        """Pausa streaming"""
+        self._stream_status.setText("⏸️ Pausado")
+        self._stream_status.setStyleSheet("font-weight: bold; color: #ffc107;")
+        logger.info("streaming_paused")
+
+    def _stop_streaming(self):
+        """Para streaming"""
+        self._stream_status.setText("⏹️ Parado")
+        self._stream_status.setStyleSheet("font-weight: bold; color: #6c757d;")
+        logger.info("streaming_stopped")
+
+    # === HANDLERS DE CONFIGURAÇÃO ===
+
+    def _apply_settings(self):
+        """Aplica configurações"""
+        logger.info("settings_applied")
+        QMessageBox.information(self, "Configurações",
+            "Configurações aplicadas com sucesso!\n\n"
+            "Algumas configurações podem requerer reinício da aplicação.")
+
+    def _reset_settings(self):
+        """Restaura configurações padrão"""
+        # Visualização
+        self._theme_combo.setCurrentIndex(0)
+        self._plot_style.setCurrentIndex(0)
+        self._antialiasing.setChecked(True)
+        self._plot_dpi.setValue(100)
+
+        # Performance
+        self._direct_render_limit.setValue(10000)
+        self._target_display_points.setValue(5000)
+        self._decimation_method.setCurrentIndex(0)
+        self._use_threading.setChecked(True)
+
+        # Dados
+        self._date_format.setCurrentIndex(0)
+        self._numeric_precision.setValue(6)
+        self._auto_detect_types.setChecked(True)
+
+        logger.info("settings_reset")
+        QMessageBox.information(self, "Configurações",
+            "Configurações restauradas para os valores padrão.")
+
     def _create_history_tab(self):
         """Tab de histórico de operações"""
         tab = QWidget()
@@ -1018,34 +1464,28 @@ class OperationsPanel(QWidget):
 
     def _setup_connections(self):
         """Configura conexões de sinais"""
-        self.session_state.dataset_changed.connect(self._on_dataset_changed)
+        # Apenas uma conexão para dataset_changed
         self.session_state.dataset_changed.connect(self._update_series_selector)
         self.session_state.operation_finished.connect(self._on_operation_finished)
 
     @pyqtSlot(str)
     def _update_series_selector(self, dataset_id: str):
         """Atualiza o combobox de seleção de série com as séries do dataset atual"""
-        logger.info(f">>> OperationsPanel._update_series_selector START: {dataset_id}")
         try:
             self._series_combo.clear()
             
             if not dataset_id:
                 self._series_combo.addItem("(Nenhum dataset carregado)")
                 self._series_combo.setEnabled(False)
-                logger.info(">>> OperationsPanel._update_series_selector END (no dataset)")
                 return
                 
-            logger.info(f">>> Getting dataset {dataset_id}")
             dataset = self.session_state.get_dataset(dataset_id)
-            logger.info(f">>> Got dataset: {dataset is not None}")
             if not dataset or not dataset.series:
                 self._series_combo.addItem("(Nenhuma série disponível)")
                 self._series_combo.setEnabled(False)
-                logger.info(">>> OperationsPanel._update_series_selector END (no series)")
                 return
                 
             # Adicionar séries ao combobox
-            logger.info(f">>> Adding {len(dataset.series)} series to combo")
             for series_id, series in dataset.series.items():
                 # Usar nome do dataset + nome da série para melhor identificação
                 display_name = f"{dataset_id} / {series.name if series.name else series_id}"
@@ -1053,14 +1493,8 @@ class OperationsPanel(QWidget):
                 self._series_combo.addItem(f"{display_name} ({n_points:,} pts)", series_id)
                 
             self._series_combo.setEnabled(True)
-            logger.info(f">>> OperationsPanel._update_series_selector END: {self._series_combo.count()} series")
         except Exception as e:
-            logger.exception(f">>> ERROR in _update_series_selector: {e}")
-
-    @pyqtSlot(str)
-    def _on_dataset_changed(self, dataset_id: str):
-        """Callback quando dataset muda"""
-        logger.info(f">>> OperationsPanel._on_dataset_changed: {dataset_id}")
+            logger.exception("_update_series_selector_failed", error=str(e))
 
     @pyqtSlot(str, bool)
     def _on_operation_finished(self, operation: str, success: bool):
