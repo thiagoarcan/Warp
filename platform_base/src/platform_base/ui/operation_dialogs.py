@@ -425,10 +425,24 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
         self.preview_timer.start(500)  # 500ms delay
 
     def _get_current_parameters(self) -> dict[str, Any]:
-        """Coleta parâmetros atuais"""
+        """Coleta parâmetros atuais com validação"""
         params = {}
         for name, widget in self.parameter_widgets.items():
-            params[name] = widget.get_value()
+            try:
+                if hasattr(widget, "get_value"):
+                    params[name] = widget.get_value()
+                else:
+                    logger.warning(
+                        "parameter_widget_missing_get_value",
+                        widget_name=name,
+                        widget_type=type(widget).__name__
+                    )
+            except Exception as e:
+                logger.error(
+                    "parameter_get_value_error",
+                    widget_name=name,
+                    error=str(e)
+                )
         return params
 
     @pyqtSlot()
@@ -463,11 +477,27 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
 
     @pyqtSlot()
     def _reset_parameters(self):
-        """Reset parâmetros para valores padrão"""
-        for widget in self.parameter_widgets.values():
-            # Each widget should implement its own default reset
-            if hasattr(widget, "default"):
-                widget.set_value(widget.default)
+        """Reset parâmetros para valores padrão com validação"""
+        for name, widget in self.parameter_widgets.items():
+            try:
+                # Each widget should implement its own default reset
+                if hasattr(widget, "default") and hasattr(widget, "set_value"):
+                    widget.set_value(widget.default)
+                elif hasattr(widget, "reset"):
+                    # Alternate reset method
+                    widget.reset()
+                else:
+                    logger.debug(
+                        "parameter_widget_no_reset",
+                        widget_name=name,
+                        widget_type=type(widget).__name__
+                    )
+            except Exception as e:
+                logger.error(
+                    "parameter_reset_error",
+                    widget_name=name,
+                    error=str(e)
+                )
 
     @pyqtSlot()
     def _apply_operation(self):

@@ -283,14 +283,17 @@ class ResultsPanel(QWidget, UiLoaderMixin):
     def _connect_signals(self):
         """Connect signals"""
         # Listen to operation events
-        self.signal_hub.operation_started.connect(self._on_operation_started)
-        self.signal_hub.operation_progress.connect(self._on_operation_progress)
-        self.signal_hub.operation_completed.connect(self._on_operation_completed)
-        self.signal_hub.operation_failed.connect(self._on_operation_failed)
+        if self.signal_hub is not None:
+            self.signal_hub.operation_started.connect(self._on_operation_started)
+            self.signal_hub.operation_progress.connect(self._on_operation_progress)
+            self.signal_hub.operation_completed.connect(self._on_operation_completed)
+            self.signal_hub.operation_failed.connect(self._on_operation_failed)
 
-        # Listen to errors
-        self.signal_hub.error_occurred.connect(self._on_error_occurred)
-        self.signal_hub.status_updated.connect(self._on_status_updated)
+            # Listen to errors
+            self.signal_hub.error_occurred.connect(self._on_error_occurred)
+            self.signal_hub.status_updated.connect(self._on_status_updated)
+        else:
+            logger.warning("ResultsPanel initialized without signal_hub - operation tracking disabled")
 
     @pyqtSlot(str, str)
     def _on_operation_started(self, operation_type: str, operation_id: str):

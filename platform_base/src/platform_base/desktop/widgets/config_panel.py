@@ -334,8 +334,11 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         self.session_state.processing_state_changed.connect(self._on_processing_changed)
 
         # Listen to operation completion
-        self.signal_hub.operation_completed.connect(self._on_operation_completed)
-        self.signal_hub.operation_failed.connect(self._on_operation_failed)
+        if self.signal_hub is not None:
+            self.signal_hub.operation_completed.connect(self._on_operation_completed)
+            self.signal_hub.operation_failed.connect(self._on_operation_failed)
+        else:
+            logger.warning("ConfigPanel initialized without signal_hub - operation notifications disabled")
 
     @pyqtSlot(str, dict)
     def _update_params(self, operation_type: str, params: dict[str, Any]):
@@ -370,7 +373,10 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         )
 
         # Emit signal to start processing
-        self.signal_hub.emit_operation_started(operation_type, operation_id)
+        if self.signal_hub is not None:
+            self.signal_hub.emit_operation_started(operation_type, operation_id)
+        else:
+            logger.warning("Cannot emit operation_started signal - signal_hub is None")
 
         self.status_label.setText(f"Executing {operation_type}...")
         self.execute_btn.setEnabled(False)

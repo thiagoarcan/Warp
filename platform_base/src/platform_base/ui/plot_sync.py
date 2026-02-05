@@ -225,8 +225,8 @@ class PlotSyncManager(QObject):
                     if ax is not source:
                         ax.set_xlim(xmin, xmax)
                         widget.canvas.draw_idle()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to sync xlim for widget in group {group_id}: {e}")
 
             # Emitir signal
             self.xlim_changed.emit(group_id, xmin, xmax)
@@ -249,8 +249,8 @@ class PlotSyncManager(QObject):
                     if ax is not source:
                         ax.set_ylim(ymin, ymax)
                         widget.canvas.draw_idle()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to sync ylim for widget in group {group_id}: {e}")
 
             # Emitir signal
             self.ylim_changed.emit(group_id, ymin, ymax)
@@ -271,8 +271,8 @@ class PlotSyncManager(QObject):
                 try:
                     if hasattr(widget, "set_crosshair_position"):
                         widget.set_crosshair_position(x, y)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to sync crosshair for widget in group {group_id}: {e}")
 
             # Emitir signal
             self.crosshair_moved.emit(group_id, x, y)
@@ -336,8 +336,8 @@ class PlotSyncManager(QObject):
                 ax.set_xlim(xlim[0] + dx, xlim[1] + dx)
                 ax.set_ylim(ylim[0] + dy, ylim[1] + dy)
                 widget.canvas.draw_idle()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to sync pan for widget in group {group_id}: {e}")
 
     def get_groups(self) -> list[str]:
         """Retorna lista de grupos existentes"""

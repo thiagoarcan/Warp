@@ -479,11 +479,14 @@ class VizPanel(QWidget, UiLoaderMixin):
         self.session_state.selection_changed.connect(self._on_selection_changed)
 
         # Listen to plot requests
-        self.signal_hub.plot_created.connect(self._on_plot_requested)
-        self.signal_hub.series_selected.connect(self._on_series_selected)
+        if self.signal_hub is not None:
+            self.signal_hub.plot_created.connect(self._on_plot_requested)
+            self.signal_hub.series_selected.connect(self._on_series_selected)
 
-        # Listen to series visibility changes (from checkboxes)
-        self.signal_hub.series_visibility_changed.connect(self._on_series_visibility_changed)
+            # Listen to series visibility changes (from checkboxes)
+            self.signal_hub.series_visibility_changed.connect(self._on_series_visibility_changed)
+        else:
+            logger.warning("VizPanel initialized without signal_hub - cross-panel communication disabled")
 
     @pyqtSlot(str, str, bool)
     def _on_series_visibility_changed(self, dataset_id: str, series_id: str, visible: bool):
@@ -627,7 +630,10 @@ class VizPanel(QWidget, UiLoaderMixin):
         """Handle time selection from plot"""
         time_window = TimeWindow(start=start_time, end=end_time)
         self.session_state.set_time_window(time_window)
-        self.signal_hub.emit_time_selection(start_time, end_time)
+        
+        if self.signal_hub is not None:
+            self.signal_hub.emit_time_selection(start_time, end_time)
+        
         logger.debug("time_selection_from_plot", start=start_time, end=end_time)
 
     @pyqtSlot(str)
