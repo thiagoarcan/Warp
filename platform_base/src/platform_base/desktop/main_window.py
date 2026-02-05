@@ -83,18 +83,19 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             session_state.dataset_store, signal_hub
         )
 
-        # Carregar interface do arquivo .ui
-        if self._load_ui():
-            # Configurar UI carregada do .ui
-            self._setup_ui_from_file()
-        else:
-            # Fallback para criação programática
-            logger.warning("ui_load_failed_using_fallback", cls="MainWindow")
-            self._setup_window()
-            self._create_dockable_panels()
-            self._create_menu_bar()
-            self._create_tool_bar()
-            self._create_status_bar()
+        # Carregar interface OBRIGATORIAMENTE do arquivo .ui
+        # Requisito custom instruction #3: Sem fallbacks programáticos
+        if not self._load_ui():
+            from platform_base.ui.ui_loader_mixin import UI_FILES_DIR
+            ui_path = UI_FILES_DIR / self.UI_FILE
+            raise RuntimeError(
+                f"ERRO: Não foi possível carregar {self.UI_FILE}\n"
+                f"Caminho esperado: {ui_path}\n"
+                f"Interface deve ser carregada exclusivamente de arquivos .ui"
+            )
+        
+        # Configurar UI carregada do .ui
+        self._setup_ui_from_file()
         
         self._setup_keyboard_shortcuts()
         self._connect_signals()

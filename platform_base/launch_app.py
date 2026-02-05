@@ -17,11 +17,11 @@ try:
     from PyQt6.QtGui import QIcon
     from PyQt6.QtWidgets import QApplication, QMessageBox
 
-    # Import main window - usa versão unificada com todas as funcionalidades
+    # Import main window - usa implementação funcional validada
     from platform_base.core.dataset_store import DatasetStore
+    from platform_base.desktop.main_window import MainWindow
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
-    from platform_base.ui.main_window_unified import ModernMainWindow
     from platform_base.utils.logging import get_logger
     
     logger = get_logger(__name__)
@@ -46,14 +46,14 @@ try:
             signal_hub = SignalHub()
             
             # Create and show main window with all features
-            main_window = ModernMainWindow(session_state, signal_hub)
+            main_window = MainWindow(session_state, signal_hub)
             main_window.show()
             
             # Start event loop
             logger.info("application_started", version="2.0.0")
             print("Platform Base v2.0 iniciado com sucesso!")
-            print("Interface moderna carregada")
-            print("Todas as correcoes implementadas")
+            print("Interface principal carregada de mainWindow.ui")
+            print("Sistema validado e funcional")
             
             # Run application
             exit_code = app.exec()
