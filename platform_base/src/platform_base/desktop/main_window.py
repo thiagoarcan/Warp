@@ -35,7 +35,7 @@ from platform_base.desktop.widgets.config_panel import ConfigPanel
 from platform_base.desktop.widgets.data_panel import DataPanel
 from platform_base.desktop.widgets.results_panel import ResultsPanel
 from platform_base.desktop.widgets.viz_panel import VizPanel
-from platform_base.ui.ui_loader_mixin import UiLoaderMixin
+from platform_base.ui.ui_loader_mixin import UI_FILES_DIR, UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -86,7 +86,6 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         # Carregar interface OBRIGATORIAMENTE do arquivo .ui
         # Requisito custom instruction #3: Sem fallbacks programáticos
         if not self._load_ui():
-            from platform_base.ui.ui_loader_mixin import UI_FILES_DIR
             ui_path = UI_FILES_DIR / self.UI_FILE
             raise RuntimeError(
                 f"ERRO: Não foi possível carregar {self.UI_FILE}\n"
