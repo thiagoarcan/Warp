@@ -529,7 +529,8 @@ class EnhancedVizPanel(QWidget):
                                 'valor': series_info['y_data']
                             })
                             
-                            sheet_name = f"{series_id[:25]}"  # Excel limit is 31 chars
+                            # Excel sheet name limit is 31 characters
+                            sheet_name = f"{series_id[:31]}"
                             df.to_excel(writer, sheet_name=sheet_name, index=False)
                             sheet_counter += 1
                             
@@ -584,11 +585,25 @@ class EnhancedVizPanel(QWidget):
             logger.warning(f"Dataset {dataset_id} not found")
             return
             
-        # Extract time and value data
-        # This depends on your dataset structure
-        # Placeholder implementation:
-        x_data = np.arange(100)
-        y_data = np.random.randn(100)
+        # Extract time and value data from dataset
+        try:
+            # Attempt to get time series data
+            time_series = dataset.get_time_series(series_id)
+            if time_series is not None:
+                x_data = time_series.timestamps
+                y_data = time_series.values
+            else:
+                # Fallback: try to extract from dataset structure
+                if hasattr(dataset, 'data') and series_id in dataset.data:
+                    series_data = dataset.data[series_id]
+                    x_data = series_data.get('time', np.arange(len(series_data['values'])))
+                    y_data = series_data['values']
+                else:
+                    logger.warning(f"Could not extract data for series {series_id}")
+                    return
+        except Exception as e:
+            logger.exception(f"Error loading series data: {e}")
+            return
         
         # Plot on canvas
         full_series_id = f"{dataset_id}_{series_id}"

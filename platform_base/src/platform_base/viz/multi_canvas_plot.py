@@ -106,6 +106,15 @@ class IndependentPlotCanvas(pg.PlotWidget):
         x_click = view_pos.x()
         y_click = view_pos.y()
         
+        # Calculate dynamic threshold based on current axis ranges
+        x_range = self.plotItem.vb.viewRange()[0]
+        y_range = self.plotItem.vb.viewRange()[1]
+        x_span = abs(x_range[1] - x_range[0])
+        y_span = abs(y_range[1] - y_range[0])
+        
+        # Use 2% of the diagonal as threshold
+        threshold = 0.02 * np.sqrt(x_span**2 + y_span**2)
+        
         min_distance = float('inf')
         closest_series = None
         
@@ -123,7 +132,7 @@ class IndependentPlotCanvas(pg.PlotWidget):
                         min_distance = distance
                         closest_series = series_id
         
-        return closest_series if min_distance < 0.1 else None
+        return closest_series if min_distance < threshold else None
         
     def add_series_to_canvas(self, series_id: str, x_data: np.ndarray, y_data: np.ndarray,
                             series_name: str = None, axis_index: int = 0):

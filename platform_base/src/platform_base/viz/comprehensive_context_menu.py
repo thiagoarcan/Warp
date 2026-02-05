@@ -367,15 +367,14 @@ class ComprehensiveContextMenu(QMenu):
         if 'order' in dialog.param_widgets:
             dialog.param_widgets['order'].setValue(order)
             
-        if dialog.exec():
-            # Dialog emits calculation_confirmed
-            pass
-            
+        # Connect signal before exec
         dialog.calculation_confirmed.connect(
             lambda params: self.calculation_requested.emit(
                 self.current_series_id, "derivative", params
             )
         )
+        
+        dialog.exec()
         
     def _request_area_under_curve(self):
         """Request area under curve calculation"""
