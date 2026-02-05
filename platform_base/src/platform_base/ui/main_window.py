@@ -1,20 +1,20 @@
 """
-MainWindow - Interface PyQt6 Unificada
+MainWindow - Interface PyQt6
 
-Este módulo re-exporta a ModernMainWindow unificada para compatibilidade.
+Este módulo re-exporta a MainWindow funcional do módulo desktop.
+A implementação principal está em platform_base.desktop.main_window.
 
-A versão unificada combina todas as funcionalidades:
+Funcionalidades:
 - QDockWidget com painéis acopláveis (Data, Config, Operations, Streaming, Results)
 - SessionState + SignalHub para comunicação entre componentes
-- 5 temas visuais: Light, Dark, Ocean, Forest, Sunset
 - Undo/Redo Manager completo
 - ProcessingWorkerManager para operações assíncronas
-- Toolbar horizontal com ícones intuitivos
-- Sistema drag-and-drop para visualizações
+- Toolbar e menus completos
+- Interface carregada de mainWindow.ui
 - Tradução completa PT-BR
 - Persistência de layout com QSettings
 """
 
-from platform_base.ui.main_window_unified import ModernMainWindow, MainWindow
+from platform_base.desktop.main_window import MainWindow
 
-__all__ = ["ModernMainWindow", "MainWindow"]
+__all__ = ["MainWindow"]

@@ -311,6 +311,15 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         self.memory_timer.timeout.connect(self._update_memory_usage)
         self.memory_timer.start(5000)
 
+    # =========================================================================
+    # DEPRECATED: PROGRAMMATIC UI CREATION METHODS
+    # =========================================================================
+    # These methods are DEPRECATED and NO LONGER USED.
+    # Per custom instruction #3: No fallbacks allowed - UI must load from .ui files.
+    # All UI creation is now handled exclusively by mainWindow.ui.
+    # These methods are retained for reference only and will be removed in future.
+    # =========================================================================
+
     def _setup_window(self):
         """Configure main window properties"""
         self.setWindowTitle("Platform Base v2.0 - Time Series Analysis")
