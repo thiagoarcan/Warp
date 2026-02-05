@@ -43,6 +43,7 @@ try:
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
@@ -224,8 +225,15 @@ class BooleanParameterWidget(ParameterWidget):
         self.checkbox.setChecked(value)
 
 
-class PreviewWidget(QWidget):
-    """Widget de preview para operações"""
+class PreviewWidget(QWidget, UiLoaderMixin):
+    """
+    Widget de preview para operações
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/previewWidget.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -233,9 +241,30 @@ class PreviewWidget(QWidget):
         self.figure = None
         self.canvas = None
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # O matplotlib precisa ser adicionado programaticamente
+        content_layout = self.findChild(QVBoxLayout, "contentLayout")
+        if content_layout is None:
+            content_layout = self.layout()
+        
+        if MATPLOTLIB_AVAILABLE and content_layout:
+            self.figure = Figure(figsize=(8, 6))
+            self.canvas = FigureCanvas(self.figure)
+            content_layout.addWidget(self.canvas)
+        elif content_layout:
+            label = QLabel("Preview not available\n(matplotlib required)")
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setStyleSheet("color: gray; font-size: 14px;")
+            content_layout.addWidget(label)
+
+    def _setup_ui_fallback(self):
         layout = QVBoxLayout(self)
 
         if MATPLOTLIB_AVAILABLE:
@@ -277,8 +306,15 @@ class PreviewWidget(QWidget):
         self.canvas.draw()
 
 
-class BaseOperationDialog(QDialog):
-    """Diálogo base para operações"""
+class BaseOperationDialog(QDialog, UiLoaderMixin):
+    """
+    Diálogo base para operações
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/baseOperationDialog.ui"
 
     # Signals
     parameters_changed = pyqtSignal(dict)  # parameters
@@ -300,10 +336,54 @@ class BaseOperationDialog(QDialog):
         self.preview_timer.setSingleShot(True)
         self.preview_timer.timeout.connect(self._update_preview)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._setup_connections()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Splitter e painéis
+        self.splitter = self.findChild(QSplitter, "splitter")
+        
+        # Botões
+        self.reset_btn = self.findChild(QPushButton, "resetBtn")
+        self.preview_btn = self.findChild(QPushButton, "previewBtn")
+        self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        self.apply_btn = self.findChild(QPushButton, "applyBtn")
+        
+        # Preview widget - precisa ser criado programaticamente
+        preview_container = self.findChild(QWidget, "previewContainer")
+        if preview_container:
+            preview_layout = preview_container.layout()
+            if preview_layout is None:
+                preview_layout = QVBoxLayout(preview_container)
+            self.preview_widget = PreviewWidget()
+            preview_layout.addWidget(self.preview_widget)
+            
+            self.preview_status = self.findChild(QLabel, "previewStatus")
+            if not self.preview_status:
+                self.preview_status = QLabel("Ready")
+                preview_layout.addWidget(self.preview_status)
+        else:
+            self.preview_widget = PreviewWidget()
+            self.preview_status = QLabel("Ready")
+        
+        # Conecta sinais
+        if self.reset_btn:
+            self.reset_btn.clicked.connect(self._reset_parameters)
+        if self.preview_btn:
+            self.preview_btn.clicked.connect(self._manual_preview)
+        if self.cancel_btn:
+            self.cancel_btn.clicked.connect(self.reject)
+        if self.apply_btn:
+            self.apply_btn.clicked.connect(self._apply_operation)
+            self.apply_btn.setDefault(True)
+
+    def _setup_ui_fallback(self):
         """Setup da UI base"""
         layout = QVBoxLayout(self)
 

@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -42,8 +43,15 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class MathAnalysisDialog(QDialog):
-    """Dialog for mathematical analysis operations"""
+class MathAnalysisDialog(QDialog, UiLoaderMixin):
+    """
+    Dialog for mathematical analysis operations
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/mathAnalysisDialog.ui"
 
     operation_requested = pyqtSignal(str, dict)  # operation_name, parameters
 
@@ -55,9 +63,38 @@ class MathAnalysisDialog(QDialog):
         self.setModal(True)
         self.resize(350, 200)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Widgets comuns
+        apply_btn = self.findChild(QPushButton, "applyBtn")
+        cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        
+        # Busca widgets específicos por operação
+        self.derivative_order = self.findChild(QSpinBox, "derivativeOrder")
+        self.derivative_method = self.findChild(QComboBox, "derivativeMethod")
+        self.enable_smoothing = self.findChild(QCheckBox, "enableSmoothing")
+        self.smoothing_window = self.findChild(QSpinBox, "smoothingWindow")
+        self.integral_method = self.findChild(QComboBox, "integralMethod")
+        self.smooth_method = self.findChild(QComboBox, "smoothMethod")
+        self.window_size = self.findChild(QSpinBox, "windowSize")
+        self.polyorder = self.findChild(QSpinBox, "polyorder")
+        
+        # Conecta sinais
+        if apply_btn:
+            apply_btn.clicked.connect(self._apply_operation)
+            apply_btn.setDefault(True)
+        if cancel_btn:
+            cancel_btn.clicked.connect(self.reject)
+        if self.enable_smoothing and self.smoothing_window:
+            self.enable_smoothing.toggled.connect(self.smoothing_window.setEnabled)
+
+    def _setup_ui_fallback(self):
         """Setup dialog UI based on operation"""
         layout = QVBoxLayout(self)
 

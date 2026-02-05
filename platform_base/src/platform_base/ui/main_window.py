@@ -31,6 +31,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.ui.panels.data_panel import DataPanel
 from platform_base.ui.panels.operations_panel import OperationsPanel
 from platform_base.ui.panels.viz_panel import VizPanel
@@ -44,7 +45,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class ModernMainWindow(QMainWindow):
+class ModernMainWindow(QMainWindow, UiLoaderMixin):
     """
     Interface principal moderna com design clean e funcional
 
@@ -56,7 +57,12 @@ class ModernMainWindow(QMainWindow):
     - Design moderno seguindo guidelines de UX
     - Persistência de layout com QSettings
     - 5 temas visuais: Light, Dark, Ocean, Forest, Sunset
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin quando disponível.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/modernMainWindow.ui"
 
     # Chave para QSettings
     SETTINGS_ORG = "TRANSPETRO"
@@ -82,7 +88,8 @@ class ModernMainWindow(QMainWindow):
         self._autosave_timer.timeout.connect(self._auto_save_session)
         self._autosave_timer.start(300000)  # 5 minutes
 
-        # Initialize UI
+        # Initialize UI - QMainWindow precisa de setup programático
+        # devido a toolbars, menus e statusbar
         self._setup_modern_ui()
         self._setup_connections()
         self._setup_icons()
@@ -93,7 +100,7 @@ class ModernMainWindow(QMainWindow):
         # Conecta mudança de tema
         self._theme_manager.theme_changed.connect(self._on_theme_changed)
 
-        logger.info("modern_main_window_initialized")
+        logger.info("modern_main_window_initialized", ui_loaded=getattr(self, '_ui_loaded', False))
 
     def _setup_modern_ui(self):
         """Configura interface moderna e responsiva para Full HD (1920x1080)"""

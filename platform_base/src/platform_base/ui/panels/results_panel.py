@@ -35,6 +35,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -217,7 +218,7 @@ class StatisticsTable(QWidget):
         return "\n".join(lines)
 
 
-class ResultsPanel(QWidget):
+class ResultsPanel(QWidget, UiLoaderMixin):
     """
     Painel principal de resultados e estatísticas
 
@@ -225,6 +226,8 @@ class ResultsPanel(QWidget):
         statistics_updated: Emitido quando estatísticas são atualizadas
         export_requested: Emitido quando exportação é solicitada
     """
+
+    UI_FILE = "desktop/ui_files/resultsPanel.ui"
 
     statistics_updated = pyqtSignal()
     export_requested = pyqtSignal(str)  # format: csv, json, txt
@@ -236,10 +239,32 @@ class ResultsPanel(QWidget):
         self._stats: list[StatisticsResult] = []
         self._cards: dict[str, StatCard] = {}
 
-        self._setup_ui()
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
         self._connect_signals()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets após carregar .ui"""
+        # Busca widgets do arquivo .ui
+        self._series_info = self.findChild(QLabel, "series_info")
+        self._table = self.findChild(QTableWidget, "stats_table")
+        self._details_text = self.findChild(QTextEdit, "details_text")
+        self._tabs = self.findChild(QTabWidget, "tabs")
+        self._cards_container = self.findChild(QWidget, "cards_container")
+        
+        # Inicializa widgets se não encontrados
+        if self._series_info is None:
+            self._series_info = QLabel("Nenhuma série selecionada")
+        if self._table is None:
+            self._table = QTableWidget()
+        if self._details_text is None:
+            self._details_text = QTextEdit()
+        if self._tabs is None:
+            self._tabs = QTabWidget()
+
+    def _setup_ui_fallback(self):
         """Configura a interface principal"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)

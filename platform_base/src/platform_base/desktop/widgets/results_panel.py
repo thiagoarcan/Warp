@@ -235,9 +235,12 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         self.session_state = session_state
         self.signal_hub = signal_hub
 
-        # Por enquanto, usar sempre criação programática
-        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
-        self._setup_ui_fallback()
+        # Carregar interface do arquivo .ui
+        if not self._load_ui():
+            logger.warning("ui_load_failed_using_fallback", cls="ResultsPanel")
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -247,26 +250,31 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         logger.debug("results_panel_initialized")
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui
+        """Configura widgets carregados do arquivo .ui"""
+        # Obter widgets do arquivo .ui (nomes do .ui)
+        self.tabs = self.findChild(QTabWidget, "tabs")
+        self.results_table = self.findChild(QTableWidget, "resultsTable")
+        self.result_details = self.findChild(QTextEdit, "resultDetails")
+        self.log_widget = self.findChild(QTextEdit, "logWidget")
+        self.level_filter = self.findChild(QComboBox, "levelFilter")
+        self.text_filter = self.findChild(QLineEdit, "textFilter")
+        self.clear_logs_btn = self.findChild(QPushButton, "clearLogsBtn")
+        self.quality_tree = self.findChild(QTreeWidget, "qualityTree")
         
-        Conecta widgets definidos no arquivo .ui aos handlers Python.
-        """
-        try:
-            self.results_tabs = self.findChild(QTabWidget, "resultsTabs")
-            self.stats_table = self.findChild(QTableWidget, "statsTable")
-            self.export_btn = self.findChild(QPushButton, "exportButton")
+        # Conectar sinais
+        if self.results_table:
+            self.results_table.itemSelectionChanged.connect(self._on_result_selected)
+        
+        if self.level_filter:
+            self.level_filter.currentTextChanged.connect(self._filter_logs)
+        
+        if self.text_filter:
+            self.text_filter.textChanged.connect(self._filter_logs)
+        
+        if self.clear_logs_btn:
+            self.clear_logs_btn.clicked.connect(self._clear_logs)
             
-            if self.results_tabs is None:
-                logger.debug("results_panel_ui_widgets_not_found")
-                return
-                
-            if self.export_btn:
-                self.export_btn.clicked.connect(self._export_results)
-                
-            logger.debug("results_panel_ui_loaded_from_file")
-            
-        except Exception as e:
-            logger.warning(f"results_panel_ui_setup_failed: {e}")
+        logger.debug("results_panel_ui_loaded_from_file")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
@@ -513,6 +521,31 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         self.result_details.clear()
         self.quality_summary.clear()
         self.quality_tree.clear()
+
+    @pyqtSlot()
+    def _filter_logs(self):
+        """Aplica filtros aos logs exibidos."""
+        if not hasattr(self, 'log_widget') or self.log_widget is None:
+            return
+
+        # Obter valores dos filtros
+        level = ""
+        text = ""
+
+        if hasattr(self, 'level_filter') and self.level_filter:
+            level = self.level_filter.currentText().lower()
+
+        if hasattr(self, 'text_filter') and self.text_filter:
+            text = self.text_filter.text().lower()
+
+        # Aplicar filtros no widget de log
+        if hasattr(self.log_widget, 'set_level_filter'):
+            self.log_widget.set_level_filter(level)
+
+        if hasattr(self.log_widget, 'set_text_filter'):
+            self.log_widget.set_text_filter(text)
+
+        logger.debug("logs_filtered", level=level, text=text)
 
     @pyqtSlot()
     def _clear_logs(self):

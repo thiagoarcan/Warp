@@ -6,6 +6,8 @@ Fornece visualização prévia dos resultados de operações como:
 - Derivadas/Integrais
 - Filtros e suavização
 - Área sob curva
+
+Interface carregada de: desktop/ui_files/operationPreviewDialog.ui
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox,
     QDialog,
+    QDialogButtonBox,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -28,6 +31,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
@@ -113,7 +117,7 @@ class PreviewCanvas(QWidget):
         self.canvas.draw()
 
 
-class OperationPreviewDialog(QDialog):
+class OperationPreviewDialog(QDialog, UiLoaderMixin):
     """
     Diálogo de preview para operações matemáticas
 
@@ -122,7 +126,12 @@ class OperationPreviewDialog(QDialog):
     - Comparação antes/depois
     - Estatísticas do resultado
     - Opção de aplicar ou cancelar
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/operationPreviewDialog.ui"
 
     # Signal quando o usuário aceita
     apply_requested = pyqtSignal(dict)  # params da operação
@@ -136,19 +145,31 @@ class OperationPreviewDialog(QDialog):
         self.series_data = series_data
         self.result_data: np.ndarray | None = None
 
-        self.setWindowTitle(f"👁️ Preview - {operation_name.title()}")
-        self.setMinimumSize(800, 500)
-        self.setModal(True)
-
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._compute_preview()
+        
+        logger.debug("operation_preview_dialog_initialized", ui_loaded=self._ui_loaded)
 
-    def _setup_ui(self):
-        """Configura interface"""
-        layout = QVBoxLayout(self)
-        layout.setSpacing(12)
-        layout.setContentsMargins(12, 12, 12, 12)
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Encontra widgets do arquivo .ui
+        self.content_widget = self.findChild(QWidget, "contentWidget")
+        self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        
+        # Se o contentWidget existe mas está vazio, preenche programaticamente
+        if self.content_widget:
+            content_layout = self.content_widget.layout()
+            if content_layout and content_layout.count() == 0:
+                # UI está vazio, criar conteúdo programaticamente
+                self._create_content_widgets(content_layout)
 
+    def _create_content_widgets(self, layout: QVBoxLayout):
+        """Cria widgets de conteúdo quando o .ui está vazio"""
         # Título
         title = QLabel(f"🔍 Preview: {self.operation_name.replace('_', ' ').title()}")
         title.setStyleSheet("font-size: 16px; font-weight: bold; color: #0d6efd;")
@@ -162,6 +183,14 @@ class OperationPreviewDialog(QDialog):
         splitter.addWidget(self._canvas)
 
         # Painel de informações
+        info_panel = self._create_info_panel()
+        splitter.addWidget(info_panel)
+
+        splitter.setSizes([600, 200])
+        layout.addWidget(splitter)
+
+    def _create_info_panel(self) -> QWidget:
+        """Cria painel de informações"""
         info_panel = QWidget()
         info_layout = QVBoxLayout(info_panel)
         info_layout.setSpacing(8)
@@ -195,6 +224,32 @@ class OperationPreviewDialog(QDialog):
         info_layout.addWidget(self._show_original)
 
         info_panel.setMaximumWidth(250)
+        return info_panel
+
+    def _setup_ui_fallback(self):
+        """Configura interface (fallback programático)"""
+        self.setWindowTitle(f"👁️ Preview - {self.operation_name.title()}")
+        self.setMinimumSize(800, 500)
+        self.setModal(True)
+        
+        layout = QVBoxLayout(self)
+        layout.setSpacing(12)
+        layout.setContentsMargins(12, 12, 12, 12)
+
+        # Título
+        title = QLabel(f"🔍 Preview: {self.operation_name.replace('_', ' ').title()}")
+        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #0d6efd;")
+        layout.addWidget(title)
+
+        # Splitter para canvas e info
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        # Canvas de preview
+        self._canvas = PreviewCanvas()
+        splitter.addWidget(self._canvas)
+
+        # Painel de informações
+        info_panel = self._create_info_panel()
         splitter.addWidget(info_panel)
 
         splitter.setSizes([600, 200])

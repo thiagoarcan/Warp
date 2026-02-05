@@ -27,6 +27,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.sync_settings_widget import SyncSettingsWidget
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
@@ -254,39 +255,77 @@ class ConfigPanel(QWidget, UiLoaderMixin):
 
         self.current_params: dict[str, dict[str, Any]] = {}
 
-        # Por enquanto, usar sempre criação programática
-        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
-        self._setup_ui_fallback()
+        # Carregar interface do arquivo .ui
+        if not self._load_ui():
+            logger.warning("ui_load_failed_using_fallback", cls="ConfigPanel")
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
         self._connect_signals()
 
         logger.debug("config_panel_initialized")
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui
+        """Configura widgets carregados do arquivo .ui"""
+        # Obter widgets do arquivo .ui (nomes do .ui)
+        self.config_tabs = self.findChild(QTabWidget, "configTabs")
+        self.execute_btn = self.findChild(QPushButton, "executeBtn")
+        self.preview_btn = self.findChild(QPushButton, "previewBtn")
+        self.operation_combo = self.findChild(QComboBox, "operationCombo")
+        self.history_list = self.findChild(QTextEdit, "historyList")
+        self.status_label = self.findChild(QLabel, "statusLabel")
         
-        Conecta widgets definidos no arquivo .ui aos handlers Python.
-        Este método é chamado após o UiLoaderMixin carregar a interface.
-        """
-        # Tentar obter widgets do arquivo .ui
-        # Se não existirem, a interface será criada via _setup_ui_fallback
-        try:
-            self.config_tabs = self.findChild(QTabWidget, "configTabs")
-            self.execute_btn = self.findChild(QPushButton, "executeButton")
+        # Widgets de configuração nos placeholders
+        interp_placeholder = self.findChild(QWidget, "interpWidget")
+        calculus_placeholder = self.findChild(QWidget, "calculusWidget")
+        sync_placeholder = self.findChild(QWidget, "syncWidget")
+        
+        # Inserir widgets de configuração nos placeholders
+        if interp_placeholder:
+            layout = QVBoxLayout(interp_placeholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            self.interp_widget = InterpolationConfigWidget()
+            self.interp_widget.parameters_changed.connect(
+                lambda params: self._update_params("interpolation", params))
+            layout.addWidget(self.interp_widget)
+        
+        if calculus_placeholder:
+            layout = QVBoxLayout(calculus_placeholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            self.calculus_widget = CalculusConfigWidget()
+            self.calculus_widget.parameters_changed.connect(
+                lambda params: self._update_params("calculus", params))
+            layout.addWidget(self.calculus_widget)
+        
+        if sync_placeholder:
+            layout = QVBoxLayout(sync_placeholder)
+            layout.setContentsMargins(0, 0, 0, 0)
+            self.sync_widget = SyncSettingsWidget(
+                self.session_state, self.signal_hub)
+            self.sync_widget.settings_changed.connect(
+                lambda params: self._update_params("sync", params))
+            layout.addWidget(self.sync_widget)
+        
+        # Conectar botões
+        if self.execute_btn:
+            self.execute_btn.clicked.connect(self._execute_operation)
+        if self.preview_btn:
+            self.preview_btn.clicked.connect(self._preview_operation)
+        if self.operation_combo:
+            self.operation_combo.currentTextChanged.connect(self._on_operation_changed)
             
-            if self.config_tabs is None:
-                # Arquivo .ui não tem os widgets necessários
-                logger.debug("config_panel_ui_widgets_not_found")
-                return
-                
-            # Conectar sinais se widgets foram encontrados
-            if self.execute_btn:
-                self.execute_btn.clicked.connect(self._execute_operation)
-                
-            logger.debug("config_panel_ui_loaded_from_file")
-            
-        except Exception as e:
-            logger.warning(f"config_panel_ui_setup_failed: {e}")
+        logger.debug("config_panel_ui_loaded_from_file")
+
+    @pyqtSlot(str)
+    def _on_operation_changed(self, operation: str):
+        """Handle operation change in combo box."""
+        logger.debug("operation_changed", operation=operation)
+        # Enable/disable derivative-specific options if present
+        if hasattr(self, 'calculus_widget') and self.calculus_widget:
+            if hasattr(self.calculus_widget, 'derivative_method'):
+                is_derivative = "derivative" in operation.lower()
+                self.calculus_widget.derivative_method.setEnabled(is_derivative)
 
     def _setup_ui_fallback(self):
         """Setup user interface"""

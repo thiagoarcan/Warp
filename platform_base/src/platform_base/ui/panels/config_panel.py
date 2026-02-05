@@ -33,6 +33,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
@@ -84,7 +85,7 @@ class ColorButton(QPushButton):
         self._update_style()
 
 
-class ConfigPanel(QWidget):
+class ConfigPanel(QWidget, UiLoaderMixin):
     """
     Painel de configurações da aplicação
 
@@ -92,7 +93,12 @@ class ConfigPanel(QWidget):
         config_changed: Emitido quando qualquer configuração muda
         theme_changed: Emitido quando tema muda
         performance_changed: Emitido quando config de performance muda
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/configPanelFull.ui"
 
     config_changed = pyqtSignal(str, object)  # key, value
     theme_changed = pyqtSignal(str)  # theme name
@@ -104,11 +110,30 @@ class ConfigPanel(QWidget):
         self._settings = QSettings("PlatformBase", "Desktop")
         self._config: dict[str, Any] = {}
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._load_settings()
         self._connect_signals()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Tabs principais
+        self.tabs = self.findChild(QTabWidget, "configTabs")
+        
+        # Botões de ação
+        reset_btn = self.findChild(QPushButton, "resetBtn")
+        apply_btn = self.findChild(QPushButton, "applyBtn")
+        
+        if reset_btn:
+            reset_btn.clicked.connect(self._reset_defaults)
+        if apply_btn:
+            apply_btn.clicked.connect(self._apply_settings)
+
+    def _setup_ui_fallback(self):
         """Configura interface principal"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)

@@ -32,6 +32,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 from platform_base.viz.streaming import (
     StreamFilters,
@@ -49,7 +50,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class StreamingControlWidget(QWidget):
+class StreamingControlWidget(QWidget, UiLoaderMixin):
     """
     Widget de controle para streaming temporal conforme seção 11.4
 
@@ -59,7 +60,12 @@ class StreamingControlWidget(QWidget):
     - Speed control
     - Window size control
     - Filtros de qualidade
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/streamingControlWidget.ui"
 
     # Signals
     tick_update = pyqtSignal(object)  # TickUpdate
@@ -79,12 +85,61 @@ class StreamingControlWidget(QWidget):
         self.update_timer.timeout.connect(self._on_timer_tick)
         self.update_timer.setSingleShot(False)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._setup_connections()
+        logger.debug("streaming_control_widget_initialized", ui_loaded=self._ui_loaded)
 
-        logger.debug("streaming_control_widget_initialized")
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Playback controls
+        self.play_pause_btn = self.findChild(QPushButton, "playPauseBtn")
+        self.stop_btn = self.findChild(QPushButton, "stopBtn")
+        self.loop_checkbox = self.findChild(QCheckBox, "loopCheckbox")
+        
+        # Time controls
+        self.time_label_start = self.findChild(QLabel, "timeLabelStart")
+        self.time_slider = self.findChild(QSlider, "timeSlider")
+        self.time_label_end = self.findChild(QLabel, "timeLabelEnd")
+        self.current_time_label = self.findChild(QLabel, "currentTimeLabel")
+        self.progress_bar = self.findChild(QProgressBar, "progressBar")
+        
+        # Settings controls
+        self.speed_spinbox = self.findChild(QDoubleSpinBox, "speedSpinbox")
+        self.window_size_spinbox = self.findChild(QSpinBox, "windowSizeSpinbox")
+        self.interval_spinbox = self.findChild(QSpinBox, "intervalSpinbox")
+        self.hide_nan_checkbox = self.findChild(QCheckBox, "hideNanCheckbox")
+        self.hide_interpolated_checkbox = self.findChild(QCheckBox, "hideInterpolatedCheckbox")
+        
+        # Status labels
+        self.total_points_label = self.findChild(QLabel, "totalPointsLabel")
+        self.eligible_points_label = self.findChild(QLabel, "eligiblePointsLabel")
+        self.window_points_label = self.findChild(QLabel, "windowPointsLabel")
+        self.fps_label = self.findChild(QLabel, "fpsLabel")
+        
+        # Conecta sinais
+        if self.play_pause_btn:
+            self.play_pause_btn.clicked.connect(self._toggle_playback)
+        if self.stop_btn:
+            self.stop_btn.clicked.connect(self._stop_playback)
+        if self.time_slider:
+            self.time_slider.valueChanged.connect(self._on_slider_changed)
+        if self.speed_spinbox:
+            self.speed_spinbox.valueChanged.connect(self._on_speed_changed)
+        if self.window_size_spinbox:
+            self.window_size_spinbox.valueChanged.connect(self._on_window_size_changed)
+        if self.interval_spinbox:
+            self.interval_spinbox.valueChanged.connect(self._on_interval_changed)
+        if self.hide_nan_checkbox:
+            self.hide_nan_checkbox.stateChanged.connect(self._on_filters_changed)
+        if self.hide_interpolated_checkbox:
+            self.hide_interpolated_checkbox.stateChanged.connect(self._on_filters_changed)
 
-    def _setup_ui(self):
+    def _setup_ui_fallback(self):
         """Configura interface do widget"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
@@ -528,13 +583,17 @@ def get_window_presets() -> dict[str, float]:
     return WINDOW_PRESETS.copy()
 
 
-class StreamingControls(QWidget):
+class StreamingControls(QWidget, UiLoaderMixin):
     """
     Simplified streaming controls widget.
     
     Provides basic play/pause/stop functionality and timeline control.
     For more advanced features, use StreamingControlWidget.
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/streamingControls.ui"
 
     # Signals
     playback_started = pyqtSignal()
@@ -557,11 +616,46 @@ class StreamingControls(QWidget):
         self._timer = QTimer()
         self._timer.timeout.connect(self._on_tick)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
+        logger.debug("streaming_controls_initialized", ui_loaded=self._ui_loaded)
 
-        logger.debug("streaming_controls_initialized")
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Playback buttons
+        self.play_btn = self.findChild(QPushButton, "playBtn")
+        self.pause_btn = self.findChild(QPushButton, "pauseBtn")
+        self.stop_btn = self.findChild(QPushButton, "stopBtn")
+        
+        # Timeline
+        self.timeline = self.findChild(QSlider, "timeline")
+        self.position_label = self.findChild(QLabel, "positionLabel")
+        self.duration_label = self.findChild(QLabel, "durationLabel")
+        
+        # Speed and window controls
+        self.speed_spinbox = self.findChild(QDoubleSpinBox, "speedSpinbox")
+        self.window_spinbox = self.findChild(QDoubleSpinBox, "windowSpinbox")
+        
+        # Conecta sinais
+        if self.play_btn:
+            self.play_btn.clicked.connect(self.play)
+        if self.pause_btn:
+            self.pause_btn.setEnabled(False)
+            self.pause_btn.clicked.connect(self.pause)
+        if self.stop_btn:
+            self.stop_btn.clicked.connect(self.stop)
+        if self.timeline:
+            self.timeline.valueChanged.connect(self._on_timeline_changed)
+        if self.speed_spinbox:
+            self.speed_spinbox.valueChanged.connect(self.set_speed)
+        if self.window_spinbox:
+            self.window_spinbox.valueChanged.connect(self.set_window_size)
 
-    def _setup_ui(self):
+    def _setup_ui_fallback(self):
         """Setup the UI components."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)

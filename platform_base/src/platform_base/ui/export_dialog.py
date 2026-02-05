@@ -7,6 +7,8 @@ Features:
 - Opções de configuração (compressão, metadados, etc.)
 - Preview dos dados selecionados
 - Barra de progresso para exportações grandes
+
+Interface carregada de: desktop/ui_files/exportDialog.ui
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
@@ -40,6 +43,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
@@ -106,8 +110,15 @@ class ExportWorkerThread(QThread):
             self.export_failed.emit(str(e))
 
 
-class ExportDialog(QDialog):
-    """Diálogo completo de exportação de dados"""
+class ExportDialog(QDialog, UiLoaderMixin):
+    """
+    Diálogo completo de exportação de dados
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/exportDialog.ui"
 
     export_requested = pyqtSignal(dict)  # config
 
@@ -124,16 +135,61 @@ class ExportDialog(QDialog):
         self.selected_series = []
         self.export_worker = None
 
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
+        self._populate_series_tree()
+        self._connect_signals()
+        
+        logger.debug("export_dialog_initialized", ui_loaded=self._ui_loaded)
+
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Encontra widgets do arquivo .ui
+        self.content_widget = self.findChild(QWidget, "contentWidget")
+        self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        
+        # Se o contentWidget existe mas está vazio, preenche programaticamente
+        if self.content_widget:
+            content_layout = self.content_widget.layout()
+            if content_layout and content_layout.count() == 0:
+                # UI está vazio, criar conteúdo programaticamente
+                self._create_content_widgets(content_layout)
+
+    def _create_content_widgets(self, layout: QVBoxLayout):
+        """Cria widgets de conteúdo quando o .ui está vazio"""
+        # Splitter principal
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        # Painel Esquerdo: Seleção de séries
+        left_panel = self._create_series_panel()
+        splitter.addWidget(left_panel)
+
+        # Painel Direito: Configurações e Preview
+        right_panel = self._create_config_panel()
+        splitter.addWidget(right_panel)
+
+        splitter.setSizes([350, 350])
+        layout.addWidget(splitter)
+
+        # Barra de progresso
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
+
+        self.progress_label = QLabel("")
+        self.progress_label.setVisible(False)
+        layout.addWidget(self.progress_label)
+
+    def _setup_ui_fallback(self):
+        """Configura interface do usuário (fallback programático)"""
         self.setWindowTitle("Exportar Dados")
         self.setMinimumSize(700, 600)
         self.setModal(True)
-
-        self._setup_ui()
-        self._populate_series_tree()
-        self._connect_signals()
-
-    def _setup_ui(self):
-        """Configura interface do usuário"""
+        
         layout = QVBoxLayout(self)
 
         # Splitter principal

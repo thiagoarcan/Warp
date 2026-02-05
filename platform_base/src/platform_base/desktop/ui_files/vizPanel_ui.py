@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
-    QLabel, QSizePolicy, QSpacerItem, QSpinBox,
-    QSplitter, QTabWidget, QToolBar, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QGroupBox,
+    QHBoxLayout, QLabel, QPushButton, QSizePolicy,
+    QSpacerItem, QSpinBox, QSplitter, QTabWidget,
+    QToolBar, QVBoxLayout, QWidget)
 
 class Ui_VizPanel(object):
     def setupUi(self, VizPanel):
@@ -36,6 +36,34 @@ class Ui_VizPanel(object):
         self.toolbar.setFloatable(False)
 
         self.mainLayout.addWidget(self.toolbar)
+
+        self.plotControlsLayout = QHBoxLayout()
+        self.plotControlsLayout.setObjectName(u"plotControlsLayout")
+        self.plotTypeLabel = QLabel(VizPanel)
+        self.plotTypeLabel.setObjectName(u"plotTypeLabel")
+
+        self.plotControlsLayout.addWidget(self.plotTypeLabel)
+
+        self.plotTypeCombo = QComboBox(VizPanel)
+        self.plotTypeCombo.addItem("")
+        self.plotTypeCombo.addItem("")
+        self.plotTypeCombo.addItem("")
+        self.plotTypeCombo.addItem("")
+        self.plotTypeCombo.setObjectName(u"plotTypeCombo")
+
+        self.plotControlsLayout.addWidget(self.plotTypeCombo)
+
+        self.newPlotButton = QPushButton(VizPanel)
+        self.newPlotButton.setObjectName(u"newPlotButton")
+
+        self.plotControlsLayout.addWidget(self.newPlotButton)
+
+        self.plotControlsSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.plotControlsLayout.addItem(self.plotControlsSpacer)
+
+
+        self.mainLayout.addLayout(self.plotControlsLayout)
 
         self.mainSplitter = QSplitter(VizPanel)
         self.mainSplitter.setObjectName(u"mainSplitter")
@@ -120,6 +148,13 @@ class Ui_VizPanel(object):
 
     def retranslateUi(self, VizPanel):
         VizPanel.setWindowTitle(QCoreApplication.translate("VizPanel", u"Visualization Panel", None))
+        self.plotTypeLabel.setText(QCoreApplication.translate("VizPanel", u"Plot Type:", None))
+        self.plotTypeCombo.setItemText(0, QCoreApplication.translate("VizPanel", u"2D Line", None))
+        self.plotTypeCombo.setItemText(1, QCoreApplication.translate("VizPanel", u"2D Scatter", None))
+        self.plotTypeCombo.setItemText(2, QCoreApplication.translate("VizPanel", u"3D Surface", None))
+        self.plotTypeCombo.setItemText(3, QCoreApplication.translate("VizPanel", u"Heatmap", None))
+
+        self.newPlotButton.setText(QCoreApplication.translate("VizPanel", u"New Plot", None))
         self.settingsGroup.setTitle(QCoreApplication.translate("VizPanel", u"Plot Settings", None))
         self.widthLabel.setText(QCoreApplication.translate("VizPanel", u"Line Width:", None))
         self.gridCheck.setText(QCoreApplication.translate("VizPanel", u"Show Grid", None))

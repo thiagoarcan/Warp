@@ -38,6 +38,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.ui.preview_dialog import OperationPreviewDialog
 from platform_base.utils.logging import get_logger
 
@@ -190,7 +191,7 @@ class OperationHistoryItem:
         self.result_info = ""
 
 
-class OperationsPanel(QWidget):
+class OperationsPanel(QWidget, UiLoaderMixin):
     """
     Painel de operações completo com tabs e histórico
 
@@ -200,7 +201,12 @@ class OperationsPanel(QWidget):
     - Tab Filtros: Suavização, Butterworth, Outliers
     - Tab Export: CSV, Excel, Parquet, HDF5, JSON
     - Histórico: Últimas 50 operações
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface (Fase 0: Migração UI - sem fallback)
+    UI_FILE = "operationsPanel.ui"
 
     # Signals
     operation_requested = pyqtSignal(str, dict)  # operation_name, params
@@ -224,16 +230,127 @@ class OperationsPanel(QWidget):
         self._last_fps_update: float = 0.0
         self._total_points_sent: int = 0
 
-        self._setup_ui()
+        # Carregar interface do arquivo .ui (obrigatório, sem fallback)
+        if not self._load_ui():
+            raise RuntimeError(
+                f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
+                "Verifique se o arquivo existe em desktop/ui_files/"
+            )
+        
+        self._setup_ui_from_file()
         self._setup_connections()
+        logger.debug("operations_panel_initialized", ui_loaded=self._ui_loaded)
 
-        logger.debug("operations_panel_initialized")
+    def _setup_ui_from_file(self):
+        """
+        Configura widgets carregados do arquivo .ui
+        
+        Mapeia os widgets do arquivo operationsPanel.ui para os atributos
+        da classe, mantendo compatibilidade com os métodos existentes.
+        """
+        # Configurações básicas
+        self.setMinimumWidth(150)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        
+        # === WIDGETS PRINCIPAIS ===
+        self._tabs = self.findChild(QTabWidget, "tabWidget")
+        self._series_combo = self.findChild(QComboBox, "seriesCombo")
+        self._history_list = self.findChild(QListWidget, "historyList")
+        
+        # === TAB INTERPOLAÇÃO ===
+        self._interp_method = self.findChild(QComboBox, "interpMethodCombo")
+        self._interp_points = self.findChild(QSpinBox, "interpPointsSpin")
+        self._interp_smooth = self.findChild(QDoubleSpinBox, "interpSmoothSpin")
+        self._interp_degree = self.findChild(QSpinBox, "interpDegreeSpin")
+        self._interp_extrapolate = self.findChild(QCheckBox, "interpExtrapolateCheck")
+        
+        # Botões de interpolação
+        interp_preview_btn = self.findChild(QPushButton, "interpPreviewBtn")
+        interp_apply_btn = self.findChild(QPushButton, "interpApplyBtn")
+        if interp_preview_btn:
+            interp_preview_btn.clicked.connect(self._preview_interpolation)
+        if interp_apply_btn:
+            interp_apply_btn.clicked.connect(self._apply_interpolation)
+        
+        # === TAB CÁLCULOS (DERIVADAS/INTEGRAIS) ===
+        self._deriv_order = self.findChild(QComboBox, "derivOrderCombo")
+        self._deriv_method = self.findChild(QComboBox, "derivMethodCombo")
+        self._deriv_window = self.findChild(QSpinBox, "derivWindowSpin")
+        self._deriv_smooth = self.findChild(QCheckBox, "derivSmoothCheck")
+        
+        # Botões de derivada
+        deriv_preview_btn = self.findChild(QPushButton, "derivPreviewBtn")
+        deriv_apply_btn = self.findChild(QPushButton, "derivApplyBtn")
+        if deriv_preview_btn:
+            deriv_preview_btn.clicked.connect(self._preview_derivative)
+        if deriv_apply_btn:
+            deriv_apply_btn.clicked.connect(self._calculate_derivative)
+        
+        # Integral
+        self._integ_method = self.findChild(QComboBox, "integMethodCombo")
+        
+        # Botões de integral
+        integ_preview_btn = self.findChild(QPushButton, "integPreviewBtn")
+        integ_apply_btn = self.findChild(QPushButton, "integApplyBtn")
+        if integ_preview_btn:
+            integ_preview_btn.clicked.connect(self._preview_integral)
+        if integ_apply_btn:
+            integ_apply_btn.clicked.connect(self._calculate_integral)
+        
+        # === TAB HISTÓRICO ===
+        clear_history_btn = self.findChild(QPushButton, "clearHistoryBtn")
+        if clear_history_btn:
+            clear_history_btn.clicked.connect(self._clear_history)
+        if self._history_list:
+            self._history_list.itemDoubleClicked.connect(self._replay_operation)
+        
+        # Inicializar atributos opcionais que podem não existir no .ui básico
+        # (serão None se não existirem - métodos devem verificar)
+        self._smooth_method = None
+        self._smooth_window = None
+        self._smooth_sigma = None
+        self._outlier_method = None
+        self._outlier_threshold = None
+        self._filter_type = None
+        self._filter_order = None
+        self._filter_cutoff = None
+        self._filter_cutoff_high = None
+        self._filter_method = None
+        self._fft_window = None
+        self._fft_detrend = None
+        self._corr_mode = None
+        self._area_type = None
+        self._export_format = None
+        self._export_metadata = None
+        self._export_timestamps = None
+        self._export_interp_flags = None
+        self._export_selected_only = None
+        
+        # Widgets de sincronização
+        self._sync_datasets_list = None
+        self._sync_method = None
+        self._sync_grid_method = None
+        self._sync_interp_method = None
+        self._sync_dt_fixed = None
+        self._sync_dt_value = None
+        self._sync_process_noise = None
+        self._sync_measurement_noise = None
+        self._kalman_group = None
+        
+        # Widgets de streaming
+        self._streaming_series_combo = None
+        self._streaming_speed_spin = None
+        self._streaming_chunk_spin = None
+        self._streaming_fps_label = None
+        self._streaming_points_label = None
+        
+        logger.debug("operations_panel_ui_setup_complete")
 
     def _create_combo_box(self) -> StableComboBox:
         """Cria um ComboBox estável que não fecha automaticamente"""
         return StableComboBox()
     
-    def _setup_ui(self):
+    def _setup_ui_fallback(self):
         """Configura interface completa"""
         # Apenas mínimo para permitir redimensionamento total
         self.setMinimumWidth(150)

@@ -223,18 +223,63 @@ class UploadDialog(QDialog, UiLoaderMixin):
         self.loaded_datasets: list[str] = []  # Track loaded dataset IDs
         self.load_errors: list[str] = []
 
-        # Por enquanto, usar sempre criação programática
-        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
-        self._setup_ui_fallback()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
         self._connect_signals()
 
-        logger.debug("upload_dialog_initialized")
+        logger.debug("upload_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        # UploadDialog precisa de muitos widgets dinâmicos, usar fallback
-        pass
+        # Encontra widgets do arquivo .ui
+        self.file_path_edit = self.findChild(QLineEdit, "filePathEdit")
+        self.browse_btn = self.findChild(QPushButton, "browseBtn")
+        self.browse_multi_btn = self.findChild(QPushButton, "browseMultiBtn")
+        self.files_list_label = self.findChild(QLabel, "filesListLabel")
+        self.format_label = self.findChild(QLabel, "formatLabel")
+        
+        self.tabs = self.findChild(QTabWidget, "tabs")
+        
+        # Configuration widgets
+        self.encoding_combo = self.findChild(QComboBox, "encodingCombo")
+        self.delimiter_combo = self.findChild(QComboBox, "delimiterCombo")
+        self.timestamp_combo = self.findChild(QComboBox, "timestampCombo")
+        self.sheet_combo = self.findChild(QComboBox, "sheetCombo")
+        self.hdf5_key_combo = self.findChild(QComboBox, "hdf5KeyCombo")
+        
+        # Excel and HDF5 groups
+        self.excel_group = self.findChild(QGroupBox, "excelGroup")
+        self.hdf5_group = self.findChild(QGroupBox, "hdf5Group")
+        
+        # Preview widgets
+        self.preview_table = self.findChild(QTableWidget, "previewTable")
+        self.preview_info_label = self.findChild(QLabel, "previewInfoLabel")
+        
+        # Progress widgets
+        self.progress_bar = self.findChild(QProgressBar, "progressBar")
+        self.status_label = self.findChild(QLabel, "statusLabel")
+        self.loaded_files_label = self.findChild(QLabel, "loadedFilesLabel")
+        
+        # Buttons
+        self.preview_btn = self.findChild(QPushButton, "previewBtn")
+        self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        self.load_all_btn = self.findChild(QPushButton, "loadAllBtn")
+        self.load_btn = self.findChild(QPushButton, "loadBtn")
+        
+        # Inicializa o contador de arquivos carregados
+        self.loaded_count = 0
+        
+        # Oculta grupos específicos de formato inicialmente
+        if self.excel_group:
+            self.excel_group.setVisible(False)
+        if self.hdf5_group:
+            self.hdf5_group.setVisible(False)
+        
+        logger.debug("upload_dialog_ui_loaded_from_file")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
@@ -464,6 +509,21 @@ class UploadDialog(QDialog, UiLoaderMixin):
 
     def _connect_signals(self):
         """Connect signals"""
+        # Conecta sinais dos widgets
+        if self.file_path_edit:
+            self.file_path_edit.textChanged.connect(self._on_file_path_changed)
+        if self.browse_btn:
+            self.browse_btn.clicked.connect(self._browse_file)
+        if self.browse_multi_btn:
+            self.browse_multi_btn.clicked.connect(self._browse_multiple_files)
+        if self.preview_btn:
+            self.preview_btn.clicked.connect(self._generate_preview)
+        if self.cancel_btn:
+            self.cancel_btn.clicked.connect(self._close_dialog)
+        if self.load_all_btn:
+            self.load_all_btn.clicked.connect(self._load_all_files)
+        if self.load_btn:
+            self.load_btn.clicked.connect(self._load_file)
 
     @pyqtSlot()
     def _browse_file(self):

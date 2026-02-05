@@ -31,6 +31,7 @@ from PyQt6.QtWidgets import (
 )
 
 from platform_base.core.models import SeriesID
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 from platform_base.viz.streaming import (
     SmoothConfig,
@@ -1143,12 +1144,14 @@ class FilterChain:
         return self._filters.copy()
 
 
-class FilterDialog(QWidget):
+class FilterDialog(QWidget, UiLoaderMixin):
     """
     Dialog for configuring signal processing filters.
     
     Provides UI for creating and configuring various filter types.
     """
+
+    UI_FILE = "desktop/ui_files/filterDialog.ui"
 
     # Signals
     filter_created = pyqtSignal(object)  # StreamFilter
@@ -1159,9 +1162,38 @@ class FilterDialog(QWidget):
         self.setWindowTitle("Filter Configuration")
 
         self._current_filter: StreamFilter | None = None
-        self._setup_ui()
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets após carregar .ui"""
+        # Busca widgets do arquivo .ui
+        self.filter_type_combo = self.findChild(QComboBox, "filter_type_combo")
+        self.params_group = self.findChild(QGroupBox, "params_group")
+        self.fs_spinbox = self.findChild(QDoubleSpinBox, "fs_spinbox")
+        self.cutoff_spinbox = self.findChild(QDoubleSpinBox, "cutoff_spinbox")
+        self.high_cutoff_spinbox = self.findChild(QDoubleSpinBox, "high_cutoff_spinbox")
+        self.q_spinbox = self.findChild(QDoubleSpinBox, "q_spinbox")
+        self.window_spinbox = self.findChild(QSpinBox, "window_spinbox")
+        self.order_spinbox = self.findChild(QSpinBox, "order_spinbox")
+        self.preview_button = self.findChild(QPushButton, "preview_button")
+        self.create_button = self.findChild(QPushButton, "create_button")
+        
+        # Conecta sinais
+        if self.filter_type_combo:
+            self.filter_type_combo.currentTextChanged.connect(self._on_filter_type_changed)
+        if self.preview_button:
+            self.preview_button.clicked.connect(self._on_preview)
+        if self.create_button:
+            self.create_button.clicked.connect(self._on_create)
+        
+        # Initialize visibility
+        if self.filter_type_combo:
+            self._on_filter_type_changed(self.filter_type_combo.currentText())
+
+    def _setup_ui_fallback(self):
         """Setup the UI components."""
         layout = QVBoxLayout(self)
 

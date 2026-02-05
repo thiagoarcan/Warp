@@ -46,6 +46,61 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="plotControlsLayout">
+     <item>
+      <widget class="QLabel" name="plotTypeLabel">
+       <property name="text">
+        <string>Plot Type:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="plotTypeCombo">
+       <item>
+        <property name="text">
+         <string>2D Line</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2D Scatter</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3D Surface</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Heatmap</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="newPlotButton">
+       <property name="text">
+        <string>New Plot</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="plotControlsSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QSplitter" name="mainSplitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

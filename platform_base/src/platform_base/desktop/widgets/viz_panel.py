@@ -16,9 +16,11 @@ from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QAction, QActionGroup
 from PyQt6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QSpinBox,
     QSplitter,
     QTabWidget,
@@ -331,9 +333,12 @@ class VizPanel(QWidget, UiLoaderMixin):
         self.active_plots: dict[str, dict[str, Any]] = {}
         self.plot_counter = 0
 
-        # Por enquanto, usar sempre criação programática
-        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
-        self._setup_ui_fallback()
+        # Carregar interface do arquivo .ui
+        if not self._load_ui():
+            logger.warning("ui_load_failed_using_fallback", cls="VizPanel")
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -344,25 +349,33 @@ class VizPanel(QWidget, UiLoaderMixin):
         
         Conecta widgets definidos no arquivo .ui aos handlers Python.
         """
-        try:
-            self.plot_tabs = self.findChild(QTabWidget, "plotTabs")
-            self.new_plot_btn = self.findChild(QPushButton, "newPlotButton")
-            self.plot_type_combo = self.findChild(QComboBox, "plotTypeCombo")
+        # Widgets do .ui
+        self.plot_tabs = self.findChild(QTabWidget, "plotTabs")
+        self.new_plot_btn = self.findChild(QPushButton, "newPlotButton")
+        self.plot_type_combo = self.findChild(QComboBox, "plotTypeCombo")
+        self.toolbar = self.findChild(QToolBar, "toolbar")
+        self.controls_widget = self.findChild(QWidget, "controlsWidget")
+        
+        # Configurar tabs
+        if self.plot_tabs:
+            self.plot_tabs.tabCloseRequested.connect(self._close_plot_tab)
+            self.plot_tabs.currentChanged.connect(self._on_tab_changed)
+        
+        # Conectar botões
+        if self.new_plot_btn:
+            self.new_plot_btn.clicked.connect(self._create_new_plot)
             
-            if self.plot_tabs is None:
-                logger.debug("viz_panel_ui_widgets_not_found")
-                return
-                
-            if self.new_plot_btn:
-                self.new_plot_btn.clicked.connect(self._create_new_plot)
-                
-            if self.plot_type_combo:
-                self.plot_type_combo.currentTextChanged.connect(self._on_plot_type_changed)
-                
-            logger.debug("viz_panel_ui_loaded_from_file")
+        if self.plot_type_combo:
+            self.plot_type_combo.currentTextChanged.connect(self._on_plot_type_changed)
+        
+        # Configurar toolbar com ações
+        if self.toolbar:
+            self._populate_toolbar()
+        
+        # Add initial welcome tab
+        self._add_welcome_tab()
             
-        except Exception as e:
-            logger.warning(f"viz_panel_ui_setup_failed: {e}")
+        logger.debug("viz_panel_ui_loaded_from_file")
 
     def _setup_ui_fallback(self):
         """Setup user interface"""
@@ -392,6 +405,58 @@ class VizPanel(QWidget, UiLoaderMixin):
 
         # Add initial welcome tab
         self._add_welcome_tab()
+
+    def _populate_toolbar(self):
+        """Popula toolbar do .ui com ações"""
+        if not self.toolbar:
+            return
+            
+        # Plot type actions
+        plot_group = QActionGroup(self.toolbar)
+
+        plot_2d_action = QAction(tr("2D Plot"), self.toolbar)
+        plot_2d_action.setCheckable(True)
+        plot_2d_action.setChecked(True)
+        plot_2d_action.triggered.connect(lambda: self._create_plot("2d"))
+        plot_group.addAction(plot_2d_action)
+        self.toolbar.addAction(plot_2d_action)
+
+        if PYVISTA_AVAILABLE:
+            plot_3d_action = QAction(tr("3D Plot"), self.toolbar)
+            plot_3d_action.setCheckable(True)
+            plot_3d_action.triggered.connect(lambda: self._create_plot("3d"))
+            plot_group.addAction(plot_3d_action)
+            self.toolbar.addAction(plot_3d_action)
+
+        self.toolbar.addSeparator()
+
+        # Plot actions
+        clear_action = QAction(tr("Clear"), self.toolbar)
+        clear_action.triggered.connect(self._clear_current_plot)
+        self.toolbar.addAction(clear_action)
+
+        export_action = QAction(tr("Export"), self.toolbar)
+        export_action.triggered.connect(self._export_current_plot)
+        self.toolbar.addAction(export_action)
+
+        self.toolbar.addSeparator()
+
+        # Selection tools
+        select_action = QAction(tr("Select"), self.toolbar)
+        select_action.setCheckable(True)
+        select_action.triggered.connect(self._toggle_selection_mode)
+        self.toolbar.addAction(select_action)
+
+        self.toolbar.addSeparator()
+
+        # Y-axis tools
+        add_y_axis_action = QAction(tr("Add Y Axis"), self.toolbar)
+        add_y_axis_action.triggered.connect(self._add_secondary_y_axis)
+        self.toolbar.addAction(add_y_axis_action)
+
+        move_to_y2_action = QAction(tr("Move to Y2"), self.toolbar)
+        move_to_y2_action.triggered.connect(self._move_selected_to_y2)
+        self.toolbar.addAction(move_to_y2_action)
 
     def _create_plot_toolbar(self) -> QToolBar:
         """Create plot toolbar"""
@@ -522,6 +587,21 @@ class VizPanel(QWidget, UiLoaderMixin):
         layout.addWidget(welcome_text)
 
         self.plot_tabs.addTab(welcome_widget, tr("Welcome"))
+
+    @pyqtSlot()
+    def _create_new_plot(self):
+        """Cria novo plot baseado no tipo selecionado no combo."""
+        plot_type = "2d"  # Default
+        if hasattr(self, 'plot_type_combo') and self.plot_type_combo:
+            selected = self.plot_type_combo.currentText().lower()
+            if "3d" in selected:
+                plot_type = "3d"
+        self._create_plot(plot_type)
+
+    @pyqtSlot(str)
+    def _on_plot_type_changed(self, plot_type_text: str):
+        """Handle plot type combo change."""
+        logger.debug("plot_type_changed", plot_type=plot_type_text)
 
     def _connect_signals(self):
         """Connect signals"""

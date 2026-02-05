@@ -35,6 +35,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 if TYPE_CHECKING:
@@ -334,8 +335,15 @@ class VideoExportWorker(QThread):
             self.video_writer = None
 
 
-class VideoExportDialog(QDialog):
-    """Dialog para configurar exportação de vídeo"""
+class VideoExportDialog(QDialog, UiLoaderMixin):
+    """
+    Dialog para configurar exportação de vídeo
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/videoExportDialog.ui"
 
     def __init__(self, synchronizer: MultiViewSynchronizer, parent: QWidget | None = None):
         super().__init__(parent)
@@ -348,10 +356,63 @@ class VideoExportDialog(QDialog):
         self.setModal(True)
         self.resize(500, 400)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._update_ui_from_settings()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Output settings
+        self.path_edit = self.findChild(QLabel, "pathEdit")
+        self.browse_btn = self.findChild(QPushButton, "browseBtn")
+        self.format_combo = self.findChild(QComboBox, "formatCombo")
+        
+        # Quality settings
+        self.quality_combo = self.findChild(QComboBox, "qualityCombo")
+        self.width_spinbox = self.findChild(QSpinBox, "widthSpinbox")
+        self.height_spinbox = self.findChild(QSpinBox, "heightSpinbox")
+        self.fps_spinbox = self.findChild(QSpinBox, "fpsSpinbox")
+        
+        # Duration settings
+        self.full_duration_checkbox = self.findChild(QCheckBox, "fullDurationCheckbox")
+        self.custom_duration_spinbox = self.findChild(QSpinBox, "customDurationSpinbox")
+        
+        # View settings
+        self.layout_combo = self.findChild(QComboBox, "layoutCombo")
+        self.include_all_views_checkbox = self.findChild(QCheckBox, "includeAllViewsCheckbox")
+        
+        # Progress
+        self.progress_bar = self.findChild(QProgressBar, "progressBar")
+        self.status_label = self.findChild(QLabel, "statusLabel")
+        
+        # Buttons
+        self.export_btn = self.findChild(QPushButton, "exportBtn")
+        self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        
+        # Conecta sinais
+        if self.browse_btn:
+            self.browse_btn.clicked.connect(self._browse_output_path)
+        if self.quality_combo:
+            self.quality_combo.currentTextChanged.connect(self._on_quality_changed)
+        if self.full_duration_checkbox:
+            self.full_duration_checkbox.stateChanged.connect(self._on_duration_mode_changed)
+        if self.export_btn:
+            self.export_btn.clicked.connect(self._start_export)
+            self.export_btn.setDefault(True)
+        if self.cancel_btn:
+            self.cancel_btn.clicked.connect(self.reject)
+        
+        # Inicializa progresso como oculto
+        if self.progress_bar:
+            self.progress_bar.setVisible(False)
+        if self.status_label:
+            self.status_label.setVisible(False)
+
+    def _setup_ui_fallback(self):
         """Configura interface do dialog"""
         layout = QVBoxLayout(self)
 

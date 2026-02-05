@@ -39,6 +39,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.ui.panels.performance import (
     DecimationMethod,
     PerformanceConfig,
@@ -1796,8 +1797,10 @@ Desvio Padrão: {np.std(self.series.values):.6f}
         return (0, 1)
 
 
-class AxesConfigDialog(QDialog):
+class AxesConfigDialog(QDialog, UiLoaderMixin):
     """Diálogo de configuração dos eixos"""
+
+    UI_FILE = "desktop/ui_files/axesConfigDialog.ui"
 
     def __init__(self, ax, parent=None):
         super().__init__(parent)
@@ -1807,10 +1810,46 @@ class AxesConfigDialog(QDialog):
         self.setMinimumSize(400, 450)
         self.setModal(True)
 
-        self._setup_ui()
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
         self._load_current_values()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets após carregar .ui"""
+        # Busca widgets do arquivo .ui
+        self._title_edit = self.findChild(QLineEdit, "title_edit")
+        self._title_size_spin = self.findChild(QSpinBox, "title_size_spin")
+        self._xlabel_edit = self.findChild(QLineEdit, "xlabel_edit")
+        self._ylabel_edit = self.findChild(QLineEdit, "ylabel_edit")
+        self._label_size_spin = self.findChild(QSpinBox, "label_size_spin")
+        self._xlim_auto_check = self.findChild(QCheckBox, "xlim_auto_check")
+        self._xmin_spin = self.findChild(QDoubleSpinBox, "xmin_spin")
+        self._xmax_spin = self.findChild(QDoubleSpinBox, "xmax_spin")
+        self._ylim_auto_check = self.findChild(QCheckBox, "ylim_auto_check")
+        self._ymin_spin = self.findChild(QDoubleSpinBox, "ymin_spin")
+        self._ymax_spin = self.findChild(QDoubleSpinBox, "ymax_spin")
+        self._xscale_combo = self.findChild(QComboBox, "xscale_combo")
+        self._yscale_combo = self.findChild(QComboBox, "yscale_combo")
+        self._grid_check = self.findChild(QCheckBox, "grid_check")
+        self._grid_alpha_spin = self.findChild(QDoubleSpinBox, "grid_alpha_spin")
+        
+        # Conecta sinais
+        if self._xlim_auto_check:
+            self._xlim_auto_check.stateChanged.connect(self._on_xlim_auto_changed)
+        if self._ylim_auto_check:
+            self._ylim_auto_check.stateChanged.connect(self._on_ylim_auto_changed)
+        
+        # Botões OK/Cancel
+        ok_btn = self.findChild(QPushButton, "ok_btn")
+        cancel_btn = self.findChild(QPushButton, "cancel_btn")
+        if ok_btn:
+            ok_btn.clicked.connect(self.accept)
+        if cancel_btn:
+            cancel_btn.clicked.connect(self.reject)
+
+    def _setup_ui_fallback(self):
         """Configura interface"""
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
@@ -2119,7 +2158,7 @@ class DropZone(QFrame):
                           plot_type=self.plot_type)
 
 
-class ModernVizPanel(QWidget):
+class ModernVizPanel(QWidget, UiLoaderMixin):
     """
     Painel de visualização moderno com drag-and-drop
 
@@ -2128,7 +2167,12 @@ class ModernVizPanel(QWidget):
     - Sistema intuitivo de drag-and-drop
     - Múltiplas visualizações em abas
     - Interface moderna e responsiva
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/modernVizPanel.ui"
 
     # Signals
     plot_requested = pyqtSignal(str, str, str)  # dataset_id, series_id, plot_type
@@ -2140,12 +2184,31 @@ class ModernVizPanel(QWidget):
         self.session_state = session_state
         self._plots = []  # Lista de gráficos ativos
 
-        self._setup_modern_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_modern_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._setup_connections()
+        logger.debug("modern_viz_panel_initialized", ui_loaded=self._ui_loaded)
 
-        logger.debug("modern_viz_panel_initialized")
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self._viz_tabs = self.findChild(QTabWidget, "vizTabs")
+        
+        new_2d_btn = self.findChild(QPushButton, "new2dBtn")
+        new_3d_btn = self.findChild(QPushButton, "new3dBtn")
+        
+        if new_2d_btn:
+            new_2d_btn.clicked.connect(self.create_2d_plot)
+        if new_3d_btn:
+            new_3d_btn.clicked.connect(self.create_3d_plot)
+        if self._viz_tabs:
+            self._viz_tabs.setTabsClosable(True)
+            self._viz_tabs.tabCloseRequested.connect(self._close_tab)
 
-    def _setup_modern_ui(self):
+    def _setup_modern_ui_fallback(self):
         """Interface moderna com zonas de drop"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)

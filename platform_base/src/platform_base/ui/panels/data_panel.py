@@ -49,6 +49,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.io.loader import LoadConfig
 from platform_base.ui.workers.file_worker import FileLoadWorker
 from platform_base.utils.logging import get_logger
@@ -129,7 +130,7 @@ class StableComboBox(QComboBox):
         super().focusOutEvent(event)
 
 
-class CompactDataPanel(QWidget):
+class CompactDataPanel(QWidget, UiLoaderMixin):
     """
     Painel de dados moderno e compacto
 
@@ -138,7 +139,12 @@ class CompactDataPanel(QWidget):
     - Visualização de séries ativas
     - Tabela de dados com colunas de cálculos
     - Interface compacta em PT-BR
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/compactDataPanel.ui"
 
     # Signals
     dataset_loaded = pyqtSignal(str)  # dataset_id
@@ -158,12 +164,40 @@ class CompactDataPanel(QWidget):
         self._total_files = 0
         self._active_workers: list = []
 
-        self._setup_modern_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_modern_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._setup_connections()
+        logger.debug("compact_data_panel_initialized", ui_loaded=self._ui_loaded)
 
-        logger.debug("compact_data_panel_initialized")
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Configurações básicas
+        self.setMinimumWidth(150)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        
+        # Busca widgets do arquivo .ui
+        self.arquivo_frame = self.findChild(QFrame, "arquivoFrame")
+        self.carregar_btn = self.findChild(QPushButton, "carregarBtn")
+        self.arquivo_label = self.findChild(QLabel, "arquivoLabel")
+        self.info_label = self.findChild(QLabel, "infoLabel")
+        
+        self.series_group = self.findChild(QGroupBox, "seriesGroup")
+        self.series_tree = self.findChild(QTreeWidget, "seriesTree")
+        
+        self.data_group = self.findChild(QGroupBox, "dataGroup")
+        self.data_table = self.findChild(QTableWidget, "dataTable")
+        
+        # Conecta sinais
+        if self.carregar_btn:
+            self.carregar_btn.clicked.connect(self._open_file_dialog)
+        if self.series_tree:
+            self.series_tree.itemSelectionChanged.connect(self._on_series_selection)
 
-    def _setup_modern_ui(self):
+    def _setup_modern_ui_fallback(self):
         """Interface ultra compacta e otimizada"""
         # Apenas mínimo para permitir redimensionamento total
         self.setMinimumWidth(150)

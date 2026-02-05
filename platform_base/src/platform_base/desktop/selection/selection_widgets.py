@@ -29,6 +29,7 @@ from PyQt6.QtWidgets import (
 )
 
 from platform_base.desktop.selection import SelectionMode, SelectionType
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -182,13 +183,17 @@ class SelectionToolbar(QToolBar):
         self.redo_action.setEnabled(can_redo)
 
 
-class ConditionalSelectionDialog(QDialog):
+class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
     """
     Dialog for creating conditional value-based selections.
 
     Allows users to create complex selection criteria using
     mathematical expressions and value conditions.
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/conditionalSelectionDialog.ui"
 
     selection_requested = pyqtSignal(str, object)  # condition, SelectionMode
 
@@ -199,11 +204,43 @@ class ConditionalSelectionDialog(QDialog):
         self.setModal(True)
         self.resize(400, 300)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
+        logger.debug("conditional_selection_dialog_created", ui_loaded=self._ui_loaded)
 
-        logger.debug("conditional_selection_dialog_created")
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self.condition_edit = self.findChild(QTextEdit, "conditionEdit")
+        self.threshold_spin = self.findChild(QDoubleSpinBox, "thresholdSpin")
+        self.threshold_operator = self.findChild(QComboBox, "thresholdOperator")
+        self.percentile_spin = self.findChild(QSpinBox, "percentileSpin")
+        self.percentile_type = self.findChild(QComboBox, "percentileType")
+        self.mode_combo = self.findChild(QComboBox, "modeCombo")
+        
+        apply_threshold_btn = self.findChild(QPushButton, "applyThresholdBtn")
+        apply_percentile_btn = self.findChild(QPushButton, "applyPercentileBtn")
+        apply_btn = self.findChild(QPushButton, "applyBtn")
+        close_btn = self.findChild(QPushButton, "closeBtn")
+        
+        # Configura valores iniciais
+        if self.condition_edit:
+            self.condition_edit.setPlainText("value > 0")
+        
+        # Conecta sinais
+        if apply_threshold_btn:
+            apply_threshold_btn.clicked.connect(self._apply_threshold_condition)
+        if apply_percentile_btn:
+            apply_percentile_btn.clicked.connect(self._apply_percentile_condition)
+        if apply_btn:
+            apply_btn.clicked.connect(self._apply_selection)
+        if close_btn:
+            close_btn.clicked.connect(self.close)
 
-    def _setup_ui(self):
+    def _setup_ui_fallback(self):
         """Setup dialog UI"""
         layout = QVBoxLayout(self)
 
@@ -343,7 +380,7 @@ class ConditionalSelectionDialog(QDialog):
                     condition=condition, mode=mode.value)
 
 
-class SelectionStatsWidget(QWidget):
+class SelectionStatsWidget(QWidget, UiLoaderMixin):
     """
     Widget displaying statistics about current selection.
 
@@ -352,17 +389,39 @@ class SelectionStatsWidget(QWidget):
     - Selection percentage
     - Value statistics (min, max, mean, etc.)
     - Time range information
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/selectionStatsWidget.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._clear_stats()
+        logger.debug("selection_stats_widget_created", ui_loaded=self._ui_loaded)
 
-        logger.debug("selection_stats_widget_created")
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self.total_points_label = self.findChild(QLabel, "totalPointsLabel")
+        self.selected_points_label = self.findChild(QLabel, "selectedPointsLabel")
+        self.selection_ratio_label = self.findChild(QLabel, "selectionRatioLabel")
+        self.selection_progress = self.findChild(QProgressBar, "selectionProgress")
+        self.min_value_label = self.findChild(QLabel, "minValueLabel")
+        self.max_value_label = self.findChild(QLabel, "maxValueLabel")
+        self.mean_value_label = self.findChild(QLabel, "meanValueLabel")
+        self.std_value_label = self.findChild(QLabel, "stdValueLabel")
+        self.time_ranges_label = self.findChild(QLabel, "timeRangesLabel")
+        self.total_duration_label = self.findChild(QLabel, "totalDurationLabel")
 
-    def _setup_ui(self):
+    def _setup_ui_fallback(self):
         """Setup widget UI"""
         layout = QVBoxLayout(self)
 
@@ -477,12 +536,16 @@ class SelectionStatsWidget(QWidget):
         self.update_stats(0, 0)
 
 
-class SelectionPanel(QWidget):
+class SelectionPanel(QWidget, UiLoaderMixin):
     """
     Complete selection control panel combining toolbar, stats and dialogs.
 
     Provides integrated selection interface for plot widgets.
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/selectionPanel.ui"
 
     # Signals for communication with plot widgets
     temporal_selection_requested = pyqtSignal(float, float, object)  # start, end, mode
@@ -495,14 +558,30 @@ class SelectionPanel(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self._setup_ui()
-        self._connect_signals()
-
         self._conditional_dialog: ConditionalSelectionDialog | None = None
 
-        logger.debug("selection_panel_initialized")
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
+        self._connect_signals()
+        logger.debug("selection_panel_initialized", ui_loaded=self._ui_loaded)
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Cria os widgets filhos
+        self.toolbar = SelectionToolbar()
+        self.stats_widget = SelectionStatsWidget()
+        
+        # Adiciona ao layout do arquivo .ui
+        main_layout = self.layout()
+        if main_layout:
+            main_layout.addWidget(self.toolbar)
+            main_layout.addWidget(self.stats_widget)
+
+    def _setup_ui_fallback(self):
         """Setup panel UI"""
         layout = QVBoxLayout(self)
 

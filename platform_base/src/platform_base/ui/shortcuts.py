@@ -37,6 +37,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -569,10 +570,15 @@ class ShortcutManager(QObject):
         return tooltip
 
 
-class ShortcutsDialog(QDialog):
+class ShortcutsDialog(QDialog, UiLoaderMixin):
     """
     Dialog for viewing and customizing keyboard shortcuts.
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/shortcutsDialog.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -583,10 +589,39 @@ class ShortcutsDialog(QDialog):
         self._manager = ShortcutManager()
         self._pending_changes: dict[str, str] = {}
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
         self._load_shortcuts()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self._search_edit = self.findChild(QLineEdit, "searchEdit")
+        self._table = self.findChild(QTableWidget, "shortcutsTable")
+        
+        reset_btn = self.findChild(QPushButton, "resetBtn")
+        reset_all_btn = self.findChild(QPushButton, "resetAllBtn")
+        button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        
+        if self._search_edit:
+            self._search_edit.textChanged.connect(self._filter_shortcuts)
+        if self._table:
+            self._table.cellDoubleClicked.connect(self._edit_shortcut)
+        if reset_btn:
+            reset_btn.clicked.connect(self._reset_selected)
+        if reset_all_btn:
+            reset_all_btn.clicked.connect(self._reset_all)
+        if button_box:
+            button_box.accepted.connect(self._apply_and_close)
+            button_box.rejected.connect(self.reject)
+            apply_btn = button_box.button(QDialogButtonBox.StandardButton.Apply)
+            if apply_btn:
+                apply_btn.clicked.connect(self._apply_changes)
+
+    def _setup_ui_fallback(self):
         """Setup dialog UI."""
         layout = QVBoxLayout(self)
 

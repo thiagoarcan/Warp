@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
@@ -189,7 +190,7 @@ class MinimapWidget(QWidget):
         painter.drawLine(pos_x, 0, pos_x, h)
 
 
-class StreamingPanel(QWidget):
+class StreamingPanel(QWidget, UiLoaderMixin):
     """
     Painel de controle de streaming/playback
 
@@ -198,6 +199,8 @@ class StreamingPanel(QWidget):
         state_changed: Estado de playback mudou
         speed_changed: Velocidade mudou
     """
+
+    UI_FILE = "desktop/ui_files/streamingPanel.ui"
 
     position_changed = pyqtSignal(int)  # Índice atual
     state_changed = pyqtSignal(PlaybackState)
@@ -218,11 +221,46 @@ class StreamingPanel(QWidget):
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._on_timer_tick)
 
-        self._setup_ui()
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
         self._connect_signals()
         self._update_ui_state()
 
-    def _setup_ui(self):
+    def _setup_ui_from_file(self):
+        """Configura widgets após carregar .ui"""
+        # Busca widgets do arquivo .ui
+        self._minimap = self.findChild(MinimapWidget, "minimap") or MinimapWidget()
+        self._timeline = self.findChild(TimelineSlider, "timeline") or TimelineSlider()
+        self._current_time = self.findChild(QLabel, "current_time") or QLabel("00:00:00")
+        self._total_time = self.findChild(QLabel, "total_time") or QLabel("00:00:00")
+        self._frame_info = self.findChild(QLabel, "frame_info") or QLabel("Frame: 0 / 0")
+        
+        # Botões de controle
+        self._btn_start = self.findChild(QPushButton, "btn_start")
+        self._btn_prev = self.findChild(QPushButton, "btn_prev")
+        self._btn_play = self.findChild(QPushButton, "btn_play")
+        self._btn_next = self.findChild(QPushButton, "btn_next")
+        self._btn_end = self.findChild(QPushButton, "btn_end")
+        self._btn_stop = self.findChild(QPushButton, "btn_stop")
+        
+        # Combo e controles de velocidade
+        self._mode_combo = self.findChild(QComboBox, "mode_combo")
+        self._speed_slider = self.findChild(QSlider, "speed_slider")
+        self._step_spin = self.findChild(QSpinBox, "step_spin")
+        
+        # Configura minimap se necessário
+        if hasattr(self._minimap, 'position_changed'):
+            self._minimap.position_changed.connect(self._on_minimap_position)
+        
+        # Configura timeline
+        if self._timeline:
+            self._timeline.setMinimum(0)
+            self._timeline.setMaximum(100)
+            self._timeline.valueChanged.connect(self._on_timeline_changed)
+
+    def _setup_ui_fallback(self):
         """Configura interface principal"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)

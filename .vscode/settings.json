@@ -4,5 +4,16 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "powerbi.workspaceFilter": ""
+    "powerbi.workspaceFilter": "",
+    "chat.customAgentInSubagent.enabled": true,
+    "chat.editing.autoAcceptDelay": 5,
+    "chat.edits2.enabled": false,
+    "chat.mcp.assisted.nuget.enabled": true,
+    "chat.mcp.discovery.enabled": {
+        "claude-desktop": true
+    },
+    "chat.mcp.gallery.enabled": true,
+    "chat.useAgentSkills": true,
+    "chat.useNestedAgentsMdFiles": true,
+    "chat.agent.maxRequests": 100
 }

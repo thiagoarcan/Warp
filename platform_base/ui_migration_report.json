@@ -1,55 +1,15 @@
 {
   "summary": {
-    "total_components": 65,
-    "programmatic": 58,
-    "using_ui_loader": 7,
-    "with_fallback": 53,
-    "total_ui_files": 109,
-    "used_ui_files": 6,
-    "unused_ui_files": 103,
-    "custom_widgets_identified": 31
+    "total_components": 68,
+    "programmatic": 24,
+    "using_ui_loader": 44,
+    "with_fallback": 62,
+    "total_ui_files": 103,
+    "used_ui_files": 32,
+    "unused_ui_files": 71,
+    "custom_widgets_identified": 32
   },
   "programmatic_components": [
-    {
-      "class": "AboutDialog",
-      "file": "src\\platform_base\\desktop\\dialogs\\about_dialog.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QTabWidget",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
-        "QTextEdit",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget"
-      ]
-    },
-    {
-      "class": "AnnotationDialog",
-      "file": "src\\platform_base\\ui\\context_menu.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QCheckBox",
-        "QPushButton",
-        "QTextEdit",
-        "QLabel",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
     {
       "class": "AxesConfigDialog",
       "file": "src\\platform_base\\ui\\panels\\viz_panel.py",
@@ -57,54 +17,18 @@
         "QDialog"
       ],
       "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QGroupBox",
         "QHBoxLayout",
         "QVBoxLayout",
-        "QCheckBox",
         "QLineEdit",
+        "QComboBox",
+        "QFormLayout",
+        "QDoubleSpinBox",
+        "QSpinBox",
+        "QCheckBox",
         "QPushButton",
         "QLabel"
       ],
       "custom_widgets": []
-    },
-    {
-      "class": "BaseOperationDialog",
-      "file": "src\\platform_base\\ui\\operation_dialogs.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QScrollArea",
-        "QPushButton",
-        "QSplitter",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "PreviewWidget"
-      ]
-    },
-    {
-      "class": "BrushSelectionWidget",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QVBoxLayout",
-        "QLabel",
-        "QHBoxLayout",
-        "QPushButton"
-      ],
-      "custom_widgets": [
-        "PlotWidget"
-      ]
     },
     {
       "class": "CalculusConfigWidget",
@@ -113,97 +37,13 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QSpinBox",
-        "QFormLayout",
         "QVBoxLayout",
-        "QCheckBox",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "CompactDataPanel",
-      "file": "src\\platform_base\\ui\\panels\\data_panel.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QTreeWidget",
-        "QFormLayout",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QFrame",
-        "QTableWidget",
-        "QSplitter",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "QFileDialog"
-      ]
-    },
-    {
-      "class": "CompareSeriesDialog",
-      "file": "src\\platform_base\\ui\\context_menu.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QGroupBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QCheckBox",
-        "QPushButton",
-        "QTextEdit",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "ConditionalSelectionDialog",
-      "file": "src\\platform_base\\desktop\\selection\\selection_widgets.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QTextEdit",
-        "QLabel",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "ConfigPanel",
-      "file": "src\\platform_base\\ui\\panels\\config_panel.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
+        "QComboBox",
         "QFormLayout",
         "QSpinBox",
-        "QDoubleSpinBox",
-        "QTabWidget",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QCheckBox",
-        "QLabel"
+        "QCheckBox"
       ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget"
-      ]
+      "custom_widgets": []
     },
     {
       "class": "DropZone",
@@ -218,70 +58,22 @@
       "custom_widgets": []
     },
     {
-      "class": "ExportDialog",
-      "file": "src\\platform_base\\ui\\export_dialog.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QTreeWidget",
-        "QFormLayout",
-        "QTabWidget",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QCheckBox",
-        "QLineEdit",
-        "QTextEdit"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget"
-      ]
-    },
-    {
       "class": "FilterDialog",
       "file": "src\\platform_base\\ui\\stream_filters.py",
       "base_classes": [
         "QWidget"
       ],
       "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QGroupBox",
         "QHBoxLayout",
         "QVBoxLayout",
+        "QComboBox",
+        "QFormLayout",
+        "QDoubleSpinBox",
+        "QSpinBox",
         "QPushButton",
-        "QComboBox"
+        "QGroupBox"
       ],
       "custom_widgets": []
-    },
-    {
-      "class": "FilterDialog",
-      "file": "src\\platform_base\\ui\\dialogs\\filter_dialog.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QTabWidget",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QCheckBox",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget"
-      ]
     },
     {
       "class": "GeneralSettingsTab",
@@ -290,12 +82,12 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QSpinBox",
-        "QFormLayout",
-        "QGroupBox",
         "QVBoxLayout",
+        "QComboBox",
+        "QFormLayout",
+        "QSpinBox",
         "QCheckBox",
-        "QComboBox"
+        "QGroupBox"
       ],
       "custom_widgets": []
     },
@@ -306,10 +98,10 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QVBoxLayout",
-        "QLabel",
         "QHBoxLayout",
-        "QComboBox"
+        "QVBoxLayout",
+        "QComboBox",
+        "QLabel"
       ],
       "custom_widgets": [
         "PlotWidget"
@@ -322,12 +114,12 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
         "QVBoxLayout",
-        "QCheckBox",
-        "QComboBox"
+        "QComboBox",
+        "QFormLayout",
+        "QDoubleSpinBox",
+        "QSpinBox",
+        "QCheckBox"
       ],
       "custom_widgets": [
         "QWidget"
@@ -340,59 +132,15 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QFormLayout",
-        "QGroupBox",
         "QHBoxLayout",
         "QVBoxLayout",
-        "QCheckBox",
         "QLineEdit",
-        "QPushButton",
-        "QTextEdit",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "MainWindow",
-      "file": "src\\platform_base\\desktop\\main_window.py",
-      "base_classes": [
-        "QMainWindow"
-      ],
-      "widgets_created": [
-        "QHBoxLayout",
-        "QDockWidget",
-        "QToolBar",
-        "QLabel",
-        "QProgressBar"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "DataPanel",
-        "VizPanel",
-        "ConfigPanel",
-        "OperationsPanel",
-        "StreamingPanel",
-        "ResultsPanel",
-        "UploadDialog",
-        "SettingsDialog",
-        "AboutDialog"
-      ]
-    },
-    {
-      "class": "MathAnalysisDialog",
-      "file": "src\\platform_base\\desktop\\menus\\plot_context_menu.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
+        "QComboBox",
         "QFormLayout",
-        "QSpinBox",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
         "QPushButton",
         "QCheckBox",
-        "QComboBox"
+        "QTextEdit",
+        "QGroupBox"
       ],
       "custom_widgets": []
     },
@@ -406,8 +154,8 @@
         "QHBoxLayout",
         "QVBoxLayout",
         "QPushButton",
-        "QFrame",
-        "QLabel"
+        "QLabel",
+        "QFrame"
       ],
       "custom_widgets": [
         "FigureCanvas",
@@ -425,115 +173,15 @@
       "custom_widgets": []
     },
     {
-      "class": "ModernMainWindow",
-      "file": "src\\platform_base\\ui\\main_window.py",
-      "base_classes": [
-        "QMainWindow"
-      ],
-      "widgets_created": [
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QFrame",
-        "QSplitter",
-        "QLabel",
-        "QProgressBar"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "DataPanel",
-        "VizPanel",
-        "OperationsPanel",
-        "QFileDialog",
-        "QFileDialog",
-        "QFileDialog"
-      ]
-    },
-    {
-      "class": "ModernVizPanel",
-      "file": "src\\platform_base\\ui\\panels\\viz_panel.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QGridLayout",
-        "QTabWidget",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
-        "QFrame",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "MatplotlibWidget"
-      ]
-    },
-    {
-      "class": "OperationPreviewDialog",
-      "file": "src\\platform_base\\ui\\preview_dialog.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QCheckBox",
-        "QPushButton",
-        "QSplitter",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "PreviewCanvas",
-        "QWidget"
-      ]
-    },
-    {
-      "class": "OperationsPanel",
-      "file": "src\\platform_base\\ui\\panels\\operations_panel.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QListWidget",
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QTabWidget",
-        "QGroupBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QScrollArea",
-        "QCheckBox"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QDialog",
-        "FigureCanvas",
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "OperationPreviewDialog",
-        "OperationPreviewDialog",
-        "OperationPreviewDialog",
-        "OperationPreviewDialog",
-        "OperationPreviewDialog",
-        "OperationPreviewDialog"
-      ]
-    },
-    {
       "class": "ParameterWidget",
       "file": "src\\platform_base\\ui\\operation_dialogs.py",
       "base_classes": [
         "QFrame"
       ],
       "widgets_created": [
+        "QHBoxLayout",
         "QVBoxLayout",
-        "QLabel",
-        "QHBoxLayout"
+        "QLabel"
       ],
       "custom_widgets": []
     },
@@ -544,14 +192,14 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QGroupBox",
         "QHBoxLayout",
         "QVBoxLayout",
-        "QCheckBox",
         "QLineEdit",
-        "QPushButton"
+        "QFormLayout",
+        "QSpinBox",
+        "QCheckBox",
+        "QPushButton",
+        "QGroupBox"
       ],
       "custom_widgets": []
     },
@@ -611,195 +259,16 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QVBoxLayout",
-        "QLabel",
         "QTabWidget",
-        "QHBoxLayout"
+        "QHBoxLayout",
+        "QVBoxLayout",
+        "QLabel"
       ],
       "custom_widgets": [
         "QWidget",
         "FigureCanvas",
         "QWidget"
       ]
-    },
-    {
-      "class": "PreviewWidget",
-      "file": "src\\platform_base\\ui\\operation_dialogs.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QVBoxLayout",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "FigureCanvas"
-      ]
-    },
-    {
-      "class": "QueryBuilderWidget",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QLineEdit",
-        "QLabel",
-        "QComboBox"
-      ],
-      "custom_widgets": [
-        "QWidget"
-      ]
-    },
-    {
-      "class": "RangePickerWidget",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "PlotWidget"
-      ]
-    },
-    {
-      "class": "ResultsPanel",
-      "file": "src\\platform_base\\ui\\panels\\results_panel.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QGridLayout",
-        "QTabWidget",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
-        "QScrollArea",
-        "QFrame",
-        "QTextEdit",
-        "QSplitter",
-        "QLabel"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "PlotWidget",
-        "QWidget",
-        "QWidget"
-      ]
-    },
-    {
-      "class": "SelectionHistoryWidget",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QListWidget",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QTextEdit",
-        "QLabel"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "SelectionInfo",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QLabel"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "SelectionManagerWidget",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QTabWidget",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QComboBox"
-      ],
-      "custom_widgets": [
-        "RangePickerWidget",
-        "BrushSelectionWidget",
-        "QueryBuilderWidget",
-        "SelectionHistoryWidget"
-      ]
-    },
-    {
-      "class": "SelectionPanel",
-      "file": "src\\platform_base\\desktop\\selection\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QVBoxLayout"
-      ],
-      "custom_widgets": [
-        "SelectionStatsWidget",
-        "ConditionalSelectionDialog"
-      ]
-    },
-    {
-      "class": "SelectionStatsWidget",
-      "file": "src\\platform_base\\desktop\\selection\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QLabel",
-        "QProgressBar"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "SelectionSync",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QListWidget",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QLabel"
-      ],
-      "custom_widgets": []
     },
     {
       "class": "SelectionToolbar",
@@ -813,97 +282,27 @@
       "custom_widgets": []
     },
     {
-      "class": "SelectionToolbar",
-      "file": "src\\platform_base\\ui\\selection_widgets.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QPushButton",
-        "QHBoxLayout"
-      ],
-      "custom_widgets": []
-    },
-    {
       "class": "SettingsDialog",
       "file": "src\\platform_base\\ui\\dialogs\\settings_dialog.py",
       "base_classes": [
         "QDialog"
       ],
       "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QTabWidget",
-        "QGroupBox",
         "QHBoxLayout",
         "QVBoxLayout",
-        "QPushButton",
-        "QCheckBox",
-        "QLineEdit"
-      ],
-      "custom_widgets": [
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget",
-        "QWidget"
-      ]
-    },
-    {
-      "class": "ShortcutsDialog",
-      "file": "src\\platform_base\\ui\\shortcuts.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
         "QLineEdit",
-        "QTableWidget",
-        "QLabel"
+        "QComboBox",
+        "QFormLayout",
+        "QTabWidget",
+        "QDoubleSpinBox",
+        "QPushButton",
+        "QSpinBox",
+        "QCheckBox"
       ],
       "custom_widgets": [
-        "QDialog"
-      ]
-    },
-    {
-      "class": "SmoothingDialog",
-      "file": "src\\platform_base\\ui\\context_menu.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QSpinBox",
-        "QFormLayout",
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "SmoothingDialog",
-      "file": "src\\platform_base\\ui\\dialogs\\smoothing_dialog.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QSlider",
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QGroupBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QCheckBox",
-        "QPushButton",
-        "QLabel"
-      ],
-      "custom_widgets": [
+        "QWidget",
+        "QWidget",
+        "QWidget",
         "QWidget",
         "QWidget"
       ]
@@ -915,9 +314,9 @@
         "QFrame"
       ],
       "widgets_created": [
+        "QHBoxLayout",
         "QVBoxLayout",
-        "QLabel",
-        "QHBoxLayout"
+        "QLabel"
       ],
       "custom_widgets": []
     },
@@ -940,16 +339,16 @@
         "QWidget"
       ],
       "widgets_created": [
-        "QListWidget",
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QTabWidget",
         "QHBoxLayout",
-        "QGroupBox",
         "QVBoxLayout",
-        "QScrollArea",
-        "QPushButton"
+        "QComboBox",
+        "QFormLayout",
+        "QTabWidget",
+        "QDoubleSpinBox",
+        "QPushButton",
+        "QSpinBox",
+        "QCheckBox",
+        "QListWidget"
       ],
       "custom_widgets": [
         "QWidget",
@@ -970,71 +369,16 @@
       ]
     },
     {
-      "class": "StreamingControlWidget",
-      "file": "src\\platform_base\\ui\\streaming_controls.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QSlider",
-        "QFormLayout",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QCheckBox",
-        "QPushButton",
-        "QLabel"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "StreamingControls",
-      "file": "src\\platform_base\\ui\\streaming_controls.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QSlider",
-        "QDoubleSpinBox",
-        "QHBoxLayout",
-        "QVBoxLayout",
-        "QPushButton",
-        "QLabel"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "StreamingPanel",
-      "file": "src\\platform_base\\ui\\panels\\streaming_panel.py",
-      "base_classes": [
-        "QWidget"
-      ],
-      "widgets_created": [
-        "QSpinBox",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QLabel",
-        "QComboBox"
-      ],
-      "custom_widgets": [
-        "MinimapWidget"
-      ]
-    },
-    {
       "class": "TimeIntervalWidget",
       "file": "src\\platform_base\\ui\\stream_filters.py",
       "base_classes": [
         "QWidget"
       ],
       "widgets_created": [
-        "QCheckBox",
-        "QLabel",
+        "QDoubleSpinBox",
         "QHBoxLayout",
-        "QDoubleSpinBox"
+        "QCheckBox",
+        "QLabel"
       ],
       "custom_widgets": []
     },
@@ -1045,40 +389,68 @@
         "QWidget"
       ],
       "widgets_created": [
+        "QHBoxLayout",
+        "QComboBox",
         "QDoubleSpinBox",
-        "QHBoxLayout",
         "QCheckBox",
-        "QLabel",
-        "QComboBox"
-      ],
-      "custom_widgets": []
-    },
-    {
-      "class": "VideoExportDialog",
-      "file": "src\\platform_base\\ui\\video_export.py",
-      "base_classes": [
-        "QDialog"
-      ],
-      "widgets_created": [
-        "QFormLayout",
-        "QSpinBox",
-        "QHBoxLayout",
-        "QGroupBox",
-        "QVBoxLayout",
-        "QPushButton",
-        "QCheckBox",
-        "QLabel",
-        "QProgressBar",
-        "QComboBox"
+        "QLabel"
       ],
       "custom_widgets": []
     }
   ],
   "using_ui_loader": [
     {
+      "class": "AboutDialog",
+      "file": "src\\platform_base\\desktop\\dialogs\\about_dialog.py",
+      "ui_file": "desktop/ui_files/aboutDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "AnnotationDialog",
+      "file": "src\\platform_base\\ui\\context_menu.py",
+      "ui_file": "desktop/ui_files/annotationDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "BaseOperationDialog",
+      "file": "src\\platform_base\\ui\\operation_dialogs.py",
+      "ui_file": "desktop/ui_files/baseOperationDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "BrushSelectionWidget",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/brushSelectionWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "CompactDataPanel",
+      "file": "src\\platform_base\\ui\\panels\\data_panel.py",
+      "ui_file": "desktop/ui_files/compactDataPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "CompareSeriesDialog",
+      "file": "src\\platform_base\\ui\\context_menu.py",
+      "ui_file": "desktop/ui_files/compareSeriesDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "ConditionalSelectionDialog",
+      "file": "src\\platform_base\\desktop\\selection\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/conditionalSelectionDialog.ui",
+      "has_fallback": true
+    },
+    {
       "class": "ConfigPanel",
       "file": "src\\platform_base\\desktop\\widgets\\config_panel.py",
       "ui_file": "desktop/ui_files/configPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "ConfigPanel",
+      "file": "src\\platform_base\\ui\\panels\\config_panel.py",
+      "ui_file": "desktop/ui_files/configPanelFull.ui",
       "has_fallback": true
     },
     {
@@ -1094,9 +466,129 @@
       "has_fallback": false
     },
     {
+      "class": "ExportDialog",
+      "file": "src\\platform_base\\ui\\export_dialog.py",
+      "ui_file": "desktop/ui_files/exportDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "FilterDialog",
+      "file": "src\\platform_base\\ui\\dialogs\\filter_dialog.py",
+      "ui_file": "desktop/ui_files/filterDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "MainWindow",
+      "file": "src\\platform_base\\desktop\\main_window.py",
+      "ui_file": "mainWindow.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "MathAnalysisDialog",
+      "file": "src\\platform_base\\desktop\\menus\\plot_context_menu.py",
+      "ui_file": "desktop/ui_files/mathAnalysisDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "ModernMainWindow",
+      "file": "src\\platform_base\\ui\\main_window.py",
+      "ui_file": "desktop/ui_files/modernMainWindow.ui",
+      "has_fallback": false
+    },
+    {
+      "class": "ModernVizPanel",
+      "file": "src\\platform_base\\ui\\panels\\viz_panel.py",
+      "ui_file": "desktop/ui_files/modernVizPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "OperationPreviewDialog",
+      "file": "src\\platform_base\\ui\\preview_dialog.py",
+      "ui_file": "desktop/ui_files/operationPreviewDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "OperationsPanel",
+      "file": "src\\platform_base\\desktop\\widgets\\operations_panel.py",
+      "ui_file": "operationsPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "OperationsPanel",
+      "file": "src\\platform_base\\ui\\panels\\operations_panel.py",
+      "ui_file": "desktop/ui_files/operationsPanelFull.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "PreviewWidget",
+      "file": "src\\platform_base\\ui\\operation_dialogs.py",
+      "ui_file": "desktop/ui_files/previewWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "QueryBuilderWidget",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/queryBuilderWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "RangePickerWidget",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/rangePickerWidget.ui",
+      "has_fallback": true
+    },
+    {
       "class": "ResultsPanel",
       "file": "src\\platform_base\\desktop\\widgets\\results_panel.py",
       "ui_file": "desktop/ui_files/resultsPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "ResultsPanel",
+      "file": "src\\platform_base\\ui\\panels\\results_panel.py",
+      "ui_file": "desktop/ui_files/resultsPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionHistoryWidget",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionHistoryWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionInfo",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionInfo.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionManagerWidget",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionManagerWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionPanel",
+      "file": "src\\platform_base\\desktop\\selection\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionStatsWidget",
+      "file": "src\\platform_base\\desktop\\selection\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionStatsWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionSync",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionSync.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SelectionToolbar",
+      "file": "src\\platform_base\\ui\\selection_widgets.py",
+      "ui_file": "desktop/ui_files/selectionToolbar.ui",
       "has_fallback": true
     },
     {
@@ -1106,9 +598,63 @@
       "has_fallback": true
     },
     {
+      "class": "ShortcutsDialog",
+      "file": "src\\platform_base\\ui\\shortcuts.py",
+      "ui_file": "desktop/ui_files/shortcutsDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SmoothingDialog",
+      "file": "src\\platform_base\\ui\\context_menu.py",
+      "ui_file": "desktop/ui_files/smoothingConfigDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SmoothingDialog",
+      "file": "src\\platform_base\\ui\\dialogs\\smoothing_dialog.py",
+      "ui_file": "desktop/ui_files/smoothingDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "StreamingControlWidget",
+      "file": "src\\platform_base\\ui\\streaming_controls.py",
+      "ui_file": "desktop/ui_files/streamingControlWidget.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "StreamingControls",
+      "file": "src\\platform_base\\ui\\streaming_controls.py",
+      "ui_file": "desktop/ui_files/streamingControls.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "StreamingPanel",
+      "file": "src\\platform_base\\desktop\\widgets\\streaming_panel.py",
+      "ui_file": "streamingPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "StreamingPanel",
+      "file": "src\\platform_base\\ui\\panels\\streaming_panel.py",
+      "ui_file": "desktop/ui_files/streamingPanel.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "SyncSettingsWidget",
+      "file": "src\\platform_base\\desktop\\widgets\\sync_settings_widget.py",
+      "ui_file": "syncSettingsWidget.ui",
+      "has_fallback": true
+    },
+    {
       "class": "UploadDialog",
       "file": "src\\platform_base\\desktop\\dialogs\\upload_dialog.py",
       "ui_file": "desktop/ui_files/uploadDialog.ui",
+      "has_fallback": true
+    },
+    {
+      "class": "VideoExportDialog",
+      "file": "src\\platform_base\\ui\\video_export.py",
+      "ui_file": "desktop/ui_files/videoExportDialog.ui",
       "has_fallback": true
     },
     {
@@ -1119,16 +665,6 @@
     }
   ],
   "unused_ui_files": [
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\aboutDialog.ui",
-      "class_name": "AboutDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
     {
       "file": "src\\platform_base\\desktop\\ui_files\\accessibilityManager.ui",
       "class_name": "AccessibilityManager",
@@ -1142,16 +678,6 @@
       "class_name": "AccessibleWidget",
       "widgets": [
         "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\annotationDialog.ui",
-      "class_name": "AnnotationDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
       ],
       "promoted_widgets": []
     },
@@ -1180,26 +706,8 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\baseOperationDialog.ui",
-      "class_name": "BaseOperationDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\booleanParameterWidget.ui",
       "class_name": "BooleanParameterWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\brushSelectionWidget.ui",
-      "class_name": "BrushSelectionWidget",
       "widgets": [
         "QWidget"
       ],
@@ -1217,9 +725,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\calculusDialog.ui",
       "class_name": "CalculusDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1228,16 +736,6 @@
       "class_name": "ChoiceParameterWidget",
       "widgets": [
         "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\compareSeriesDialog.ui",
-      "class_name": "CompareSeriesDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
       ],
       "promoted_widgets": []
     },
@@ -1261,9 +759,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\derivativeDialog.ui",
       "class_name": "DerivativeDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1271,9 +769,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\dialogLoaderMixin.ui",
       "class_name": "DialogLoaderMixin",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1294,16 +792,6 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\exportDialog.ui",
-      "class_name": "ExportDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\exportProgress.ui",
       "class_name": "ExportProgress",
       "widgets": [
@@ -1316,32 +804,6 @@
       "class_name": "ExportResult",
       "widgets": [
         "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\exportWorkerThread.ui",
-      "class_name": "ExportWorkerThread",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\fileLoadWorker.ui",
-      "class_name": "FileLoadWorker",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\filterDialog.ui",
-      "class_name": "FilterDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
       ],
       "promoted_widgets": []
     },
@@ -1373,9 +835,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\integralDialog.ui",
       "class_name": "IntegralDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1391,9 +853,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\interpolationDialog.ui",
       "class_name": "InterpolationDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1438,40 +900,8 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\mainWindow.ui",
-      "class_name": "MainWindow",
-      "widgets": [
-        "QMainWindow",
-        "QMenuBar",
-        "QWidget",
-        "QDockWidget",
-        "QMenu"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\ui\\designer\\main_window.ui",
-      "class_name": "MainWindow",
-      "widgets": [
-        "QMainWindow",
-        "QMenuBar",
-        "QWidget",
-        "QFrame",
-        "QMenu"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\memoryIndicator.ui",
       "class_name": "MemoryIndicator",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\modernMainWindow.ui",
-      "class_name": "ModernMainWindow",
       "widgets": [
         "QWidget"
       ],
@@ -1497,9 +927,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\myDialog.ui",
       "class_name": "MyDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1528,36 +958,12 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\operationPreviewDialog.ui",
-      "class_name": "OperationPreviewDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\operationPreviewManager.ui",
       "class_name": "OperationPreviewManager",
       "widgets": [
         "QWidget"
       ],
       "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\operationsPanel.ui",
-      "class_name": "OperationsPanel",
-      "widgets": [
-        "QListWidget",
-        "QSpinBox",
-        "QDoubleSpinBox",
-        "QTabWidget",
-        "QGroupBox"
-      ],
-      "promoted_widgets": [
-        "StableComboBox"
-      ]
     },
     {
       "file": "src\\platform_base\\desktop\\ui_files\\panelConfig.ui",
@@ -1656,32 +1062,8 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\previewWidget.ui",
-      "class_name": "PreviewWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\previewWorker.ui",
       "class_name": "PreviewWorker",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\queryBuilderWidget.ui",
-      "class_name": "QueryBuilderWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\rangePickerWidget.ui",
-      "class_name": "RangePickerWidget",
       "widgets": [
         "QWidget"
       ],
@@ -1712,46 +1094,6 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\selectionHistoryWidget.ui",
-      "class_name": "SelectionHistoryWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\selectionInfo.ui",
-      "class_name": "SelectionInfo",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\selectionManagerWidget.ui",
-      "class_name": "SelectionManagerWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\selectionMode.ui",
-      "class_name": "SelectionMode",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\selectionSync.ui",
-      "class_name": "SelectionSync",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\selectionSyncMode.ui",
       "class_name": "SelectionSyncMode",
       "widgets": [
@@ -1768,24 +1110,8 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\selectionToolbar.ui",
-      "class_name": "SelectionToolbar",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\sessionData.ui",
       "class_name": "SessionData",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\sessionState.ui",
-      "class_name": "SessionState",
       "widgets": [
         "QWidget"
       ],
@@ -1808,66 +1134,10 @@
       "promoted_widgets": []
     },
     {
-      "file": "src\\platform_base\\desktop\\ui_files\\shortcutsDialog.ui",
-      "class_name": "ShortcutsDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\signalHub.ui",
-      "class_name": "SignalHub",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\smoothingDialog.ui",
-      "class_name": "SmoothingDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
-    {
       "file": "src\\platform_base\\desktop\\ui_files\\streamFiltersWidget.ui",
       "class_name": "StreamFiltersWidget",
       "widgets": [
         "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\streamingControlWidget.ui",
-      "class_name": "StreamingControlWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\streamingControls.ui",
-      "class_name": "StreamingControls",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\streamingPanel.ui",
-      "class_name": "StreamingPanel",
-      "widgets": [
-        "QSlider",
-        "QSpinBox",
-        "QGroupBox",
-        "QWidget",
-        "QPushButton"
       ],
       "promoted_widgets": []
     },
@@ -1883,9 +1153,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\synchronizationDialog.ui",
       "class_name": "SynchronizationDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1933,9 +1203,9 @@
       "file": "src\\platform_base\\desktop\\ui_files\\uiLoaderDialog.ui",
       "class_name": "UiLoaderDialog",
       "widgets": [
+        "QDialog",
         "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
+        "QWidget"
       ],
       "promoted_widgets": []
     },
@@ -1950,24 +1220,6 @@
     {
       "file": "src\\platform_base\\desktop\\ui_files\\valuePredicateWidget.ui",
       "class_name": "ValuePredicateWidget",
-      "widgets": [
-        "QWidget"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\videoExportDialog.ui",
-      "class_name": "VideoExportDialog",
-      "widgets": [
-        "QDialogButtonBox",
-        "QWidget",
-        "QDialog"
-      ],
-      "promoted_widgets": []
-    },
-    {
-      "file": "src\\platform_base\\desktop\\ui_files\\videoExportWorker.ui",
-      "class_name": "VideoExportWorker",
       "widgets": [
         "QWidget"
       ],
@@ -2026,41 +1278,19 @@
     "SelectionStatsWidget",
     "SettingsDialog",
     "StreamingPanel",
+    "SyncSettingsWidget",
     "TimeIntervalWidget",
     "UploadDialog",
     "ValuePredicateWidget",
     "VizPanel"
   ],
   "migration_priority": {
-    "high": [
-      "MainWindow",
-      "SelectionPanel",
-      "ModernMainWindow",
-      "ConfigPanel",
-      "CompactDataPanel",
-      "OperationsPanel",
-      "ResultsPanel",
-      "StreamingPanel",
-      "ModernVizPanel"
-    ],
+    "high": [],
     "medium": [
-      "AboutDialog",
-      "MathAnalysisDialog",
-      "ConditionalSelectionDialog",
       "Plot3DWidget",
-      "CompareSeriesDialog",
-      "SmoothingDialog",
-      "AnnotationDialog",
-      "ExportDialog",
-      "BaseOperationDialog",
       "PreviewCanvas",
-      "OperationPreviewDialog",
-      "ShortcutsDialog",
-      "FilterDialog",
-      "VideoExportDialog",
       "FilterDialog",
       "SettingsDialog",
-      "SmoothingDialog",
       "AxesConfigDialog",
       "Plot2DWidget",
       "Plot3DWidget"
@@ -2070,22 +1300,10 @@
       "PerformanceSettingsTab",
       "LoggingSettingsTab",
       "SelectionToolbar",
-      "SelectionStatsWidget",
       "InterpolationConfigWidget",
       "CalculusConfigWidget",
       "ParameterWidget",
-      "PreviewWidget",
       "PreviewVisualizationWidget",
-      "RangePickerWidget",
-      "BrushSelectionWidget",
-      "QueryBuilderWidget",
-      "SelectionHistoryWidget",
-      "SelectionManagerWidget",
-      "SelectionSync",
-      "SelectionToolbar",
-      "SelectionInfo",
-      "StreamingControlWidget",
-      "StreamingControls",
       "TimeIntervalWidget",
       "ValuePredicateWidget",
       "StreamFiltersWidget",

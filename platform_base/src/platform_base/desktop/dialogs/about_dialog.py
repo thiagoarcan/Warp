@@ -2,6 +2,8 @@
 AboutDialog - About dialog for Platform Base v2.0
 
 Shows application information, version, and credits.
+
+Interface carregada de: desktop/ui_files/aboutDialog.ui
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
@@ -26,7 +29,7 @@ from platform_base.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-class AboutDialog(QDialog):
+class AboutDialog(QDialog, UiLoaderMixin):
     """
     About dialog showing application information.
 
@@ -35,97 +38,55 @@ class AboutDialog(QDialog):
     - Credits and acknowledgments
     - System information
     - License information
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/aboutDialog.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self._setup_ui()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
-        logger.debug("about_dialog_initialized")
+        logger.debug("about_dialog_initialized", ui_loaded=self._ui_loaded)
 
-    def _setup_ui(self):
-        """Setup user interface"""
-        self.setWindowTitle(tr("About Platform Base"))
-        self.setModal(True)
-        self.resize(500, 400)
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Encontra widgets do arquivo .ui
+        self.tabs = self.findChild(QTabWidget, "tabs")
+        self.logo_label = self.findChild(QLabel, "logoLabel")
+        self.title_label = self.findChild(QLabel, "titleLabel")
+        self.version_label = self.findChild(QLabel, "versionLabel")
+        self.subtitle_label = self.findChild(QLabel, "subtitleLabel")
+        self.about_text = self.findChild(QTextEdit, "aboutText")
+        self.credits_text = self.findChild(QTextEdit, "creditsText")
+        self.system_text = self.findChild(QTextEdit, "systemText")
+        self.license_text = self.findChild(QTextEdit, "licenseText")
+        self.close_btn = self.findChild(QPushButton, "closeBtn")
+        
+        # Configura logo
+        if self.logo_label:
+            self.logo_label.setStyleSheet("border: 1px solid gray; background: lightblue;")
+        
+        # Popula conteúdo das abas
+        self._populate_about_tab()
+        self._populate_credits_tab()
+        self._populate_system_tab()
+        self._populate_license_tab()
+        
+        logger.debug("about_dialog_ui_loaded_from_file")
 
-        layout = QVBoxLayout(self)
-
-        # Header with logo and title
-        header_layout = QHBoxLayout()
-
-        # Logo placeholder (would load from resources)
-        logo_label = QLabel()
-        logo_label.setFixedSize(64, 64)
-        logo_label.setStyleSheet("border: 1px solid gray; background: lightblue;")
-        logo_label.setText(tr("Logo"))
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        header_layout.addWidget(logo_label)
-
-        # Title and version
-        title_layout = QVBoxLayout()
-
-        title_label = QLabel(tr("Platform Base"))
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_layout.addWidget(title_label)
-
-        version_label = QLabel(tr("Version 2.0.0"))
-        version_label.setStyleSheet("color: gray;")
-        title_layout.addWidget(version_label)
-
-        subtitle_label = QLabel(tr("Time Series Analysis Tool"))
-        title_layout.addWidget(subtitle_label)
-
-        title_layout.addStretch()
-        header_layout.addLayout(title_layout)
-
-        header_layout.addStretch()
-        layout.addLayout(header_layout)
-
-        # Information tabs
-        self.tabs = QTabWidget()
-
-        # About tab
-        about_tab = self._create_about_tab()
-        self.tabs.addTab(about_tab, tr("About"))
-
-        # Credits tab
-        credits_tab = self._create_credits_tab()
-        self.tabs.addTab(credits_tab, tr("Credits"))
-
-        # System info tab
-        system_tab = self._create_system_tab()
-        self.tabs.addTab(system_tab, tr("System"))
-
-        # License tab
-        license_tab = self._create_license_tab()
-        self.tabs.addTab(license_tab, tr("License"))
-
-        layout.addWidget(self.tabs)
-
-        # Close button
-        buttons_layout = QHBoxLayout()
-        buttons_layout.addStretch()
-
-        close_btn = QPushButton(tr("Close"))
-        close_btn.clicked.connect(self.accept)
-        close_btn.setDefault(True)
-        buttons_layout.addWidget(close_btn)
-
-        layout.addLayout(buttons_layout)
-
-    def _create_about_tab(self) -> QWidget:
-        """Create about tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        about_text = QTextEdit()
-        about_text.setReadOnly(True)
-        about_text.setHtml("""
+    def _populate_about_tab(self):
+        """Popula a aba About com conteúdo HTML"""
+        if not self.about_text:
+            return
+        self.about_text.setHtml("""
         <h3>Platform Base v2.0</h3>
         <p><b>Desktop Time Series Analysis Tool</b></p>
 
@@ -148,18 +109,12 @@ class AboutDialog(QDialog):
         <p><b>Built for TRANSPETRO</b><br>
         Industrial time series data analysis and exploration.</p>
         """)
-        layout.addWidget(about_text)
 
-        return widget
-
-    def _create_credits_tab(self) -> QWidget:
-        """Create credits tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        credits_text = QTextEdit()
-        credits_text.setReadOnly(True)
-        credits_text.setHtml("""
+    def _populate_credits_tab(self):
+        """Popula a aba Credits com conteúdo HTML"""
+        if not self.credits_text:
+            return
+        self.credits_text.setHtml("""
         <h3>Credits and Acknowledgments</h3>
 
         <h4>Development Team:</h4>
@@ -195,19 +150,12 @@ class AboutDialog(QDialog):
         <p>To the open source community for providing the foundational libraries
         that make this application possible.</p>
         """)
-        layout.addWidget(credits_text)
 
-        return widget
-
-    def _create_system_tab(self) -> QWidget:
-        """Create system information tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        system_text = QTextEdit()
-        system_text.setReadOnly(True)
-
-        # Gather system information
+    def _populate_system_tab(self):
+        """Popula a aba System com informações do sistema"""
+        if not self.system_text:
+            return
+        
         import platform
         import sys
 
@@ -268,20 +216,13 @@ class AboutDialog(QDialog):
         <tr><td><b>PyVista:</b></td><td>{pyvista_version}</td></tr>
         </table>
         """
+        self.system_text.setHtml(system_info)
 
-        system_text.setHtml(system_info)
-        layout.addWidget(system_text)
-
-        return widget
-
-    def _create_license_tab(self) -> QWidget:
-        """Create license information tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        license_text = QTextEdit()
-        license_text.setReadOnly(True)
-        license_text.setPlainText("""
+    def _populate_license_tab(self):
+        """Popula a aba License com informações de licença"""
+        if not self.license_text:
+            return
+        self.license_text.setPlainText("""
 Platform Base v2.0
 Copyright (c) 2024 TRANSPETRO
 
@@ -299,6 +240,100 @@ third-party components.
 For support or questions about this software, please contact the
 development team.
         """)
-        layout.addWidget(license_text)
 
-        return widget
+    def _setup_ui_fallback(self):
+        """Setup user interface programaticamente (fallback)"""
+        self.setWindowTitle(tr("About Platform Base"))
+        self.setModal(True)
+        self.resize(500, 400)
+
+        layout = QVBoxLayout(self)
+
+        # Header with logo and title
+        header_layout = QHBoxLayout()
+
+        # Logo placeholder (would load from resources)
+        self.logo_label = QLabel()
+        self.logo_label.setFixedSize(64, 64)
+        self.logo_label.setStyleSheet("border: 1px solid gray; background: lightblue;")
+        self.logo_label.setText(tr("Logo"))
+        self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        header_layout.addWidget(self.logo_label)
+
+        # Title and version
+        title_layout = QVBoxLayout()
+
+        self.title_label = QLabel(tr("Platform Base"))
+        title_font = QFont()
+        title_font.setPointSize(16)
+        title_font.setBold(True)
+        self.title_label.setFont(title_font)
+        title_layout.addWidget(self.title_label)
+
+        self.version_label = QLabel(tr("Version 2.0.0"))
+        self.version_label.setStyleSheet("color: gray;")
+        title_layout.addWidget(self.version_label)
+
+        self.subtitle_label = QLabel(tr("Time Series Analysis Tool"))
+        title_layout.addWidget(self.subtitle_label)
+
+        title_layout.addStretch()
+        header_layout.addLayout(title_layout)
+
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
+
+        # Information tabs
+        self.tabs = QTabWidget()
+
+        # About tab
+        about_widget = QWidget()
+        about_layout = QVBoxLayout(about_widget)
+        self.about_text = QTextEdit()
+        self.about_text.setReadOnly(True)
+        about_layout.addWidget(self.about_text)
+        self.tabs.addTab(about_widget, tr("About"))
+
+        # Credits tab
+        credits_widget = QWidget()
+        credits_layout = QVBoxLayout(credits_widget)
+        self.credits_text = QTextEdit()
+        self.credits_text.setReadOnly(True)
+        credits_layout.addWidget(self.credits_text)
+        self.tabs.addTab(credits_widget, tr("Credits"))
+
+        # System info tab
+        system_widget = QWidget()
+        system_layout = QVBoxLayout(system_widget)
+        self.system_text = QTextEdit()
+        self.system_text.setReadOnly(True)
+        system_layout.addWidget(self.system_text)
+        self.tabs.addTab(system_widget, tr("System"))
+
+        # License tab
+        license_widget = QWidget()
+        license_layout = QVBoxLayout(license_widget)
+        self.license_text = QTextEdit()
+        self.license_text.setReadOnly(True)
+        license_layout.addWidget(self.license_text)
+        self.tabs.addTab(license_widget, tr("License"))
+
+        layout.addWidget(self.tabs)
+
+        # Close button
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        self.close_btn = QPushButton(tr("Close"))
+        self.close_btn.clicked.connect(self.accept)
+        self.close_btn.setDefault(True)
+        buttons_layout.addWidget(self.close_btn)
+
+        layout.addLayout(buttons_layout)
+
+        # Popula conteúdo das abas
+        self._populate_about_tab()
+        self._populate_credits_tab()
+        self._populate_system_tab()
+        self._populate_license_tab()
+

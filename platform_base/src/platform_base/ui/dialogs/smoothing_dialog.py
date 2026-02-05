@@ -7,6 +7,8 @@ Métodos disponíveis:
 - Savitzky-Golay: Suavização polinomial
 - Exponential: Suavização exponencial
 - Median: Filtro mediana
+
+Interface carregada de: desktop/ui_files/smoothingDialog.ui
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QDialogButtonBox,
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
@@ -31,13 +34,14 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
 
 
-class SmoothingDialog(QDialog):
+class SmoothingDialog(QDialog, UiLoaderMixin):
     """
     Diálogo para configuração de suavização de dados
 
@@ -47,24 +51,71 @@ class SmoothingDialog(QDialog):
     - Savitzky-Golay: Suavização polinomial local
     - Exponential: Suavização exponencial
     - Median: Filtro mediana
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
     """
+    
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/smoothingDialog.ui"
 
     smoothing_applied = pyqtSignal(dict)  # config
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+        
+        self._setup_connections()
+
+        logger.debug("smoothing_dialog_initialized", ui_loaded=self._ui_loaded)
+
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        # Encontra widgets do arquivo .ui
+        self.content_widget = self.findChild(QWidget, "contentWidget")
+        self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        
+        # Se o contentWidget existe mas está vazio, preenche programaticamente
+        if self.content_widget:
+            content_layout = self.content_widget.layout()
+            if content_layout and content_layout.count() == 0:
+                # UI está vazio, criar conteúdo programaticamente
+                self._create_content_widgets(content_layout)
+        
+        logger.debug("smoothing_dialog_ui_loaded_from_file")
+
+    def _create_content_widgets(self, layout: QVBoxLayout):
+        """Cria widgets de conteúdo quando o .ui está vazio"""
+        # Header
+        header = QLabel("〰️ Configurar Suavização de Dados")
+        header.setFont(QFont("", 14, QFont.Weight.Bold))
+        header.setStyleSheet("color: #0d6efd; padding: 10px;")
+        layout.addWidget(header)
+
+        # Método de suavização
+        method_group = QGroupBox("📊 Método de Suavização")
+        method_layout = QFormLayout(method_group)
+
+        self._method = QComboBox()
+        self._method.addItems([
+            "gaussian", "moving_average", "savitzky_golay",
+            "exponential", "median",
+        ])
+        method_layout.addRow("Método:", self._method)
+        layout.addWidget(method_group)
+        
+        # Parâmetros serão adicionados via _update_params_visibility
+
+    def _setup_ui_fallback(self):
+        """Configura interface do diálogo (fallback programático)"""
         self.setWindowTitle("〰️ Configurar Suavização")
         self.setMinimumWidth(450)
         self.setMinimumHeight(400)
-
-        self._setup_ui()
-        self._setup_connections()
-
-        logger.debug("smoothing_dialog_initialized")
-
-    def _setup_ui(self):
-        """Configura interface do diálogo"""
+        
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
 

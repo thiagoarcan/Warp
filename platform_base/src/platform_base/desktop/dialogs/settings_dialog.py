@@ -420,11 +420,13 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         self.session_state = session_state
         self.settings_tabs = []
 
-        # Por enquanto, usar sempre criação programática
-        # TODO: Migrar para usar .ui quando widgets dinâmicos forem suportados
-        self._setup_ui_fallback()
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
 
-        logger.debug("settings_dialog_initialized")
+        logger.debug("settings_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui

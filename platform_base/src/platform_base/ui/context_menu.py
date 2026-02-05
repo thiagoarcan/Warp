@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
 
@@ -33,15 +34,56 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class CompareSeriesDialog(QDialog):
-    """Diálogo para comparação de séries"""
+class CompareSeriesDialog(QDialog, UiLoaderMixin):
+    """
+    Diálogo para comparação de séries
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/compareSeriesDialog.ui"
 
     def __init__(self, available_series: list, parent=None):
         super().__init__(parent)
+        self.available_series = available_series
         self.setWindowTitle("Comparar Séries")
         self.setMinimumWidth(400)
 
-        layout = QVBoxLayout(self)
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self.series1_combo = self.findChild(QComboBox, "series1Combo")
+        self.series2_combo = self.findChild(QComboBox, "series2Combo")
+        self.correlation_check = self.findChild(QCheckBox, "correlationCheck")
+        self.rmse_check = self.findChild(QCheckBox, "rmseCheck")
+        self.mae_check = self.findChild(QCheckBox, "maeCheck")
+        self.dtw_check = self.findChild(QCheckBox, "dtwCheck")
+        self.result_text = self.findChild(QTextEdit, "resultText")
+        
+        compare_btn = self.findChild(QPushButton, "compareBtn")
+        close_btn = self.findChild(QPushButton, "closeBtn")
+        
+        # Popula combos com séries disponíveis
+        if self.series1_combo:
+            self.series1_combo.addItems(self.available_series)
+        if self.series2_combo:
+            self.series2_combo.addItems(self.available_series)
+            if len(self.available_series) > 1:
+                self.series2_combo.setCurrentIndex(1)
+        
+        # Conecta sinais
+        if compare_btn:
+            compare_btn.clicked.connect(self._compare)
+        if close_btn:
+            close_btn.clicked.connect(self.accept)
+
+    def _setup_ui_fallback(self):
 
         # Seleção de séries
         form = QFormLayout()
@@ -118,13 +160,42 @@ class CompareSeriesDialog(QDialog):
         self.result_text.setPlainText("\n".join(results))
 
 
-class SmoothingDialog(QDialog):
-    """Diálogo para suavização visual"""
+class SmoothingDialog(QDialog, UiLoaderMixin):
+    """
+    Diálogo para suavização visual
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/smoothingConfigDialog.ui"
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Suavização Visual")
 
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self.method_combo = self.findChild(QComboBox, "methodCombo")
+        self.window_spin = self.findChild(QSpinBox, "windowSpin")
+        self.sigma_spin = self.findChild(QDoubleSpinBox, "sigmaSpin")
+        
+        apply_btn = self.findChild(QPushButton, "applyBtn")
+        cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        
+        if apply_btn:
+            apply_btn.clicked.connect(self.accept)
+        if cancel_btn:
+            cancel_btn.clicked.connect(self.reject)
+
+    def _setup_ui_fallback(self):
+        """Fallback: cria UI programaticamente"""
         layout = QVBoxLayout(self)
 
         form = QFormLayout()
@@ -168,21 +239,61 @@ class SmoothingDialog(QDialog):
         }
 
 
-class AnnotationDialog(QDialog):
-    """Diálogo para adicionar anotação"""
+class AnnotationDialog(QDialog, UiLoaderMixin):
+    """
+    Diálogo para adicionar anotação
+    
+    Interface carregada do arquivo .ui via UiLoaderMixin.
+    """
+
+    # Arquivo .ui que define a interface
+    UI_FILE = "desktop/ui_files/annotationDialog.ui"
 
     def __init__(self, x_pos: float = 0, y_pos: float = 0, parent=None):
         super().__init__(parent)
+        self.x_pos = x_pos
+        self.y_pos = y_pos
         self.setWindowTitle("Adicionar Anotação")
         self.setMinimumWidth(400)
 
+        # Tenta carregar do arquivo .ui, senão usa fallback
+        if not self._load_ui():
+            self._setup_ui_fallback()
+        else:
+            self._setup_ui_from_file()
+
+    def _setup_ui_from_file(self):
+        """Configura widgets carregados do arquivo .ui"""
+        self.x_spin = self.findChild(QDoubleSpinBox, "xSpin")
+        self.y_spin = self.findChild(QDoubleSpinBox, "ySpin")
+        self.text_edit = self.findChild(QTextEdit, "textEdit")
+        self.arrow_check = self.findChild(QCheckBox, "arrowCheck")
+        self.color_combo = self.findChild(QComboBox, "colorCombo")
+        
+        add_btn = self.findChild(QPushButton, "addBtn")
+        cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        
+        # Configura valores iniciais
+        if self.x_spin:
+            self.x_spin.setValue(self.x_pos)
+        if self.y_spin:
+            self.y_spin.setValue(self.y_pos)
+        
+        # Conecta sinais
+        if add_btn:
+            add_btn.clicked.connect(self.accept)
+        if cancel_btn:
+            cancel_btn.clicked.connect(self.reject)
+
+    def _setup_ui_fallback(self):
+        """Fallback: cria UI programaticamente"""
         layout = QVBoxLayout(self)
 
         form = QFormLayout()
 
         self.x_spin = QDoubleSpinBox()
         self.x_spin.setRange(-1e10, 1e10)
-        self.x_spin.setValue(x_pos)
+        self.x_spin.setValue(self.x_pos)
         self.x_spin.setDecimals(4)
         form.addRow("Posição X:", self.x_spin)
 

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SyncSettingsWidget</class>
+ <widget class="QWidget" name="SyncSettingsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>150</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Synchronization Settings</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <property name="leftMargin">
+    <number>10</number>
+   </property>
+   <property name="topMargin">
+    <number>10</number>
+   </property>
+   <property name="rightMargin">
+    <number>10</number>
+   </property>
+   <property name="bottomMargin">
+    <number>10</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="methodLabel">
+     <property name="text">
+      <string>Method:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="syncMethodCombo">
+     <property name="toolTip">
+      <string>Select synchronization method</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>common_grid_interpolate</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>kalman_align</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>dtw_align</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="freqLabel">
+     <property name="text">
+      <string>Target Frequency:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QDoubleSpinBox" name="targetFreqSpin">
+     <property name="toolTip">
+      <string>Target sampling frequency in Hz</string>
+     </property>
+     <property name="suffix">
+      <string> Hz</string>
+     </property>
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="minimum">
+      <double>0.001000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="resampleLabel">
+     <property name="text">
+      <string>Resample Method:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="resampleMethodCombo">
+     <property name="toolTip">
+      <string>Interpolation method for resampling</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>linear</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>cubic</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>nearest</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
