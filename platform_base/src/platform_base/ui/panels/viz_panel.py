@@ -184,8 +184,8 @@ class MatplotlibWidget(QWidget):
             # Emitir sinal de coordenadas
             self.coordinates_changed.emit(x, y)
             
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error updating crosshair position: {e}")
 
     def _create_toolbar(self) -> QWidget:
         """Cria toolbar compacta para o plot"""
@@ -451,8 +451,8 @@ class MatplotlibWidget(QWidget):
         except AttributeError:
             try:
                 legend.draggable(True)
-            except Exception:
-                pass  # Ignorar se não suportado
+            except Exception as e:
+                logger.debug(f"Legend draggable not supported: {e}")
 
         self._legend = legend
         self._legend_line_map = {}
@@ -797,8 +797,8 @@ class MatplotlibWidget(QWidget):
             ax.set_xlim(xlim[0] + dx, xlim[1] + dx)
             ax.set_ylim(ylim[0] + dy, ylim[1] + dy)
             self.canvas.draw()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to pan plot: {e}")
 
     def _save_image(self):
         """Save plot as image"""
@@ -1161,8 +1161,8 @@ class MatplotlibWidget(QWidget):
                 for fill in self._area_fills:
                     try:
                         fill.remove()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"Failed to remove area fill: {e}")
                 self._area_fills = []
                 self.canvas.draw()
                 self._info_label.setText("Área removida")
