@@ -53,6 +53,7 @@ from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.io.loader import LoadConfig
 from platform_base.ui.workers.file_worker import FileLoadWorker
 from platform_base.utils.logging import get_logger
+from platform_base.utils.widgets import StableComboBox
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
@@ -60,74 +61,6 @@ if TYPE_CHECKING:
 
 
 logger = get_logger(__name__)
-
-
-class StableComboBox(QComboBox):
-    """
-    ComboBox estável que não fecha automaticamente no Windows.
-    
-    Solução robusta para o problema de QWindowsWindow::setMouseGrabEnabled.
-    """
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        self.setMaxVisibleItems(20)
-        
-        # Flag para controlar estado do popup
-        self._popup_visible = False
-        self._ignore_hide = False
-        
-        # Configurar a view para não fechar em eventos de mouse
-        self.view().setMouseTracking(True)
-        self.view().viewport().installEventFilter(self)
-        
-    def showPopup(self):
-        """Override para garantir que o popup seja mostrado corretamente"""
-        self._ignore_hide = True
-        self._popup_visible = True
-        super().showPopup()
-        
-        # Usar QTimer para garantir que o popup permaneça aberto
-        QTimer.singleShot(100, self._enable_hide)
-        self.view().setFocus()
-        
-    def _enable_hide(self):
-        """Re-habilita o fechamento após delay inicial"""
-        self._ignore_hide = False
-        
-    def hidePopup(self):
-        """Override para controlar quando o popup pode fechar"""
-        if self._ignore_hide:
-            return
-        self._popup_visible = False
-        super().hidePopup()
-        
-    def eventFilter(self, obj, event):
-        """Filtrar eventos para evitar fechamento prematuro"""
-        from PyQt6.QtCore import QEvent
-        
-        if obj == self.view().viewport():
-            if event.type() == QEvent.Type.MouseButtonRelease:
-                index = self.view().indexAt(event.pos())
-                if index.isValid():
-                    QTimer.singleShot(50, lambda: self._select_item(index.row()))
-                    return True
-        return super().eventFilter(obj, event)
-    
-    def _select_item(self, row: int):
-        """Seleciona item de forma segura"""
-        if 0 <= row < self.count():
-            self.setCurrentIndex(row)
-            self._popup_visible = False
-            super().hidePopup()
-        
-    def focusOutEvent(self, event):
-        """Evitar fechamento prematuro do popup"""
-        if self._popup_visible:
-            return
-        super().focusOutEvent(event)
 
 
 class CompactDataPanel(QWidget, UiLoaderMixin):
@@ -486,6 +419,25 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._updating_ui = False
         
         logger.debug("data_panel_connections_setup_completed")
+
+    def _on_series_selection(self):
+        """Handler para seleção de série via itemSelectionChanged (sem parâmetros)"""
+        # Obtém o primeiro item selecionado
+        tree = self.series_tree if hasattr(self, 'series_tree') and self.series_tree else getattr(self, '_series_tree', None)
+        if not tree:
+            return
+        
+        selected_items = tree.selectedItems()
+        if not selected_items:
+            return
+        
+        item = selected_items[0]
+        data = item.data(0, Qt.ItemDataRole.UserRole)
+        
+        if data and len(data) == 2:
+            dataset_id, series_id = data
+            self.series_selected.emit(dataset_id, series_id)
+            logger.debug("series_selected", dataset_id=dataset_id, series_id=series_id)
 
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):

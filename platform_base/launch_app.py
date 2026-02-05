@@ -17,10 +17,11 @@ try:
     from PyQt6.QtGui import QIcon
     from PyQt6.QtWidgets import QApplication, QMessageBox
 
-    # Import main window
+    # Import main window - usa versão unificada com todas as funcionalidades
     from platform_base.core.dataset_store import DatasetStore
-    from platform_base.ui.main_window import ModernMainWindow
-    from platform_base.ui.state import SessionState
+    from platform_base.desktop.session_state import SessionState
+    from platform_base.desktop.signal_hub import SignalHub
+    from platform_base.ui.main_window_unified import ModernMainWindow
     from platform_base.utils.logging import get_logger
     
     logger = get_logger(__name__)
@@ -41,8 +42,11 @@ try:
             dataset_store = DatasetStore()
             session_state = SessionState(dataset_store)
             
-            # Create and show main window
-            main_window = ModernMainWindow(session_state)
+            # Create signal hub for inter-component communication
+            signal_hub = SignalHub()
+            
+            # Create and show main window with all features
+            main_window = ModernMainWindow(session_state, signal_hub)
             main_window.show()
             
             # Start event loop

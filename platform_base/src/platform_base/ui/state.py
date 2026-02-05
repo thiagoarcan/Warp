@@ -40,6 +40,9 @@ __all__ = [
     'ViewState',
     'SessionState',
     'Selection',
+    'SessionSelection',
+    'ProcessingState',
+    'SeriesSelection',
 ]
 
 
@@ -73,6 +76,28 @@ class ViewState:
     downsampling_threshold: int = 10000
 
 
+@dataclass
+class SessionSelection:
+    """Estado de seleção para uso externo."""
+    dataset_id: str | None = None
+    series_ids: set = field(default_factory=set)
+
+
+@dataclass
+class ProcessingState:
+    """Estado de processamento com operações ativas."""
+    is_processing: bool = False
+    current_operation: str | None = None
+    active_operations: dict = field(default_factory=dict)
+
+
+@dataclass
+class SeriesSelection:
+    """Seleção individual de série."""
+    dataset_id: str | None = None
+    series_id: str | None = None
+
+
 class SessionState(QObject):
     """
     State management centralizado para aplicação PyQt6
@@ -87,11 +112,12 @@ class SessionState(QObject):
 
     # Signals para notificar mudanças de estado
     dataset_changed = pyqtSignal(str)  # dataset_id
-    selection_changed = pyqtSignal()
+    selection_changed = pyqtSignal()  # Selection changed (use selection property)
     operation_started = pyqtSignal(str)  # operation_name
     operation_finished = pyqtSignal(str, bool)  # operation_name, success
     operation_progress = pyqtSignal(float, str)  # percent, message
     view_changed = pyqtSignal()
+    ui_state_changed = pyqtSignal(object)  # UI state object
 
     def __init__(self, dataset_store: DatasetStore):
         super().__init__()
@@ -123,6 +149,11 @@ class SessionState(QObject):
         return self._session_id
 
     @property
+    def dataset_store(self):
+        """Acesso ao DatasetStore central."""
+        return self._dataset_store
+
+    @property
     def current_dataset(self) -> DatasetID | None:
         with QMutexLocker(self._mutex):
             return self._current_dataset
@@ -149,6 +180,38 @@ class SessionState(QObject):
     def loaded_datasets(self) -> list[DatasetID]:
         with QMutexLocker(self._mutex):
             return list(self._loaded_datasets.keys())
+
+    @property
+    def selection(self) -> "SessionSelection":
+        """Retorna objeto de seleção com dataset_id e series_ids."""
+        with QMutexLocker(self._mutex):
+            return SessionSelection(
+                dataset_id=self._current_dataset,
+                series_ids=set(self._selection.selected_series),
+            )
+
+    @property
+    def processing(self) -> "ProcessingState":
+        """Retorna estado de processamento com operações ativas."""
+        with QMutexLocker(self._mutex):
+            return ProcessingState(
+                is_processing=self._operation.is_processing,
+                current_operation=self._operation.current_operation,
+                active_operations={},  # Mapa de operações ativas
+            )
+
+    def get_selected_series(self) -> list | None:
+        """Retorna lista de séries selecionadas."""
+        with QMutexLocker(self._mutex):
+            if not self._current_dataset or not self._selection.selected_series:
+                return None
+            result = []
+            for series_id in self._selection.selected_series:
+                result.append(SeriesSelection(
+                    dataset_id=self._current_dataset,
+                    series_id=series_id,
+                ))
+            return result if result else None
 
     def add_dataset(self, dataset: Dataset) -> DatasetID:
         """Adiciona dataset e atualiza estado - CORRIGIDO: mantém todos os datasets"""
