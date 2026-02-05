@@ -600,25 +600,44 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         self._search_edit = self.findChild(QLineEdit, "searchEdit")
         self._table = self.findChild(QTableWidget, "shortcutsTable")
+        self._reset_btn = self.findChild(QPushButton, "resetBtn")
+        self._reset_all_btn = self.findChild(QPushButton, "resetAllBtn")
+        self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
         
-        reset_btn = self.findChild(QPushButton, "resetBtn")
-        reset_all_btn = self.findChild(QPushButton, "resetAllBtn")
-        button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        # Valida widgets obrigatórios
+        self._validate_widgets()
         
-        if self._search_edit:
-            self._search_edit.textChanged.connect(self._filter_shortcuts)
-        if self._table:
-            self._table.cellDoubleClicked.connect(self._edit_shortcut)
-        if reset_btn:
-            reset_btn.clicked.connect(self._reset_selected)
-        if reset_all_btn:
-            reset_all_btn.clicked.connect(self._reset_all)
-        if button_box:
-            button_box.accepted.connect(self._apply_and_close)
-            button_box.rejected.connect(self.reject)
-            apply_btn = button_box.button(QDialogButtonBox.StandardButton.Apply)
-            if apply_btn:
-                apply_btn.clicked.connect(self._apply_changes)
+        # Conecta sinais
+        self._setup_connections()
+    
+    def _validate_widgets(self):
+        """Valida que todos os widgets obrigatórios foram carregados"""
+        required_widgets = {
+            "searchEdit": self._search_edit,
+            "shortcutsTable": self._table,
+            "resetBtn": self._reset_btn,
+            "resetAllBtn": self._reset_all_btn,
+            "buttonBox": self._button_box,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        if missing:
+            raise RuntimeError(
+                f"ShortcutsDialog: Widgets não encontrados no arquivo .ui: {missing}"
+            )
+    
+    def _setup_connections(self):
+        """Conecta sinais aos slots"""
+        self._search_edit.textChanged.connect(self._filter_shortcuts)
+        self._table.cellDoubleClicked.connect(self._edit_shortcut)
+        self._reset_btn.clicked.connect(self._reset_selected)
+        self._reset_all_btn.clicked.connect(self._reset_all)
+        self._button_box.accepted.connect(self._apply_and_close)
+        self._button_box.rejected.connect(self.reject)
+        
+        apply_btn = self._button_box.button(QDialogButtonBox.StandardButton.Apply)
+        if apply_btn:
+            apply_btn.clicked.connect(self._apply_changes)
 
     def _load_shortcuts(self):
         """Load shortcuts into table."""

@@ -220,24 +220,47 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
         self.percentile_type = self.findChild(QComboBox, "percentileType")
         self.mode_combo = self.findChild(QComboBox, "modeCombo")
         
-        apply_threshold_btn = self.findChild(QPushButton, "applyThresholdBtn")
-        apply_percentile_btn = self.findChild(QPushButton, "applyPercentileBtn")
-        apply_btn = self.findChild(QPushButton, "applyBtn")
-        close_btn = self.findChild(QPushButton, "closeBtn")
+        self.apply_threshold_btn = self.findChild(QPushButton, "applyThresholdBtn")
+        self.apply_percentile_btn = self.findChild(QPushButton, "applyPercentileBtn")
+        self.apply_btn = self.findChild(QPushButton, "applyBtn")
+        self.close_btn = self.findChild(QPushButton, "closeBtn")
+        
+        # Valida todos os widgets obrigatórios
+        self._validate_widgets()
         
         # Configura valores iniciais
-        if self.condition_edit:
-            self.condition_edit.setPlainText("value > 0")
+        self.condition_edit.setPlainText("value > 0")
         
         # Conecta sinais
-        if apply_threshold_btn:
-            apply_threshold_btn.clicked.connect(self._apply_threshold_condition)
-        if apply_percentile_btn:
-            apply_percentile_btn.clicked.connect(self._apply_percentile_condition)
-        if apply_btn:
-            apply_btn.clicked.connect(self._apply_selection)
-        if close_btn:
-            close_btn.clicked.connect(self.close)
+        self._setup_connections()
+    
+    def _validate_widgets(self):
+        """Valida que todos os widgets obrigatórios foram carregados"""
+        required_widgets = {
+            "conditionEdit": self.condition_edit,
+            "thresholdSpin": self.threshold_spin,
+            "thresholdOperator": self.threshold_operator,
+            "percentileSpin": self.percentile_spin,
+            "percentileType": self.percentile_type,
+            "modeCombo": self.mode_combo,
+            "applyThresholdBtn": self.apply_threshold_btn,
+            "applyPercentileBtn": self.apply_percentile_btn,
+            "applyBtn": self.apply_btn,
+            "closeBtn": self.close_btn,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        if missing:
+            raise RuntimeError(
+                f"ConditionalSelectionDialog: Widgets não encontrados no arquivo .ui: {missing}"
+            )
+    
+    def _setup_connections(self):
+        """Conecta sinais aos slots"""
+        self.apply_threshold_btn.clicked.connect(self._apply_threshold_condition)
+        self.apply_percentile_btn.clicked.connect(self._apply_percentile_condition)
+        self.apply_btn.clicked.connect(self._apply_selection)
+        self.close_btn.clicked.connect(self.close)
 
     def _apply_threshold_condition(self):
         """Apply threshold-based condition"""
@@ -319,6 +342,30 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
         self.std_value_label = self.findChild(QLabel, "stdValueLabel")
         self.time_ranges_label = self.findChild(QLabel, "timeRangesLabel")
         self.total_duration_label = self.findChild(QLabel, "totalDurationLabel")
+        
+        # Valida todos os widgets obrigatórios
+        self._validate_widgets()
+    
+    def _validate_widgets(self):
+        """Valida que todos os widgets obrigatórios foram carregados"""
+        required_widgets = {
+            "totalPointsLabel": self.total_points_label,
+            "selectedPointsLabel": self.selected_points_label,
+            "selectionRatioLabel": self.selection_ratio_label,
+            "selectionProgress": self.selection_progress,
+            "minValueLabel": self.min_value_label,
+            "maxValueLabel": self.max_value_label,
+            "meanValueLabel": self.mean_value_label,
+            "stdValueLabel": self.std_value_label,
+            "timeRangesLabel": self.time_ranges_label,
+            "totalDurationLabel": self.total_duration_label,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        if missing:
+            raise RuntimeError(
+                f"SelectionStatsWidget: Widgets não encontrados no arquivo .ui: {missing}"
+            )
 
     def update_stats(self, total_points: int, selected_points: int,
                     value_stats: dict[str, float] | None = None,
@@ -406,15 +453,37 @@ class SelectionPanel(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
+        # Busca containers do arquivo .ui
+        from PyQt6.QtWidgets import QFrame
+        
+        self.toolbar_container = self.findChild(QFrame, "toolbarContainer")
+        self.stats_container = self.findChild(QFrame, "statsContainer")
+        
+        # Valida widgets obrigatórios
+        self._validate_widgets()
+        
         # Cria os widgets filhos
         self.toolbar = SelectionToolbar()
         self.stats_widget = SelectionStatsWidget()
         
-        # Adiciona ao layout do arquivo .ui
-        main_layout = self.layout()
-        if main_layout:
-            main_layout.addWidget(self.toolbar)
-            main_layout.addWidget(self.stats_widget)
+        # Adiciona aos containers do arquivo .ui
+        if self.toolbar_container and self.toolbar_container.layout():
+            self.toolbar_container.layout().addWidget(self.toolbar)
+        if self.stats_container and self.stats_container.layout():
+            self.stats_container.layout().addWidget(self.stats_widget)
+    
+    def _validate_widgets(self):
+        """Valida que todos os widgets obrigatórios foram carregados"""
+        required_widgets = {
+            "toolbarContainer": self.toolbar_container,
+            "statsContainer": self.stats_container,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        if missing:
+            raise RuntimeError(
+                f"SelectionPanel: Widgets não encontrados no arquivo .ui: {missing}"
+            )
 
     def _connect_signals(self):
         """Connect internal signals"""

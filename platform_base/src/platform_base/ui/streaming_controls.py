@@ -120,28 +120,57 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
         self.window_points_label = self.findChild(QLabel, "windowPointsLabel")
         self.fps_label = self.findChild(QLabel, "fpsLabel")
         
-        # Conecta sinais
-        if self.play_pause_btn:
-            self.play_pause_btn.clicked.connect(self._toggle_playback)
-        if self.stop_btn:
-            self.stop_btn.clicked.connect(self._stop_playback)
-        if self.time_slider:
-            self.time_slider.valueChanged.connect(self._on_slider_changed)
-        if self.speed_spinbox:
-            self.speed_spinbox.valueChanged.connect(self._on_speed_changed)
-        if self.window_size_spinbox:
-            self.window_size_spinbox.valueChanged.connect(self._on_window_size_changed)
-        if self.interval_spinbox:
-            self.interval_spinbox.valueChanged.connect(self._on_interval_changed)
-        if self.hide_nan_checkbox:
-            self.hide_nan_checkbox.stateChanged.connect(self._on_filters_changed)
-        if self.hide_interpolated_checkbox:
-            self.hide_interpolated_checkbox.stateChanged.connect(self._on_filters_changed)
+        # Validação de widgets essenciais
+        self._validate_widgets()
+
+    def _validate_widgets(self):
+        """Valida que todos os widgets essenciais foram encontrados no .ui"""
+        required_widgets = {
+            "playPauseBtn": self.play_pause_btn,
+            "stopBtn": self.stop_btn,
+            "loopCheckbox": self.loop_checkbox,
+            "timeSlider": self.time_slider,
+            "timeLabelStart": self.time_label_start,
+            "timeLabelEnd": self.time_label_end,
+            "currentTimeLabel": self.current_time_label,
+            "progressBar": self.progress_bar,
+            "speedSpinbox": self.speed_spinbox,
+            "windowSizeSpinbox": self.window_size_spinbox,
+            "intervalSpinbox": self.interval_spinbox,
+            "hideNanCheckbox": self.hide_nan_checkbox,
+            "totalPointsLabel": self.total_points_label,
+            "eligiblePointsLabel": self.eligible_points_label,
+            "windowPointsLabel": self.window_points_label,
+            "fpsLabel": self.fps_label,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        
+        if missing:
+            raise RuntimeError(
+                f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
+                f"Verifique se {self.UI_FILE} está completo."
+            )
 
     def _setup_connections(self):
         """Configura conexões de sinais"""
-        # Connect loop checkbox
+        # Playback controls
+        self.play_pause_btn.clicked.connect(self._toggle_playback)
+        self.stop_btn.clicked.connect(self._stop_playback)
         self.loop_checkbox.stateChanged.connect(self._on_loop_changed)
+        
+        # Time controls
+        self.time_slider.valueChanged.connect(self._on_slider_changed)
+        
+        # Settings controls
+        self.speed_spinbox.valueChanged.connect(self._on_speed_changed)
+        self.window_size_spinbox.valueChanged.connect(self._on_window_size_changed)
+        self.interval_spinbox.valueChanged.connect(self._on_interval_changed)
+        
+        # Filter controls
+        self.hide_nan_checkbox.stateChanged.connect(self._on_filters_changed)
+        if self.hide_interpolated_checkbox:
+            self.hide_interpolated_checkbox.stateChanged.connect(self._on_filters_changed)
 
     def set_dataset(self, dataset: Dataset):
         """Define dataset para streaming"""

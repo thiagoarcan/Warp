@@ -395,24 +395,51 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
         self.export_btn = self.findChild(QPushButton, "exportBtn")
         self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
         
+        # Validação de widgets essenciais
+        self._validate_widgets()
+        
         # Conecta sinais
-        if self.browse_btn:
-            self.browse_btn.clicked.connect(self._browse_output_path)
-        if self.quality_combo:
-            self.quality_combo.currentTextChanged.connect(self._on_quality_changed)
-        if self.full_duration_checkbox:
-            self.full_duration_checkbox.stateChanged.connect(self._on_duration_mode_changed)
-        if self.export_btn:
-            self.export_btn.clicked.connect(self._start_export)
-            self.export_btn.setDefault(True)
-        if self.cancel_btn:
-            self.cancel_btn.clicked.connect(self.reject)
+        self._setup_connections()
         
         # Inicializa progresso como oculto
         if self.progress_bar:
             self.progress_bar.setVisible(False)
         if self.status_label:
             self.status_label.setVisible(False)
+
+    def _validate_widgets(self):
+        """Valida que todos os widgets essenciais foram encontrados no .ui"""
+        required_widgets = {
+            "pathEdit": self.path_edit,
+            "browseBtn": self.browse_btn,
+            "formatCombo": self.format_combo,
+            "qualityCombo": self.quality_combo,
+            "widthSpinbox": self.width_spinbox,
+            "heightSpinbox": self.height_spinbox,
+            "fpsSpinbox": self.fps_spinbox,
+            "fullDurationCheckbox": self.full_duration_checkbox,
+            "customDurationSpinbox": self.custom_duration_spinbox,
+            "layoutCombo": self.layout_combo,
+            "progressBar": self.progress_bar,
+            "exportBtn": self.export_btn,
+            "cancelBtn": self.cancel_btn,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        
+        if missing:
+            raise RuntimeError(
+                f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
+                f"Verifique se {self.UI_FILE} está completo."
+            )
+
+    def _setup_connections(self):
+        """Configura conexões de sinais entre widgets"""
+        self.browse_btn.clicked.connect(self._browse_output_path)
+        self.quality_combo.currentTextChanged.connect(self._on_quality_changed)
+        self.full_duration_checkbox.stateChanged.connect(self._on_duration_mode_changed)
+        self.export_btn.clicked.connect(self._start_export)
+        self.cancel_btn.clicked.connect(self.reject)
 
     def _update_ui_from_settings(self):
         """Atualiza UI baseada nas configurações"""

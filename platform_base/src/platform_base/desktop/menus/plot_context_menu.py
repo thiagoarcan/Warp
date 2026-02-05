@@ -70,28 +70,57 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        # Widgets comuns
-        apply_btn = self.findChild(QPushButton, "applyBtn")
-        cancel_btn = self.findChild(QPushButton, "cancelBtn")
+        # Widgets de botões
+        self.apply_btn = self.findChild(QPushButton, "applyBtn")
+        self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
         
-        # Busca widgets específicos por operação
+        # Widgets de derivada
         self.derivative_order = self.findChild(QSpinBox, "derivativeOrder")
         self.derivative_method = self.findChild(QComboBox, "derivativeMethod")
         self.enable_smoothing = self.findChild(QCheckBox, "enableSmoothing")
         self.smoothing_window = self.findChild(QSpinBox, "smoothingWindow")
+        
+        # Widgets de integral
         self.integral_method = self.findChild(QComboBox, "integralMethod")
+        
+        # Widgets de smoothing
         self.smooth_method = self.findChild(QComboBox, "smoothMethod")
         self.window_size = self.findChild(QSpinBox, "windowSize")
         self.polyorder = self.findChild(QSpinBox, "polyorder")
         
+        # Valida widgets obrigatórios
+        self._validate_widgets()
+        
         # Conecta sinais
-        if apply_btn:
-            apply_btn.clicked.connect(self._apply_operation)
-            apply_btn.setDefault(True)
-        if cancel_btn:
-            cancel_btn.clicked.connect(self.reject)
-        if self.enable_smoothing and self.smoothing_window:
-            self.enable_smoothing.toggled.connect(self.smoothing_window.setEnabled)
+        self._setup_connections()
+    
+    def _validate_widgets(self):
+        """Valida que todos os widgets obrigatórios foram carregados"""
+        required_widgets = {
+            "applyBtn": self.apply_btn,
+            "cancelBtn": self.cancel_btn,
+            "derivativeOrder": self.derivative_order,
+            "derivativeMethod": self.derivative_method,
+            "enableSmoothing": self.enable_smoothing,
+            "smoothingWindow": self.smoothing_window,
+            "integralMethod": self.integral_method,
+            "smoothMethod": self.smooth_method,
+            "windowSize": self.window_size,
+            "polyorder": self.polyorder,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        if missing:
+            raise RuntimeError(
+                f"MathAnalysisDialog: Widgets não encontrados no arquivo .ui: {missing}"
+            )
+    
+    def _setup_connections(self):
+        """Conecta sinais aos slots"""
+        self.apply_btn.clicked.connect(self._apply_operation)
+        self.apply_btn.setDefault(True)
+        self.cancel_btn.clicked.connect(self.reject)
+        self.enable_smoothing.toggled.connect(self.smoothing_window.setEnabled)
 
     def _apply_operation(self):
         """Apply the selected operation"""

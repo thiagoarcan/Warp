@@ -6,44 +6,428 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>550</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>VideoExportDialog</string>
+   <string>🎬 Exportar Vídeo</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
+   
+   <!-- Output Settings -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QGroupBox" name="outputGroup">
+     <property name="title">
+      <string>📁 Arquivo de Saída</string>
+     </property>
+     <layout class="QFormLayout" name="outputLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="pathLabel">
+        <property name="text">
+         <string>Destino:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="pathRowLayout">
+        <item>
+         <widget class="QLabel" name="pathEdit">
+          <property name="text">
+           <string>Nenhum arquivo selecionado</string>
+          </property>
+          <property name="styleSheet">
+           <string>color: gray; font-style: italic;</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="browseBtn">
+          <property name="text">
+           <string>Procurar...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="formatLabelText">
+        <property name="text">
+         <string>Formato:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="formatCombo">
+        <property name="toolTip">
+         <string>Formato do arquivo de vídeo</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>MP4 (H.264)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>AVI</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>MOV</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>WebM</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GIF</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Quality Settings -->
+   <item>
+    <widget class="QGroupBox" name="qualityGroup">
+     <property name="title">
+      <string>📊 Qualidade</string>
+     </property>
+     <layout class="QFormLayout" name="qualityLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="qualityLabel">
+        <property name="text">
+         <string>Preset:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="qualityCombo">
+        <property name="toolTip">
+         <string>Preset de qualidade (define resolução e FPS)</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Low (720p, 15fps)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Medium (1080p, 30fps)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>High (1080p, 60fps)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ultra (4K, 30fps)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Custom</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="resolutionLabel">
+        <property name="text">
+         <string>Resolução:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="resolutionLayout">
+        <item>
+         <widget class="QSpinBox" name="widthSpinbox">
+          <property name="minimum">
+           <number>320</number>
+          </property>
+          <property name="maximum">
+           <number>7680</number>
+          </property>
+          <property name="value">
+           <number>1920</number>
+          </property>
+          <property name="suffix">
+           <string> px</string>
+          </property>
+          <property name="toolTip">
+           <string>Largura do vídeo</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="resolutionSeparator">
+          <property name="text">
+           <string>×</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="heightSpinbox">
+          <property name="minimum">
+           <number>240</number>
+          </property>
+          <property name="maximum">
+           <number>4320</number>
+          </property>
+          <property name="value">
+           <number>1080</number>
+          </property>
+          <property name="suffix">
+           <string> px</string>
+          </property>
+          <property name="toolTip">
+           <string>Altura do vídeo</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="fpsLabel">
+        <property name="text">
+         <string>FPS:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="fpsSpinbox">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>120</number>
+        </property>
+        <property name="value">
+         <number>30</number>
+        </property>
+        <property name="suffix">
+         <string> fps</string>
+        </property>
+        <property name="toolTip">
+         <string>Quadros por segundo</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Duration Settings -->
+   <item>
+    <widget class="QGroupBox" name="durationGroup">
+     <property name="title">
+      <string>⏱️ Duração</string>
+     </property>
+     <layout class="QFormLayout" name="durationLayout">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="fullDurationCheckbox">
+        <property name="text">
+         <string>Usar duração completa dos dados</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Exporta toda a linha do tempo dos dados</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="customDurationLabel">
+        <property name="text">
+         <string>Duração personalizada:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="customDurationSpinbox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>3600</number>
+        </property>
+        <property name="value">
+         <number>60</number>
+        </property>
+        <property name="suffix">
+         <string> segundos</string>
+        </property>
+        <property name="toolTip">
+         <string>Duração do vídeo em segundos</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- View Settings -->
+   <item>
+    <widget class="QGroupBox" name="viewGroup">
+     <property name="title">
+      <string>🖼️ Layout das Views</string>
+     </property>
+     <layout class="QFormLayout" name="viewLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="layoutLabel">
+        <property name="text">
+         <string>Layout:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="layoutCombo">
+        <property name="toolTip">
+         <string>Modo de layout das visualizações</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Single View (visualização única)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Grid (grade)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Split (dividido)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="includeAllViewsCheckbox">
+        <property name="text">
+         <string>Incluir todas as views visíveis</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Inclui todas as views ativas no vídeo</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   
+   <!-- Progress -->
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+    <widget class="QLabel" name="statusLabel">
+     <property name="visible">
+      <bool>false</bool>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     <property name="text">
+      <string></string>
      </property>
     </widget>
+   </item>
+   
+   <!-- Buttons -->
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelBtn">
+       <property name="text">
+        <string>Cancelar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exportBtn">
+       <property name="text">
+        <string>🎬 Exportar</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string>font-weight: bold;</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>VideoExportDialog</receiver>
-   <slot>accept()</slot>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>VideoExportDialog</receiver>
-   <slot>reject()</slot>
-  </connection>
- </connections>
+ <connections/>
 </ui>

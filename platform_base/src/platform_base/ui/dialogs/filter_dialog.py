@@ -7,6 +7,7 @@ Filtros disponíveis:
 - Rolling window
 
 Interface carregada de: desktop/ui_files/filterDialog.ui
+Todos os widgets são definidos no arquivo .ui - NENHUMA CRIAÇÃO PROGRAMÁTICA.
 """
 
 from __future__ import annotations
@@ -14,21 +15,15 @@ from __future__ import annotations
 from typing import Any
 
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
     QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
     QPushButton,
     QSpinBox,
     QTabWidget,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -48,12 +43,14 @@ class FilterDialog(QDialog, UiLoaderMixin):
     - Outliers: Remoção de valores atípicos
     - Rolling: Filtros baseados em janela móvel
     
-    Interface carregada do arquivo .ui via UiLoaderMixin.
+    Interface 100% carregada do arquivo .ui via UiLoaderMixin.
+    Nenhum widget é criado programaticamente.
     """
     
-    # Arquivo .ui que define a interface
+    # Arquivo .ui que define a interface completa
     UI_FILE = "filterDialog.ui"
 
+    # Sinal emitido quando filtro é aplicado
     filter_applied = pyqtSignal(dict)  # config
 
     def __init__(self, parent: QWidget | None = None):
@@ -61,371 +58,142 @@ class FilterDialog(QDialog, UiLoaderMixin):
 
         # Carrega interface do arquivo .ui
         if not self._load_ui():
-            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+            raise RuntimeError(
+                f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
+                "Verifique se existe em desktop/ui_files/"
+            )
+        
+        # Busca referências aos widgets do .ui
         self._setup_ui_from_file()
         
+        # Configura conexões de sinais
         self._setup_connections()
+        
+        # Inicializa estados dos widgets
+        self._initialize_widget_states()
 
         logger.debug("filter_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        # Encontra widgets do arquivo .ui
-        self.content_widget = self.findChild(QWidget, "contentWidget")
-        self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        """Busca referências a todos os widgets definidos no arquivo .ui"""
         
-        # Se o contentWidget existe mas está vazio, preenche programaticamente
-        if self.content_widget:
-            content_layout = self.content_widget.layout()
-            if content_layout and content_layout.count() == 0:
-                # UI está vazio, criar conteúdo programaticamente
-                self._create_content_widgets(content_layout)
+        # === Widgets principais ===
+        self._tabs = self.findChild(QTabWidget, "filterTabWidget")
+        self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        self._preview_button = self.findChild(QPushButton, "previewButton")
         
-        logger.debug("filter_dialog_ui_loaded_from_file")
+        # === Widgets da aba Butterworth ===
+        self._butter_type = self.findChild(QComboBox, "butterTypeCombo")
+        self._butter_order = self.findChild(QSpinBox, "butterOrderSpin")
+        self._butter_cutoff_low = self.findChild(QDoubleSpinBox, "butterCutoffLowSpin")
+        self._butter_cutoff_high = self.findChild(QDoubleSpinBox, "butterCutoffHighSpin")
+        self._butter_fs = self.findChild(QDoubleSpinBox, "butterFsSpin")
+        self._butter_auto_fs = self.findChild(QCheckBox, "butterAutoFsCheck")
+        self._butter_padlen = self.findChild(QSpinBox, "butterPadlenSpin")
+        self._butter_forward_backward = self.findChild(QCheckBox, "butterFiltfiltCheck")
+        
+        # === Widgets da aba Outliers ===
+        self._outlier_method = self.findChild(QComboBox, "outlierMethodCombo")
+        self._outlier_threshold = self.findChild(QDoubleSpinBox, "outlierThresholdSpin")
+        self._outlier_lower = self.findChild(QDoubleSpinBox, "outlierLowerSpin")
+        self._outlier_upper = self.findChild(QDoubleSpinBox, "outlierUpperSpin")
+        self._outlier_action = self.findChild(QComboBox, "outlierActionCombo")
+        self._outlier_window = self.findChild(QSpinBox, "outlierWindowSpin")
+        
+        # === Widgets da aba Rolling ===
+        self._rolling_type = self.findChild(QComboBox, "rollingTypeCombo")
+        self._rolling_window = self.findChild(QSpinBox, "rollingWindowSpin")
+        self._rolling_min_periods = self.findChild(QSpinBox, "rollingMinPeriodsSpin")
+        self._rolling_center = self.findChild(QCheckBox, "rollingCenterCheck")
+        self._rolling_quantile = self.findChild(QDoubleSpinBox, "rollingQuantileSpin")
+        self._rolling_win_type = self.findChild(QComboBox, "rollingWinTypeCombo")
+        self._rolling_std = self.findChild(QDoubleSpinBox, "rollingStdSpin")
+        
+        # Validação: todos os widgets essenciais devem existir
+        self._validate_widgets()
+        
+        logger.debug("filter_dialog_ui_widgets_loaded")
 
-    def _create_content_widgets(self, layout: QVBoxLayout):
-        """Cria widgets de conteúdo quando o .ui está vazio"""
-        # Header
-        header = QLabel("🔧 Configurar Filtro de Dados")
-        header.setFont(QFont("", 14, QFont.Weight.Bold))
-        header.setStyleSheet("color: #0d6efd; padding: 10px;")
-        layout.addWidget(header)
-
-        # Tabs para tipos de filtro
-        self._tabs = QTabWidget()
-        layout.addWidget(self._tabs)
-
-        # Criar tabs
-        self._create_butterworth_tab()
-        self._create_outliers_tab()
-        self._create_rolling_tab()
-
-    def _create_butterworth_tab(self):
-        """Tab de filtro Butterworth"""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setSpacing(10)
-
-        # Tipo de filtro
-        type_group = QGroupBox("📊 Tipo de Filtro")
-        type_layout = QFormLayout(type_group)
-
-        self._butter_type = QComboBox()
-        self._butter_type.addItems(["lowpass", "highpass", "bandpass", "bandstop"])
-        self._butter_type.setToolTip(
-            "Tipo de filtro Butterworth:\n"
-            "• lowpass: Permite frequências baixas\n"
-            "• highpass: Permite frequências altas\n"
-            "• bandpass: Permite faixa de frequências\n"
-            "• bandstop: Bloqueia faixa de frequências",
-        )
-        type_layout.addRow("Tipo:", self._butter_type)
-
-        layout.addWidget(type_group)
-
-        # Parâmetros
-        params_group = QGroupBox("🔧 Parâmetros")
-        params_layout = QFormLayout(params_group)
-
-        self._butter_order = QSpinBox()
-        self._butter_order.setRange(1, 10)
-        self._butter_order.setValue(4)
-        self._butter_order.setToolTip(
-            "Ordem do filtro (1-10).\n"
-            "Ordens maiores = corte mais abrupto.",
-        )
-        params_layout.addRow("Ordem:", self._butter_order)
-
-        self._butter_cutoff_low = QDoubleSpinBox()
-        self._butter_cutoff_low.setRange(0.001, 1000.0)
-        self._butter_cutoff_low.setValue(1.0)
-        self._butter_cutoff_low.setDecimals(3)
-        self._butter_cutoff_low.setSuffix(" Hz")
-        self._butter_cutoff_low.setToolTip(
-            "Frequência de corte inferior.\n"
-            "Para lowpass: frequência máxima permitida.\n"
-            "Para bandpass/bandstop: limite inferior da banda.",
-        )
-        params_layout.addRow("Freq. Corte (baixa):", self._butter_cutoff_low)
-
-        self._butter_cutoff_high = QDoubleSpinBox()
-        self._butter_cutoff_high.setRange(0.001, 1000.0)
-        self._butter_cutoff_high.setValue(10.0)
-        self._butter_cutoff_high.setDecimals(3)
-        self._butter_cutoff_high.setSuffix(" Hz")
-        self._butter_cutoff_high.setToolTip(
-            "Frequência de corte superior.\n"
-            "Para highpass: frequência mínima permitida.\n"
-            "Para bandpass/bandstop: limite superior da banda.",
-        )
-        params_layout.addRow("Freq. Corte (alta):", self._butter_cutoff_high)
-
-        self._butter_fs = QDoubleSpinBox()
-        self._butter_fs.setRange(0.1, 10000.0)
-        self._butter_fs.setValue(100.0)
-        self._butter_fs.setDecimals(1)
-        self._butter_fs.setSuffix(" Hz")
-        self._butter_fs.setToolTip(
-            "Taxa de amostragem dos dados.\n"
-            "Se não souber, deixe em 'auto' para estimar.",
-        )
-        params_layout.addRow("Taxa Amostragem:", self._butter_fs)
-
-        self._butter_auto_fs = QCheckBox("Auto-detectar taxa")
-        self._butter_auto_fs.setChecked(True)
-        self._butter_auto_fs.setToolTip(
-            "Estima taxa de amostragem automaticamente\n"
-            "a partir dos timestamps dos dados.",
-        )
-        self._butter_auto_fs.toggled.connect(
-            lambda checked: self._butter_fs.setEnabled(not checked),
-        )
-        params_layout.addRow(self._butter_auto_fs)
-
-        layout.addWidget(params_group)
-
-        # Opções avançadas
-        adv_group = QGroupBox("⚙️ Opções Avançadas")
-        adv_layout = QFormLayout(adv_group)
-
-        self._butter_padlen = QSpinBox()
-        self._butter_padlen.setRange(0, 1000)
-        self._butter_padlen.setValue(0)
-        self._butter_padlen.setToolTip(
-            "Padding nas bordas para evitar artefatos.\n"
-            "0 = automático.",
-        )
-        adv_layout.addRow("Padding:", self._butter_padlen)
-
-        self._butter_forward_backward = QCheckBox("Filtfilt (zero-phase)")
-        self._butter_forward_backward.setChecked(True)
-        self._butter_forward_backward.setToolTip(
-            "Aplicar filtro bidirecionalmente.\n"
-            "Elimina defasagem, duplica ordem efetiva.",
-        )
-        adv_layout.addRow(self._butter_forward_backward)
-
-        layout.addWidget(adv_group)
-        layout.addStretch()
-
-        self._tabs.addTab(tab, "📈 Butterworth")
-
-    def _create_outliers_tab(self):
-        """Tab de remoção de outliers"""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setSpacing(10)
-
-        # Método
-        method_group = QGroupBox("📊 Método de Detecção")
-        method_layout = QFormLayout(method_group)
-
-        self._outlier_method = QComboBox()
-        self._outlier_method.addItems(["iqr", "zscore", "mad", "percentile"])
-        self._outlier_method.setToolTip(
-            "Método para detectar outliers:\n"
-            "• IQR: Intervalo interquartil (Q1-1.5*IQR, Q3+1.5*IQR)\n"
-            "• Z-Score: Desvios padrão da média\n"
-            "• MAD: Median Absolute Deviation\n"
-            "• Percentile: Remove extremos por percentil",
-        )
-        method_layout.addRow("Método:", self._outlier_method)
-
-        layout.addWidget(method_group)
-
-        # Parâmetros
-        params_group = QGroupBox("🔧 Parâmetros")
-        params_layout = QFormLayout(params_group)
-
-        self._outlier_threshold = QDoubleSpinBox()
-        self._outlier_threshold.setRange(0.5, 10.0)
-        self._outlier_threshold.setValue(1.5)
-        self._outlier_threshold.setDecimals(2)
-        self._outlier_threshold.setToolTip(
-            "Limiar para detecção:\n"
-            "• IQR: Multiplicador (padrão 1.5)\n"
-            "• Z-Score: Número de desvios (padrão 3)\n"
-            "• MAD: Multiplicador (padrão 3.5)\n"
-            "• Percentile: Percentagem a cortar",
-        )
-        params_layout.addRow("Limiar:", self._outlier_threshold)
-
-        self._outlier_lower = QDoubleSpinBox()
-        self._outlier_lower.setRange(0.0, 50.0)
-        self._outlier_lower.setValue(5.0)
-        self._outlier_lower.setDecimals(1)
-        self._outlier_lower.setSuffix(" %")
-        self._outlier_lower.setToolTip(
-            "Percentil inferior (para método percentile).\n"
-            "Valores abaixo deste percentil são removidos.",
-        )
-        params_layout.addRow("Percentil Inferior:", self._outlier_lower)
-
-        self._outlier_upper = QDoubleSpinBox()
-        self._outlier_upper.setRange(50.0, 100.0)
-        self._outlier_upper.setValue(95.0)
-        self._outlier_upper.setDecimals(1)
-        self._outlier_upper.setSuffix(" %")
-        self._outlier_upper.setToolTip(
-            "Percentil superior (para método percentile).\n"
-            "Valores acima deste percentil são removidos.",
-        )
-        params_layout.addRow("Percentil Superior:", self._outlier_upper)
-
-        layout.addWidget(params_group)
-
-        # Tratamento
-        treatment_group = QGroupBox("🔄 Tratamento dos Outliers")
-        treatment_layout = QFormLayout(treatment_group)
-
-        self._outlier_action = QComboBox()
-        self._outlier_action.addItems(["remove", "replace_nan", "replace_mean", "replace_median", "interpolate"])
-        self._outlier_action.setToolTip(
-            "O que fazer com outliers detectados:\n"
-            "• remove: Remover pontos\n"
-            "• replace_nan: Substituir por NaN\n"
-            "• replace_mean: Substituir pela média\n"
-            "• replace_median: Substituir pela mediana\n"
-            "• interpolate: Interpolar valores",
-        )
-        treatment_layout.addRow("Ação:", self._outlier_action)
-
-        self._outlier_window = QSpinBox()
-        self._outlier_window.setRange(1, 100)
-        self._outlier_window.setValue(10)
-        self._outlier_window.setToolTip(
-            "Janela para cálculo local de estatísticas.\n"
-            "1 = estatísticas globais.",
-        )
-        treatment_layout.addRow("Janela Local:", self._outlier_window)
-
-        layout.addWidget(treatment_group)
-        layout.addStretch()
-
-        self._tabs.addTab(tab, "🚫 Outliers")
-
-    def _create_rolling_tab(self):
-        """Tab de filtros rolling window"""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setSpacing(10)
-
-        # Tipo de operação
-        type_group = QGroupBox("📊 Operação Rolling")
-        type_layout = QFormLayout(type_group)
-
-        self._rolling_type = QComboBox()
-        self._rolling_type.addItems([
-            "mean", "median", "std", "var",
-            "min", "max", "sum", "count", "quantile",
-        ])
-        self._rolling_type.setToolTip(
-            "Operação a aplicar na janela móvel:\n"
-            "• mean: Média móvel\n"
-            "• median: Mediana móvel\n"
-            "• std: Desvio padrão móvel\n"
-            "• var: Variância móvel\n"
-            "• min/max: Mínimo/máximo móvel\n"
-            "• sum: Soma móvel\n"
-            "• count: Contagem de valores válidos\n"
-            "• quantile: Quantil específico",
-        )
-        type_layout.addRow("Tipo:", self._rolling_type)
-
-        layout.addWidget(type_group)
-
-        # Parâmetros
-        params_group = QGroupBox("🔧 Parâmetros")
-        params_layout = QFormLayout(params_group)
-
-        self._rolling_window = QSpinBox()
-        self._rolling_window.setRange(2, 1000)
-        self._rolling_window.setValue(5)
-        self._rolling_window.setToolTip(
-            "Tamanho da janela móvel em pontos.\n"
-            "Valores maiores = mais suavização.",
-        )
-        params_layout.addRow("Janela:", self._rolling_window)
-
-        self._rolling_min_periods = QSpinBox()
-        self._rolling_min_periods.setRange(1, 100)
-        self._rolling_min_periods.setValue(1)
-        self._rolling_min_periods.setToolTip(
-            "Número mínimo de pontos necessários.\n"
-            "Se a janela tiver menos pontos, retorna NaN.",
-        )
-        params_layout.addRow("Min. Períodos:", self._rolling_min_periods)
-
-        self._rolling_center = QCheckBox("Centralizar janela")
-        self._rolling_center.setChecked(False)
-        self._rolling_center.setToolTip(
-            "Se marcado, o resultado é alinhado ao centro da janela.\n"
-            "Caso contrário, alinhado à direita.",
-        )
-        params_layout.addRow(self._rolling_center)
-
-        self._rolling_quantile = QDoubleSpinBox()
-        self._rolling_quantile.setRange(0.0, 1.0)
-        self._rolling_quantile.setValue(0.5)
-        self._rolling_quantile.setDecimals(2)
-        self._rolling_quantile.setSingleStep(0.05)
-        self._rolling_quantile.setToolTip(
-            "Valor do quantil (para tipo 'quantile').\n"
-            "0.5 = mediana, 0.25 = 1º quartil, etc.",
-        )
-        params_layout.addRow("Quantil:", self._rolling_quantile)
-
-        layout.addWidget(params_group)
-
-        # Opções
-        options_group = QGroupBox("⚙️ Opções")
-        options_layout = QFormLayout(options_group)
-
-        self._rolling_win_type = QComboBox()
-        self._rolling_win_type.addItems([
-            "boxcar", "triang", "blackman", "hamming", "bartlett",
-            "parzen", "bohman", "blackmanharris", "nuttall", "barthann",
-            "kaiser", "gaussian", "exponential",
-        ])
-        self._rolling_win_type.setCurrentText("boxcar")
-        self._rolling_win_type.setToolTip(
-            "Tipo de janela para ponderação:\n"
-            "• boxcar: Uniforme (padrão)\n"
-            "• gaussian: Gaussiana\n"
-            "• exponential: Exponencial\n"
-            "• E outros tipos de janela de sinal",
-        )
-        options_layout.addRow("Tipo Janela:", self._rolling_win_type)
-
-        self._rolling_std = QDoubleSpinBox()
-        self._rolling_std.setRange(0.1, 10.0)
-        self._rolling_std.setValue(1.0)
-        self._rolling_std.setDecimals(2)
-        self._rolling_std.setToolTip(
-            "Desvio padrão para janela gaussiana.",
-        )
-        options_layout.addRow("Sigma (Gaussian):", self._rolling_std)
-
-        layout.addWidget(options_group)
-        layout.addStretch()
-
-        self._tabs.addTab(tab, "📏 Rolling")
+    def _validate_widgets(self):
+        """Valida que todos os widgets essenciais foram encontrados no .ui"""
+        required_widgets = {
+            # Principais
+            "filterTabWidget": self._tabs,
+            "buttonBox": self._button_box,
+            # Butterworth
+            "butterTypeCombo": self._butter_type,
+            "butterOrderSpin": self._butter_order,
+            "butterCutoffLowSpin": self._butter_cutoff_low,
+            "butterCutoffHighSpin": self._butter_cutoff_high,
+            "butterFsSpin": self._butter_fs,
+            "butterAutoFsCheck": self._butter_auto_fs,
+            "butterPadlenSpin": self._butter_padlen,
+            "butterFiltfiltCheck": self._butter_forward_backward,
+            # Outliers
+            "outlierMethodCombo": self._outlier_method,
+            "outlierThresholdSpin": self._outlier_threshold,
+            "outlierLowerSpin": self._outlier_lower,
+            "outlierUpperSpin": self._outlier_upper,
+            "outlierActionCombo": self._outlier_action,
+            "outlierWindowSpin": self._outlier_window,
+            # Rolling
+            "rollingTypeCombo": self._rolling_type,
+            "rollingWindowSpin": self._rolling_window,
+            "rollingMinPeriodsSpin": self._rolling_min_periods,
+            "rollingCenterCheck": self._rolling_center,
+            "rollingQuantileSpin": self._rolling_quantile,
+            "rollingWinTypeCombo": self._rolling_win_type,
+            "rollingStdSpin": self._rolling_std,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        
+        if missing:
+            raise RuntimeError(
+                f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
+                f"Verifique se {self.UI_FILE} está completo."
+            )
 
     def _setup_connections(self):
-        """Configura conexões de sinais"""
-        # Habilitar/desabilitar campos conforme seleção
+        """Configura conexões de sinais entre widgets"""
+        # === Conexões da aba Butterworth ===
         self._butter_type.currentTextChanged.connect(self._on_butter_type_changed)
+        self._butter_auto_fs.toggled.connect(
+            lambda checked: self._butter_fs.setEnabled(not checked)
+        )
+        
+        # === Conexões da aba Outliers ===
         self._outlier_method.currentTextChanged.connect(self._on_outlier_method_changed)
+        
+        # === Conexões da aba Rolling ===
         self._rolling_type.currentTextChanged.connect(self._on_rolling_type_changed)
+        
+        # === Conexões dos botões ===
+        if self._button_box:
+            self._button_box.accepted.connect(self._apply_filter)
+            self._button_box.rejected.connect(self.reject)
+        
+        if self._preview_button:
+            self._preview_button.clicked.connect(self._preview_filter)
 
-        # Inicializar estados
+    def _initialize_widget_states(self):
+        """Inicializa estados dos widgets baseados nos valores atuais"""
+        # Inicializar estado Butterworth
         self._on_butter_type_changed(self._butter_type.currentText())
+        
+        # Inicializar estado Outliers
         self._on_outlier_method_changed(self._outlier_method.currentText())
+        
+        # Inicializar estado Rolling
         self._on_rolling_type_changed(self._rolling_type.currentText())
+        
+        # Inicializar estado de auto-detecção de taxa de amostragem
+        if self._butter_auto_fs.isChecked():
+            self._butter_fs.setEnabled(False)
 
     def _on_butter_type_changed(self, filter_type: str):
-        """Handler para mudança de tipo Butterworth"""
-        # Band filters need both cutoffs
+        """Handler para mudança de tipo de filtro Butterworth"""
+        # Filtros de banda precisam de ambas as frequências de corte
         self._butter_cutoff_high.setEnabled(True)
 
         if filter_type == "lowpass":
@@ -434,32 +202,57 @@ class FilterDialog(QDialog, UiLoaderMixin):
         elif filter_type == "highpass":
             self._butter_cutoff_low.setToolTip("Frequência de corte (mínima permitida)")
             self._butter_cutoff_high.setEnabled(False)
+        elif filter_type == "bandpass":
+            self._butter_cutoff_low.setToolTip("Frequência inferior da banda passante")
+            self._butter_cutoff_high.setToolTip("Frequência superior da banda passante")
+        elif filter_type == "bandstop":
+            self._butter_cutoff_low.setToolTip("Frequência inferior da banda bloqueada")
+            self._butter_cutoff_high.setToolTip("Frequência superior da banda bloqueada")
 
     def _on_outlier_method_changed(self, method: str):
-        """Handler para mudança de método de outliers"""
+        """Handler para mudança de método de detecção de outliers"""
         is_percentile = method == "percentile"
+        
+        # Habilita/desabilita campos de percentil
         self._outlier_lower.setEnabled(is_percentile)
         self._outlier_upper.setEnabled(is_percentile)
         self._outlier_threshold.setEnabled(not is_percentile)
 
-        # Ajustar tooltip do threshold
+        # Ajusta valor e tooltip do threshold conforme método
         if method == "iqr":
             self._outlier_threshold.setValue(1.5)
-            self._outlier_threshold.setToolTip("Multiplicador do IQR (padrão: 1.5)")
+            self._outlier_threshold.setToolTip(
+                "Multiplicador do IQR (padrão: 1.5)\n"
+                "Outliers: valores fora de [Q1-k*IQR, Q3+k*IQR]"
+            )
         elif method == "zscore":
             self._outlier_threshold.setValue(3.0)
-            self._outlier_threshold.setToolTip("Número de desvios padrão (padrão: 3.0)")
+            self._outlier_threshold.setToolTip(
+                "Número de desvios padrão (padrão: 3.0)\n"
+                "Outliers: valores a mais de k desvios da média"
+            )
         elif method == "mad":
             self._outlier_threshold.setValue(3.5)
-            self._outlier_threshold.setToolTip("Multiplicador do MAD (padrão: 3.5)")
+            self._outlier_threshold.setToolTip(
+                "Multiplicador do MAD (padrão: 3.5)\n"
+                "MAD = Median Absolute Deviation"
+            )
+        elif method == "percentile":
+            self._outlier_threshold.setToolTip("Não usado para método percentile")
 
     def _on_rolling_type_changed(self, rolling_type: str):
-        """Handler para mudança de tipo rolling"""
+        """Handler para mudança de tipo de operação rolling"""
         is_quantile = rolling_type == "quantile"
         self._rolling_quantile.setEnabled(is_quantile)
+        
+        if is_quantile:
+            self._rolling_quantile.setToolTip(
+                "Valor do quantil a calcular (0.0 a 1.0)\n"
+                "0.5 = mediana, 0.25 = 1º quartil, 0.75 = 3º quartil"
+            )
 
     def _get_filter_config(self) -> dict[str, Any]:
-        """Obtém configuração do filtro baseada na tab ativa"""
+        """Obtém configuração do filtro baseada na aba ativa"""
         current_tab = self._tabs.currentIndex()
 
         if current_tab == 0:  # Butterworth
@@ -484,7 +277,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
                 "action": self._outlier_action.currentText(),
                 "window": self._outlier_window.value(),
             }
-        else:  # Rolling
+        else:  # Rolling (tab index 2)
             config = {
                 "type": "rolling",
                 "operation": self._rolling_type.currentText(),
@@ -503,27 +296,99 @@ class FilterDialog(QDialog, UiLoaderMixin):
         config = self._get_filter_config()
         config["preview"] = True
         self.filter_applied.emit(config)
+        logger.debug("filter_preview_requested", config=config)
 
     def _apply_filter(self):
         """Aplica o filtro e fecha o diálogo"""
         config = self._get_filter_config()
         config["preview"] = False
         self.filter_applied.emit(config)
+        logger.debug("filter_applied", config=config)
         self.accept()
 
     def get_config(self) -> dict[str, Any] | None:
-        """Retorna configuração se diálogo foi aceito"""
+        """
+        Retorna configuração do filtro se diálogo foi aceito
+        
+        Returns:
+            dict com configuração do filtro ou None se cancelado
+        """
         if self.result() == QDialog.DialogCode.Accepted:
             return self._get_filter_config()
         return None
+    
+    def set_config(self, config: dict[str, Any]):
+        """
+        Define configuração do diálogo a partir de um dict
+        
+        Args:
+            config: Dicionário com configuração do filtro
+        """
+        filter_type = config.get("type", "butterworth")
+        
+        if filter_type == "butterworth":
+            self._tabs.setCurrentIndex(0)
+            if "filter_type" in config:
+                self._butter_type.setCurrentText(config["filter_type"])
+            if "order" in config:
+                self._butter_order.setValue(config["order"])
+            if "cutoff_low" in config:
+                self._butter_cutoff_low.setValue(config["cutoff_low"])
+            if "cutoff_high" in config:
+                self._butter_cutoff_high.setValue(config["cutoff_high"])
+            if "auto_fs" in config:
+                self._butter_auto_fs.setChecked(config["auto_fs"])
+            if "fs" in config and config["fs"] is not None:
+                self._butter_fs.setValue(config["fs"])
+            if "padlen" in config:
+                self._butter_padlen.setValue(config["padlen"])
+            if "filtfilt" in config:
+                self._butter_forward_backward.setChecked(config["filtfilt"])
+                
+        elif filter_type == "outliers":
+            self._tabs.setCurrentIndex(1)
+            if "method" in config:
+                self._outlier_method.setCurrentText(config["method"])
+            if "threshold" in config:
+                self._outlier_threshold.setValue(config["threshold"])
+            if "lower_percentile" in config:
+                self._outlier_lower.setValue(config["lower_percentile"])
+            if "upper_percentile" in config:
+                self._outlier_upper.setValue(config["upper_percentile"])
+            if "action" in config:
+                self._outlier_action.setCurrentText(config["action"])
+            if "window" in config:
+                self._outlier_window.setValue(config["window"])
+                
+        elif filter_type == "rolling":
+            self._tabs.setCurrentIndex(2)
+            if "operation" in config:
+                self._rolling_type.setCurrentText(config["operation"])
+            if "window" in config:
+                self._rolling_window.setValue(config["window"])
+            if "min_periods" in config:
+                self._rolling_min_periods.setValue(config["min_periods"])
+            if "center" in config:
+                self._rolling_center.setChecked(config["center"])
+            if "quantile" in config:
+                self._rolling_quantile.setValue(config["quantile"])
+            if "win_type" in config:
+                self._rolling_win_type.setCurrentText(config["win_type"])
+            if "std" in config:
+                self._rolling_std.setValue(config["std"])
+        
+        logger.debug("filter_config_loaded", filter_type=filter_type)
 
 
 def show_filter_dialog(parent: QWidget | None = None) -> dict[str, Any] | None:
     """
-    Conveniência para mostrar diálogo de filtro
+    Função de conveniência para mostrar o diálogo de filtro
 
+    Args:
+        parent: Widget pai do diálogo
+        
     Returns:
-        Configuração do filtro ou None se cancelado
+        Dicionário com configuração do filtro ou None se cancelado
     """
     dialog = FilterDialog(parent)
 

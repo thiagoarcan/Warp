@@ -248,20 +248,27 @@ class PreviewWidget(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        # O matplotlib precisa ser adicionado programaticamente
-        content_layout = self.findChild(QVBoxLayout, "contentLayout")
-        if content_layout is None:
-            content_layout = self.layout()
+        from PyQt6.QtWidgets import QFrame
         
-        if MATPLOTLIB_AVAILABLE and content_layout:
+        # Busca o frame e layout do canvas
+        self.canvas_frame = self.findChild(QFrame, "canvasFrame")
+        
+        # Valida widgets obrigatórios
+        if not self.canvas_frame:
+            raise RuntimeError("PreviewWidget: canvasFrame não encontrado no arquivo .ui")
+        
+        canvas_layout = self.canvas_frame.layout()
+        
+        # Adiciona matplotlib canvas ou placeholder
+        if MATPLOTLIB_AVAILABLE and canvas_layout:
             self.figure = Figure(figsize=(8, 6))
             self.canvas = FigureCanvas(self.figure)
-            content_layout.addWidget(self.canvas)
-        elif content_layout:
+            canvas_layout.addWidget(self.canvas)
+        elif canvas_layout:
             label = QLabel("Preview not available\n(matplotlib required)")
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setStyleSheet("color: gray; font-size: 14px;")
-            content_layout.addWidget(label)
+            canvas_layout.addWidget(label)
 
     def update_preview(self, data: dict[str, Any]):
         """Atualiza preview com novos dados"""

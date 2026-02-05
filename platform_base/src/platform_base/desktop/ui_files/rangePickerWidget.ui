@@ -6,22 +6,78 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>400</width>
+    <height>200</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>RangePickerWidget</string>
-  </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing"><number>8</number></property>
+   <property name="leftMargin"><number>8</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>8</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   
+   <!-- Range Controls -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <layout class="QHBoxLayout" name="rangeLayout">
+     <item>
+      <widget class="QLabel" name="startLabel">
+       <property name="text"><string>Start:</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="startSpinbox">
+       <property name="decimals"><number>6</number></property>
+       <property name="minimum"><double>-1000000.000000000000000</double></property>
+       <property name="maximum"><double>1000000.000000000000000</double></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="endLabel">
+       <property name="text"><string>End:</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="endSpinbox">
+       <property name="decimals"><number>6</number></property>
+       <property name="minimum"><double>-1000000.000000000000000</double></property>
+       <property name="maximum"><double>1000000.000000000000000</double></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   
+   <!-- Buttons -->
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <spacer name="leftSpacer">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="selectBtn">
+       <property name="text"><string>Select Range</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="resetBtn">
+       <property name="text"><string>Reset</string></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   
+   <!-- Plot Widget Container -->
+   <item>
+    <widget class="QFrame" name="plotWidget">
+     <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+     <property name="minimumHeight"><number>100</number></property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

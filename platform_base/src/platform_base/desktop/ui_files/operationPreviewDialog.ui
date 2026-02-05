@@ -6,44 +6,198 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>600</width>
+    <height>400</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>OperationPreviewDialog</string>
+   <string>Operation Preview</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>8</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   
+   <!-- Title -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QLabel" name="titleLabel">
+     <property name="text">
+      <string>🔍 Preview: Operation</string>
+     </property>
+     <property name="styleSheet">
+      <string>font-size: 16px; font-weight: bold; color: #0d6efd;</string>
+     </property>
     </widget>
    </item>
+   
+   <!-- Main Splitter -->
+   <item>
+    <widget class="QSplitter" name="mainSplitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     
+     <!-- Preview Canvas Container -->
+     <widget class="QFrame" name="canvasFrame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="minimumWidth">
+       <number>400</number>
+      </property>
+      <layout class="QVBoxLayout" name="canvasLayout">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <!-- PreviewCanvas will be added programmatically -->
+      </layout>
+     </widget>
+     
+     <!-- Info Panel -->
+     <widget class="QWidget" name="infoPanel">
+      <property name="minimumWidth">
+       <number>200</number>
+      </property>
+      <layout class="QVBoxLayout" name="infoLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       
+       <!-- Parameters Group -->
+       <item>
+        <widget class="QGroupBox" name="paramsGroup">
+         <property name="title">
+          <string>📝 Parâmetros</string>
+         </property>
+         <layout class="QVBoxLayout" name="paramsLayout">
+          <item>
+           <widget class="QTextEdit" name="paramsText">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+            <property name="maximumHeight">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       
+       <!-- Statistics Group -->
+       <item>
+        <widget class="QGroupBox" name="statsGroup">
+         <property name="title">
+          <string>📊 Estatísticas</string>
+         </property>
+         <layout class="QFormLayout" name="statsLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="origMeanLabel">
+            <property name="text">
+             <string>Original Mean:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="origMeanValue">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="resultMeanLabel">
+            <property name="text">
+             <string>Result Mean:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="resultMeanValue">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="origStdLabel">
+            <property name="text">
+             <string>Original Std:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="origStdValue">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="resultStdLabel">
+            <property name="text">
+             <string>Result Std:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="resultStdValue">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       
+       <!-- Spacer -->
+       <item>
+        <spacer name="infoSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   
+   <!-- Button Box -->
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>OperationPreviewDialog</receiver>
-   <slot>accept()</slot>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>OperationPreviewDialog</receiver>
-   <slot>reject()</slot>
-  </connection>
- </connections>
+ <connections/>
 </ui>

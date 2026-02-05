@@ -6,44 +6,172 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>900</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>BaseOperationDialog</string>
+   <string>Operation</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>8</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   
+   <!-- Main Splitter: Parameters | Preview -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
-    </widget>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
      </property>
+     
+     <!-- Left Panel: Parameters -->
+     <widget class="QScrollArea" name="parametersScrollArea">
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <property name="minimumWidth">
+       <number>300</number>
+      </property>
+      <widget class="QWidget" name="parametersContent">
+       <layout class="QVBoxLayout" name="parametersLayout">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="parametersHeader">
+          <property name="text">
+           <string>Parameters</string>
+          </property>
+          <property name="styleSheet">
+           <string>font-size: 14px; font-weight: bold;</string>
+          </property>
+         </widget>
+        </item>
+        <!-- Parameter widgets will be added programmatically -->
+        <item>
+         <spacer name="parametersSpacerBottom">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+     
+     <!-- Right Panel: Preview -->
+     <widget class="QWidget" name="previewContainer">
+      <property name="minimumWidth">
+       <number>400</number>
+      </property>
+      <layout class="QVBoxLayout" name="previewLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="previewHeader">
+         <property name="text">
+          <string>Preview</string>
+         </property>
+         <property name="styleSheet">
+          <string>font-size: 14px; font-weight: bold;</string>
+         </property>
+        </widget>
+       </item>
+       <!-- PreviewWidget will be added programmatically -->
+       <item>
+        <widget class="QLabel" name="previewStatus">
+         <property name="text">
+          <string>Ready</string>
+         </property>
+         <property name="styleSheet">
+          <string>color: gray; font-size: 10px;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   
+   <!-- Button Bar -->
+   <item>
+    <widget class="QFrame" name="buttonFrame">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <layout class="QHBoxLayout" name="buttonLayout">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="resetBtn">
+        <property name="text">
+         <string>Reset</string>
+        </property>
+        <property name="toolTip">
+         <string>Reset all parameters to default values</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="previewBtn">
+        <property name="text">
+         <string>Preview</string>
+        </property>
+        <property name="toolTip">
+         <string>Update preview with current parameters</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="buttonSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="cancelBtn">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="applyBtn">
+        <property name="text">
+         <string>Apply</string>
+        </property>
+        <property name="default">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>BaseOperationDialog</receiver>
-   <slot>accept()</slot>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>BaseOperationDialog</receiver>
-   <slot>reject()</slot>
-  </connection>
- </connections>
+ <connections/>
 </ui>

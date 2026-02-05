@@ -6,22 +6,116 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>500</width>
+    <height>120</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>StreamingControls</string>
-  </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing"><number>8</number></property>
+   <property name="leftMargin"><number>8</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>8</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   
+   <!-- Timeline Row -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
-    </widget>
+    <layout class="QHBoxLayout" name="timelineLayout">
+     <item>
+      <widget class="QLabel" name="positionLabel">
+       <property name="text"><string>00:00</string></property>
+       <property name="minimumWidth"><number>50</number></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="timeline">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="minimum"><number>0</number></property>
+       <property name="maximum"><number>1000</number></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="durationLabel">
+       <property name="text"><string>00:00</string></property>
+       <property name="minimumWidth"><number>50</number></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   
+   <!-- Controls Row -->
+   <item>
+    <layout class="QHBoxLayout" name="controlsLayout">
+     <!-- Playback Buttons -->
+     <item>
+      <widget class="QPushButton" name="playBtn">
+       <property name="text"><string>▶</string></property>
+       <property name="toolTip"><string>Play</string></property>
+       <property name="minimumWidth"><number>40</number></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pauseBtn">
+       <property name="text"><string>⏸</string></property>
+       <property name="toolTip"><string>Pause</string></property>
+       <property name="minimumWidth"><number>40</number></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stopBtn">
+       <property name="text"><string>⏹</string></property>
+       <property name="toolTip"><string>Stop</string></property>
+       <property name="minimumWidth"><number>40</number></property>
+      </widget>
+     </item>
+     
+     <item>
+      <spacer name="controlsSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     
+     <!-- Speed Control -->
+     <item>
+      <widget class="QLabel" name="speedLabel">
+       <property name="text"><string>Speed:</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="speedSpinbox">
+       <property name="minimum"><double>0.100000000000000</double></property>
+       <property name="maximum"><double>10.000000000000000</double></property>
+       <property name="singleStep"><double>0.100000000000000</double></property>
+       <property name="value"><double>1.000000000000000</double></property>
+       <property name="suffix"><string>x</string></property>
+      </widget>
+     </item>
+     
+     <!-- Window Size -->
+     <item>
+      <widget class="QLabel" name="windowLabel">
+       <property name="text"><string>Window:</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="windowSpinbox">
+       <property name="minimum"><double>1.000000000000000</double></property>
+       <property name="maximum"><double>3600.000000000000000</double></property>
+       <property name="value"><double>10.000000000000000</double></property>
+       <property name="suffix"><string>s</string></property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

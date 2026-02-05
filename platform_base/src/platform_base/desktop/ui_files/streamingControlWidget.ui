@@ -7,21 +7,439 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>400</height>
+    <height>280</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>StreamingControlWidget</string>
+   <string>Streaming Controls</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>8</number>
+   </property>
+   <property name="leftMargin">
+    <number>8</number>
+   </property>
+   <property name="topMargin">
+    <number>8</number>
+   </property>
+   <property name="rightMargin">
+    <number>8</number>
+   </property>
+   <property name="bottomMargin">
+    <number>8</number>
+   </property>
+   
+   <!-- Playback Controls -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QGroupBox" name="playbackGroup">
+     <property name="title">
+      <string>▶️ Controles de Playback</string>
+     </property>
+     <layout class="QHBoxLayout" name="playbackLayout">
+      <item>
+       <widget class="QPushButton" name="playPauseBtn">
+        <property name="text">
+         <string>▶ Play</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Iniciar/pausar reprodução</string>
+        </property>
+        <property name="minimumWidth">
+         <number>80</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="stopBtn">
+        <property name="text">
+         <string>⬛ Stop</string>
+        </property>
+        <property name="toolTip">
+         <string>Parar reprodução e voltar ao início</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="loopCheckbox">
+        <property name="text">
+         <string>🔁 Loop</string>
+        </property>
+        <property name="toolTip">
+         <string>Repetir automaticamente ao final</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="playbackSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Time Controls -->
+   <item>
+    <widget class="QGroupBox" name="timeGroup">
+     <property name="title">
+      <string>⏱️ Timeline</string>
+     </property>
+     <layout class="QVBoxLayout" name="timeLayout">
+      <item>
+       <layout class="QHBoxLayout" name="timeSliderLayout">
+        <item>
+         <widget class="QLabel" name="timeLabelStart">
+          <property name="text">
+           <string>00:00</string>
+          </property>
+          <property name="font">
+           <font>
+            <family>Consolas</family>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="timeSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+          <property name="tickInterval">
+           <number>100</number>
+          </property>
+          <property name="toolTip">
+           <string>Arraste para navegar no tempo</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="timeLabelEnd">
+          <property name="text">
+           <string>00:00</string>
+          </property>
+          <property name="font">
+           <font>
+            <family>Consolas</family>
+           </font>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="timeInfoLayout">
+        <item>
+         <widget class="QLabel" name="currentTimeLabel">
+          <property name="text">
+           <string>Current: 00:00</string>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="timeInfoSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QProgressBar" name="progressBar">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="maximumWidth">
+           <number>150</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Settings -->
+   <item>
+    <widget class="QGroupBox" name="settingsGroup">
+     <property name="title">
+      <string>⚙️ Configurações</string>
+     </property>
+     <layout class="QFormLayout" name="settingsLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="speedLabel">
+        <property name="text">
+         <string>Velocidade:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="speedSpinbox">
+        <property name="minimum">
+         <double>0.1</double>
+        </property>
+        <property name="maximum">
+         <double>10.0</double>
+        </property>
+        <property name="singleStep">
+         <double>0.1</double>
+        </property>
+        <property name="value">
+         <double>1.0</double>
+        </property>
+        <property name="suffix">
+         <string>×</string>
+        </property>
+        <property name="toolTip">
+         <string>Velocidade de reprodução (0.1 a 10×)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="windowSizeLabel">
+        <property name="text">
+         <string>Janela:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="windowSizeSpinbox">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>3600</number>
+        </property>
+        <property name="value">
+         <number>60</number>
+        </property>
+        <property name="suffix">
+         <string> segundos</string>
+        </property>
+        <property name="toolTip">
+         <string>Tamanho da janela de visualização</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="intervalLabel">
+        <property name="text">
+         <string>Intervalo:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="intervalSpinbox">
+        <property name="minimum">
+         <number>10</number>
+        </property>
+        <property name="maximum">
+         <number>1000</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+        <property name="suffix">
+         <string> ms</string>
+        </property>
+        <property name="toolTip">
+         <string>Intervalo de atualização em milissegundos</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Filters -->
+   <item>
+    <widget class="QGroupBox" name="filtersGroup">
+     <property name="title">
+      <string>🔍 Filtros</string>
+     </property>
+     <layout class="QHBoxLayout" name="filtersLayout">
+      <item>
+       <widget class="QCheckBox" name="hideNanCheckbox">
+        <property name="text">
+         <string>Ocultar NaN</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Ocultar pontos com valores NaN</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="hideInterpolatedCheckbox">
+        <property name="text">
+         <string>Ocultar interpolados</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Ocultar pontos interpolados</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="filtersSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Status -->
+   <item>
+    <widget class="QGroupBox" name="statusGroup">
+     <property name="title">
+      <string>📊 Status</string>
+     </property>
+     <layout class="QHBoxLayout" name="statusLayout">
+      <item>
+       <layout class="QFormLayout" name="statusLeftLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="totalPointsLabelText">
+          <property name="text">
+           <string>Total:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="totalPointsLabel">
+          <property name="text">
+           <string>0</string>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="eligiblePointsLabelText">
+          <property name="text">
+           <string>Elegíveis:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="eligiblePointsLabel">
+          <property name="text">
+           <string>0</string>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="statusRightLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="windowPointsLabelText">
+          <property name="text">
+           <string>Na janela:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="windowPointsLabel">
+          <property name="text">
+           <string>0</string>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="fpsLabelText">
+          <property name="text">
+           <string>FPS:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="fpsLabel">
+          <property name="text">
+           <string>0.0</string>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

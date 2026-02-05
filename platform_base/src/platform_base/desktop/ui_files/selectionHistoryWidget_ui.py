@@ -15,22 +15,45 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QLabel,
+    QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
+    QSpacerItem, QVBoxLayout, QWidget)
 
 class Ui_SelectionHistoryWidget(object):
     def setupUi(self, SelectionHistoryWidget):
         if not SelectionHistoryWidget.objectName():
             SelectionHistoryWidget.setObjectName(u"SelectionHistoryWidget")
-        SelectionHistoryWidget.resize(600, 400)
+        SelectionHistoryWidget.resize(300, 200)
         self.mainLayout = QVBoxLayout(SelectionHistoryWidget)
+        self.mainLayout.setSpacing(4)
         self.mainLayout.setObjectName(u"mainLayout")
-        self.contentWidget = QWidget(SelectionHistoryWidget)
-        self.contentWidget.setObjectName(u"contentWidget")
-        self.contentLayout = QVBoxLayout(self.contentWidget)
-        self.contentLayout.setObjectName(u"contentLayout")
-        self.contentLayout.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setContentsMargins(4, 4, 4, 4)
+        self.headerLayout = QHBoxLayout()
+        self.headerLayout.setObjectName(u"headerLayout")
+        self.titleLabel = QLabel(SelectionHistoryWidget)
+        self.titleLabel.setObjectName(u"titleLabel")
 
-        self.mainLayout.addWidget(self.contentWidget)
+        self.headerLayout.addWidget(self.titleLabel)
+
+        self.headerSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.headerLayout.addItem(self.headerSpacer)
+
+        self.clearBtn = QPushButton(SelectionHistoryWidget)
+        self.clearBtn.setObjectName(u"clearBtn")
+        self.clearBtn.setMaximumWidth(60)
+
+        self.headerLayout.addWidget(self.clearBtn)
+
+
+        self.mainLayout.addLayout(self.headerLayout)
+
+        self.historyList = QListWidget(SelectionHistoryWidget)
+        self.historyList.setObjectName(u"historyList")
+        self.historyList.setAlternatingRowColors(True)
+        self.historyList.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        self.mainLayout.addWidget(self.historyList)
 
 
         self.retranslateUi(SelectionHistoryWidget)
@@ -39,6 +62,9 @@ class Ui_SelectionHistoryWidget(object):
     # setupUi
 
     def retranslateUi(self, SelectionHistoryWidget):
-        SelectionHistoryWidget.setWindowTitle(QCoreApplication.translate("SelectionHistoryWidget", u"SelectionHistoryWidget", None))
+        self.titleLabel.setText(QCoreApplication.translate("SelectionHistoryWidget", u"\ud83d\udcdc Selection History", None))
+        self.titleLabel.setStyleSheet(QCoreApplication.translate("SelectionHistoryWidget", u"font-weight: bold;", None))
+        self.clearBtn.setText(QCoreApplication.translate("SelectionHistoryWidget", u"Clear", None))
+        pass
     # retranslateUi
 

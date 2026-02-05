@@ -6,28 +6,493 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>550</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SmoothingDialog</string>
+   <string>〰️ Configurar Suavização de Dados</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
+   
+   <!-- Header -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QLabel" name="headerLabel">
+     <property name="text">
+      <string>〰️ Configurar Suavização de Dados</string>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string>color: #0d6efd; padding: 8px;</string>
+     </property>
     </widget>
    </item>
+   
+   <!-- Método de Suavização -->
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+    <widget class="QGroupBox" name="methodGroup">
+     <property name="title">
+      <string>📊 Método de Suavização</string>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
+     <layout class="QFormLayout" name="methodLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="methodLabel">
+        <property name="text">
+         <string>Método:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="methodCombo">
+        <property name="toolTip">
+         <string>Método de suavização a aplicar:
+• gaussian: Filtro Gaussiano
+• moving_average: Média móvel simples
+• savitzky_golay: Suavização polinomial local
+• exponential: Suavização exponencial
+• median: Filtro mediana</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>gaussian</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>moving_average</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>savitzky_golay</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>exponential</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>median</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
     </widget>
+   </item>
+   
+   <!-- Parâmetros Gerais -->
+   <item>
+    <widget class="QGroupBox" name="generalParamsGroup">
+     <property name="title">
+      <string>🔧 Parâmetros Gerais</string>
+     </property>
+     <layout class="QFormLayout" name="generalParamsLayout">
+      <!-- Tamanho da Janela com Slider -->
+      <item row="0" column="0">
+       <widget class="QLabel" name="windowLabel">
+        <property name="text">
+         <string>Tamanho Janela:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="windowLayout">
+        <item>
+         <widget class="QSpinBox" name="windowSpin">
+          <property name="minimum">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <number>101</number>
+          </property>
+          <property name="singleStep">
+           <number>2</number>
+          </property>
+          <property name="value">
+           <number>7</number>
+          </property>
+          <property name="toolTip">
+           <string>Tamanho da janela de suavização (ímpar).
+Valores maiores = mais suavização.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="windowSlider">
+          <property name="minimum">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <number>101</number>
+          </property>
+          <property name="singleStep">
+           <number>2</number>
+          </property>
+          <property name="value">
+           <number>7</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+          <property name="tickInterval">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      
+      <!-- Sigma (para Gaussian) com Slider -->
+      <item row="1" column="0">
+       <widget class="QLabel" name="sigmaLabel">
+        <property name="text">
+         <string>Sigma (σ):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="sigmaLayout">
+        <item>
+         <widget class="QDoubleSpinBox" name="sigmaSpin">
+          <property name="minimum">
+           <double>0.1</double>
+          </property>
+          <property name="maximum">
+           <double>10.0</double>
+          </property>
+          <property name="singleStep">
+           <double>0.1</double>
+          </property>
+          <property name="value">
+           <double>1.0</double>
+          </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="toolTip">
+           <string>Desvio padrão da Gaussiana.
+Valores maiores = suavização mais ampla.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="sigmaSlider">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+          <property name="tickInterval">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      
+      <!-- Modo de Borda -->
+      <item row="2" column="0">
+       <widget class="QLabel" name="boundaryLabel">
+        <property name="text">
+         <string>Modo Borda:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="boundaryModeCombo">
+        <property name="toolTip">
+         <string>Como tratar as bordas dos dados:
+• reflect: Reflete os valores (padrão)
+• constant: Usa valor constante
+• nearest: Repete o valor mais próximo
+• mirror: Espelha sem repetir extremo
+• wrap: Assume continuidade circular</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>reflect</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>constant</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>nearest</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>mirror</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>wrap</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      
+      <!-- Preservar NaN -->
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="preserveNanCheck">
+        <property name="text">
+         <string>Preservar valores NaN</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Mantém posições de NaN após suavização.
+Útil para não propagar dados faltantes.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Parâmetros Savitzky-Golay -->
+   <item>
+    <widget class="QGroupBox" name="savgolGroup">
+     <property name="title">
+      <string>📐 Parâmetros Savitzky-Golay</string>
+     </property>
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <layout class="QFormLayout" name="savgolLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="polyorderLabel">
+        <property name="text">
+         <string>Ordem Polinomial:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="polyorderSpin">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>10</number>
+        </property>
+        <property name="value">
+         <number>3</number>
+        </property>
+        <property name="toolTip">
+         <string>Ordem do polinômio de ajuste.
+Deve ser menor que o tamanho da janela.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="derivLabel">
+        <property name="text">
+         <string>Ordem Derivada:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="derivSpin">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>5</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+        <property name="toolTip">
+         <string>Ordem da derivada a calcular.
+0 = apenas suavização (sem derivar).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="deltaLabel">
+        <property name="text">
+         <string>Delta (espaçamento):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="deltaSpin">
+        <property name="minimum">
+         <double>0.001</double>
+        </property>
+        <property name="maximum">
+         <double>100.0</double>
+        </property>
+        <property name="value">
+         <double>1.0</double>
+        </property>
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="toolTip">
+         <string>Espaçamento entre pontos.
+Usado no cálculo de derivadas.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Parâmetros Exponencial -->
+   <item>
+    <widget class="QGroupBox" name="expGroup">
+     <property name="title">
+      <string>📈 Parâmetros Exponencial</string>
+     </property>
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <layout class="QFormLayout" name="expLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="alphaLabel">
+        <property name="text">
+         <string>Alpha (fator de suavização):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="alphaSpin">
+        <property name="minimum">
+         <double>0.01</double>
+        </property>
+        <property name="maximum">
+         <double>1.0</double>
+        </property>
+        <property name="singleStep">
+         <double>0.05</double>
+        </property>
+        <property name="value">
+         <double>0.3</double>
+        </property>
+        <property name="decimals">
+         <number>2</number>
+        </property>
+        <property name="toolTip">
+         <string>Fator de suavização exponencial (0-1).
+Valores menores = mais suavização.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="adjustCheck">
+        <property name="text">
+         <string>Ajustar para compensar período inicial</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Ajusta os pesos iniciais para compensar
+o período de aquecimento da média exponencial.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   
+   <!-- Botões -->
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <widget class="QPushButton" name="previewButton">
+       <property name="text">
+        <string>👁️ Preview</string>
+       </property>
+       <property name="toolTip">
+        <string>Visualizar resultado sem aplicar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -38,12 +503,32 @@
    <signal>accepted()</signal>
    <receiver>SmoothingDialog</receiver>
    <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>475</x>
+     <y>490</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>275</x>
+     <y>260</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>SmoothingDialog</receiver>
    <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>475</x>
+     <y>490</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>275</x>
+     <y>260</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
 </ui>

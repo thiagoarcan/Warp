@@ -9,28 +9,24 @@ Métodos disponíveis:
 - Median: Filtro mediana
 
 Interface carregada de: desktop/ui_files/smoothingDialog.ui
+Todos os widgets são definidos no arquivo .ui - NENHUMA CRIAÇÃO PROGRAMÁTICA.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
     QDoubleSpinBox,
-    QFormLayout,
     QGroupBox,
-    QHBoxLayout,
-    QLabel,
     QPushButton,
     QSlider,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -52,12 +48,14 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
     - Exponential: Suavização exponencial
     - Median: Filtro mediana
     
-    Interface carregada do arquivo .ui via UiLoaderMixin.
+    Interface 100% carregada do arquivo .ui via UiLoaderMixin.
+    Nenhum widget é criado programaticamente.
     """
     
-    # Arquivo .ui que define a interface
+    # Arquivo .ui que define a interface completa
     UI_FILE = "smoothingDialog.ui"
 
+    # Sinal emitido quando suavização é aplicada
     smoothing_applied = pyqtSignal(dict)  # config
 
     def __init__(self, parent: QWidget | None = None):
@@ -65,68 +63,123 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
 
         # Carrega interface do arquivo .ui
         if not self._load_ui():
-            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+            raise RuntimeError(
+                f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
+                "Verifique se existe em desktop/ui_files/"
+            )
+        
+        # Busca referências aos widgets do .ui
         self._setup_ui_from_file()
         
+        # Configura conexões de sinais
         self._setup_connections()
+        
+        # Inicializa estados dos widgets
+        self._initialize_widget_states()
 
         logger.debug("smoothing_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        # Encontra widgets do arquivo .ui
-        self.content_widget = self.findChild(QWidget, "contentWidget")
-        self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        """Busca referências a todos os widgets definidos no arquivo .ui"""
         
-        # Se o contentWidget existe mas está vazio, preenche programaticamente
-        if self.content_widget:
-            content_layout = self.content_widget.layout()
-            if content_layout and content_layout.count() == 0:
-                # UI está vazio, criar conteúdo programaticamente
-                self._create_content_widgets(content_layout)
+        # === Widgets de método ===
+        self._method = self.findChild(QComboBox, "methodCombo")
         
-        logger.debug("smoothing_dialog_ui_loaded_from_file")
-
-    def _create_content_widgets(self, layout: QVBoxLayout):
-        """Cria widgets de conteúdo quando o .ui está vazio"""
-        # Header
-        header = QLabel("〰️ Configurar Suavização de Dados")
-        header.setFont(QFont("", 14, QFont.Weight.Bold))
-        header.setStyleSheet("color: #0d6efd; padding: 10px;")
-        layout.addWidget(header)
-
-        # Método de suavização
-        method_group = QGroupBox("📊 Método de Suavização")
-        method_layout = QFormLayout(method_group)
-
-        self._method = QComboBox()
-        self._method.addItems([
-            "gaussian", "moving_average", "savitzky_golay",
-            "exponential", "median",
-        ])
-        method_layout.addRow("Método:", self._method)
-        layout.addWidget(method_group)
+        # === Widgets de parâmetros gerais ===
+        self._window = self.findChild(QSpinBox, "windowSpin")
+        self._window_slider = self.findChild(QSlider, "windowSlider")
+        self._sigma = self.findChild(QDoubleSpinBox, "sigmaSpin")
+        self._sigma_slider = self.findChild(QSlider, "sigmaSlider")
+        self._boundary_mode = self.findChild(QComboBox, "boundaryModeCombo")
+        self._preserve_nan = self.findChild(QCheckBox, "preserveNanCheck")
         
-        # Parâmetros serão adicionados via _update_params_visibility
+        # === Widgets Savitzky-Golay ===
+        self._savgol_group = self.findChild(QGroupBox, "savgolGroup")
+        self._polyorder = self.findChild(QSpinBox, "polyorderSpin")
+        self._deriv = self.findChild(QSpinBox, "derivSpin")
+        self._delta = self.findChild(QDoubleSpinBox, "deltaSpin")
+        
+        # === Widgets Exponencial ===
+        self._exp_group = self.findChild(QGroupBox, "expGroup")
+        self._alpha = self.findChild(QDoubleSpinBox, "alphaSpin")
+        self._adjust = self.findChild(QCheckBox, "adjustCheck")
+        
+        # === Botões ===
+        self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        self._preview_button = self.findChild(QPushButton, "previewButton")
+        
+        # Validação: todos os widgets essenciais devem existir
+        self._validate_widgets()
+        
+        logger.debug("smoothing_dialog_ui_widgets_loaded")
+
+    def _validate_widgets(self):
+        """Valida que todos os widgets essenciais foram encontrados no .ui"""
+        required_widgets = {
+            # Método
+            "methodCombo": self._method,
+            # Parâmetros gerais
+            "windowSpin": self._window,
+            "windowSlider": self._window_slider,
+            "sigmaSpin": self._sigma,
+            "sigmaSlider": self._sigma_slider,
+            "boundaryModeCombo": self._boundary_mode,
+            "preserveNanCheck": self._preserve_nan,
+            # Savitzky-Golay
+            "savgolGroup": self._savgol_group,
+            "polyorderSpin": self._polyorder,
+            "derivSpin": self._deriv,
+            "deltaSpin": self._delta,
+            # Exponencial
+            "expGroup": self._exp_group,
+            "alphaSpin": self._alpha,
+            "adjustCheck": self._adjust,
+            # Botões
+            "buttonBox": self._button_box,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        
+        if missing:
+            raise RuntimeError(
+                f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
+                f"Verifique se {self.UI_FILE} está completo."
+            )
 
     def _setup_connections(self):
-        """Configura conexões de sinais"""
-        # Sincronizar sliders com spinboxes
+        """Configura conexões de sinais entre widgets"""
+        # === Sincronização de sliders ===
         self._window_slider.valueChanged.connect(self._on_window_slider_changed)
         self._window.valueChanged.connect(self._window_slider.setValue)
 
         self._sigma_slider.valueChanged.connect(self._on_sigma_slider_changed)
         self._sigma.valueChanged.connect(lambda v: self._sigma_slider.setValue(int(v * 10)))
-
-        # Mostrar/ocultar grupos baseado no método
+        
+        # === Mudança de método ===
         self._method.currentTextChanged.connect(self._on_method_changed)
+        
+        # === Validação Savitzky-Golay ===
+        self._window.valueChanged.connect(self._validate_polyorder)
+        
+        # === Botões ===
+        if self._button_box:
+            self._button_box.accepted.connect(self._apply_smoothing)
+            self._button_box.rejected.connect(self.reject)
+        
+        if self._preview_button:
+            self._preview_button.clicked.connect(self._preview_smoothing)
 
-        # Inicializar estado
+    def _initialize_widget_states(self):
+        """Inicializa estados dos widgets baseados nos valores atuais"""
+        # Inicializar visibilidade de grupos
         self._on_method_changed(self._method.currentText())
+        
+        # Sincronizar sliders com spinboxes
+        self._window_slider.setValue(self._window.value())
+        self._sigma_slider.setValue(int(self._sigma.value() * 10))
 
     def _on_window_slider_changed(self, value: int):
-        """Handler para slider de janela"""
-        # Garantir valor ímpar
+        """Handler para slider de janela - garante valor ímpar"""
         if value % 2 == 0:
             value += 1
         self._window.setValue(value)
@@ -136,14 +189,15 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
         self._sigma.setValue(value / 10.0)
 
     def _on_method_changed(self, method: str):
-        """Handler para mudança de método"""
+        """Handler para mudança de método de suavização"""
         # Mostrar/ocultar grupos específicos
         self._savgol_group.setVisible(method == "savitzky_golay")
         self._exp_group.setVisible(method == "exponential")
 
-        # Habilitar/desabilitar sigma
-        self._sigma.setEnabled(method == "gaussian")
-        self._sigma_slider.setEnabled(method == "gaussian")
+        # Habilitar/desabilitar sigma (apenas para gaussian)
+        is_gaussian = method == "gaussian"
+        self._sigma.setEnabled(is_gaussian)
+        self._sigma_slider.setEnabled(is_gaussian)
 
         # Ajustar janela padrão conforme método
         if method == "gaussian":
@@ -152,22 +206,22 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
             self._window.setValue(5)
         elif method == "savitzky_golay":
             self._window.setValue(11)
+            self._validate_polyorder()
         elif method == "median":
             self._window.setValue(3)
-
-        # Validar polyorder < window
-        if method == "savitzky_golay":
-            self._validate_polyorder()
+        elif method == "exponential":
+            self._window.setValue(5)
 
     def _validate_polyorder(self):
-        """Garante que polyorder < window"""
-        max_order = self._window.value() - 1
-        self._polyorder.setMaximum(max_order)
-        if self._polyorder.value() >= max_order:
-            self._polyorder.setValue(max_order - 1)
+        """Garante que polyorder < window para Savitzky-Golay"""
+        if self._method.currentText() == "savitzky_golay":
+            max_order = self._window.value() - 1
+            self._polyorder.setMaximum(max_order)
+            if self._polyorder.value() >= max_order:
+                self._polyorder.setValue(max(1, max_order - 1))
 
     def _get_smoothing_config(self) -> dict[str, Any]:
-        """Obtém configuração de suavização"""
+        """Obtém configuração de suavização baseada nos widgets"""
         method = self._method.currentText()
 
         config = {
@@ -177,6 +231,7 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
             "boundary_mode": self._boundary_mode.currentText(),
         }
 
+        # Parâmetros específicos por método
         if method == "gaussian":
             config["sigma"] = self._sigma.value()
         elif method == "savitzky_golay":
@@ -190,31 +245,73 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
         return config
 
     def _preview_smoothing(self):
-        """Preview da suavização"""
+        """Preview da suavização (emite sinal com preview=True)"""
         config = self._get_smoothing_config()
         config["preview"] = True
         self.smoothing_applied.emit(config)
+        logger.debug("smoothing_preview_requested", config=config)
 
     def _apply_smoothing(self):
-        """Aplica suavização e fecha diálogo"""
+        """Aplica suavização e fecha o diálogo"""
         config = self._get_smoothing_config()
         config["preview"] = False
         self.smoothing_applied.emit(config)
+        logger.debug("smoothing_applied", config=config)
         self.accept()
 
     def get_config(self) -> dict[str, Any] | None:
-        """Retorna configuração se diálogo foi aceito"""
+        """
+        Retorna configuração de suavização se diálogo foi aceito
+        
+        Returns:
+            dict com configuração ou None se cancelado
+        """
         if self.result() == QDialog.DialogCode.Accepted:
             return self._get_smoothing_config()
         return None
+    
+    def set_config(self, config: dict[str, Any]):
+        """
+        Define configuração do diálogo a partir de um dict
+        
+        Args:
+            config: Dicionário com configuração de suavização
+        """
+        if "method" in config:
+            self._method.setCurrentText(config["method"])
+        if "window" in config:
+            self._window.setValue(config["window"])
+        if "preserve_nan" in config:
+            self._preserve_nan.setChecked(config["preserve_nan"])
+        if "boundary_mode" in config:
+            self._boundary_mode.setCurrentText(config["boundary_mode"])
+        
+        # Parâmetros específicos
+        if "sigma" in config:
+            self._sigma.setValue(config["sigma"])
+        if "polyorder" in config:
+            self._polyorder.setValue(config["polyorder"])
+        if "deriv" in config:
+            self._deriv.setValue(config["deriv"])
+        if "delta" in config:
+            self._delta.setValue(config["delta"])
+        if "alpha" in config:
+            self._alpha.setValue(config["alpha"])
+        if "adjust" in config:
+            self._adjust.setChecked(config["adjust"])
+        
+        logger.debug("smoothing_config_loaded", method=config.get("method"))
 
 
 def show_smoothing_dialog(parent: QWidget | None = None) -> dict[str, Any] | None:
     """
-    Conveniência para mostrar diálogo de suavização
+    Função de conveniência para mostrar o diálogo de suavização
 
+    Args:
+        parent: Widget pai do diálogo
+        
     Returns:
-        Configuração de suavização ou None se cancelado
+        Dicionário com configuração ou None se cancelado
     """
     dialog = SmoothingDialog(parent)
 

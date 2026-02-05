@@ -6,22 +6,117 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>350</width>
+    <height>300</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>QueryBuilderWidget</string>
-  </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing"><number>8</number></property>
+   <property name="leftMargin"><number>8</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>8</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   
+   <!-- Series Selection -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <layout class="QFormLayout" name="queryLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="seriesLabel">
+       <property name="text"><string>Series:</string></property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="seriesCombo"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="operatorLabel">
+       <property name="text"><string>Operator:</string></property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="operatorCombo">
+       <item><property name="text"><string>&gt;</string></property></item>
+       <item><property name="text"><string>&gt;=</string></property></item>
+       <item><property name="text"><string>&lt;</string></property></item>
+       <item><property name="text"><string>&lt;=</string></property></item>
+       <item><property name="text"><string>==</string></property></item>
+       <item><property name="text"><string>!=</string></property></item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="valueTypeLabel">
+       <property name="text"><string>Value Type:</string></property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="valueTypeCombo">
+       <item><property name="text"><string>Number</string></property></item>
+       <item><property name="text"><string>Statistics</string></property></item>
+       <item><property name="text"><string>Percentile</string></property></item>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="valueLabel">
+       <property name="text"><string>Value:</string></property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="numberInput">
+       <property name="decimals"><number>6</number></property>
+       <property name="minimum"><double>-1000000.000000000000000</double></property>
+       <property name="maximum"><double>1000000.000000000000000</double></property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="statsCombo">
+       <item><property name="text"><string>mean</string></property></item>
+       <item><property name="text"><string>max</string></property></item>
+       <item><property name="text"><string>min</string></property></item>
+       <item><property name="text"><string>std</string></property></item>
+       <item><property name="text"><string>median</string></property></item>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="percentileInput">
+       <property name="minimum"><number>1</number></property>
+       <property name="maximum"><number>99</number></property>
+       <property name="value"><number>50</number></property>
+       <property name="suffix"><string>%</string></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   
+   <!-- Query Preview -->
+   <item>
+    <widget class="QGroupBox" name="previewGroup">
+     <property name="title"><string>Query Preview</string></property>
+     <layout class="QVBoxLayout" name="previewLayout">
+      <item>
+       <widget class="QTextEdit" name="queryPreview">
+        <property name="readOnly"><bool>true</bool></property>
+        <property name="maximumHeight"><number>60</number></property>
+       </widget>
+      </item>
+     </layout>
     </widget>
+   </item>
+   
+   <!-- Execute Button -->
+   <item>
+    <widget class="QPushButton" name="executeBtn">
+     <property name="text"><string>Execute Query</string></property>
+    </widget>
+   </item>
+   
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+    </spacer>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

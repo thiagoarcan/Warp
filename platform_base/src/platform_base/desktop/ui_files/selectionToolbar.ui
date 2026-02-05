@@ -6,22 +6,153 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>500</width>
+    <height>40</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>SelectionToolbar</string>
+  <property name="minimumHeight">
+   <number>36</number>
   </property>
-  <layout class="QVBoxLayout" name="mainLayout">
+  <property name="maximumHeight">
+   <number>48</number>
+  </property>
+  <layout class="QHBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   
+   <!-- Mode Label -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QLabel" name="modeLabel">
+     <property name="text">
+      <string>Mode:</string>
+     </property>
     </widget>
+   </item>
+   
+   <!-- Mode Buttons -->
+   <item>
+    <widget class="QPushButton" name="singleBtn">
+     <property name="text">
+      <string>Single</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Select single points</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="boxBtn">
+     <property name="text">
+      <string>Box</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Box selection</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="lassoBtn">
+     <property name="text">
+      <string>Lasso</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Freehand lasso selection</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="rangeBtn">
+     <property name="text">
+      <string>Range</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Range/time selection</string>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Separator -->
+   <item>
+    <widget class="QFrame" name="separator">
+     <property name="frameShape">
+      <enum>QFrame::VLine</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Action Buttons -->
+   <item>
+    <widget class="QPushButton" name="selectAllBtn">
+     <property name="text">
+      <string>All</string>
+     </property>
+     <property name="toolTip">
+      <string>Select all points</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="invertBtn">
+     <property name="text">
+      <string>Invert</string>
+     </property>
+     <property name="toolTip">
+      <string>Invert selection</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="clearBtn">
+     <property name="text">
+      <string>Clear</string>
+     </property>
+     <property name="toolTip">
+      <string>Clear selection</string>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Spacer -->
+   <item>
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

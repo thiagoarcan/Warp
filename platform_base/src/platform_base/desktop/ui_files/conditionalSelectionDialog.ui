@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConditionalSelectionDialog</class>
+ <widget class="QDialog" name="ConditionalSelectionDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Conditional Selection</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>8</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   
+   <!-- Threshold Condition Group -->
+   <item>
+    <widget class="QGroupBox" name="thresholdGroup">
+     <property name="title">
+      <string>🔢 Threshold Condition</string>
+     </property>
+     <layout class="QHBoxLayout" name="thresholdLayout">
+      <item>
+       <widget class="QLabel" name="thresholdLabel">
+        <property name="text">
+         <string>value</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="thresholdOperator">
+        <item>
+         <property name="text">
+          <string>&gt;</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>&gt;=</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>&lt;</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>&lt;=</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>==</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>!=</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="thresholdSpin">
+        <property name="minimum">
+         <double>-1000000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000000.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="decimals">
+         <number>6</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="applyThresholdBtn">
+        <property name="text">
+         <string>Apply</string>
+        </property>
+        <property name="toolTip">
+         <string>Apply threshold condition to expression</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Percentile Condition Group -->
+   <item>
+    <widget class="QGroupBox" name="percentileGroup">
+     <property name="title">
+      <string>📊 Percentile Condition</string>
+     </property>
+     <layout class="QHBoxLayout" name="percentileLayout">
+      <item>
+       <widget class="QComboBox" name="percentileType">
+        <item>
+         <property name="text">
+          <string>Top</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Bottom</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="percentileSpin">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>10</number>
+        </property>
+        <property name="suffix">
+         <string>%</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="applyPercentileBtn">
+        <property name="text">
+         <string>Apply</string>
+        </property>
+        <property name="toolTip">
+         <string>Apply percentile condition to expression</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Custom Expression Group -->
+   <item>
+    <widget class="QGroupBox" name="expressionGroup">
+     <property name="title">
+      <string>📝 Custom Expression</string>
+     </property>
+     <layout class="QVBoxLayout" name="expressionLayout">
+      <item>
+       <widget class="QTextEdit" name="conditionEdit">
+        <property name="placeholderText">
+         <string>Enter a Python expression using 'value' or 'values' array
+Examples:
+  value > 0
+  value >= np.percentile(values, 90)
+  (value > 10) &amp; (value &lt; 100)</string>
+        </property>
+        <property name="maximumHeight">
+         <number>80</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Selection Mode -->
+   <item>
+    <widget class="QGroupBox" name="modeGroup">
+     <property name="title">
+      <string>⚙️ Selection Mode</string>
+     </property>
+     <layout class="QHBoxLayout" name="modeLayout">
+      <item>
+       <widget class="QLabel" name="modeLabel">
+        <property name="text">
+         <string>Mode:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="modeCombo">
+        <item>
+         <property name="text">
+          <string>Replace</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Add</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Subtract</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Intersect</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="modeSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Spacer -->
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </spacer>
+   </item>
+   
+   <!-- Button Box -->
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="applyBtn">
+       <property name="text">
+        <string>Apply Selection</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeBtn">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

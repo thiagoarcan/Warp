@@ -9,6 +9,7 @@ Features:
 - Barra de progresso para exportações grandes
 
 Interface carregada de: desktop/ui_files/exportDialog.ui
+Todos os widgets são definidos no arquivo .ui - NENHUMA CRIAÇÃO PROGRAMÁTICA.
 """
 
 from __future__ import annotations
@@ -18,17 +19,13 @@ from pathlib import Path
 from typing import Any
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
-    QFormLayout,
     QGroupBox,
-    QHBoxLayout,
-    QHeaderView,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -39,7 +36,6 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QTreeWidget,
     QTreeWidgetItem,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -66,12 +62,10 @@ class ExportWorkerThread(QThread):
     def run(self):
         """Executa exportação em background"""
         try:
-
             import pandas as pd
 
             self.progress_updated.emit(10, "Preparando dados...")
 
-            # Simula preparação de dados
             df = self.data if isinstance(self.data, pd.DataFrame) else pd.DataFrame(self.data)
             total_rows = len(df)
 
@@ -80,7 +74,6 @@ class ExportWorkerThread(QThread):
             fmt = self.config.get("format", "csv")
             output_path = Path(self.output_path)
 
-            # Exporta conforme formato
             if fmt == "csv":
                 df.to_csv(output_path, index=False)
             elif fmt == "xlsx":
@@ -94,7 +87,6 @@ class ExportWorkerThread(QThread):
 
             self.progress_updated.emit(90, "Finalizando...")
 
-            # Resultado
             result = {
                 "path": str(output_path),
                 "size_bytes": output_path.stat().st_size,
@@ -114,10 +106,10 @@ class ExportDialog(QDialog, UiLoaderMixin):
     """
     Diálogo completo de exportação de dados
     
-    Interface carregada do arquivo .ui via UiLoaderMixin.
+    Interface 100% carregada do arquivo .ui via UiLoaderMixin.
+    Nenhum widget é criado programaticamente.
     """
     
-    # Arquivo .ui que define a interface
     UI_FILE = "exportDialog.ui"
 
     export_requested = pyqtSignal(dict)  # config
@@ -135,183 +127,127 @@ class ExportDialog(QDialog, UiLoaderMixin):
         self.selected_series = []
         self.export_worker = None
 
-        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
-        self._setup_ui_from_file()
+            raise RuntimeError(
+                f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
+                "Verifique se existe em desktop/ui_files/"
+            )
         
+        self._setup_ui_from_file()
         self._populate_series_tree()
-        self._connect_signals()
+        self._setup_connections()
+        self._initialize_widget_states()
         
         logger.debug("export_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        # Encontra widgets do arquivo .ui
-        self.content_widget = self.findChild(QWidget, "contentWidget")
-        self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        """Busca referências a todos os widgets definidos no arquivo .ui"""
         
-        # Se o contentWidget existe mas está vazio, preenche programaticamente
-        if self.content_widget:
-            content_layout = self.content_widget.layout()
-            if content_layout and content_layout.count() == 0:
-                # UI está vazio, criar conteúdo programaticamente
-                self._create_content_widgets(content_layout)
-
-    def _create_content_widgets(self, layout: QVBoxLayout):
-        """Cria widgets de conteúdo quando o .ui está vazio"""
-        # Splitter principal
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-
-        # Painel Esquerdo: Seleção de séries
-        left_panel = self._create_series_panel()
-        splitter.addWidget(left_panel)
-
-        # Painel Direito: Configurações e Preview
-        right_panel = self._create_config_panel()
-        splitter.addWidget(right_panel)
-
-        splitter.setSizes([350, 350])
-        layout.addWidget(splitter)
-
-        # Barra de progresso
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        layout.addWidget(self.progress_bar)
-
-        self.progress_label = QLabel("")
-        self.progress_label.setVisible(False)
-        layout.addWidget(self.progress_label)
-
-    def _create_series_panel(self) -> QWidget:
-        """Cria painel de seleção de séries"""
-        panel = QGroupBox("Séries para Exportar")
-        layout = QVBoxLayout(panel)
-
-        # Tree widget com checkboxes
-        self.series_tree = QTreeWidget()
-        self.series_tree.setHeaderLabels(["Nome", "Linhas"])
-        self.series_tree.setSelectionMode(QTreeWidget.SelectionMode.MultiSelection)
-        self.series_tree.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.series_tree.header().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        layout.addWidget(self.series_tree)
-
-        # Botões de seleção
-        btn_layout = QHBoxLayout()
-
-        select_all_btn = QPushButton("Selecionar Tudo")
-        select_all_btn.clicked.connect(self._select_all_series)
-        btn_layout.addWidget(select_all_btn)
-
-        clear_btn = QPushButton("Limpar Seleção")
-        clear_btn.clicked.connect(self._clear_selection)
-        btn_layout.addWidget(clear_btn)
-
-        layout.addLayout(btn_layout)
-
-        # Info de seleção
-        self.selection_info = QLabel("0 séries selecionadas")
-        layout.addWidget(self.selection_info)
-
-        return panel
-
-    def _create_config_panel(self) -> QWidget:
-        """Cria painel de configurações"""
-        panel = QGroupBox("Configurações")
-        layout = QVBoxLayout(panel)
-
-        tabs = QTabWidget()
-
+        # === Widgets principais ===
+        self._main_splitter = self.findChild(QSplitter, "mainSplitter")
+        self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
+        
+        # === Painel de seleção de séries ===
+        self._series_tree = self.findChild(QTreeWidget, "seriesTree")
+        self._select_all_btn = self.findChild(QPushButton, "selectAllBtn")
+        self._clear_selection_btn = self.findChild(QPushButton, "clearSelectionBtn")
+        self._selection_info = self.findChild(QLabel, "selectionInfoLabel")
+        
+        # === Tabs de configuração ===
+        self._config_tabs = self.findChild(QTabWidget, "configTabs")
+        
         # === Aba Formato ===
-        format_tab = QWidget()
-        format_layout = QFormLayout(format_tab)
-
-        # Formato de saída
-        self.format_combo = QComboBox()
-        self.format_combo.addItems(["CSV (.csv)", "Excel (.xlsx)", "Parquet (.parquet)",
-                                    "HDF5 (.h5)", "JSON (.json)"])
-        self.format_combo.currentIndexChanged.connect(self._on_format_changed)
-        format_layout.addRow("Formato:", self.format_combo)
-
-        # Delimitador (CSV)
-        self.delimiter_combo = QComboBox()
-        self.delimiter_combo.addItems(["Vírgula (,)", "Ponto e vírgula (;)", "Tab", "Espaço"])
-        format_layout.addRow("Delimitador:", self.delimiter_combo)
-
-        # Encoding
-        self.encoding_combo = QComboBox()
-        self.encoding_combo.addItems(["UTF-8", "Latin-1", "Windows-1252"])
-        format_layout.addRow("Encoding:", self.encoding_combo)
-
-        # Decimal separator
-        self.decimal_combo = QComboBox()
-        self.decimal_combo.addItems(["Ponto (.)", "Vírgula (,)"])
-        format_layout.addRow("Separador decimal:", self.decimal_combo)
-
-        tabs.addTab(format_tab, "Formato")
-
+        self._format_combo = self.findChild(QComboBox, "formatCombo")
+        self._delimiter_combo = self.findChild(QComboBox, "delimiterCombo")
+        self._encoding_combo = self.findChild(QComboBox, "encodingCombo")
+        self._decimal_combo = self.findChild(QComboBox, "decimalCombo")
+        
         # === Aba Opções ===
-        options_tab = QWidget()
-        options_layout = QVBoxLayout(options_tab)
-
-        self.include_header_check = QCheckBox("Incluir cabeçalho")
-        self.include_header_check.setChecked(True)
-        options_layout.addWidget(self.include_header_check)
-
-        self.include_index_check = QCheckBox("Incluir índice")
-        self.include_index_check.setChecked(False)
-        options_layout.addWidget(self.include_index_check)
-
-        self.include_metadata_check = QCheckBox("Incluir metadados")
-        self.include_metadata_check.setChecked(True)
-        options_layout.addWidget(self.include_metadata_check)
-
-        self.compress_check = QCheckBox("Comprimir arquivo (gzip)")
-        self.compress_check.setChecked(False)
-        options_layout.addWidget(self.compress_check)
-
-        self.date_format_check = QCheckBox("Formatar datas como ISO 8601")
-        self.date_format_check.setChecked(True)
-        options_layout.addWidget(self.date_format_check)
-
-        options_layout.addStretch()
-        tabs.addTab(options_tab, "Opções")
-
+        self._include_header_check = self.findChild(QCheckBox, "includeHeaderCheck")
+        self._include_index_check = self.findChild(QCheckBox, "includeIndexCheck")
+        self._include_metadata_check = self.findChild(QCheckBox, "includeMetadataCheck")
+        self._compress_check = self.findChild(QCheckBox, "compressCheck")
+        self._date_format_check = self.findChild(QCheckBox, "dateFormatCheck")
+        
         # === Aba Preview ===
-        preview_tab = QWidget()
-        preview_layout = QVBoxLayout(preview_tab)
-
-        self.preview_text = QTextEdit()
-        self.preview_text.setReadOnly(True)
-        self.preview_text.setFont(QFont("Consolas", 9))
-        self.preview_text.setPlaceholderText("Clique em 'Preview' para ver os dados...")
-        preview_layout.addWidget(self.preview_text)
-
-        tabs.addTab(preview_tab, "Preview")
-
-        layout.addWidget(tabs)
-
+        self._preview_text = self.findChild(QTextEdit, "previewText")
+        
         # === Destino ===
-        dest_group = QGroupBox("Destino")
-        dest_layout = QHBoxLayout(dest_group)
+        self._path_edit = self.findChild(QLineEdit, "pathEdit")
+        self._browse_btn = self.findChild(QPushButton, "browseBtn")
+        
+        # === Progresso ===
+        self._progress_bar = self.findChild(QProgressBar, "progressBar")
+        self._progress_label = self.findChild(QLabel, "progressLabel")
+        
+        # === Botão Preview ===
+        self._preview_btn = self.findChild(QPushButton, "previewBtn")
+        
+        # Validação
+        self._validate_widgets()
+        
+        logger.debug("export_dialog_ui_widgets_loaded")
 
-        self.path_edit = QLineEdit()
-        self.path_edit.setPlaceholderText("Selecione o arquivo de destino...")
-        dest_layout.addWidget(self.path_edit)
+    def _validate_widgets(self):
+        """Valida que todos os widgets essenciais foram encontrados no .ui"""
+        required_widgets = {
+            "seriesTree": self._series_tree,
+            "formatCombo": self._format_combo,
+            "delimiterCombo": self._delimiter_combo,
+            "encodingCombo": self._encoding_combo,
+            "decimalCombo": self._decimal_combo,
+            "includeHeaderCheck": self._include_header_check,
+            "includeIndexCheck": self._include_index_check,
+            "includeMetadataCheck": self._include_metadata_check,
+            "compressCheck": self._compress_check,
+            "dateFormatCheck": self._date_format_check,
+            "previewText": self._preview_text,
+            "pathEdit": self._path_edit,
+            "browseBtn": self._browse_btn,
+            "progressBar": self._progress_bar,
+            "buttonBox": self._button_box,
+        }
+        
+        missing = [name for name, widget in required_widgets.items() if widget is None]
+        
+        if missing:
+            raise RuntimeError(
+                f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
+                f"Verifique se {self.UI_FILE} está completo."
+            )
 
-        browse_btn = QPushButton("Procurar...")
-        browse_btn.clicked.connect(self._browse_destination)
-        dest_layout.addWidget(browse_btn)
+    def _setup_connections(self):
+        """Configura conexões de sinais entre widgets"""
+        # Seleção de séries
+        if self._select_all_btn:
+            self._select_all_btn.clicked.connect(self._select_all_series)
+        if self._clear_selection_btn:
+            self._clear_selection_btn.clicked.connect(self._clear_selection)
+        self._series_tree.itemChanged.connect(self._on_series_selection_changed)
+        
+        # Formato
+        self._format_combo.currentIndexChanged.connect(self._on_format_changed)
+        
+        # Navegação
+        self._browse_btn.clicked.connect(self._browse_destination)
+        
+        # Preview
+        if self._preview_btn:
+            self._preview_btn.clicked.connect(self._show_preview)
+        
+        # Botões
+        if self._button_box:
+            self._button_box.accepted.connect(self._start_export)
+            self._button_box.rejected.connect(self.reject)
 
-        layout.addWidget(dest_group)
-
-        return panel
+    def _initialize_widget_states(self):
+        """Inicializa estados dos widgets"""
+        self._on_format_changed(0)
 
     def _populate_series_tree(self):
         """Popula tree com séries disponíveis"""
-        self.series_tree.clear()
+        self._series_tree.clear()
 
-        # Agrupa por dataset
         datasets = {}
         for item in self.available_series:
             if len(item) >= 3:
@@ -325,7 +261,6 @@ class ExportDialog(QDialog, UiLoaderMixin):
                 datasets[dataset_name] = []
             datasets[dataset_name].append((series_name, row_count))
 
-        # Cria itens na árvore
         for dataset_name, series_list in datasets.items():
             dataset_item = QTreeWidgetItem([dataset_name, ""])
             dataset_item.setFlags(dataset_item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
@@ -338,27 +273,21 @@ class ExportDialog(QDialog, UiLoaderMixin):
                 series_item.setData(0, Qt.ItemDataRole.UserRole, (dataset_name, series_name))
                 dataset_item.addChild(series_item)
 
-            self.series_tree.addTopLevelItem(dataset_item)
+            self._series_tree.addTopLevelItem(dataset_item)
 
-        self.series_tree.expandAll()
-
-    def _connect_signals(self):
-        """Conecta sinais"""
-        self.series_tree.itemChanged.connect(self._on_series_selection_changed)
+        self._series_tree.expandAll()
 
     def _on_series_selection_changed(self, item: QTreeWidgetItem, column: int):
         """Atualiza quando seleção muda"""
         if column != 0:
             return
 
-        # Se é item pai (dataset), propaga para filhos
         if item.childCount() > 0:
             state = item.checkState(0)
             for i in range(item.childCount()):
                 child = item.child(i)
                 child.setCheckState(0, state)
 
-        # Conta selecionados
         self._update_selection_count()
 
     def _update_selection_count(self):
@@ -366,8 +295,8 @@ class ExportDialog(QDialog, UiLoaderMixin):
         count = 0
         total_rows = 0
 
-        for i in range(self.series_tree.topLevelItemCount()):
-            dataset_item = self.series_tree.topLevelItem(i)
+        for i in range(self._series_tree.topLevelItemCount()):
+            dataset_item = self._series_tree.topLevelItem(i)
             for j in range(dataset_item.childCount()):
                 child = dataset_item.child(j)
                 if child.checkState(0) == Qt.CheckState.Checked:
@@ -375,36 +304,36 @@ class ExportDialog(QDialog, UiLoaderMixin):
                     with contextlib.suppress(ValueError):
                         total_rows += int(child.text(1))
 
-        self.selection_info.setText(f"{count} séries selecionadas ({total_rows:,} linhas total)")
+        if self._selection_info:
+            self._selection_info.setText(f"{count} séries selecionadas ({total_rows:,} linhas total)")
 
     def _select_all_series(self):
         """Seleciona todas as séries"""
-        for i in range(self.series_tree.topLevelItemCount()):
-            item = self.series_tree.topLevelItem(i)
+        for i in range(self._series_tree.topLevelItemCount()):
+            item = self._series_tree.topLevelItem(i)
             item.setCheckState(0, Qt.CheckState.Checked)
 
     def _clear_selection(self):
         """Limpa seleção"""
-        for i in range(self.series_tree.topLevelItemCount()):
-            item = self.series_tree.topLevelItem(i)
+        for i in range(self._series_tree.topLevelItemCount()):
+            item = self._series_tree.topLevelItem(i)
             item.setCheckState(0, Qt.CheckState.Unchecked)
 
     def _on_format_changed(self, index: int):
         """Atualiza opções conforme formato"""
-        format_text = self.format_combo.currentText().lower()
+        format_text = self._format_combo.currentText().lower()
 
         is_csv = "csv" in format_text
-        self.delimiter_combo.setEnabled(is_csv)
-        self.encoding_combo.setEnabled(is_csv or "json" in format_text)
-        self.decimal_combo.setEnabled(is_csv)
+        self._delimiter_combo.setEnabled(is_csv)
+        self._encoding_combo.setEnabled(is_csv or "json" in format_text)
+        self._decimal_combo.setEnabled(is_csv)
 
-        # Atualiza extensão no path
-        if self.path_edit.text():
+        if self._path_edit.text():
             self._update_path_extension()
 
     def _update_path_extension(self):
         """Atualiza extensão do arquivo conforme formato"""
-        current_path = self.path_edit.text()
+        current_path = self._path_edit.text()
         if not current_path:
             return
 
@@ -417,16 +346,16 @@ class ExportDialog(QDialog, UiLoaderMixin):
             "JSON": ".json",
         }
 
-        format_text = self.format_combo.currentText()
+        format_text = self._format_combo.currentText()
         for key, ext in ext_map.items():
             if key in format_text:
                 new_path = path.with_suffix(ext)
-                self.path_edit.setText(str(new_path))
+                self._path_edit.setText(str(new_path))
                 break
 
     def _browse_destination(self):
         """Abre diálogo para selecionar destino"""
-        format_text = self.format_combo.currentText()
+        format_text = self._format_combo.currentText()
 
         filter_map = {
             "CSV": "CSV Files (*.csv)",
@@ -450,49 +379,45 @@ class ExportDialog(QDialog, UiLoaderMixin):
         )
 
         if path:
-            self.path_edit.setText(path)
+            self._path_edit.setText(path)
 
     def _show_preview(self):
         """Mostra preview dos dados"""
         selected = self._get_selected_series()
 
         if not selected:
-            self.preview_text.setPlainText("Nenhuma série selecionada para preview.")
+            self._preview_text.setPlainText("Nenhuma série selecionada para preview.")
             return
 
-        # Simula preview
-        preview_lines = []
-        preview_lines.append("# Preview de Exportação")
-        preview_lines.append(f"# Séries selecionadas: {len(selected)}")
-        preview_lines.append(f"# Formato: {self.format_combo.currentText()}")
-        preview_lines.append("")
+        preview_lines = [
+            "# Preview de Exportação",
+            f"# Séries selecionadas: {len(selected)}",
+            f"# Formato: {self._format_combo.currentText()}",
+            "",
+        ]
 
-        # Header simulado
         headers = ["timestamp"]
-        for dataset, series in selected[:5]:  # Limita a 5 para preview
+        for dataset, series in selected[:5]:
             headers.append(f"{dataset}.{series}")
 
         preview_lines.append(",".join(headers))
 
-        # Dados simulados
         import random
-        for i in range(min(10, 100)):
+        for i in range(10):
             row = [f"2024-01-01 00:00:{i:02d}"]
             for _ in range(len(headers) - 1):
                 row.append(f"{random.uniform(0, 100):.2f}")
             preview_lines.append(",".join(row))
 
-        preview_lines.append("...")
-        preview_lines.append("# Total de linhas estimado: (calculado na exportação)")
-
-        self.preview_text.setPlainText("\n".join(preview_lines))
+        preview_lines.extend(["...", "# Total de linhas estimado: (calculado na exportação)"])
+        self._preview_text.setPlainText("\n".join(preview_lines))
 
     def _get_selected_series(self) -> list[tuple[str, str]]:
         """Retorna lista de séries selecionadas"""
         selected = []
 
-        for i in range(self.series_tree.topLevelItemCount()):
-            dataset_item = self.series_tree.topLevelItem(i)
+        for i in range(self._series_tree.topLevelItemCount()):
+            dataset_item = self._series_tree.topLevelItem(i)
             for j in range(dataset_item.childCount()):
                 child = dataset_item.child(j)
                 if child.checkState(0) == Qt.CheckState.Checked:
@@ -504,9 +429,8 @@ class ExportDialog(QDialog, UiLoaderMixin):
 
     def _get_export_config(self) -> dict[str, Any]:
         """Retorna configuração de exportação"""
-        format_text = self.format_combo.currentText().lower()
+        format_text = self._format_combo.currentText().lower()
 
-        # Determina formato
         if "csv" in format_text:
             fmt = "csv"
         elif "excel" in format_text or "xlsx" in format_text:
@@ -520,8 +444,7 @@ class ExportDialog(QDialog, UiLoaderMixin):
         else:
             fmt = "csv"
 
-        # Delimitador
-        delimiter_text = self.delimiter_combo.currentText()
+        delimiter_text = self._delimiter_combo.currentText()
         if "vírgula" in delimiter_text.lower():
             delimiter = ","
         elif "ponto e vírgula" in delimiter_text.lower():
@@ -531,100 +454,37 @@ class ExportDialog(QDialog, UiLoaderMixin):
         else:
             delimiter = " "
 
-        # Decimal
-        decimal_text = self.decimal_combo.currentText()
+        decimal_text = self._decimal_combo.currentText()
         decimal = "." if "ponto" in decimal_text.lower() else ","
 
         return {
             "format": fmt,
-            "output_path": self.path_edit.text(),
+            "output_path": self._path_edit.text(),
             "selected_series": self._get_selected_series(),
             "delimiter": delimiter,
-            "encoding": self.encoding_combo.currentText(),
+            "encoding": self._encoding_combo.currentText(),
             "decimal_separator": decimal,
-            "include_header": self.include_header_check.isChecked(),
-            "include_index": self.include_index_check.isChecked(),
-            "include_metadata": self.include_metadata_check.isChecked(),
-            "compress": self.compress_check.isChecked(),
-            "date_format_iso": self.date_format_check.isChecked(),
+            "include_header": self._include_header_check.isChecked(),
+            "include_index": self._include_index_check.isChecked(),
+            "include_metadata": self._include_metadata_check.isChecked(),
+            "compress": self._compress_check.isChecked(),
+            "date_format_iso": self._date_format_check.isChecked(),
         }
-
-    def _validate_config(self) -> bool:
-        """Valida configuração antes de exportar"""
-        if not self._get_selected_series():
-            QMessageBox.warning(self, "Aviso", "Selecione pelo menos uma série para exportar.")
-            return False
-
-        if not self.path_edit.text():
-            QMessageBox.warning(self, "Aviso", "Selecione um arquivo de destino.")
-            return False
-
-        output_path = Path(self.path_edit.text())
-        if output_path.exists():
-            reply = QMessageBox.question(
-                self, "Confirmar",
-                f"O arquivo '{output_path.name}' já existe. Deseja sobrescrevê-lo?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.No:
-                return False
-
-        return True
 
     def _start_export(self):
         """Inicia exportação"""
-        if not self._validate_config():
+        if not self._path_edit.text():
+            QMessageBox.warning(self, "Atenção", "Selecione um destino para o arquivo.")
             return
-
+        
+        selected = self._get_selected_series()
+        if not selected:
+            QMessageBox.warning(self, "Atenção", "Selecione ao menos uma série para exportar.")
+            return
+        
         config = self._get_export_config()
-
-        # Emite sinal com configuração
         self.export_requested.emit(config)
-
-        # Mostra progresso
-        self.progress_bar.setVisible(True)
-        self.progress_label.setVisible(True)
-        self.progress_bar.setValue(0)
-        self.progress_label.setText("Iniciando exportação...")
-
-        # Desabilita botões durante exportação
-        self.export_btn.setEnabled(False)
-        self.preview_btn.setEnabled(False)
-
-        # Em uma implementação real, iniciaria o worker thread aqui
-        # Por agora, simula conclusão
-        from PyQt6.QtCore import QTimer
-        QTimer.singleShot(1000, lambda: self._on_export_progress(50, "Processando dados..."))
-        QTimer.singleShot(2000, lambda: self._on_export_progress(100, "Concluído!"))
-        QTimer.singleShot(2500, self._on_export_completed)
-
-    def _on_export_progress(self, percent: int, message: str):
-        """Atualiza progresso"""
-        self.progress_bar.setValue(percent)
-        self.progress_label.setText(message)
-
-    def _on_export_completed(self):
-        """Callback quando exportação completa"""
-        self.export_btn.setEnabled(True)
-        self.preview_btn.setEnabled(True)
-
-        config = self._get_export_config()
-
-        QMessageBox.information(
-            self, "Sucesso",
-            f"Dados exportados com sucesso para:\n{config['output_path']}",
-        )
-
         self.accept()
-
-    def _on_export_failed(self, error: str):
-        """Callback quando exportação falha"""
-        self.export_btn.setEnabled(True)
-        self.preview_btn.setEnabled(True)
-        self.progress_bar.setVisible(False)
-        self.progress_label.setVisible(False)
-
-        QMessageBox.critical(self, "Erro", f"Falha na exportação:\n{error}")
 
     def get_config(self) -> dict[str, Any] | None:
         """Retorna configuração se diálogo foi aceito"""
@@ -636,14 +496,14 @@ class ExportDialog(QDialog, UiLoaderMixin):
 def show_export_dialog(available_series: list[tuple[str, str, int]] | None = None,
                        parent: QWidget | None = None) -> dict[str, Any] | None:
     """
-    Conveniência para mostrar diálogo de exportação
+    Função de conveniência para mostrar o diálogo de exportação
 
     Args:
         available_series: Lista de (dataset_name, series_name, row_count)
         parent: Widget pai
-
+        
     Returns:
-        Configuração de exportação ou None se cancelado
+        Dicionário com configuração ou None se cancelado
     """
     dialog = ExportDialog(available_series, parent)
 

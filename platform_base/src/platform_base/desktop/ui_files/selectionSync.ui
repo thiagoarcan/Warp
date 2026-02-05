@@ -6,22 +6,49 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>300</width>
+    <height>250</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>SelectionSync</string>
-  </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing"><number>8</number></property>
+   <property name="leftMargin"><number>8</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>8</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   
+   <!-- Sync Enable -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QCheckBox" name="syncCheckbox">
+     <property name="text"><string>Enable Selection Sync</string></property>
+     <property name="checked"><bool>true</bool></property>
+    </widget>
+   </item>
+   
+   <!-- Views List -->
+   <item>
+    <widget class="QGroupBox" name="viewsGroup">
+     <property name="title"><string>Synced Views</string></property>
+     <layout class="QVBoxLayout" name="viewsLayout">
+      <item>
+       <widget class="QListWidget" name="viewsList">
+        <property name="selectionMode"><enum>QAbstractItemView::MultiSelection</enum></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Status -->
+   <item>
+    <widget class="QLabel" name="statusLabel">
+     <property name="text"><string>Status: Ready</string></property>
+     <property name="alignment"><set>Qt::AlignCenter</set></property>
+     <property name="styleSheet"><string>color: gray; font-style: italic;</string></property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

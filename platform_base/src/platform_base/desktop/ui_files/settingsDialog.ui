@@ -7,89 +7,160 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>500</height>
+    <height>550</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>700</width>
+    <height>550</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>Settings</string>
+   <string>⚙️ Configurações</string>
   </property>
   <property name="modal">
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
    <item>
     <widget class="QTabWidget" name="settingsTabs">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="generalTab">
+     <widget class="QWidget" name="appearanceTab">
       <attribute name="title">
-       <string>General</string>
+       <string>🎨 Aparência</string>
       </attribute>
-      <layout class="QVBoxLayout" name="generalTabLayout">
+      <layout class="QVBoxLayout" name="appearanceTabLayout">
+       <property name="spacing">
+        <number>16</number>
+       </property>
        <item>
-        <widget class="QGroupBox" name="appearanceGroup">
+        <widget class="QGroupBox" name="themeGroup">
          <property name="title">
-          <string>Appearance</string>
+          <string>🌗 Tema</string>
          </property>
-         <layout class="QFormLayout" name="appearanceLayout">
+         <layout class="QFormLayout" name="themeLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="themeLabel">
             <property name="text">
-             <string>Theme:</string>
+             <string>Tema:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="themeCombo">
+            <property name="toolTip">
+             <string>Selecione o tema visual da aplicação</string>
+            </property>
             <item>
              <property name="text">
-              <string>Auto</string>
+              <string>Claro (Light)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Light</string>
+              <string>Escuro (Dark)</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Dark</string>
+              <string>Sistema</string>
              </property>
             </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="accentColorLabel">
+            <property name="text">
+             <string>Cor de Destaque:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="accentColorBtn">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Clique para escolher a cor de destaque</string>
+            </property>
+            <property name="text">
+             <string></string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="fontGroup">
+         <property name="title">
+          <string>🔤 Fonte</string>
+         </property>
+         <layout class="QFormLayout" name="fontLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="fontFamilyLabel">
+            <property name="text">
+             <string>Família:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QFontComboBox" name="fontCombo">
+            <property name="toolTip">
+             <string>Fonte da interface</string>
+            </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="fontSizeLabel">
             <property name="text">
-             <string>Font Size:</string>
+             <string>Tamanho:</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QSpinBox" name="fontSizeSpin">
+            <property name="toolTip">
+             <string>Tamanho da fonte (8-18 pt)</string>
+            </property>
+            <property name="suffix">
+             <string> pt</string>
+            </property>
             <property name="minimum">
              <number>8</number>
             </property>
             <property name="maximum">
-             <number>20</number>
+             <number>18</number>
             </property>
             <property name="value">
-             <number>9</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="displayLabel">
-            <property name="text">
-             <string>Display:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="dpiCheck">
-            <property name="text">
-             <string>Enable high DPI scaling</string>
+             <number>10</number>
             </property>
            </widget>
           </item>
@@ -97,59 +168,138 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="behaviorGroup">
-         <property name="title">
-          <string>Behavior</string>
+        <spacer name="appearanceSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <layout class="QFormLayout" name="behaviorLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="autosaveLabel">
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="visualizationTab">
+      <attribute name="title">
+       <string>📊 Visualização</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="visualizationTabLayout">
+       <property name="spacing">
+        <number>16</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="plotDefaultsGroup">
+         <property name="title">
+          <string>📈 Padrões de Gráfico</string>
+         </property>
+         <layout class="QVBoxLayout" name="plotDefaultsLayout">
+          <item>
+           <widget class="QCheckBox" name="gridCheck">
+            <property name="toolTip">
+             <string>Exibir linhas de grade nos gráficos automaticamente</string>
+            </property>
             <property name="text">
-             <string>Auto-save interval:</string>
+             <string>Mostrar grid por padrão</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="legendCheck">
+            <property name="toolTip">
+             <string>Exibir legenda nos gráficos automaticamente</string>
+            </property>
+            <property name="text">
+             <string>Mostrar legenda por padrão</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="crosshairCheck">
+            <property name="toolTip">
+             <string>Ativar cursor em cruz com coordenadas automaticamente</string>
+            </property>
+            <property name="text">
+             <string>Crosshair ativo por padrão</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="autozoomCheck">
+            <property name="toolTip">
+             <string>Ajustar automaticamente o zoom para mostrar todos os dados</string>
+            </property>
+            <property name="text">
+             <string>Auto-ajustar zoom ao carregar</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="lineStyleGroup">
+         <property name="title">
+          <string>✏️ Estilo de Linha</string>
+         </property>
+         <layout class="QFormLayout" name="lineStyleLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lineWidthLabel">
+            <property name="text">
+             <string>Largura da linha:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="autosaveSpin">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>60</number>
-            </property>
-            <property name="value">
-             <number>5</number>
+           <widget class="QDoubleSpinBox" name="lineWidthSpin">
+            <property name="toolTip">
+             <string>Espessura das linhas nos gráficos</string>
             </property>
             <property name="suffix">
-             <string> minutes</string>
+             <string> px</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>0.500000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>5.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.500000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="exitLabel">
+           <widget class="QLabel" name="markerSizeLabel">
             <property name="text">
-             <string>Exit:</string>
+             <string>Tamanho do marcador:</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QCheckBox" name="confirmExitCheck">
-            <property name="text">
-             <string>Confirm before exiting</string>
+           <widget class="QSpinBox" name="markerSizeSpin">
+            <property name="toolTip">
+             <string>Tamanho dos marcadores de pontos</string>
             </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="windowLabel">
-            <property name="text">
-             <string>Window:</string>
+            <property name="suffix">
+             <string> px</string>
             </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="rememberWindowCheck">
-            <property name="text">
-             <string>Remember window position and size</string>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>3</number>
             </property>
            </widget>
           </item>
@@ -157,7 +307,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="generalSpacer">
+        <spacer name="visualizationSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -173,32 +323,73 @@
      </widget>
      <widget class="QWidget" name="performanceTab">
       <attribute name="title">
-       <string>Performance</string>
+       <string>⚡ Performance</string>
       </attribute>
       <layout class="QVBoxLayout" name="performanceTabLayout">
+       <property name="spacing">
+        <number>16</number>
+       </property>
        <item>
-        <widget class="QGroupBox" name="memoryGroup">
+        <widget class="QGroupBox" name="downsamplingGroup">
          <property name="title">
-          <string>Memory</string>
+          <string>📉 Downsampling (LTTB)</string>
          </property>
-         <layout class="QFormLayout" name="memoryLayout">
+         <layout class="QFormLayout" name="downsamplingLayout">
           <item row="0" column="0">
-           <widget class="QLabel" name="cacheSizeLabel">
+           <widget class="QLabel" name="lttbLabel">
             <property name="text">
-             <string>Cache Size (MB):</string>
+             <string>Limite para LTTB:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="cacheSizeSpin">
+           <widget class="QSpinBox" name="lttbSpin">
+            <property name="toolTip">
+             <string>Número de pontos a partir do qual o LTTB é ativado</string>
+            </property>
+            <property name="suffix">
+             <string> pontos</string>
+            </property>
             <property name="minimum">
-             <number>100</number>
+             <number>1000</number>
             </property>
             <property name="maximum">
-             <number>4000</number>
+             <number>1000000</number>
+            </property>
+            <property name="singleStep">
+             <number>5000</number>
             </property>
             <property name="value">
-             <number>500</number>
+             <number>10000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="maxPointsLabel">
+            <property name="text">
+             <string>Máx. pontos render:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="maxPointsSpin">
+            <property name="toolTip">
+             <string>Máximo de pontos renderizados por série</string>
+            </property>
+            <property name="suffix">
+             <string> pontos</string>
+            </property>
+            <property name="minimum">
+             <number>10000</number>
+            </property>
+            <property name="maximum">
+             <number>10000000</number>
+            </property>
+            <property name="singleStep">
+             <number>10000</number>
+            </property>
+            <property name="value">
+             <number>100000</number>
             </property>
            </widget>
           </item>
@@ -206,28 +397,66 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="renderingGroup">
+        <widget class="QGroupBox" name="memoryGroup">
          <property name="title">
-          <string>Rendering</string>
+          <string>💾 Memória</string>
          </property>
-         <layout class="QFormLayout" name="renderingLayout">
+         <layout class="QFormLayout" name="memoryLayout">
           <item row="0" column="0">
-           <widget class="QLabel" name="decimationLabel">
+           <widget class="QLabel" name="bufferLabel">
             <property name="text">
-             <string>Decimation Threshold:</string>
+             <string>Buffer de dados:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="decimationSpin">
+           <widget class="QSpinBox" name="bufferSpin">
+            <property name="toolTip">
+             <string>Tamanho do buffer de dados em memória</string>
+            </property>
+            <property name="suffix">
+             <string> MB</string>
+            </property>
             <property name="minimum">
-             <number>1000</number>
+             <number>128</number>
             </property>
             <property name="maximum">
-             <number>100000</number>
+             <number>4096</number>
+            </property>
+            <property name="singleStep">
+             <number>128</number>
             </property>
             <property name="value">
-             <number>10000</number>
+             <number>512</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="accelerationGroup">
+         <property name="title">
+          <string>🚀 Aceleração</string>
+         </property>
+         <layout class="QVBoxLayout" name="accelerationLayout">
+          <item>
+           <widget class="QCheckBox" name="openglCheck">
+            <property name="toolTip">
+             <string>Habilitar renderização por GPU (pode melhorar performance)</string>
+            </property>
+            <property name="text">
+             <string>Usar aceleração OpenGL (experimental)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="openglWarningLabel">
+            <property name="text">
+             <string>⚠️ OpenGL pode causar instabilidade em alguns sistemas</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: #fd7e14; font-size: 11px;</string>
             </property>
            </widget>
           </item>
@@ -249,64 +478,95 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="loggingTab">
+     <widget class="QWidget" name="pathsTab">
       <attribute name="title">
-       <string>Logging</string>
+       <string>📁 Caminhos</string>
       </attribute>
-      <layout class="QVBoxLayout" name="loggingTabLayout">
+      <layout class="QVBoxLayout" name="pathsTabLayout">
+       <property name="spacing">
+        <number>16</number>
+       </property>
        <item>
-        <widget class="QGroupBox" name="loggingGroup">
+        <widget class="QGroupBox" name="directoriesGroup">
          <property name="title">
-          <string>Logging Settings</string>
+          <string>📂 Diretórios Padrão</string>
          </property>
-         <layout class="QFormLayout" name="loggingLayout">
+         <layout class="QFormLayout" name="directoriesLayout">
           <item row="0" column="0">
-           <widget class="QLabel" name="logLevelLabel">
+           <widget class="QLabel" name="dataDirLabel">
             <property name="text">
-             <string>Log Level:</string>
+             <string>Dados:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="logLevelCombo">
+           <layout class="QHBoxLayout" name="dataDirLayout">
             <item>
-             <property name="text">
-              <string>DEBUG</string>
-             </property>
+             <widget class="QLineEdit" name="dataDirEdit">
+              <property name="placeholderText">
+               <string>Diretório padrão para abrir arquivos</string>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
             <item>
-             <property name="text">
-              <string>INFO</string>
-             </property>
+             <widget class="QPushButton" name="dataDirBtn">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>📁</string>
+              </property>
+             </widget>
             </item>
-            <item>
-             <property name="text">
-              <string>WARNING</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>ERROR</string>
-             </property>
-            </item>
-           </widget>
+           </layout>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="logPathLabel">
+           <widget class="QLabel" name="exportDirLabel">
             <property name="text">
-             <string>Log Path:</string>
+             <string>Exportação:</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout" name="logPathLayout">
+           <layout class="QHBoxLayout" name="exportDirLayout">
             <item>
-             <widget class="QLineEdit" name="logPathEdit"/>
+             <widget class="QLineEdit" name="exportDirEdit">
+              <property name="placeholderText">
+               <string>Diretório padrão para exportar arquivos</string>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="logPathBrowseBtn">
+             <widget class="QPushButton" name="exportDirBtn">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>Browse...</string>
+               <string>📁</string>
               </property>
              </widget>
             </item>
@@ -316,7 +576,189 @@
         </widget>
        </item>
        <item>
-        <spacer name="loggingSpacer">
+        <widget class="QGroupBox" name="recentFilesGroup">
+         <property name="title">
+          <string>📋 Arquivos Recentes</string>
+         </property>
+         <layout class="QFormLayout" name="recentFilesLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="recentMaxLabel">
+            <property name="text">
+             <string>Máximo de recentes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="recentMaxSpin">
+            <property name="toolTip">
+             <string>Número máximo de arquivos recentes a lembrar</string>
+            </property>
+            <property name="minimum">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="clearRecentLabel">
+            <property name="text">
+             <string></string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="clearRecentBtn">
+            <property name="text">
+             <string>🗑️ Limpar Recentes</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="pathsSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="behaviorTab">
+      <attribute name="title">
+       <string>🔧 Comportamento</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="behaviorTabLayout">
+       <property name="spacing">
+        <number>16</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="applicationGroup">
+         <property name="title">
+          <string>🖥️ Aplicação</string>
+         </property>
+         <layout class="QVBoxLayout" name="applicationLayout">
+          <item>
+           <widget class="QCheckBox" name="confirmExitCheck">
+            <property name="toolTip">
+             <string>Exibir confirmação ao fechar a aplicação</string>
+            </property>
+            <property name="text">
+             <string>Confirmar antes de sair</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="autoSaveLayoutCheck">
+            <property name="toolTip">
+             <string>Restaurar posição e tamanho dos painéis ao reabrir</string>
+            </property>
+            <property name="text">
+             <string>Salvar layout automaticamente</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="rememberSizeCheck">
+            <property name="toolTip">
+             <string>Restaurar tamanho da janela ao reabrir</string>
+            </property>
+            <property name="text">
+             <string>Lembrar tamanho da janela</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkUpdatesCheck">
+            <property name="toolTip">
+             <string>Verificar novas versões automaticamente</string>
+            </property>
+            <property name="text">
+             <string>Verificar atualizações ao iniciar</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="streamingGroup">
+         <property name="title">
+          <string>▶️ Streaming</string>
+         </property>
+         <layout class="QFormLayout" name="streamingLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="fpsLabel">
+            <property name="text">
+             <string>FPS padrão:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="fpsSpin">
+            <property name="toolTip">
+             <string>Taxa de quadros padrão para streaming</string>
+            </property>
+            <property name="suffix">
+             <string> fps</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>60</number>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="windowSizeLabel">
+            <property name="text">
+             <string>Janela padrão:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="windowSizeSpin">
+            <property name="toolTip">
+             <string>Janela de visualização padrão</string>
+            </property>
+            <property name="suffix">
+             <string> pontos</string>
+            </property>
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>10000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="behaviorSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -333,30 +775,75 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <widget class="QPushButton" name="resetBtn">
+       <property name="text">
+        <string>🔄 Restaurar Padrões</string>
+       </property>
+       <property name="toolTip">
+        <string>Restaurar todas as configurações para valores padrão</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelBtn">
+       <property name="text">
+        <string>❌ Cancelar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="applyBtn">
+       <property name="text">
+        <string>✓ Aplicar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="okBtn">
+       <property name="text">
+        <string>✓ OK</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>SettingsDialog</receiver>
-   <slot>accept()</slot>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
+   <sender>cancelBtn</sender>
+   <signal>clicked()</signal>
    <receiver>SettingsDialog</receiver>
    <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>350</x>
+     <y>520</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>350</x>
+     <y>275</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
 </ui>

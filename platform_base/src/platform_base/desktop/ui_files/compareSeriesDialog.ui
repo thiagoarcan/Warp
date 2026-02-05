@@ -6,44 +6,164 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
+    <width>450</width>
     <height>400</height>
    </rect>
   </property>
+  <property name="minimumWidth">
+   <number>400</number>
+  </property>
   <property name="windowTitle">
-   <string>CompareSeriesDialog</string>
+   <string>Comparar Séries</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
+   
+   <!-- Series Selection Group -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QGroupBox" name="seriesGroup">
+     <property name="title">
+      <string>📊 Séries para Comparar</string>
+     </property>
+     <layout class="QFormLayout" name="seriesLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="series1Label">
+        <property name="text">
+         <string>Série 1:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="series1Combo"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="series2Label">
+        <property name="text">
+         <string>Série 2:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="series2Combo"/>
+      </item>
+     </layout>
     </widget>
    </item>
+   
+   <!-- Metrics Group -->
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+    <widget class="QGroupBox" name="metricsGroup">
+     <property name="title">
+      <string>📐 Métricas</string>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
+     <layout class="QVBoxLayout" name="metricsLayout">
+      <item>
+       <widget class="QCheckBox" name="correlationCheck">
+        <property name="text">
+         <string>Correlação (Pearson)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="rmseCheck">
+        <property name="text">
+         <string>RMSE (Root Mean Square Error)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="maeCheck">
+        <property name="text">
+         <string>MAE (Mean Absolute Error)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="dtwCheck">
+        <property name="text">
+         <string>DTW Distance (Dynamic Time Warping)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
+   </item>
+   
+   <!-- Results Group -->
+   <item>
+    <widget class="QGroupBox" name="resultsGroup">
+     <property name="title">
+      <string>📋 Resultados</string>
+     </property>
+     <layout class="QVBoxLayout" name="resultsLayout">
+      <item>
+       <widget class="QTextEdit" name="resultText">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="placeholderText">
+         <string>Os resultados da comparação serão exibidos aqui...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Button Box -->
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <widget class="QPushButton" name="compareBtn">
+       <property name="text">
+        <string>Comparar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeBtn">
+       <property name="text">
+        <string>Fechar</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>CompareSeriesDialog</receiver>
-   <slot>accept()</slot>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>CompareSeriesDialog</receiver>
-   <slot>reject()</slot>
-  </connection>
- </connections>
+ <connections/>
 </ui>

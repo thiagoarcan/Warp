@@ -6,28 +6,443 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ExportDialog</string>
+   <string>📤 Exportar Dados</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
+   
+   <!-- Splitter Principal -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
-    </widget>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QSplitter" name="mainSplitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     
+     <!-- Painel Esquerdo: Seleção de Séries -->
+     <widget class="QGroupBox" name="seriesGroup">
+      <property name="title">
+       <string>📊 Séries para Exportar</string>
+      </property>
+      <layout class="QVBoxLayout" name="seriesLayout">
+       <item>
+        <widget class="QTreeWidget" name="seriesTree">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::MultiSelection</enum>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <column>
+          <property name="text">
+           <string>Nome</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Linhas</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="selectionBtnLayout">
+         <item>
+          <widget class="QPushButton" name="selectAllBtn">
+           <property name="text">
+            <string>Selecionar Tudo</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearSelectionBtn">
+           <property name="text">
+            <string>Limpar Seleção</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="selectionInfoLabel">
+         <property name="text">
+          <string>0 séries selecionadas</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- Painel Direito: Configurações -->
+     <widget class="QGroupBox" name="configGroup">
+      <property name="title">
+       <string>⚙️ Configurações</string>
+      </property>
+      <layout class="QVBoxLayout" name="configLayout">
+       <item>
+        <widget class="QTabWidget" name="configTabs">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         
+         <!-- Aba Formato -->
+         <widget class="QWidget" name="formatTab">
+          <attribute name="title">
+           <string>📄 Formato</string>
+          </attribute>
+          <layout class="QFormLayout" name="formatLayout">
+           <item row="0" column="0">
+            <widget class="QLabel" name="formatLabel">
+             <property name="text">
+              <string>Formato:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="formatCombo">
+             <property name="toolTip">
+              <string>Formato do arquivo de saída</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>CSV (.csv)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Excel (.xlsx)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Parquet (.parquet)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>HDF5 (.h5)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>JSON (.json)</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="delimiterLabel">
+             <property name="text">
+              <string>Delimitador:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="delimiterCombo">
+             <property name="toolTip">
+              <string>Delimitador entre colunas (CSV)</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Vírgula (,)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Ponto e vírgula (;)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Tab</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Espaço</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="encodingLabel">
+             <property name="text">
+              <string>Encoding:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="encodingCombo">
+             <property name="toolTip">
+              <string>Codificação de caracteres</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>UTF-8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Latin-1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Windows-1252</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="decimalLabel">
+             <property name="text">
+              <string>Separador decimal:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QComboBox" name="decimalCombo">
+             <property name="toolTip">
+              <string>Separador decimal para números</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Ponto (.)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Vírgula (,)</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         
+         <!-- Aba Opções -->
+         <widget class="QWidget" name="optionsTab">
+          <attribute name="title">
+           <string>🔧 Opções</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="optionsLayout">
+           <item>
+            <widget class="QCheckBox" name="includeHeaderCheck">
+             <property name="text">
+              <string>Incluir cabeçalho</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string>Incluir nomes das colunas na primeira linha</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="includeIndexCheck">
+             <property name="text">
+              <string>Incluir índice</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>Incluir coluna de índice</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="includeMetadataCheck">
+             <property name="text">
+              <string>Incluir metadados</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string>Incluir informações sobre origem dos dados</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="compressCheck">
+             <property name="text">
+              <string>Comprimir arquivo (gzip)</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>Comprime o arquivo de saída com gzip</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="dateFormatCheck">
+             <property name="text">
+              <string>Formatar datas como ISO 8601</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string>Usa formato YYYY-MM-DD HH:MM:SS para datas</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="optionsSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         
+         <!-- Aba Preview -->
+         <widget class="QWidget" name="previewTab">
+          <attribute name="title">
+           <string>👁️ Preview</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="previewLayout">
+           <item>
+            <widget class="QTextEdit" name="previewText">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+             <property name="placeholderText">
+              <string>Clique em 'Preview' para ver os dados...</string>
+             </property>
+             <property name="font">
+              <font>
+               <family>Consolas</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       
+       <!-- Destino -->
+       <item>
+        <widget class="QGroupBox" name="destGroup">
+         <property name="title">
+          <string>📁 Destino</string>
+         </property>
+         <layout class="QHBoxLayout" name="destLayout">
+          <item>
+           <widget class="QLineEdit" name="pathEdit">
+            <property name="placeholderText">
+             <string>Selecione o arquivo de destino...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="browseBtn">
+            <property name="text">
+             <string>Procurar...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   
+   <!-- Barra de Progresso -->
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <property name="value">
+      <number>0</number>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="progressLabel">
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string></string>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Botões -->
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <widget class="QPushButton" name="previewBtn">
+       <property name="text">
+        <string>👁️ Preview</string>
+       </property>
+       <property name="toolTip">
+        <string>Visualizar dados antes de exportar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -38,12 +453,32 @@
    <signal>accepted()</signal>
    <receiver>ExportDialog</receiver>
    <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>700</x>
+     <y>570</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>400</x>
+     <y>300</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>ExportDialog</receiver>
    <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>700</x>
+     <y>570</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>400</x>
+     <y>300</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
 </ui>

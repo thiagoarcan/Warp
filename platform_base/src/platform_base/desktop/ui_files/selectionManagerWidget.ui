@@ -6,22 +6,85 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>400</width>
+    <height>300</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>SelectionManagerWidget</string>
-  </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing"><number>8</number></property>
+   <property name="leftMargin"><number>8</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>8</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   
+   <!-- Dataset Selection -->
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <layout class="QHBoxLayout" name="datasetLayout">
+     <item>
+      <widget class="QLabel" name="datasetLabel">
+       <property name="text"><string>Dataset:</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="datasetCombo">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed"/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   
+   <!-- Selection Tabs -->
+   <item>
+    <widget class="QTabWidget" name="selectionTabs">
+     <widget class="QWidget" name="activeTab">
+      <attribute name="title"><string>Active</string></attribute>
+      <layout class="QVBoxLayout" name="activeLayout">
+       <item>
+        <widget class="QListWidget" name="activeList"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="savedTab">
+      <attribute name="title"><string>Saved</string></attribute>
+      <layout class="QVBoxLayout" name="savedLayout">
+       <item>
+        <widget class="QListWidget" name="savedList"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
+   </item>
+   
+   <!-- Actions -->
+   <item>
+    <layout class="QHBoxLayout" name="actionLayout">
+     <item>
+      <widget class="QPushButton" name="saveBtn">
+       <property name="text"><string>Save</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="loadBtn">
+       <property name="text"><string>Load</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteBtn">
+       <property name="text"><string>Delete</string></property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="actionSpacer">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

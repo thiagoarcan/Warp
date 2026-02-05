@@ -6,17 +6,776 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>650</width>
+    <height>550</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>600</width>
+    <height>500</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>FilterDialog</string>
+   <string>🔧 Configurar Filtro de Dados</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
    <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
+    <widget class="QLabel" name="headerLabel">
+     <property name="text">
+      <string>🔧 Configurar Filtro de Dados</string>
+     </property>
+     <property name="styleSheet">
+      <string>font-size: 14pt; font-weight: bold; color: #0d6efd; padding: 10px;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="filterTabs">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <!-- Tab Butterworth -->
+     <widget class="QWidget" name="butterworthTab">
+      <attribute name="title">
+       <string>📈 Butterworth</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="butterworthTabLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="butterTypeGroup">
+         <property name="title">
+          <string>📊 Tipo de Filtro</string>
+         </property>
+         <layout class="QFormLayout" name="butterTypeLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="butterTypeLabel">
+            <property name="text">
+             <string>Tipo:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="butterType">
+            <property name="toolTip">
+             <string>Tipo de filtro Butterworth:
+• lowpass: Permite frequências baixas
+• highpass: Permite frequências altas
+• bandpass: Permite faixa de frequências
+• bandstop: Bloqueia faixa de frequências</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>lowpass</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>highpass</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>bandpass</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>bandstop</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="butterParamsGroup">
+         <property name="title">
+          <string>🔧 Parâmetros</string>
+         </property>
+         <layout class="QFormLayout" name="butterParamsLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="butterOrderLabel">
+            <property name="text">
+             <string>Ordem:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="butterOrder">
+            <property name="toolTip">
+             <string>Ordem do filtro (1-10). Ordens maiores = corte mais abrupto.</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="butterCutoffLowLabel">
+            <property name="text">
+             <string>Freq. Corte (baixa):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="butterCutoffLow">
+            <property name="toolTip">
+             <string>Frequência de corte inferior</string>
+            </property>
+            <property name="suffix">
+             <string> Hz</string>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>0.001000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="butterCutoffHighLabel">
+            <property name="text">
+             <string>Freq. Corte (alta):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="butterCutoffHigh">
+            <property name="toolTip">
+             <string>Frequência de corte superior</string>
+            </property>
+            <property name="suffix">
+             <string> Hz</string>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>0.001000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>10.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="butterFsLabel">
+            <property name="text">
+             <string>Taxa Amostragem:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="butterFs">
+            <property name="toolTip">
+             <string>Taxa de amostragem dos dados</string>
+            </property>
+            <property name="suffix">
+             <string> Hz</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="butterAutoFs">
+            <property name="toolTip">
+             <string>Estima taxa de amostragem automaticamente a partir dos timestamps</string>
+            </property>
+            <property name="text">
+             <string>Auto-detectar taxa</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="butterAdvGroup">
+         <property name="title">
+          <string>⚙️ Opções Avançadas</string>
+         </property>
+         <layout class="QFormLayout" name="butterAdvLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="butterPadlenLabel">
+            <property name="text">
+             <string>Padding:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="butterPadlen">
+            <property name="toolTip">
+             <string>Padding nas bordas para evitar artefatos. 0 = automático.</string>
+            </property>
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="butterForwardBackward">
+            <property name="toolTip">
+             <string>Aplicar filtro bidirecionalmente. Elimina defasagem, duplica ordem efetiva.</string>
+            </property>
+            <property name="text">
+             <string>Filtfilt (zero-phase)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="butterworthSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <!-- Tab Outliers -->
+     <widget class="QWidget" name="outliersTab">
+      <attribute name="title">
+       <string>🚫 Outliers</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="outliersTabLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="outlierMethodGroup">
+         <property name="title">
+          <string>📊 Método de Detecção</string>
+         </property>
+         <layout class="QFormLayout" name="outlierMethodLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="outlierMethodLabel">
+            <property name="text">
+             <string>Método:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="outlierMethod">
+            <property name="toolTip">
+             <string>Método para detectar outliers</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>iqr</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>zscore</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>mad</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>percentile</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="outlierParamsGroup">
+         <property name="title">
+          <string>🔧 Parâmetros</string>
+         </property>
+         <layout class="QFormLayout" name="outlierParamsLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="outlierThresholdLabel">
+            <property name="text">
+             <string>Limiar:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="outlierThreshold">
+            <property name="toolTip">
+             <string>Limiar para detecção de outliers</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.500000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="outlierLowerLabel">
+            <property name="text">
+             <string>Percentil Inferior:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="outlierLower">
+            <property name="toolTip">
+             <string>Percentil inferior (para método percentile)</string>
+            </property>
+            <property name="suffix">
+             <string> %</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>50.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="outlierUpperLabel">
+            <property name="text">
+             <string>Percentil Superior:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="outlierUpper">
+            <property name="toolTip">
+             <string>Percentil superior (para método percentile)</string>
+            </property>
+            <property name="suffix">
+             <string> %</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>50.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>95.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="outlierTreatmentGroup">
+         <property name="title">
+          <string>🔄 Tratamento dos Outliers</string>
+         </property>
+         <layout class="QFormLayout" name="outlierTreatmentLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="outlierActionLabel">
+            <property name="text">
+             <string>Ação:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="outlierAction">
+            <property name="toolTip">
+             <string>O que fazer com outliers detectados</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>remove</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>replace_nan</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>replace_mean</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>replace_median</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>interpolate</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="outlierWindowLabel">
+            <property name="text">
+             <string>Janela Local:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="outlierWindow">
+            <property name="toolTip">
+             <string>Janela para cálculo local de estatísticas. 1 = estatísticas globais.</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="outliersSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <!-- Tab Rolling -->
+     <widget class="QWidget" name="rollingTab">
+      <attribute name="title">
+       <string>📊 Rolling</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="rollingTabLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="rollingTypeGroup">
+         <property name="title">
+          <string>📊 Operação Rolling</string>
+         </property>
+         <layout class="QFormLayout" name="rollingTypeLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="rollingTypeLabel">
+            <property name="text">
+             <string>Tipo:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="rollingType">
+            <property name="toolTip">
+             <string>Operação a aplicar na janela móvel</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>mean</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>median</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>std</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>var</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>min</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>max</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>sum</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>count</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>quantile</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="rollingParamsGroup">
+         <property name="title">
+          <string>🔧 Parâmetros</string>
+         </property>
+         <layout class="QFormLayout" name="rollingParamsLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="rollingWindowLabel">
+            <property name="text">
+             <string>Janela:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="rollingWindow">
+            <property name="toolTip">
+             <string>Tamanho da janela móvel em pontos</string>
+            </property>
+            <property name="minimum">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="rollingMinPeriodsLabel">
+            <property name="text">
+             <string>Min. Períodos:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="rollingMinPeriods">
+            <property name="toolTip">
+             <string>Número mínimo de pontos necessários</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="rollingCenter">
+            <property name="toolTip">
+             <string>Se marcado, o resultado é alinhado ao centro da janela</string>
+            </property>
+            <property name="text">
+             <string>Centralizar janela</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="rollingQuantileLabel">
+            <property name="text">
+             <string>Quantil:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="rollingQuantile">
+            <property name="toolTip">
+             <string>Valor do quantil (para tipo 'quantile')</string>
+            </property>
+            <property name="decimals">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="rollingOptionsGroup">
+         <property name="title">
+          <string>⚙️ Opções</string>
+         </property>
+         <layout class="QFormLayout" name="rollingOptionsLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="rollingWinTypeLabel">
+            <property name="text">
+             <string>Tipo Janela:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="rollingWinType">
+            <property name="toolTip">
+             <string>Tipo de janela para ponderação</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>boxcar</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>triang</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>blackman</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>hamming</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>bartlett</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>gaussian</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>exponential</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="rollingSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -25,7 +784,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
@@ -38,12 +797,32 @@
    <signal>accepted()</signal>
    <receiver>FilterDialog</receiver>
    <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>520</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>325</x>
+     <y>275</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>FilterDialog</receiver>
    <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>325</x>
+     <y>520</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>325</x>
+     <y>275</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
 </ui>
