@@ -5,6 +5,45 @@ Migração sistemática de 55 classes programáticas para usar arquivos .ui via 
 
 ---
 
+## 📊 STATUS DE PROGRESSO (Atualizado: sessão atual)
+
+### ✅ FASE 4 CONCLUÍDA: Remoção de Fallbacks
+
+**TODOS os fallbacks foram removidos!** Nenhum arquivo de código fonte (.py) contém mais `_setup_ui_fallback`.
+
+#### Arquivos Migrados:
+
+| Categoria | Arquivos | Status |
+|-----------|----------|--------|
+| **Painéis (ui/panels/)** | operations_panel.py, streaming_panel.py, config_panel.py, viz_panel.py, results_panel.py | ✅ |
+| **Painéis (desktop/widgets/)** | data_panel.py, operations_panel.py, streaming_panel.py, config_panel.py, viz_panel.py, results_panel.py, sync_settings_widget.py | ✅ |
+| **Diálogos (desktop/dialogs/)** | about_dialog.py, filter_dialog.py, settings_dialog.py, smoothing_dialog.py, upload_dialog.py | ✅ |
+| **Diálogos (ui/dialogs/)** | filter_dialog.py, smoothing_dialog.py | ✅ |
+| **UI Components (ui/)** | export_dialog.py, context_menu.py, operation_dialogs.py, shortcuts.py, preview_dialog.py, streaming_controls.py, stream_filters.py, video_export.py, selection_widgets.py | ✅ |
+| **Selection (desktop/selection/)** | selection_widgets.py | ✅ |
+| **Menus (desktop/menus/)** | plot_context_menu.py | ✅ |
+
+#### Padrão Implementado:
+```python
+# Antes (REMOVIDO):
+if not self._load_ui():
+    self._setup_ui_fallback()
+else:
+    self._setup_ui_from_file()
+
+# Depois (IMPLEMENTADO):
+if not self._load_ui():
+    raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+self._setup_ui_from_file()
+```
+
+#### Linhas Removidas:
+- **~3000+ linhas** de código de criação programática de UI (fallbacks)
+- Todos os métodos `_setup_ui_fallback()`
+- Todos os métodos `_create_*_tab()` de criação programática
+
+---
+
 ## Fase 0: Limpeza e Preparação (1-2 dias)
 
 ### 0.1 Remover Arquivos .ui Inválidos

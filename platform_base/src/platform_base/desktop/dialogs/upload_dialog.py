@@ -200,7 +200,7 @@ class UploadDialog(QDialog, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/uploadDialog.ui"
+    UI_FILE = "uploadDialog.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -223,11 +223,10 @@ class UploadDialog(QDialog, UiLoaderMixin):
         self.loaded_datasets: list[str] = []  # Track loaded dataset IDs
         self.load_errors: list[str] = []
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -280,232 +279,6 @@ class UploadDialog(QDialog, UiLoaderMixin):
             self.hdf5_group.setVisible(False)
         
         logger.debug("upload_dialog_ui_loaded_from_file")
-
-    def _setup_ui_fallback(self):
-        """Setup user interface"""
-        self.setWindowTitle(tr("Load Data Files"))
-        self.setModal(True)
-        self.resize(900, 700)
-
-        layout = QVBoxLayout(self)
-
-        # File selection section
-        file_group = QGroupBox(tr("File Selection"))
-        file_layout = QVBoxLayout(file_group)
-
-        # File path and browse buttons
-        path_layout = QHBoxLayout()
-
-        self.file_path_edit = QLineEdit()
-        self.file_path_edit.setPlaceholderText(tr("Select file(s) to load..."))
-        self.file_path_edit.textChanged.connect(self._on_file_path_changed)
-        path_layout.addWidget(self.file_path_edit)
-
-        self.browse_btn = QPushButton(tr("Browse..."))
-        self.browse_btn.clicked.connect(self._browse_file)
-        self.browse_btn.setToolTip(tr("Select a single file"))
-        path_layout.addWidget(self.browse_btn)
-
-        self.browse_multi_btn = QPushButton(tr("Select Multiple..."))
-        self.browse_multi_btn.clicked.connect(self._browse_multiple_files)
-        self.browse_multi_btn.setToolTip(tr("Select multiple files at once"))
-        path_layout.addWidget(self.browse_multi_btn)
-
-        file_layout.addLayout(path_layout)
-
-        # Selected files list
-        self.files_list_label = QLabel(tr("No files selected"))
-        self.files_list_label.setWordWrap(True)
-        file_layout.addWidget(self.files_list_label)
-
-        # Format detection
-        self.format_label = QLabel(tr("Format: Not detected"))
-        file_layout.addWidget(self.format_label)
-
-        layout.addWidget(file_group)
-
-        # Configuration and preview tabs
-        self.tabs = QTabWidget()
-
-        # Configuration tab
-        self.config_tab = self._create_config_tab()
-        self.tabs.addTab(self.config_tab, tr("Configuration"))
-
-        # Preview tab
-        self.preview_tab = self._create_preview_tab()
-        self.tabs.addTab(self.preview_tab, tr("Preview"))
-
-        layout.addWidget(self.tabs)
-
-        # Progress section
-        progress_group = QGroupBox(tr("Progress"))
-        progress_layout = QVBoxLayout(progress_group)
-
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        progress_layout.addWidget(self.progress_bar)
-
-        self.status_label = QLabel(tr("Select a file to begin"))
-        progress_layout.addWidget(self.status_label)
-
-        layout.addWidget(progress_group)
-
-        # Loaded files list (for multiple files)
-        self.loaded_files_label = QLabel("")
-        self.loaded_files_label.setStyleSheet("color: green; font-weight: bold;")
-        self.loaded_files_label.setWordWrap(True)
-        layout.addWidget(self.loaded_files_label)
-        self.loaded_count = 0
-
-        # Buttons
-        buttons_layout = QHBoxLayout()
-
-        self.preview_btn = QPushButton(tr("Generate Preview"))
-        self.preview_btn.clicked.connect(self._generate_preview)
-        self.preview_btn.setEnabled(False)
-        buttons_layout.addWidget(self.preview_btn)
-
-        buttons_layout.addStretch()
-
-        self.cancel_btn = QPushButton(tr("Close"))
-        self.cancel_btn.clicked.connect(self._close_dialog)
-        buttons_layout.addWidget(self.cancel_btn)
-
-        self.load_all_btn = QPushButton(tr("Load All Selected"))
-        self.load_all_btn.clicked.connect(self._load_all_files)
-        self.load_all_btn.setEnabled(False)
-        self.load_all_btn.setToolTip(tr("Load all selected files simultaneously"))
-        self.load_all_btn.setStyleSheet("font-weight: bold;")
-        buttons_layout.addWidget(self.load_all_btn)
-
-        self.load_btn = QPushButton(tr("Load && Close"))
-        self.load_btn.clicked.connect(self._load_file)
-        self.load_btn.setEnabled(False)
-        self.load_btn.setToolTip(tr("Load single file and close dialog"))
-        buttons_layout.addWidget(self.load_btn)
-
-        layout.addLayout(buttons_layout)
-
-    def _create_config_tab(self) -> QWidget:
-        """Create configuration tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # General configuration
-        general_group = QGroupBox(tr("General Settings"))
-        general_layout = QFormLayout(general_group)
-
-        # Encoding
-        self.encoding_combo = QComboBox()
-        self.encoding_combo.addItems(["utf-8", "latin-1", "cp1252", "ascii"])
-        self.encoding_combo.currentTextChanged.connect(self._update_config)
-        general_layout.addRow(tr("Encoding:"), self.encoding_combo)
-
-        # Delimiter (for CSV)
-        self.delimiter_combo = QComboBox()
-        self.delimiter_combo.addItems([",", ";", "\\t", "|"])
-        self.delimiter_combo.setEditable(True)
-        self.delimiter_combo.currentTextChanged.connect(self._update_config)
-        general_layout.addRow(tr("Delimiter:"), self.delimiter_combo)
-
-        layout.addWidget(general_group)
-
-        # Schema configuration
-        schema_group = QGroupBox(tr("Schema Detection"))
-        schema_layout = QFormLayout(schema_group)
-
-        # Timestamp column
-        self.timestamp_combo = QComboBox()
-        self.timestamp_combo.addItem(tr("Auto-detect"), None)
-        self.timestamp_combo.currentTextChanged.connect(self._update_config)
-        schema_layout.addRow(tr("Timestamp Column:"), self.timestamp_combo)
-
-        # Skip rows
-        self.skip_rows_spin = QSpinBox()
-        self.skip_rows_spin.setRange(0, 100)
-        self.skip_rows_spin.valueChanged.connect(self._update_config)
-        schema_layout.addRow(tr("Skip Rows:"), self.skip_rows_spin)
-
-        layout.addWidget(schema_group)
-
-        # Excel-specific configuration
-        self.excel_group = QGroupBox(tr("Excel Settings"))
-        excel_layout = QFormLayout(self.excel_group)
-
-        self.sheet_combo = QComboBox()
-        self.sheet_combo.currentTextChanged.connect(self._update_config)
-        excel_layout.addRow(tr("Sheet:"), self.sheet_combo)
-
-        layout.addWidget(self.excel_group)
-
-        # HDF5-specific configuration
-        self.hdf5_group = QGroupBox(tr("HDF5 Settings"))
-        hdf5_layout = QFormLayout(self.hdf5_group)
-
-        self.hdf5_key_edit = QLineEdit()
-        self.hdf5_key_edit.textChanged.connect(self._update_config)
-        hdf5_layout.addRow(tr("Key:"), self.hdf5_key_edit)
-
-        layout.addWidget(self.hdf5_group)
-
-        # Advanced options
-        advanced_group = QGroupBox(tr("Advanced Options"))
-        advanced_layout = QFormLayout(advanced_group)
-
-        self.chunk_check = QCheckBox(tr("Use chunked loading"))
-        self.chunk_check.toggled.connect(self._update_config)
-        advanced_layout.addRow(tr("Performance:"), self.chunk_check)
-
-        self.chunk_size_spin = QSpinBox()
-        self.chunk_size_spin.setRange(1000, 1000000)
-        self.chunk_size_spin.setValue(10000)
-        self.chunk_size_spin.setEnabled(False)
-        self.chunk_size_spin.valueChanged.connect(self._update_config)
-        advanced_layout.addRow(tr("Chunk Size:"), self.chunk_size_spin)
-
-        self.chunk_check.toggled.connect(self.chunk_size_spin.setEnabled)
-
-        layout.addWidget(advanced_group)
-
-        layout.addStretch()
-
-        # Initially hide format-specific groups
-        self.excel_group.setVisible(False)
-        self.hdf5_group.setVisible(False)
-
-        return widget
-
-    def _create_preview_tab(self) -> QWidget:
-        """Create preview tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Preview controls
-        controls_layout = QHBoxLayout()
-        controls_layout.addWidget(QLabel(tr("Data Preview:")))
-        controls_layout.addStretch()
-
-        self.refresh_preview_btn = QPushButton(tr("Refresh"))
-        self.refresh_preview_btn.clicked.connect(self._generate_preview)
-        self.refresh_preview_btn.setEnabled(False)
-        controls_layout.addWidget(self.refresh_preview_btn)
-
-        layout.addLayout(controls_layout)
-
-        # Preview table
-        self.preview_table = QTableWidget()
-        self.preview_table.setAlternatingRowColors(True)
-        layout.addWidget(self.preview_table)
-
-        # Preview info
-        self.preview_info = QTextEdit()
-        self.preview_info.setMaximumHeight(100)
-        self.preview_info.setReadOnly(True)
-        font = QFont("Consolas", 9)
-        self.preview_info.setFont(font)
-        layout.addWidget(self.preview_info)
-
-        return widget
 
     def _connect_signals(self):
         """Connect signals"""

@@ -131,7 +131,7 @@ class OperationPreviewDialog(QDialog, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/operationPreviewDialog.ui"
+    UI_FILE = "operationPreviewDialog.ui"
 
     # Signal quando o usuário aceita
     apply_requested = pyqtSignal(dict)  # params da operação
@@ -145,11 +145,10 @@ class OperationPreviewDialog(QDialog, UiLoaderMixin):
         self.series_data = series_data
         self.result_data: np.ndarray | None = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._compute_preview()
         
@@ -225,68 +224,6 @@ class OperationPreviewDialog(QDialog, UiLoaderMixin):
 
         info_panel.setMaximumWidth(250)
         return info_panel
-
-    def _setup_ui_fallback(self):
-        """Configura interface (fallback programático)"""
-        self.setWindowTitle(f"👁️ Preview - {self.operation_name.title()}")
-        self.setMinimumSize(800, 500)
-        self.setModal(True)
-        
-        layout = QVBoxLayout(self)
-        layout.setSpacing(12)
-        layout.setContentsMargins(12, 12, 12, 12)
-
-        # Título
-        title = QLabel(f"🔍 Preview: {self.operation_name.replace('_', ' ').title()}")
-        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #0d6efd;")
-        layout.addWidget(title)
-
-        # Splitter para canvas e info
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-
-        # Canvas de preview
-        self._canvas = PreviewCanvas()
-        splitter.addWidget(self._canvas)
-
-        # Painel de informações
-        info_panel = self._create_info_panel()
-        splitter.addWidget(info_panel)
-
-        splitter.setSizes([600, 200])
-        layout.addWidget(splitter, stretch=1)
-
-        # Botões
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
-
-        cancel_btn = QPushButton("❌ Cancelar")
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(cancel_btn)
-
-        apply_btn = QPushButton("✅ Aplicar")
-        apply_btn.setDefault(True)
-        apply_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #198754;
-                color: white;
-                padding: 8px 24px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #157347;
-            }
-        """)
-        apply_btn.clicked.connect(self._on_apply)
-        btn_layout.addWidget(apply_btn)
-
-        layout.addLayout(btn_layout)
-
-        # Estilo
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #f8f9fa;
-            }
-        """)
 
     def _compute_preview(self):
         """Calcula preview da operação"""

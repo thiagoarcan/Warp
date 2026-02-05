@@ -118,7 +118,7 @@ class ExportDialog(QDialog, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/exportDialog.ui"
+    UI_FILE = "exportDialog.ui"
 
     export_requested = pyqtSignal(dict)  # config
 
@@ -135,11 +135,10 @@ class ExportDialog(QDialog, UiLoaderMixin):
         self.selected_series = []
         self.export_worker = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._populate_series_tree()
         self._connect_signals()
@@ -183,57 +182,6 @@ class ExportDialog(QDialog, UiLoaderMixin):
         self.progress_label = QLabel("")
         self.progress_label.setVisible(False)
         layout.addWidget(self.progress_label)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do usuário (fallback programático)"""
-        self.setWindowTitle("Exportar Dados")
-        self.setMinimumSize(700, 600)
-        self.setModal(True)
-        
-        layout = QVBoxLayout(self)
-
-        # Splitter principal
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-
-        # === Painel Esquerdo: Seleção de séries ===
-        left_panel = self._create_series_panel()
-        splitter.addWidget(left_panel)
-
-        # === Painel Direito: Configurações e Preview ===
-        right_panel = self._create_config_panel()
-        splitter.addWidget(right_panel)
-
-        splitter.setSizes([350, 350])
-        layout.addWidget(splitter)
-
-        # === Barra de progresso ===
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        layout.addWidget(self.progress_bar)
-
-        self.progress_label = QLabel("")
-        self.progress_label.setVisible(False)
-        layout.addWidget(self.progress_label)
-
-        # === Botões ===
-        button_layout = QHBoxLayout()
-
-        self.preview_btn = QPushButton("Preview")
-        self.preview_btn.clicked.connect(self._show_preview)
-        button_layout.addWidget(self.preview_btn)
-
-        button_layout.addStretch()
-
-        self.cancel_btn = QPushButton("Cancelar")
-        self.cancel_btn.clicked.connect(self.reject)
-        button_layout.addWidget(self.cancel_btn)
-
-        self.export_btn = QPushButton("Exportar")
-        self.export_btn.setDefault(True)
-        self.export_btn.clicked.connect(self._start_export)
-        button_layout.addWidget(self.export_btn)
-
-        layout.addLayout(button_layout)
 
     def _create_series_panel(self) -> QWidget:
         """Cria painel de seleção de séries"""

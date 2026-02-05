@@ -412,7 +412,7 @@ class SettingsDialog(QDialog, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/settingsDialog.ui"
+    UI_FILE = "settingsDialog.ui"
 
     def __init__(self, session_state: SessionState, parent: QWidget | None = None):
         super().__init__(parent)
@@ -420,11 +420,10 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         self.session_state = session_state
         self.settings_tabs = []
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         logger.debug("settings_dialog_initialized", ui_loaded=self._ui_loaded)
 
@@ -454,58 +453,6 @@ class SettingsDialog(QDialog, UiLoaderMixin):
             
         except Exception as e:
             logger.warning(f"settings_dialog_ui_setup_failed: {e}")
-
-    def _setup_ui_fallback(self):
-        """Setup user interface"""
-        self.setWindowTitle(tr("Platform Base Settings"))
-        self.setModal(True)
-        self.resize(600, 500)
-
-        layout = QVBoxLayout(self)
-
-        # Settings tabs
-        self.tabs = QTabWidget()
-
-        # General tab
-        self.general_tab = GeneralSettingsTab()
-        self.tabs.addTab(self.general_tab, tr("General"))
-        self.settings_tabs.append(self.general_tab)
-
-        # Performance tab
-        self.performance_tab = PerformanceSettingsTab()
-        self.tabs.addTab(self.performance_tab, tr("Performance"))
-        self.settings_tabs.append(self.performance_tab)
-
-        # Logging tab
-        self.logging_tab = LoggingSettingsTab()
-        self.tabs.addTab(self.logging_tab, tr("Logging"))
-        self.settings_tabs.append(self.logging_tab)
-
-        layout.addWidget(self.tabs)
-
-        # Buttons
-        buttons_layout = QHBoxLayout()
-
-        self.defaults_btn = QPushButton(tr("Restore Defaults"))
-        self.defaults_btn.clicked.connect(self._restore_defaults)
-        buttons_layout.addWidget(self.defaults_btn)
-
-        buttons_layout.addStretch()
-
-        self.cancel_btn = QPushButton(tr("Cancel"))
-        self.cancel_btn.clicked.connect(self.reject)
-        buttons_layout.addWidget(self.cancel_btn)
-
-        self.apply_btn = QPushButton(tr("Apply"))
-        self.apply_btn.clicked.connect(self._apply_settings)
-        buttons_layout.addWidget(self.apply_btn)
-
-        self.ok_btn = QPushButton(tr("OK"))
-        self.ok_btn.clicked.connect(self._ok_clicked)
-        self.ok_btn.setDefault(True)
-        buttons_layout.addWidget(self.ok_btn)
-
-        layout.addLayout(buttons_layout)
 
     @pyqtSlot()
     def _restore_defaults(self):

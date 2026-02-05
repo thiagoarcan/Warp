@@ -43,16 +43,15 @@ class AboutDialog(QDialog, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/aboutDialog.ui"
+    UI_FILE = "aboutDialog.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         logger.debug("about_dialog_initialized", ui_loaded=self._ui_loaded)
 
@@ -240,100 +239,3 @@ third-party components.
 For support or questions about this software, please contact the
 development team.
         """)
-
-    def _setup_ui_fallback(self):
-        """Setup user interface programaticamente (fallback)"""
-        self.setWindowTitle(tr("About Platform Base"))
-        self.setModal(True)
-        self.resize(500, 400)
-
-        layout = QVBoxLayout(self)
-
-        # Header with logo and title
-        header_layout = QHBoxLayout()
-
-        # Logo placeholder (would load from resources)
-        self.logo_label = QLabel()
-        self.logo_label.setFixedSize(64, 64)
-        self.logo_label.setStyleSheet("border: 1px solid gray; background: lightblue;")
-        self.logo_label.setText(tr("Logo"))
-        self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        header_layout.addWidget(self.logo_label)
-
-        # Title and version
-        title_layout = QVBoxLayout()
-
-        self.title_label = QLabel(tr("Platform Base"))
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        self.title_label.setFont(title_font)
-        title_layout.addWidget(self.title_label)
-
-        self.version_label = QLabel(tr("Version 2.0.0"))
-        self.version_label.setStyleSheet("color: gray;")
-        title_layout.addWidget(self.version_label)
-
-        self.subtitle_label = QLabel(tr("Time Series Analysis Tool"))
-        title_layout.addWidget(self.subtitle_label)
-
-        title_layout.addStretch()
-        header_layout.addLayout(title_layout)
-
-        header_layout.addStretch()
-        layout.addLayout(header_layout)
-
-        # Information tabs
-        self.tabs = QTabWidget()
-
-        # About tab
-        about_widget = QWidget()
-        about_layout = QVBoxLayout(about_widget)
-        self.about_text = QTextEdit()
-        self.about_text.setReadOnly(True)
-        about_layout.addWidget(self.about_text)
-        self.tabs.addTab(about_widget, tr("About"))
-
-        # Credits tab
-        credits_widget = QWidget()
-        credits_layout = QVBoxLayout(credits_widget)
-        self.credits_text = QTextEdit()
-        self.credits_text.setReadOnly(True)
-        credits_layout.addWidget(self.credits_text)
-        self.tabs.addTab(credits_widget, tr("Credits"))
-
-        # System info tab
-        system_widget = QWidget()
-        system_layout = QVBoxLayout(system_widget)
-        self.system_text = QTextEdit()
-        self.system_text.setReadOnly(True)
-        system_layout.addWidget(self.system_text)
-        self.tabs.addTab(system_widget, tr("System"))
-
-        # License tab
-        license_widget = QWidget()
-        license_layout = QVBoxLayout(license_widget)
-        self.license_text = QTextEdit()
-        self.license_text.setReadOnly(True)
-        license_layout.addWidget(self.license_text)
-        self.tabs.addTab(license_widget, tr("License"))
-
-        layout.addWidget(self.tabs)
-
-        # Close button
-        buttons_layout = QHBoxLayout()
-        buttons_layout.addStretch()
-
-        self.close_btn = QPushButton(tr("Close"))
-        self.close_btn.clicked.connect(self.accept)
-        self.close_btn.setDefault(True)
-        buttons_layout.addWidget(self.close_btn)
-
-        layout.addLayout(buttons_layout)
-
-        # Popula conteúdo das abas
-        self._populate_about_tab()
-        self._populate_credits_tab()
-        self._populate_system_tab()
-        self._populate_license_tab()
-

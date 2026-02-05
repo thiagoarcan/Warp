@@ -343,7 +343,7 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/videoExportDialog.ui"
+    UI_FILE = "videoExportDialog.ui"
 
     def __init__(self, synchronizer: MultiViewSynchronizer, parent: QWidget | None = None):
         super().__init__(parent)
@@ -356,11 +356,13 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
         self.setModal(True)
         self.resize(500, 400)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(
+                f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
+                "Verifique se existe em desktop/ui_files/"
+            )
+        self._setup_ui_from_file()
         
         self._update_ui_from_settings()
 
@@ -411,126 +413,6 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
             self.progress_bar.setVisible(False)
         if self.status_label:
             self.status_label.setVisible(False)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do dialog"""
-        layout = QVBoxLayout(self)
-
-        # Output settings
-        output_group = QGroupBox("Output Settings")
-        output_layout = QFormLayout(output_group)
-
-        # Output path
-        path_layout = QHBoxLayout()
-        self.path_edit = QLabel("No file selected")
-        self.path_edit.setStyleSheet("border: 1px solid gray; padding: 4px;")
-        path_layout.addWidget(self.path_edit)
-
-        self.browse_btn = QPushButton("Browse...")
-        self.browse_btn.clicked.connect(self._browse_output_path)
-        path_layout.addWidget(self.browse_btn)
-
-        output_layout.addRow("Output File:", path_layout)
-
-        # Format
-        self.format_combo = QComboBox()
-        self.format_combo.addItems([fmt.value.upper() for fmt in VideoFormat])
-        output_layout.addRow("Format:", self.format_combo)
-
-        layout.addWidget(output_group)
-
-        # Quality settings
-        quality_group = QGroupBox("Quality Settings")
-        quality_layout = QFormLayout(quality_group)
-
-        # Quality preset
-        self.quality_combo = QComboBox()
-        self.quality_combo.addItems([q.value.title() for q in VideoQuality])
-        self.quality_combo.currentTextChanged.connect(self._on_quality_changed)
-        quality_layout.addRow("Quality Preset:", self.quality_combo)
-
-        # Resolution
-        resolution_layout = QHBoxLayout()
-        self.width_spinbox = QSpinBox()
-        self.width_spinbox.setRange(240, 7680)
-        self.width_spinbox.setValue(1920)
-        resolution_layout.addWidget(self.width_spinbox)
-
-        resolution_layout.addWidget(QLabel("×"))
-
-        self.height_spinbox = QSpinBox()
-        self.height_spinbox.setRange(240, 4320)
-        self.height_spinbox.setValue(1080)
-        resolution_layout.addWidget(self.height_spinbox)
-
-        quality_layout.addRow("Resolution:", resolution_layout)
-
-        # FPS
-        self.fps_spinbox = QSpinBox()
-        self.fps_spinbox.setRange(1, 120)
-        self.fps_spinbox.setValue(30)
-        quality_layout.addRow("FPS:", self.fps_spinbox)
-
-        layout.addWidget(quality_group)
-
-        # Duration settings
-        duration_group = QGroupBox("Duration Settings")
-        duration_layout = QFormLayout(duration_group)
-
-        # Full duration vs custom
-        self.full_duration_checkbox = QCheckBox("Use full timeline")
-        self.full_duration_checkbox.setChecked(True)
-        self.full_duration_checkbox.stateChanged.connect(self._on_duration_mode_changed)
-        duration_layout.addRow("", self.full_duration_checkbox)
-
-        # Custom duration
-        self.custom_duration_spinbox = QSpinBox()
-        self.custom_duration_spinbox.setRange(1, 3600)
-        self.custom_duration_spinbox.setValue(60)
-        self.custom_duration_spinbox.setSuffix(" seconds")
-        self.custom_duration_spinbox.setEnabled(False)
-        duration_layout.addRow("Custom Duration:", self.custom_duration_spinbox)
-
-        layout.addWidget(duration_group)
-
-        # View selection
-        view_group = QGroupBox("View Selection")
-        view_layout = QFormLayout(view_group)
-
-        # Layout mode
-        self.layout_combo = QComboBox()
-        self.layout_combo.addItems(["Single View", "Grid Layout", "Split View"])
-        view_layout.addRow("Layout:", self.layout_combo)
-
-        # View list (simplified - would show actual views)
-        self.include_all_views_checkbox = QCheckBox("Include all views")
-        self.include_all_views_checkbox.setChecked(True)
-        view_layout.addRow("Views:", self.include_all_views_checkbox)
-
-        layout.addWidget(view_group)
-
-        # Progress bar (initially hidden)
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        layout.addWidget(self.progress_bar)
-
-        self.status_label = QLabel("")
-        self.status_label.setVisible(False)
-        layout.addWidget(self.status_label)
-
-        # Buttons
-        buttons_layout = QHBoxLayout()
-
-        self.export_btn = QPushButton("Start Export")
-        self.export_btn.clicked.connect(self._start_export)
-        self.export_btn.setDefault(True)
-        buttons_layout.addWidget(self.export_btn)
-
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.clicked.connect(self.reject)
-        buttons_layout.addWidget(self.cancel_btn)
-
-        layout.addLayout(buttons_layout)
 
     def _update_ui_from_settings(self):
         """Atualiza UI baseada nas configurações"""

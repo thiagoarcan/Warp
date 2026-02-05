@@ -1151,7 +1151,7 @@ class FilterDialog(QWidget, UiLoaderMixin):
     Provides UI for creating and configuring various filter types.
     """
 
-    UI_FILE = "desktop/ui_files/filterDialog.ui"
+    UI_FILE = "filterDialog.ui"
 
     # Signals
     filter_created = pyqtSignal(object)  # StreamFilter
@@ -1163,9 +1163,8 @@ class FilterDialog(QWidget, UiLoaderMixin):
 
         self._current_filter: StreamFilter | None = None
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets após carregar .ui"""
@@ -1192,91 +1191,6 @@ class FilterDialog(QWidget, UiLoaderMixin):
         # Initialize visibility
         if self.filter_type_combo:
             self._on_filter_type_changed(self.filter_type_combo.currentText())
-
-    def _setup_ui_fallback(self):
-        """Setup the UI components."""
-        layout = QVBoxLayout(self)
-
-        # Filter type selection
-        type_group = QGroupBox("Filter Type")
-        type_layout = QFormLayout(type_group)
-
-        self.filter_type_combo = QComboBox()
-        self.filter_type_combo.addItems([
-            "Lowpass",
-            "Highpass",
-            "Bandpass",
-            "Notch",
-            "Moving Average"
-        ])
-        self.filter_type_combo.currentTextChanged.connect(self._on_filter_type_changed)
-        type_layout.addRow("Type:", self.filter_type_combo)
-
-        layout.addWidget(type_group)
-
-        # Parameters group
-        self.params_group = QGroupBox("Parameters")
-        self.params_layout = QFormLayout(self.params_group)
-
-        # Sampling frequency
-        self.fs_spinbox = QDoubleSpinBox()
-        self.fs_spinbox.setRange(1.0, 100000.0)
-        self.fs_spinbox.setValue(1000.0)
-        self.fs_spinbox.setSuffix(" Hz")
-        self.params_layout.addRow("Sampling Frequency:", self.fs_spinbox)
-
-        # Cutoff frequency
-        self.cutoff_spinbox = QDoubleSpinBox()
-        self.cutoff_spinbox.setRange(0.1, 50000.0)
-        self.cutoff_spinbox.setValue(10.0)
-        self.cutoff_spinbox.setSuffix(" Hz")
-        self.params_layout.addRow("Cutoff Frequency:", self.cutoff_spinbox)
-
-        # High cutoff (for bandpass)
-        self.high_cutoff_spinbox = QDoubleSpinBox()
-        self.high_cutoff_spinbox.setRange(0.1, 50000.0)
-        self.high_cutoff_spinbox.setValue(100.0)
-        self.high_cutoff_spinbox.setSuffix(" Hz")
-        self.high_cutoff_spinbox.setVisible(False)
-        self.params_layout.addRow("High Cutoff:", self.high_cutoff_spinbox)
-
-        # Q factor (for notch)
-        self.q_spinbox = QDoubleSpinBox()
-        self.q_spinbox.setRange(1.0, 100.0)
-        self.q_spinbox.setValue(30.0)
-        self.q_spinbox.setVisible(False)
-        self.params_layout.addRow("Q Factor:", self.q_spinbox)
-
-        # Window size (for moving average)
-        self.window_spinbox = QSpinBox()
-        self.window_spinbox.setRange(2, 1000)
-        self.window_spinbox.setValue(5)
-        self.window_spinbox.setVisible(False)
-        self.params_layout.addRow("Window Size:", self.window_spinbox)
-
-        # Order
-        self.order_spinbox = QSpinBox()
-        self.order_spinbox.setRange(1, 10)
-        self.order_spinbox.setValue(4)
-        self.params_layout.addRow("Filter Order:", self.order_spinbox)
-
-        layout.addWidget(self.params_group)
-
-        # Buttons
-        buttons_layout = QHBoxLayout()
-
-        self.preview_button = QPushButton("Preview")
-        self.preview_button.clicked.connect(self._on_preview)
-        buttons_layout.addWidget(self.preview_button)
-
-        self.create_button = QPushButton("Create Filter")
-        self.create_button.clicked.connect(self._on_create)
-        buttons_layout.addWidget(self.create_button)
-
-        layout.addLayout(buttons_layout)
-
-        # Initialize visibility
-        self._on_filter_type_changed(self.filter_type_combo.currentText())
 
     def _on_filter_type_changed(self, filter_type: str):
         """Update UI based on selected filter type."""

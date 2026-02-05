@@ -233,7 +233,7 @@ class PreviewWidget(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/previewWidget.ui"
+    UI_FILE = "previewWidget.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -241,11 +241,10 @@ class PreviewWidget(QWidget, UiLoaderMixin):
         self.figure = None
         self.canvas = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -263,20 +262,6 @@ class PreviewWidget(QWidget, UiLoaderMixin):
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setStyleSheet("color: gray; font-size: 14px;")
             content_layout.addWidget(label)
-
-    def _setup_ui_fallback(self):
-        layout = QVBoxLayout(self)
-
-        if MATPLOTLIB_AVAILABLE:
-            self.figure = Figure(figsize=(8, 6))
-            self.canvas = FigureCanvas(self.figure)
-            layout.addWidget(self.canvas)
-        else:
-            # Fallback if matplotlib not available
-            label = QLabel("Preview not available\n(matplotlib required)")
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label.setStyleSheet("color: gray; font-size: 14px;")
-            layout.addWidget(label)
 
     def update_preview(self, data: dict[str, Any]):
         """Atualiza preview com novos dados"""
@@ -314,7 +299,7 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/baseOperationDialog.ui"
+    UI_FILE = "baseOperationDialog.ui"
 
     # Signals
     parameters_changed = pyqtSignal(dict)  # parameters
@@ -336,11 +321,10 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
         self.preview_timer.setSingleShot(True)
         self.preview_timer.timeout.connect(self._update_preview)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._setup_connections()
 
@@ -382,50 +366,6 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
         if self.apply_btn:
             self.apply_btn.clicked.connect(self._apply_operation)
             self.apply_btn.setDefault(True)
-
-    def _setup_ui_fallback(self):
-        """Setup da UI base"""
-        layout = QVBoxLayout(self)
-
-        # Create splitter for parameters and preview
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-
-        # Parameters panel
-        params_widget = self._create_parameters_panel()
-        splitter.addWidget(params_widget)
-
-        # Preview panel
-        preview_widget = self._create_preview_panel()
-        splitter.addWidget(preview_widget)
-
-        # Set splitter proportions
-        splitter.setSizes([400, 500])
-
-        layout.addWidget(splitter)
-
-        # Buttons
-        buttons_layout = QHBoxLayout()
-
-        self.reset_btn = QPushButton("Reset")
-        self.reset_btn.clicked.connect(self._reset_parameters)
-        buttons_layout.addWidget(self.reset_btn)
-
-        self.preview_btn = QPushButton("Preview")
-        self.preview_btn.clicked.connect(self._manual_preview)
-        buttons_layout.addWidget(self.preview_btn)
-
-        buttons_layout.addStretch()
-
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.clicked.connect(self.reject)
-        buttons_layout.addWidget(self.cancel_btn)
-
-        self.apply_btn = QPushButton("Apply")
-        self.apply_btn.clicked.connect(self._apply_operation)
-        self.apply_btn.setDefault(True)
-        buttons_layout.addWidget(self.apply_btn)
-
-        layout.addLayout(buttons_layout)
 
     def _create_parameters_panel(self) -> QWidget:
         """Cria painel de parâmetros - override em subclasses"""

@@ -65,7 +65,7 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/streamingControlWidget.ui"
+    UI_FILE = "streamingControlWidget.ui"
 
     # Signals
     tick_update = pyqtSignal(object)  # TickUpdate
@@ -85,11 +85,10 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
         self.update_timer.timeout.connect(self._on_timer_tick)
         self.update_timer.setSingleShot(False)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._setup_connections()
         logger.debug("streaming_control_widget_initialized", ui_loaded=self._ui_loaded)
@@ -138,151 +137,6 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
             self.hide_nan_checkbox.stateChanged.connect(self._on_filters_changed)
         if self.hide_interpolated_checkbox:
             self.hide_interpolated_checkbox.stateChanged.connect(self._on_filters_changed)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do widget"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(8)
-
-        # Playback Controls
-        self._create_playback_controls(layout)
-
-        # Time Controls
-        self._create_time_controls(layout)
-
-        # Settings
-        self._create_settings_controls(layout)
-
-        # Status
-        self._create_status_display(layout)
-
-    def _create_playback_controls(self, parent_layout):
-        """Cria controles de playback"""
-        group = QGroupBox("Playback")
-        layout = QHBoxLayout(group)
-
-        # Play/Pause button
-        self.play_pause_btn = QPushButton("Play")
-        self.play_pause_btn.setMinimumSize(80, 32)
-        self.play_pause_btn.clicked.connect(self._toggle_playback)
-        layout.addWidget(self.play_pause_btn)
-
-        # Stop button
-        self.stop_btn = QPushButton("Stop")
-        self.stop_btn.setMinimumSize(80, 32)
-        self.stop_btn.clicked.connect(self._stop_playback)
-        layout.addWidget(self.stop_btn)
-
-        layout.addStretch()
-
-        # Loop checkbox
-        self.loop_checkbox = QCheckBox("Loop")
-        layout.addWidget(self.loop_checkbox)
-
-        parent_layout.addWidget(group)
-
-    def _create_time_controls(self, parent_layout):
-        """Cria controles de tempo"""
-        group = QGroupBox("Time Navigation")
-        layout = QVBoxLayout(group)
-
-        # Time slider
-        slider_layout = QHBoxLayout()
-
-        self.time_label_start = QLabel("00:00")
-        self.time_label_start.setMinimumWidth(40)
-        slider_layout.addWidget(self.time_label_start)
-
-        self.time_slider = QSlider(Qt.Orientation.Horizontal)
-        self.time_slider.setMinimum(0)
-        self.time_slider.setMaximum(100)
-        self.time_slider.valueChanged.connect(self._on_slider_changed)
-        slider_layout.addWidget(self.time_slider)
-
-        self.time_label_end = QLabel("00:00")
-        self.time_label_end.setMinimumWidth(40)
-        slider_layout.addWidget(self.time_label_end)
-
-        layout.addLayout(slider_layout)
-
-        # Current time display
-        time_info_layout = QHBoxLayout()
-
-        self.current_time_label = QLabel("Current: 00:00")
-        self.current_time_label.setFont(QFont("", 10, QFont.Weight.Bold))
-        time_info_layout.addWidget(self.current_time_label)
-
-        time_info_layout.addStretch()
-
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setMinimumWidth(100)
-        time_info_layout.addWidget(self.progress_bar)
-
-        layout.addLayout(time_info_layout)
-
-        parent_layout.addWidget(group)
-
-    def _create_settings_controls(self, parent_layout):
-        """Cria controles de configuração"""
-        group = QGroupBox("Settings")
-        layout = QFormLayout(group)
-
-        # Speed control
-        self.speed_spinbox = QDoubleSpinBox()
-        self.speed_spinbox.setRange(0.1, 10.0)
-        self.speed_spinbox.setValue(1.0)
-        self.speed_spinbox.setSingleStep(0.1)
-        self.speed_spinbox.setSuffix("x")
-        self.speed_spinbox.valueChanged.connect(self._on_speed_changed)
-        layout.addRow("Speed:", self.speed_spinbox)
-
-        # Window size
-        self.window_size_spinbox = QSpinBox()
-        self.window_size_spinbox.setRange(1, 3600)
-        self.window_size_spinbox.setValue(60)
-        self.window_size_spinbox.setSuffix(" sec")
-        self.window_size_spinbox.valueChanged.connect(self._on_window_size_changed)
-        layout.addRow("Window Size:", self.window_size_spinbox)
-
-        # Update interval
-        self.interval_spinbox = QSpinBox()
-        self.interval_spinbox.setRange(10, 1000)
-        self.interval_spinbox.setValue(100)
-        self.interval_spinbox.setSuffix(" ms")
-        self.interval_spinbox.valueChanged.connect(self._on_interval_changed)
-        layout.addRow("Update Interval:", self.interval_spinbox)
-
-        # Quality filters
-        self.hide_nan_checkbox = QCheckBox("Hide NaN values")
-        self.hide_nan_checkbox.setChecked(True)
-        self.hide_nan_checkbox.stateChanged.connect(self._on_filters_changed)
-        layout.addRow("Filters:", self.hide_nan_checkbox)
-
-        self.hide_interpolated_checkbox = QCheckBox("Hide interpolated")
-        self.hide_interpolated_checkbox.stateChanged.connect(self._on_filters_changed)
-        layout.addRow("", self.hide_interpolated_checkbox)
-
-        parent_layout.addWidget(group)
-
-    def _create_status_display(self, parent_layout):
-        """Cria display de status"""
-        group = QGroupBox("Status")
-        layout = QFormLayout(group)
-
-        self.total_points_label = QLabel("0")
-        layout.addRow("Total Points:", self.total_points_label)
-
-        self.eligible_points_label = QLabel("0")
-        layout.addRow("Eligible Points:", self.eligible_points_label)
-
-        self.window_points_label = QLabel("0")
-        layout.addRow("Window Points:", self.window_points_label)
-
-        self.fps_label = QLabel("0.0")
-        layout.addRow("Update Rate:", self.fps_label)
-
-        parent_layout.addWidget(group)
 
     def _setup_connections(self):
         """Configura conexões de sinais"""
@@ -593,7 +447,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/streamingControls.ui"
+    UI_FILE = "streamingControls.ui"
 
     # Signals
     playback_started = pyqtSignal()
@@ -616,11 +470,10 @@ class StreamingControls(QWidget, UiLoaderMixin):
         self._timer = QTimer()
         self._timer.timeout.connect(self._on_tick)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         logger.debug("streaming_controls_initialized", ui_loaded=self._ui_loaded)
 
@@ -654,69 +507,6 @@ class StreamingControls(QWidget, UiLoaderMixin):
             self.speed_spinbox.valueChanged.connect(self.set_speed)
         if self.window_spinbox:
             self.window_spinbox.valueChanged.connect(self.set_window_size)
-
-    def _setup_ui_fallback(self):
-        """Setup the UI components."""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-
-        # Playback buttons
-        buttons_layout = QHBoxLayout()
-
-        self.play_btn = QPushButton("▶ Play")
-        self.play_btn.clicked.connect(self.play)
-        buttons_layout.addWidget(self.play_btn)
-
-        self.pause_btn = QPushButton("⏸ Pause")
-        self.pause_btn.clicked.connect(self.pause)
-        self.pause_btn.setEnabled(False)
-        buttons_layout.addWidget(self.pause_btn)
-
-        self.stop_btn = QPushButton("⏹ Stop")
-        self.stop_btn.clicked.connect(self.stop)
-        buttons_layout.addWidget(self.stop_btn)
-
-        layout.addLayout(buttons_layout)
-
-        # Timeline slider
-        self.timeline = QSlider(Qt.Orientation.Horizontal)
-        self.timeline.setRange(0, 1000)
-        self.timeline.valueChanged.connect(self._on_timeline_changed)
-        layout.addWidget(self.timeline)
-
-        # Position and duration labels
-        time_layout = QHBoxLayout()
-        self.position_label = QLabel("0:00.0")
-        time_layout.addWidget(self.position_label)
-        time_layout.addStretch()
-        self.duration_label = QLabel("/ 0:00.0")
-        time_layout.addWidget(self.duration_label)
-        layout.addLayout(time_layout)
-
-        # Speed control
-        speed_layout = QHBoxLayout()
-        speed_layout.addWidget(QLabel("Speed:"))
-        self.speed_spinbox = QDoubleSpinBox()
-        self.speed_spinbox.setRange(0.1, 16.0)
-        self.speed_spinbox.setValue(1.0)
-        self.speed_spinbox.setSingleStep(0.5)
-        self.speed_spinbox.setSuffix("x")
-        self.speed_spinbox.valueChanged.connect(self.set_speed)
-        speed_layout.addWidget(self.speed_spinbox)
-        speed_layout.addStretch()
-        layout.addLayout(speed_layout)
-
-        # Window size control
-        window_layout = QHBoxLayout()
-        window_layout.addWidget(QLabel("Window:"))
-        self.window_spinbox = QDoubleSpinBox()
-        self.window_spinbox.setRange(0.1, 3600.0)
-        self.window_spinbox.setValue(10.0)
-        self.window_spinbox.setSuffix(" s")
-        self.window_spinbox.valueChanged.connect(self.set_window_size)
-        window_layout.addWidget(self.window_spinbox)
-        window_layout.addStretch()
-        layout.addLayout(window_layout)
 
     def _on_tick(self):
         """Timer tick - advance playback."""

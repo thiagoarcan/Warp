@@ -193,7 +193,7 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/conditionalSelectionDialog.ui"
+    UI_FILE = "conditionalSelectionDialog.ui"
 
     selection_requested = pyqtSignal(str, object)  # condition, SelectionMode
 
@@ -204,11 +204,10 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
         self.setModal(True)
         self.resize(400, 300)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         logger.debug("conditional_selection_dialog_created", ui_loaded=self._ui_loaded)
 
@@ -239,105 +238,6 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
             apply_btn.clicked.connect(self._apply_selection)
         if close_btn:
             close_btn.clicked.connect(self.close)
-
-    def _setup_ui_fallback(self):
-        """Setup dialog UI"""
-        layout = QVBoxLayout(self)
-
-        # Condition input group
-        condition_group = QGroupBox("Selection Condition")
-        condition_layout = QVBoxLayout(condition_group)
-
-        # Help text
-        help_text = QLabel(
-            "Enter a Python expression using 't' (time) and 'value' variables.\\n"
-            "Examples:\\n"
-            "• value > 10  (values greater than 10)\\n"
-            "• abs(value) < 5  (absolute values less than 5)\\n"
-            "• value > 2*t  (value greater than 2 times time)\\n"
-            "• sin(t) > 0.5  (sine of time greater than 0.5)",
-        )
-        help_text.setWordWrap(True)
-        help_text.setStyleSheet("color: gray; font-size: 10px;")
-        condition_layout.addWidget(help_text)
-
-        # Condition input
-        self.condition_edit = QTextEdit()
-        self.condition_edit.setMaximumHeight(80)
-        self.condition_edit.setPlainText("value > 0")
-        condition_layout.addWidget(self.condition_edit)
-
-        layout.addWidget(condition_group)
-
-        # Quick conditions group
-        quick_group = QGroupBox("Quick Conditions")
-        quick_layout = QVBoxLayout(quick_group)
-
-        # Threshold controls
-        threshold_layout = QHBoxLayout()
-        threshold_layout.addWidget(QLabel("Value threshold:"))
-
-        self.threshold_spin = QDoubleSpinBox()
-        self.threshold_spin.setRange(-1e10, 1e10)
-        self.threshold_spin.setDecimals(6)
-        self.threshold_spin.setValue(0.0)
-        threshold_layout.addWidget(self.threshold_spin)
-
-        self.threshold_operator = QComboBox()
-        self.threshold_operator.addItems([">", ">=", "<", "<=", "==", "!="])
-        threshold_layout.addWidget(self.threshold_operator)
-
-        apply_threshold_btn = QPushButton("Apply Threshold")
-        apply_threshold_btn.clicked.connect(self._apply_threshold_condition)
-        threshold_layout.addWidget(apply_threshold_btn)
-
-        quick_layout.addLayout(threshold_layout)
-
-        # Percentile controls
-        percentile_layout = QHBoxLayout()
-        percentile_layout.addWidget(QLabel("Top/bottom percentile:"))
-
-        self.percentile_spin = QSpinBox()
-        self.percentile_spin.setRange(1, 50)
-        self.percentile_spin.setValue(10)
-        self.percentile_spin.setSuffix("%")
-        percentile_layout.addWidget(self.percentile_spin)
-
-        self.percentile_type = QComboBox()
-        self.percentile_type.addItems(["Top", "Bottom"])
-        percentile_layout.addWidget(self.percentile_type)
-
-        apply_percentile_btn = QPushButton("Apply Percentile")
-        apply_percentile_btn.clicked.connect(self._apply_percentile_condition)
-        percentile_layout.addWidget(apply_percentile_btn)
-
-        quick_layout.addLayout(percentile_layout)
-
-        layout.addWidget(quick_group)
-
-        # Selection mode
-        mode_group = QGroupBox("Selection Mode")
-        mode_layout = QHBoxLayout(mode_group)
-
-        self.mode_combo = QComboBox()
-        self.mode_combo.addItems(["Replace", "Add", "Subtract", "Intersect"])
-        mode_layout.addWidget(self.mode_combo)
-
-        layout.addWidget(mode_group)
-
-        # Buttons
-        button_layout = QHBoxLayout()
-
-        apply_btn = QPushButton("Apply Selection")
-        apply_btn.clicked.connect(self._apply_selection)
-        apply_btn.setDefault(True)
-        button_layout.addWidget(apply_btn)
-
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_btn)
-
-        layout.addLayout(button_layout)
 
     def _apply_threshold_condition(self):
         """Apply threshold-based condition"""
@@ -394,16 +294,15 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionStatsWidget.ui"
+    UI_FILE = "selectionStatsWidget.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._clear_stats()
         logger.debug("selection_stats_widget_created", ui_loaded=self._ui_loaded)
@@ -420,69 +319,6 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
         self.std_value_label = self.findChild(QLabel, "stdValueLabel")
         self.time_ranges_label = self.findChild(QLabel, "timeRangesLabel")
         self.total_duration_label = self.findChild(QLabel, "totalDurationLabel")
-
-    def _setup_ui_fallback(self):
-        """Setup widget UI"""
-        layout = QVBoxLayout(self)
-
-        # Title
-        title = QLabel("Selection Statistics")
-        title.setFont(QFont("", 12, QFont.Weight.Bold))
-        layout.addWidget(title)
-
-        # Count information
-        count_group = QGroupBox("Count")
-        count_layout = QFormLayout(count_group)
-
-        self.total_points_label = QLabel("0")
-        count_layout.addRow("Total Points:", self.total_points_label)
-
-        self.selected_points_label = QLabel("0")
-        count_layout.addRow("Selected:", self.selected_points_label)
-
-        self.selection_ratio_label = QLabel("0.0%")
-        count_layout.addRow("Percentage:", self.selection_ratio_label)
-
-        # Progress bar for selection ratio
-        self.selection_progress = QProgressBar()
-        self.selection_progress.setMaximum(100)
-        self.selection_progress.setValue(0)
-        count_layout.addRow("", self.selection_progress)
-
-        layout.addWidget(count_group)
-
-        # Value statistics
-        stats_group = QGroupBox("Value Statistics")
-        stats_layout = QFormLayout(stats_group)
-
-        self.min_value_label = QLabel("-")
-        stats_layout.addRow("Minimum:", self.min_value_label)
-
-        self.max_value_label = QLabel("-")
-        stats_layout.addRow("Maximum:", self.max_value_label)
-
-        self.mean_value_label = QLabel("-")
-        stats_layout.addRow("Mean:", self.mean_value_label)
-
-        self.std_value_label = QLabel("-")
-        stats_layout.addRow("Std Dev:", self.std_value_label)
-
-        layout.addWidget(stats_group)
-
-        # Time range information
-        time_group = QGroupBox("Time Range")
-        time_layout = QFormLayout(time_group)
-
-        self.time_ranges_label = QLabel("-")
-        self.time_ranges_label.setWordWrap(True)
-        time_layout.addRow("Ranges:", self.time_ranges_label)
-
-        self.total_duration_label = QLabel("-")
-        time_layout.addRow("Total Duration:", self.total_duration_label)
-
-        layout.addWidget(time_group)
-
-        layout.addStretch()
 
     def update_stats(self, total_points: int, selected_points: int,
                     value_stats: dict[str, float] | None = None,
@@ -545,7 +381,7 @@ class SelectionPanel(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionPanel.ui"
+    UI_FILE = "selectionPanel.ui"
 
     # Signals for communication with plot widgets
     temporal_selection_requested = pyqtSignal(float, float, object)  # start, end, mode
@@ -560,11 +396,10 @@ class SelectionPanel(QWidget, UiLoaderMixin):
 
         self._conditional_dialog: ConditionalSelectionDialog | None = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._connect_signals()
         logger.debug("selection_panel_initialized", ui_loaded=self._ui_loaded)
@@ -580,18 +415,6 @@ class SelectionPanel(QWidget, UiLoaderMixin):
         if main_layout:
             main_layout.addWidget(self.toolbar)
             main_layout.addWidget(self.stats_widget)
-
-    def _setup_ui_fallback(self):
-        """Setup panel UI"""
-        layout = QVBoxLayout(self)
-
-        # Selection toolbar
-        self.toolbar = SelectionToolbar()
-        layout.addWidget(self.toolbar)
-
-        # Selection statistics
-        self.stats_widget = SelectionStatsWidget()
-        layout.addWidget(self.stats_widget)
 
     def _connect_signals(self):
         """Connect internal signals"""

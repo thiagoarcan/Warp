@@ -64,9 +64,8 @@ class SyncSettingsWidget(QWidget, UiLoaderMixin):
 
         # Carregar interface
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         logger.debug("sync_settings_widget_initialized")
 
@@ -88,38 +87,6 @@ class SyncSettingsWidget(QWidget, UiLoaderMixin):
             self.resample_method_combo.currentTextChanged.connect(self._emit_settings)
 
         logger.debug("sync_settings_ui_loaded_from_file")
-
-    def _setup_ui_fallback(self):
-        """Cria interface programaticamente como fallback."""
-        layout = QFormLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-
-        # Método de sincronização
-        self.sync_method_combo = QComboBox()
-        self.sync_method_combo.addItems([
-            "common_grid_interpolate",
-            "kalman_align",
-            "dtw_align",
-        ])
-        self.sync_method_combo.currentTextChanged.connect(self._emit_settings)
-        layout.addRow("Method:", self.sync_method_combo)
-
-        # Frequência alvo
-        self.target_freq_spin = QDoubleSpinBox()
-        self.target_freq_spin.setRange(0.001, 1000.0)
-        self.target_freq_spin.setValue(1.0)
-        self.target_freq_spin.setSuffix(" Hz")
-        self.target_freq_spin.setDecimals(3)
-        self.target_freq_spin.valueChanged.connect(self._emit_settings)
-        layout.addRow("Target Frequency:", self.target_freq_spin)
-
-        # Método de reamostragem
-        self.resample_method_combo = QComboBox()
-        self.resample_method_combo.addItems(["linear", "cubic", "nearest"])
-        self.resample_method_combo.currentTextChanged.connect(self._emit_settings)
-        layout.addRow("Resample Method:", self.resample_method_combo)
-
-        logger.debug("sync_settings_ui_created_fallback")
 
     def _emit_settings(self):
         """Emite sinal com configurações atualizadas."""

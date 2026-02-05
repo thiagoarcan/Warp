@@ -52,18 +52,17 @@ class FilterDialog(QDialog, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/filterDialog.ui"
+    UI_FILE = "filterDialog.ui"
 
     filter_applied = pyqtSignal(dict)  # config
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._setup_connections()
 
@@ -100,115 +99,6 @@ class FilterDialog(QDialog, UiLoaderMixin):
         self._create_butterworth_tab()
         self._create_outliers_tab()
         self._create_rolling_tab()
-
-    def _setup_ui_fallback(self):
-        """Configura interface do diálogo (fallback programático)"""
-        self.setWindowTitle("🔧 Configurar Filtro")
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(450)
-        
-        layout = QVBoxLayout(self)
-        layout.setSpacing(12)
-
-        # Styling
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #ffffff;
-            }
-            QGroupBox {
-                font-weight: bold;
-                border: 1px solid #e9ecef;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-                background-color: #f8f9fa;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 2px 8px;
-                background-color: #ffffff;
-                border: 1px solid #e9ecef;
-                border-radius: 4px;
-            }
-            QPushButton {
-                background-color: #0d6efd;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 6px;
-                font-weight: bold;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background-color: #0b5ed7;
-            }
-            QPushButton[objectName="secondary"] {
-                background-color: #6c757d;
-            }
-            QPushButton[objectName="success"] {
-                background-color: #198754;
-            }
-            QComboBox, QSpinBox, QDoubleSpinBox {
-                border: 1px solid #ced4da;
-                border-radius: 6px;
-                padding: 8px 12px;
-                background-color: white;
-                min-width: 150px;
-            }
-            QTabWidget::pane {
-                border: 1px solid #e9ecef;
-                border-radius: 6px;
-                background-color: white;
-            }
-            QTabBar::tab {
-                background-color: #f8f9fa;
-                border: 1px solid #e9ecef;
-                padding: 10px 16px;
-                margin-right: 2px;
-                border-top-left-radius: 6px;
-                border-top-right-radius: 6px;
-            }
-            QTabBar::tab:selected {
-                background-color: white;
-                border-bottom-color: white;
-            }
-        """)
-
-        # Header
-        header = QLabel("🔧 Configurar Filtro de Dados")
-        header.setFont(QFont("", 14, QFont.Weight.Bold))
-        header.setStyleSheet("color: #0d6efd; padding: 10px;")
-        layout.addWidget(header)
-
-        # Tabs para tipos de filtro
-        self._tabs = QTabWidget()
-        layout.addWidget(self._tabs)
-
-        # Criar tabs
-        self._create_butterworth_tab()
-        self._create_outliers_tab()
-        self._create_rolling_tab()
-
-        # Botões de ação
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
-
-        cancel_btn = QPushButton("Cancelar")
-        cancel_btn.setObjectName("secondary")
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(cancel_btn)
-
-        preview_btn = QPushButton("👁️ Preview")
-        preview_btn.clicked.connect(self._preview_filter)
-        btn_layout.addWidget(preview_btn)
-
-        apply_btn = QPushButton("✅ Aplicar Filtro")
-        apply_btn.setObjectName("success")
-        apply_btn.clicked.connect(self._apply_filter)
-        btn_layout.addWidget(apply_btn)
-
-        layout.addLayout(btn_layout)
 
     def _create_butterworth_tab(self):
         """Tab de filtro Butterworth"""

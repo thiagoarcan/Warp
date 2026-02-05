@@ -244,7 +244,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/configPanel.ui"
+    UI_FILE = "configPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -257,10 +257,8 @@ class ConfigPanel(QWidget, UiLoaderMixin):
 
         # Carregar interface do arquivo .ui
         if not self._load_ui():
-            logger.warning("ui_load_failed_using_fallback", cls="ConfigPanel")
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -326,102 +324,6 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             if hasattr(self.calculus_widget, 'derivative_method'):
                 is_derivative = "derivative" in operation.lower()
                 self.calculus_widget.derivative_method.setEnabled(is_derivative)
-
-    def _setup_ui_fallback(self):
-        """Setup user interface"""
-        layout = QVBoxLayout(self)
-
-        # Configuration tabs
-        self.config_tabs = QTabWidget()
-
-        # Interpolation tab
-        self.interp_widget = InterpolationConfigWidget()
-        self.interp_widget.parameters_changed.connect(
-            lambda params: self._update_params("interpolation", params))
-        self.config_tabs.addTab(self.interp_widget, "Interpolation")
-
-        # Calculus tab
-        self.calculus_widget = CalculusConfigWidget()
-        self.calculus_widget.parameters_changed.connect(
-            lambda params: self._update_params("calculus", params))
-        self.config_tabs.addTab(self.calculus_widget, "Calculus")
-
-        # Synchronization tab
-        self.sync_widget = self._create_sync_widget()
-        self.config_tabs.addTab(self.sync_widget, "Synchronization")
-
-        layout.addWidget(self.config_tabs)
-
-        # Execute buttons
-        buttons_layout = QHBoxLayout()
-
-        self.execute_btn = QPushButton("Execute")
-        self.execute_btn.clicked.connect(self._execute_operation)
-        self.execute_btn.setEnabled(False)
-        buttons_layout.addWidget(self.execute_btn)
-
-        self.preview_btn = QPushButton("Preview")
-        self.preview_btn.clicked.connect(self._preview_operation)
-        self.preview_btn.setEnabled(False)
-        buttons_layout.addWidget(self.preview_btn)
-
-        layout.addLayout(buttons_layout)
-
-        # Operation history
-        history_group = QGroupBox("Operation History")
-        history_layout = QVBoxLayout(history_group)
-
-        self.history_list = QTextEdit()
-        self.history_list.setMaximumHeight(100)
-        self.history_list.setReadOnly(True)
-        history_layout.addWidget(self.history_list)
-
-        layout.addWidget(history_group)
-
-        # Status
-        self.status_label = QLabel("Select data to enable operations")
-        self.status_label.setStyleSheet("color: gray;")
-        layout.addWidget(self.status_label)
-
-    def _create_sync_widget(self) -> QWidget:
-        """Create synchronization configuration widget"""
-        widget = QWidget()
-        layout = QFormLayout(widget)
-
-        # Sync method
-        self.sync_method_combo = QComboBox()
-        self.sync_method_combo.addItems([
-            "common_grid_interpolate", "kalman_align", "dtw_align",
-        ])
-        self.sync_method_combo.currentTextChanged.connect(
-            lambda: self._update_params("synchronization", self._get_sync_params()))
-        layout.addRow("Method:", self.sync_method_combo)
-
-        # Target frequency
-        self.target_freq_spin = QDoubleSpinBox()
-        self.target_freq_spin.setRange(0.001, 1000.0)
-        self.target_freq_spin.setValue(1.0)
-        self.target_freq_spin.setSuffix(" Hz")
-        self.target_freq_spin.valueChanged.connect(
-            lambda: self._update_params("synchronization", self._get_sync_params()))
-        layout.addRow("Target Frequency:", self.target_freq_spin)
-
-        # Interpolation method for resampling
-        self.resample_method_combo = QComboBox()
-        self.resample_method_combo.addItems(["linear", "cubic", "nearest"])
-        self.resample_method_combo.currentTextChanged.connect(
-            lambda: self._update_params("synchronization", self._get_sync_params()))
-        layout.addRow("Resample Method:", self.resample_method_combo)
-
-        return widget
-
-    def _get_sync_params(self) -> dict[str, Any]:
-        """Get synchronization parameters"""
-        return {
-            "method": self.sync_method_combo.currentText(),
-            "target_frequency": self.target_freq_spin.value(),
-            "resample_method": self.resample_method_combo.currentText(),
-        }
 
     def _connect_signals(self):
         """Connect signals"""

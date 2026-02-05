@@ -51,7 +51,7 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/mathAnalysisDialog.ui"
+    UI_FILE = "mathAnalysisDialog.ui"
 
     operation_requested = pyqtSignal(str, dict)  # operation_name, parameters
 
@@ -63,11 +63,10 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
         self.setModal(True)
         self.resize(350, 200)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -93,131 +92,6 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
             cancel_btn.clicked.connect(self.reject)
         if self.enable_smoothing and self.smoothing_window:
             self.enable_smoothing.toggled.connect(self.smoothing_window.setEnabled)
-
-    def _setup_ui_fallback(self):
-        """Setup dialog UI based on operation"""
-        layout = QVBoxLayout(self)
-
-        if self.operation == "derivative":
-            self._setup_derivative_ui(layout)
-        elif self.operation == "integral":
-            self._setup_integral_ui(layout)
-        elif self.operation == "smooth":
-            self._setup_smoothing_ui(layout)
-        elif self.operation == "interpolate":
-            self._setup_interpolation_ui(layout)
-        elif self.operation == "resample":
-            self._setup_resample_ui(layout)
-
-        # Buttons
-        button_layout = QHBoxLayout()
-
-        apply_btn = QPushButton(tr("Apply"))
-        apply_btn.clicked.connect(self._apply_operation)
-        apply_btn.setDefault(True)
-        button_layout.addWidget(apply_btn)
-
-        cancel_btn = QPushButton(tr("Cancel"))
-        cancel_btn.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_btn)
-
-        layout.addLayout(button_layout)
-
-    def _setup_derivative_ui(self, layout: QVBoxLayout):
-        """Setup derivative calculation UI"""
-        params_group = QGroupBox(tr("Derivative Parameters"))
-        params_layout = QFormLayout(params_group)
-
-        self.derivative_order = QSpinBox()
-        self.derivative_order.setRange(1, 3)
-        self.derivative_order.setValue(1)
-        params_layout.addRow(tr("Order:"), self.derivative_order)
-
-        self.derivative_method = QComboBox()
-        self.derivative_method.addItems([
-            "finite_diff", "savitzky_golay", "spline_derivative",
-        ])
-        params_layout.addRow(tr("Method:"), self.derivative_method)
-
-        # Smoothing options
-        self.enable_smoothing = QCheckBox(tr("Apply smoothing"))
-        params_layout.addRow("", self.enable_smoothing)
-
-        self.smoothing_window = QSpinBox()
-        self.smoothing_window.setRange(3, 51)
-        self.smoothing_window.setValue(7)
-        self.smoothing_window.setSingleStep(2)  # Keep odd numbers
-        self.smoothing_window.setEnabled(False)
-        params_layout.addRow(tr("Window size:"), self.smoothing_window)
-
-        self.enable_smoothing.toggled.connect(self.smoothing_window.setEnabled)
-
-        layout.addWidget(params_group)
-
-    def _setup_integral_ui(self, layout: QVBoxLayout):
-        """Setup integral calculation UI"""
-        params_group = QGroupBox(tr("Integration Parameters"))
-        params_layout = QFormLayout(params_group)
-
-        self.integral_method = QComboBox()
-        self.integral_method.addItems(["trapezoid", "simpson", "cumulative"])
-        params_layout.addRow(tr("Method:"), self.integral_method)
-
-        layout.addWidget(params_group)
-
-    def _setup_smoothing_ui(self, layout: QVBoxLayout):
-        """Setup smoothing UI"""
-        params_group = QGroupBox(tr("Smoothing Parameters"))
-        params_layout = QFormLayout(params_group)
-
-        self.smooth_method = QComboBox()
-        self.smooth_method.addItems([
-            "moving_average", "savitzky_golay", "gaussian",
-            "lowpass_filter", "median_filter",
-        ])
-        params_layout.addRow(tr("Method:"), self.smooth_method)
-
-        self.window_size = QSpinBox()
-        self.window_size.setRange(3, 101)
-        self.window_size.setValue(11)
-        params_layout.addRow(tr("Window Size:"), self.window_size)
-
-        self.polyorder = QSpinBox()
-        self.polyorder.setRange(1, 10)
-        self.polyorder.setValue(3)
-        params_layout.addRow(tr("Polynomial Order:"), self.polyorder)
-
-        layout.addWidget(params_group)
-
-    def _setup_interpolation_ui(self, layout: QVBoxLayout):
-        """Setup interpolation UI"""
-        params_group = QGroupBox(tr("Interpolation Parameters"))
-        params_layout = QFormLayout(params_group)
-
-        self.interp_method = QComboBox()
-        self.interp_method.addItems([
-            "linear", "spline_cubic", "smoothing_spline",
-            "mls", "gpr", "lomb_scargle_spectral",
-        ])
-        params_layout.addRow("Method:", self.interp_method)
-
-        layout.addWidget(params_group)
-
-    def _setup_resample_ui(self, layout: QVBoxLayout):
-        """Setup resampling UI"""
-        params_group = QGroupBox(tr("Resampling Parameters"))
-        params_layout = QFormLayout(params_group)
-
-        self.resample_method = QComboBox()
-        self.resample_method.addItems(["lttb", "minmax", "adaptive", "uniform"])
-        params_layout.addRow("Method:", self.resample_method)
-
-        self.target_points = QSpinBox()
-        self.target_points.setRange(10, 100000)
-        self.target_points.setValue(1000)
-        params_layout.addRow(tr("Target Points:"), self.target_points)
-
-        layout.addWidget(params_group)
 
     def _apply_operation(self):
         """Apply the selected operation"""

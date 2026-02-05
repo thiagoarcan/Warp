@@ -68,7 +68,7 @@ class RangePickerWidget(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/rangePickerWidget.ui"
+    UI_FILE = "rangePickerWidget.ui"
 
     # Signals
     range_selected = pyqtSignal(float, float)  # start_time, end_time
@@ -80,11 +80,10 @@ class RangePickerWidget(QWidget, UiLoaderMixin):
         self.current_dataset: Dataset | None = None
         self.range_item: LinearRegionItem | None = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         logger.debug("range_picker_widget_initialized", ui_loaded=self._ui_loaded)
 
@@ -106,51 +105,6 @@ class RangePickerWidget(QWidget, UiLoaderMixin):
             self.select_btn.clicked.connect(self._select_range)
         if self.reset_btn:
             self.reset_btn.clicked.connect(self._reset_range)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do widget"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-
-        # Controls
-        controls_layout = QHBoxLayout()
-
-        # Start time
-        controls_layout.addWidget(QLabel("Start:"))
-        self.start_spinbox = QDoubleSpinBox()
-        self.start_spinbox.setRange(-99999.0, 99999.0)
-        self.start_spinbox.setDecimals(3)
-        self.start_spinbox.setSuffix(" s")
-        self.start_spinbox.valueChanged.connect(self._on_manual_range_change)
-        controls_layout.addWidget(self.start_spinbox)
-
-        # End time
-        controls_layout.addWidget(QLabel("End:"))
-        self.end_spinbox = QDoubleSpinBox()
-        self.end_spinbox.setRange(-99999.0, 99999.0)
-        self.end_spinbox.setDecimals(3)
-        self.end_spinbox.setSuffix(" s")
-        self.end_spinbox.valueChanged.connect(self._on_manual_range_change)
-        controls_layout.addWidget(self.end_spinbox)
-
-        # Select button
-        self.select_button = QPushButton("Select Range")
-        self.select_button.clicked.connect(self._emit_range_selected)
-        controls_layout.addWidget(self.select_button)
-
-        controls_layout.addStretch()
-        layout.addLayout(controls_layout)
-
-        # Plot widget
-        if PYQTGRAPH_AVAILABLE:
-            self.plot_widget = PlotWidget()
-            self.plot_widget.setLabel("left", "Value")
-            self.plot_widget.setLabel("bottom", "Time (s)")
-            layout.addWidget(self.plot_widget)
-        else:
-            placeholder = QLabel("PyQtGraph required for range picker")
-            placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(placeholder)
 
     def set_dataset(self, dataset: Dataset):
         """Define dataset para visualização"""
@@ -243,7 +197,7 @@ class BrushSelectionWidget(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/brushSelectionWidget.ui"
+    UI_FILE = "brushSelectionWidget.ui"
 
     # Signals
     points_selected = pyqtSignal(list)  # List of selected point indices
@@ -255,11 +209,10 @@ class BrushSelectionWidget(QWidget, UiLoaderMixin):
         self.selection_enabled = False
         self.selected_points = []
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         logger.debug("brush_selection_widget_initialized", ui_loaded=self._ui_loaded)
 
@@ -279,51 +232,6 @@ class BrushSelectionWidget(QWidget, UiLoaderMixin):
             self.clear_selection_btn.clicked.connect(self._clear_selection)
         if self.select_btn:
             self.select_btn.clicked.connect(self._apply_selection)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do widget"""
-        layout = QVBoxLayout(self)
-
-        # Controls
-        controls_layout = QHBoxLayout()
-
-        self.enable_selection_btn = QPushButton("Enable Selection")
-        self.enable_selection_btn.setCheckable(True)
-        self.enable_selection_btn.clicked.connect(self._toggle_selection)
-        controls_layout.addWidget(self.enable_selection_btn)
-
-        self.clear_selection_btn = QPushButton("Clear Selection")
-        self.clear_selection_btn.clicked.connect(self._clear_selection)
-        controls_layout.addWidget(self.clear_selection_btn)
-
-        self.select_btn = QPushButton("Apply Selection")
-        self.select_btn.clicked.connect(self._apply_selection)
-        controls_layout.addWidget(self.select_btn)
-
-        controls_layout.addStretch()
-
-        self.selection_info = QLabel("0 points selected")
-        controls_layout.addWidget(self.selection_info)
-
-        layout.addLayout(controls_layout)
-
-        # Plot widget
-        if PYQTGRAPH_AVAILABLE:
-            self.plot_widget = PlotWidget()
-            self.plot_widget.setLabel("left", "Value")
-            self.plot_widget.setLabel("bottom", "Time (s)")
-
-            # Enable crosshair
-            self.crosshair_v = InfiniteLine(angle=90, movable=False, pen="y")
-            self.crosshair_h = InfiniteLine(angle=0, movable=False, pen="y")
-            self.plot_widget.addItem(self.crosshair_v, ignoreBounds=True)
-            self.plot_widget.addItem(self.crosshair_h, ignoreBounds=True)
-
-            layout.addWidget(self.plot_widget)
-        else:
-            placeholder = QLabel("PyQtGraph required for brush selection")
-            placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(placeholder)
 
     def set_dataset(self, dataset: Dataset):
         """Define dataset para visualização"""
@@ -429,7 +337,7 @@ class QueryBuilderWidget(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/queryBuilderWidget.ui"
+    UI_FILE = "queryBuilderWidget.ui"
 
     # Signals
     query_built = pyqtSignal(str, str)  # series_id, condition_string
@@ -439,11 +347,10 @@ class QueryBuilderWidget(QWidget, UiLoaderMixin):
 
         self.available_series: list[str] = []
         
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         logger.debug("query_builder_widget_initialized", ui_loaded=self._ui_loaded)
 
@@ -464,92 +371,6 @@ class QueryBuilderWidget(QWidget, UiLoaderMixin):
             self.value_type_combo.currentTextChanged.connect(self._on_value_type_changed)
         if self.execute_btn:
             self.execute_btn.clicked.connect(self._execute_query)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do widget"""
-        layout = QVBoxLayout(self)
-
-        # Series selection
-        series_group = QGroupBox("Target Series")
-        series_layout = QFormLayout(series_group)
-
-        self.series_combo = QComboBox()
-        series_layout.addRow("Series:", self.series_combo)
-
-        layout.addWidget(series_group)
-
-        # Condition builder
-        condition_group = QGroupBox("Condition Builder")
-        condition_layout = QVBoxLayout(condition_group)
-
-        # Simple condition builder
-        simple_layout = QFormLayout()
-
-        self.operator_combo = QComboBox()
-        self.operator_combo.addItems([">", "<", ">=", "<=", "==", "!="])
-        simple_layout.addRow("Operator:", self.operator_combo)
-
-        self.value_type_combo = QComboBox()
-        self.value_type_combo.addItems(["Number", "Statistics", "Percentile"])
-        self.value_type_combo.currentTextChanged.connect(self._on_value_type_changed)
-        simple_layout.addRow("Value Type:", self.value_type_combo)
-
-        # Value input (changes based on type)
-        self.value_widget = QWidget()
-        self.value_layout = QHBoxLayout(self.value_widget)
-        self.value_layout.setContentsMargins(0, 0, 0, 0)
-
-        self.number_input = QDoubleSpinBox()
-        self.number_input.setRange(-999999.0, 999999.0)
-        self.number_input.setDecimals(3)
-        self.value_layout.addWidget(self.number_input)
-
-        self.stats_combo = QComboBox()
-        self.stats_combo.addItems(["mean", "std", "median", "min", "max"])
-        self.stats_combo.setVisible(False)
-        self.value_layout.addWidget(self.stats_combo)
-
-        self.percentile_input = QSpinBox()
-        self.percentile_input.setRange(0, 100)
-        self.percentile_input.setValue(50)
-        self.percentile_input.setSuffix("%")
-        self.percentile_input.setVisible(False)
-        self.value_layout.addWidget(self.percentile_input)
-
-        simple_layout.addRow("Value:", self.value_widget)
-
-        condition_layout.addLayout(simple_layout)
-
-        # Advanced condition input
-        advanced_group = QGroupBox("Advanced Condition (Raw)")
-        advanced_layout = QVBoxLayout(advanced_group)
-
-        self.condition_text = QLineEdit()
-        self.condition_text.setPlaceholderText("e.g., > mean + 2*std")
-        advanced_layout.addWidget(self.condition_text)
-
-        condition_layout.addWidget(advanced_group)
-
-        layout.addWidget(condition_group)
-
-        # Preview and actions
-        actions_layout = QHBoxLayout()
-
-        self.preview_btn = QPushButton("Preview")
-        self.preview_btn.clicked.connect(self._preview_condition)
-        actions_layout.addWidget(self.preview_btn)
-
-        self.apply_btn = QPushButton("Apply Condition")
-        self.apply_btn.clicked.connect(self._apply_condition)
-        actions_layout.addWidget(self.apply_btn)
-
-        layout.addLayout(actions_layout)
-
-        # Results preview
-        self.results_label = QLabel("No condition applied")
-        self.results_label.setWordWrap(True)
-        self.results_label.setStyleSheet("border: 1px solid gray; padding: 8px; background: #f0f0f0;")
-        layout.addWidget(self.results_label)
 
     def set_available_series(self, series_list: list[str]):
         """Define séries disponíveis"""
@@ -633,7 +454,7 @@ class SelectionHistoryWidget(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionHistoryWidget.ui"
+    UI_FILE = "selectionHistoryWidget.ui"
 
     # Signals
     selection_restored = pyqtSignal(object)  # Selection object
@@ -643,11 +464,10 @@ class SelectionHistoryWidget(QWidget, UiLoaderMixin):
 
         self.selections: list[Selection] = []
         
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         logger.debug("selection_history_widget_initialized", ui_loaded=self._ui_loaded)
 
@@ -660,41 +480,6 @@ class SelectionHistoryWidget(QWidget, UiLoaderMixin):
             self.clear_btn.clicked.connect(self._clear_history)
         if self.history_list:
             self.history_list.itemDoubleClicked.connect(self._restore_selection)
-
-    def _setup_ui_fallback(self):
-        """Configura interface do widget"""
-        layout = QVBoxLayout(self)
-
-        # Header
-        header_layout = QHBoxLayout()
-
-        header_layout.addWidget(QLabel("Selection History"))
-        header_layout.addStretch()
-
-        self.clear_btn = QPushButton("Clear History")
-        self.clear_btn.clicked.connect(self._clear_history)
-        header_layout.addWidget(self.clear_btn)
-
-        layout.addLayout(header_layout)
-
-        # History list
-        self.history_list = QListWidget()
-        self.history_list.itemDoubleClicked.connect(self._restore_selection)
-        layout.addWidget(self.history_list)
-
-        # Selection details
-        details_group = QGroupBox("Selection Details")
-        details_layout = QVBoxLayout(details_group)
-
-        self.details_text = QTextEdit()
-        self.details_text.setMaximumHeight(100)
-        self.details_text.setReadOnly(True)
-        details_layout.addWidget(self.details_text)
-
-        layout.addWidget(details_group)
-
-        # Connect selection change
-        self.history_list.itemSelectionChanged.connect(self._show_selection_details)
 
     def add_selection(self, selection: Selection):
         """Adiciona seleção ao histórico"""
@@ -765,7 +550,7 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionManagerWidget.ui"
+    UI_FILE = "selectionManagerWidget.ui"
 
     # Signals
     selection_made = pyqtSignal(object)  # Selection object
@@ -778,11 +563,10 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
         self.data_selector = DataSelector()
         self.current_dataset: Dataset | None = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._setup_connections()
         logger.debug("selection_manager_widget_initialized", ui_loaded=self._ui_loaded)
@@ -814,49 +598,6 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
             
             self.history_widget.selection_restored.connect(self._on_history_restore)
             self.selection_tabs.addTab(self.history_widget, "History")
-
-    def _setup_ui_fallback(self):
-        """Configura interface principal"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-
-        # Dataset selection
-        dataset_group = QGroupBox("Dataset")
-        dataset_layout = QFormLayout(dataset_group)
-
-        self.dataset_combo = QComboBox()
-        self.dataset_combo.currentTextChanged.connect(self._on_dataset_changed)
-        dataset_layout.addRow("Current Dataset:", self.dataset_combo)
-
-        layout.addWidget(dataset_group)
-
-        # Selection methods tabs
-        self.selection_tabs = QTabWidget()
-
-        # Temporal selection
-        self.range_picker = RangePickerWidget()
-        self.range_picker.range_selected.connect(self._on_temporal_selection)
-        self.selection_tabs.addTab(self.range_picker, "Time Range")
-
-        # Interactive selection
-        self.brush_selection = BrushSelectionWidget()
-        self.brush_selection.points_selected.connect(self._on_interactive_selection)
-        self.selection_tabs.addTab(self.brush_selection, "Interactive")
-
-        # Conditional selection
-        self.query_builder = QueryBuilderWidget()
-        self.query_builder.query_built.connect(self._on_conditional_selection)
-        self.selection_tabs.addTab(self.query_builder, "Conditional")
-
-        layout.addWidget(self.selection_tabs)
-
-        # History
-        self.history_widget = SelectionHistoryWidget()
-        self.history_widget.selection_restored.connect(self._on_selection_restored)
-        layout.addWidget(self.history_widget)
-
-        # Update dataset list
-        self._update_dataset_list()
 
     def _setup_connections(self):
         """Setup de conexões"""
@@ -996,7 +737,7 @@ class SelectionSync(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionSync.ui"
+    UI_FILE = "selectionSync.ui"
 
     # Signals
     sync_enabled = pyqtSignal(bool)
@@ -1010,11 +751,10 @@ class SelectionSync(QWidget, UiLoaderMixin):
         self._sync_enabled = True
         self._current_selection: Selection | None = None
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -1029,37 +769,6 @@ class SelectionSync(QWidget, UiLoaderMixin):
         
         if self.status_label:
             self.status_label.setText("No selection")
-
-    def _setup_ui_fallback(self):
-        """Setup the UI components."""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-
-        # Enable/Disable sync
-        controls_layout = QHBoxLayout()
-
-        self.sync_checkbox = QPushButton("Sync Enabled")
-        self.sync_checkbox.setCheckable(True)
-        self.sync_checkbox.setChecked(True)
-        self.sync_checkbox.clicked.connect(self._on_sync_toggled)
-        controls_layout.addWidget(self.sync_checkbox)
-
-        controls_layout.addStretch()
-
-        layout.addLayout(controls_layout)
-
-        # Views list
-        views_group = QGroupBox("Synchronized Views")
-        views_layout = QVBoxLayout(views_group)
-
-        self.views_list = QListWidget()
-        views_layout.addWidget(self.views_list)
-
-        layout.addWidget(views_group)
-
-        # Status
-        self.status_label = QLabel("No selection")
-        layout.addWidget(self.status_label)
 
     def _on_sync_toggled(self, checked: bool):
         """Handle sync toggle."""
@@ -1145,7 +854,7 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionToolbar.ui"
+    UI_FILE = "selectionToolbar.ui"
 
     # Signals
     mode_changed = pyqtSignal(str)
@@ -1159,11 +868,10 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
         self._current_mode = 'single'
         self._mode_buttons: dict[str, QPushButton] = {}
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -1198,46 +906,6 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
             self.select_all_btn.clicked.connect(self.select_all_requested.emit)
         if self.invert_btn:
             self.invert_btn.clicked.connect(self.invert_requested.emit)
-
-    def _setup_ui_fallback(self):
-        """Setup the toolbar UI."""
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(2, 2, 2, 2)
-        layout.setSpacing(4)
-
-        # Selection mode buttons
-        modes = [
-            ('single', 'Single', 'Select single point'),
-            ('box', 'Box', 'Box selection'),
-            ('lasso', 'Lasso', 'Freeform lasso selection'),
-            ('range', 'Range', 'Select time range'),
-        ]
-
-        for mode_id, label, tooltip in modes:
-            btn = QPushButton(label)
-            btn.setCheckable(True)
-            btn.setToolTip(tooltip)
-            btn.clicked.connect(lambda checked, m=mode_id: self._on_mode_clicked(m))
-            self._mode_buttons[mode_id] = btn
-            layout.addWidget(btn)
-
-        # Set default mode
-        self._mode_buttons['single'].setChecked(True)
-
-        layout.addStretch()
-
-        # Action buttons
-        self.clear_btn = QPushButton("Clear")
-        self.clear_btn.clicked.connect(self.clear_requested.emit)
-        layout.addWidget(self.clear_btn)
-
-        self.select_all_btn = QPushButton("All")
-        self.select_all_btn.clicked.connect(self.select_all_requested.emit)
-        layout.addWidget(self.select_all_btn)
-
-        self.invert_btn = QPushButton("Invert")
-        self.invert_btn.clicked.connect(self.invert_requested.emit)
-        layout.addWidget(self.invert_btn)
 
     def _on_mode_clicked(self, mode: str):
         """Handle mode button click."""
@@ -1285,7 +953,7 @@ class SelectionInfo(QWidget, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/selectionInfo.ui"
+    UI_FILE = "selectionInfo.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -1294,11 +962,10 @@ class SelectionInfo(QWidget, UiLoaderMixin):
         self._total_count = 0
         self._stats: dict = {}
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -1323,46 +990,6 @@ class SelectionInfo(QWidget, UiLoaderMixin):
             self.mean_label.setText("-")
         if self.std_label:
             self.std_label.setText("-")
-
-    def _setup_ui_fallback(self):
-        """Setup the info display UI."""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-
-        # Count display
-        count_layout = QHBoxLayout()
-        self.count_label = QLabel("Selection:")
-        count_layout.addWidget(self.count_label)
-
-        self.count_value = QLabel("0 / 0 points")
-        count_layout.addWidget(self.count_value)
-        count_layout.addStretch()
-
-        layout.addLayout(count_layout)
-
-        # Percentage bar (simple text-based)
-        self.percentage_label = QLabel("0%")
-        layout.addWidget(self.percentage_label)
-
-        # Statistics group
-        stats_group = QGroupBox("Statistics")
-        stats_layout = QFormLayout(stats_group)
-
-        self.min_label = QLabel("-")
-        stats_layout.addRow("Min:", self.min_label)
-
-        self.max_label = QLabel("-")
-        stats_layout.addRow("Max:", self.max_label)
-
-        self.mean_label = QLabel("-")
-        stats_layout.addRow("Mean:", self.mean_label)
-
-        self.std_label = QLabel("-")
-        stats_layout.addRow("Std:", self.std_label)
-
-        layout.addWidget(stats_group)
-
-        layout.addStretch()
 
     def update_count(self, selected: int, total: int):
         """

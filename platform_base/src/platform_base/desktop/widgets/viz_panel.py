@@ -320,7 +320,7 @@ class VizPanel(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/vizPanel.ui"
+    UI_FILE = "vizPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -335,10 +335,8 @@ class VizPanel(QWidget, UiLoaderMixin):
 
         # Carregar interface do arquivo .ui
         if not self._load_ui():
-            logger.warning("ui_load_failed_using_fallback", cls="VizPanel")
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -376,35 +374,6 @@ class VizPanel(QWidget, UiLoaderMixin):
         self._add_welcome_tab()
             
         logger.debug("viz_panel_ui_loaded_from_file")
-
-    def _setup_ui_fallback(self):
-        """Setup user interface"""
-        layout = QVBoxLayout(self)
-
-        # Plot toolbar
-        self.toolbar = self._create_plot_toolbar()
-        layout.addWidget(self.toolbar)
-
-        # Main splitter
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-
-        # Plot tabs (main area)
-        self.plot_tabs = QTabWidget()
-        self.plot_tabs.setTabsClosable(True)
-        self.plot_tabs.tabCloseRequested.connect(self._close_plot_tab)
-        self.plot_tabs.currentChanged.connect(self._on_tab_changed)
-        splitter.addWidget(self.plot_tabs)
-
-        # Plot controls (right panel)
-        self.controls_widget = self._create_controls_widget()
-        splitter.addWidget(self.controls_widget)
-
-        # Set splitter proportions
-        splitter.setSizes([800, 200])
-        layout.addWidget(splitter)
-
-        # Add initial welcome tab
-        self._add_welcome_tab()
 
     def _populate_toolbar(self):
         """Popula toolbar do .ui com ações"""
@@ -457,105 +426,6 @@ class VizPanel(QWidget, UiLoaderMixin):
         move_to_y2_action = QAction(tr("Move to Y2"), self.toolbar)
         move_to_y2_action.triggered.connect(self._move_selected_to_y2)
         self.toolbar.addAction(move_to_y2_action)
-
-    def _create_plot_toolbar(self) -> QToolBar:
-        """Create plot toolbar"""
-        toolbar = QToolBar(tr("Plot Actions"))
-
-        # Plot type actions
-        plot_group = QActionGroup(toolbar)
-
-        plot_2d_action = QAction(tr("2D Plot"), toolbar)
-        plot_2d_action.setCheckable(True)
-        plot_2d_action.setChecked(True)
-        plot_2d_action.triggered.connect(lambda: self._create_plot("2d"))
-        plot_group.addAction(plot_2d_action)
-        toolbar.addAction(plot_2d_action)
-
-        if PYVISTA_AVAILABLE:
-            plot_3d_action = QAction(tr("3D Plot"), toolbar)
-            plot_3d_action.setCheckable(True)
-            plot_3d_action.triggered.connect(lambda: self._create_plot("3d"))
-            plot_group.addAction(plot_3d_action)
-            toolbar.addAction(plot_3d_action)
-
-        toolbar.addSeparator()
-
-        # Plot actions
-        clear_action = QAction(tr("Clear"), toolbar)
-        clear_action.triggered.connect(self._clear_current_plot)
-        toolbar.addAction(clear_action)
-
-        export_action = QAction(tr("Export"), toolbar)
-        export_action.triggered.connect(self._export_current_plot)
-        toolbar.addAction(export_action)
-
-        toolbar.addSeparator()
-
-        # Selection tools
-        select_action = QAction(tr("Select"), toolbar)
-        select_action.setCheckable(True)
-        select_action.triggered.connect(self._toggle_selection_mode)
-        toolbar.addAction(select_action)
-
-        toolbar.addSeparator()
-
-        # Y-axis tools
-        add_y_axis_action = QAction(tr("Add Y Axis"), toolbar)
-        add_y_axis_action.triggered.connect(self._add_secondary_y_axis)
-        toolbar.addAction(add_y_axis_action)
-
-        move_to_y2_action = QAction(tr("Move to Y2"), toolbar)
-        move_to_y2_action.triggered.connect(self._move_selected_to_y2)
-        toolbar.addAction(move_to_y2_action)
-
-        return toolbar
-
-    def _create_controls_widget(self) -> QWidget:
-        """Create plot controls widget"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Plot settings group
-        settings_group = QGroupBox(tr("Plot Settings"))
-        settings_layout = QVBoxLayout(settings_group)
-
-        # Line width
-        width_layout = QHBoxLayout()
-        width_layout.addWidget(QLabel(tr("Line Width:")))
-        self.line_width_spin = QSpinBox()
-        self.line_width_spin.setRange(1, 10)
-        self.line_width_spin.setValue(2)
-        self.line_width_spin.valueChanged.connect(self._update_line_width)
-        width_layout.addWidget(self.line_width_spin)
-        settings_layout.addLayout(width_layout)
-
-        # Grid toggle
-        self.grid_check = QCheckBox(tr("Show Grid"))
-        self.grid_check.setChecked(True)
-        self.grid_check.toggled.connect(self._toggle_grid)
-        settings_layout.addWidget(self.grid_check)
-
-        # Legend toggle
-        self.legend_check = QCheckBox(tr("Show Legend"))
-        self.legend_check.setChecked(True)
-        self.legend_check.toggled.connect(self._toggle_legend)
-        settings_layout.addWidget(self.legend_check)
-
-        layout.addWidget(settings_group)
-
-        # Series list group
-        series_group = QGroupBox(tr("Active Series"))
-        series_layout = QVBoxLayout(series_group)
-
-        self.series_list = QWidget()
-        QVBoxLayout(self.series_list)
-        series_layout.addWidget(self.series_list)
-
-        layout.addWidget(series_group)
-
-        layout.addStretch()
-        return widget
 
     def _add_welcome_tab(self):
         """Add welcome tab with instructions"""

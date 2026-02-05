@@ -195,7 +195,7 @@ QTabBar::tab:selected {
       <bool>true</bool>
      </property>
      
-     <!-- Interpolation Tab -->
+     <!-- ========== INTERPOLATION TAB ========== -->
      <widget class="QWidget" name="interpTab">
       <attribute name="title">
        <string>📐</string>
@@ -234,56 +234,16 @@ QTabBar::tab:selected {
                 <property name="toolTip">
                  <string>Método de interpolação a utilizar</string>
                 </property>
-                <item>
-                 <property name="text">
-                  <string>linear</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>cubic_spline</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>smoothing_spline</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>akima</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>pchip</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>polynomial</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>mls</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>gpr</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>lomb_scargle</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>resample_grid</string>
-                 </property>
-                </item>
+                <item><property name="text"><string>linear</string></property></item>
+                <item><property name="text"><string>cubic_spline</string></property></item>
+                <item><property name="text"><string>smoothing_spline</string></property></item>
+                <item><property name="text"><string>akima</string></property></item>
+                <item><property name="text"><string>pchip</string></property></item>
+                <item><property name="text"><string>polynomial</string></property></item>
+                <item><property name="text"><string>mls</string></property></item>
+                <item><property name="text"><string>gpr</string></property></item>
+                <item><property name="text"><string>lomb_scargle</string></property></item>
+                <item><property name="text"><string>resample_grid</string></property></item>
                </widget>
               </item>
              </layout>
@@ -299,81 +259,47 @@ QTabBar::tab:selected {
              <layout class="QFormLayout" name="interpParamsLayout">
               <item row="0" column="0">
                <widget class="QLabel" name="interpPointsLabel">
-                <property name="text">
-                 <string>Pontos:</string>
-                </property>
+                <property name="text"><string>Pontos:</string></property>
                </widget>
               </item>
               <item row="0" column="1">
                <widget class="QSpinBox" name="interpPointsSpin">
-                <property name="toolTip">
-                 <string>Número de pontos de saída</string>
-                </property>
-                <property name="minimum">
-                 <number>10</number>
-                </property>
-                <property name="maximum">
-                 <number>100000</number>
-                </property>
-                <property name="value">
-                 <number>1000</number>
-                </property>
+                <property name="toolTip"><string>Número de pontos de saída</string></property>
+                <property name="minimum"><number>10</number></property>
+                <property name="maximum"><number>100000</number></property>
+                <property name="value"><number>1000</number></property>
                </widget>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="interpSmoothLabel">
-                <property name="text">
-                 <string>Suavização:</string>
-                </property>
+                <property name="text"><string>Suavização:</string></property>
                </widget>
               </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="interpSmoothSpin">
-                <property name="toolTip">
-                 <string>Fator de suavização (0 = nenhuma)</string>
-                </property>
-                <property name="decimals">
-                 <number>2</number>
-                </property>
-                <property name="maximum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.010000000000000</double>
-                </property>
+                <property name="toolTip"><string>Fator de suavização (0 = nenhuma)</string></property>
+                <property name="decimals"><number>2</number></property>
+                <property name="maximum"><double>1.000000000000000</double></property>
+                <property name="singleStep"><double>0.010000000000000</double></property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="interpDegreeLabel">
-                <property name="text">
-                 <string>Grau:</string>
-                </property>
+                <property name="text"><string>Grau:</string></property>
                </widget>
               </item>
               <item row="2" column="1">
                <widget class="QSpinBox" name="interpDegreeSpin">
-                <property name="toolTip">
-                 <string>Grau do polinômio (para métodos polinomiais)</string>
-                </property>
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>10</number>
-                </property>
-                <property name="value">
-                 <number>3</number>
-                </property>
+                <property name="toolTip"><string>Grau do polinômio (para métodos polinomiais)</string></property>
+                <property name="minimum"><number>1</number></property>
+                <property name="maximum"><number>10</number></property>
+                <property name="value"><number>3</number></property>
                </widget>
               </item>
               <item row="3" column="0" colspan="2">
                <widget class="QCheckBox" name="interpExtrapolateCheck">
-                <property name="text">
-                 <string>Permitir extrapolação</string>
-                </property>
-                <property name="toolTip">
-                 <string>Extrapolar além do range dos dados</string>
-                </property>
+                <property name="text"><string>Permitir extrapolação</string></property>
+                <property name="toolTip"><string>Extrapolar além do range dos dados</string></property>
                </widget>
               </item>
              </layout>
@@ -385,42 +311,23 @@ QTabBar::tab:selected {
             <layout class="QHBoxLayout" name="interpButtonsLayout">
              <item>
               <widget class="QPushButton" name="interpPreviewBtn">
-               <property name="text">
-                <string>👁️ Preview</string>
-               </property>
-               <property name="toolTip">
-                <string>Visualizar resultado antes de aplicar</string>
-               </property>
+               <property name="text"><string>👁️ Preview</string></property>
+               <property name="toolTip"><string>Visualizar resultado antes de aplicar</string></property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="interpApplyBtn">
-               <property name="text">
-                <string>✅ Aplicar</string>
-               </property>
-               <property name="toolTip">
-                <string>Aplicar interpolação à série selecionada</string>
-               </property>
-               <property name="objectName">
-                <string>success</string>
-               </property>
+               <property name="text"><string>✅ Aplicar</string></property>
+               <property name="toolTip"><string>Aplicar interpolação à série selecionada</string></property>
               </widget>
              </item>
             </layout>
            </item>
            
-           <!-- Spacer -->
            <item>
             <spacer name="interpSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
             </spacer>
            </item>
           </layout>
@@ -430,10 +337,10 @@ QTabBar::tab:selected {
       </layout>
      </widget>
      
-     <!-- Calculus Tab -->
+     <!-- ========== CALCULUS TAB ========== -->
      <widget class="QWidget" name="calculusTab">
       <attribute name="title">
-       <string>📈</string>
+       <string>🧮</string>
       </attribute>
       <attribute name="toolTip">
        <string>Cálculos (Derivadas/Integrais)</string>
@@ -441,133 +348,66 @@ QTabBar::tab:selected {
       <layout class="QVBoxLayout" name="calculusTabLayout">
        <item>
         <widget class="QScrollArea" name="calculusScrollArea">
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
+         <property name="widgetResizable"><bool>true</bool></property>
          <widget class="QWidget" name="calculusScrollContent">
           <layout class="QVBoxLayout" name="calculusContentLayout">
-           <property name="spacing">
-            <number>8</number>
-           </property>
+           <property name="spacing"><number>8</number></property>
            
            <!-- Derivatives Group -->
            <item>
             <widget class="QGroupBox" name="derivGroup">
-             <property name="title">
-              <string>📈 Derivadas</string>
-             </property>
+             <property name="title"><string>📈 Derivadas</string></property>
              <layout class="QFormLayout" name="derivLayout">
               <item row="0" column="0">
-               <widget class="QLabel" name="derivOrderLabel">
-                <property name="text">
-                 <string>Ordem:</string>
-                </property>
-               </widget>
+               <widget class="QLabel" name="derivOrderLabel"><property name="text"><string>Ordem:</string></property></widget>
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="derivOrderCombo">
-                <property name="toolTip">
-                 <string>Ordem da derivada</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>1ª Ordem</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>2ª Ordem</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>3ª Ordem</string>
-                 </property>
-                </item>
+                <property name="toolTip"><string>Ordem da derivada</string></property>
+                <item><property name="text"><string>1ª Ordem</string></property></item>
+                <item><property name="text"><string>2ª Ordem</string></property></item>
+                <item><property name="text"><string>3ª Ordem</string></property></item>
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QLabel" name="derivMethodLabel">
-                <property name="text">
-                 <string>Método:</string>
-                </property>
-               </widget>
+               <widget class="QLabel" name="derivMethodLabel"><property name="text"><string>Método:</string></property></widget>
               </item>
               <item row="1" column="1">
                <widget class="QComboBox" name="derivMethodCombo">
-                <property name="toolTip">
-                 <string>Método de cálculo da derivada</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>finite_diff</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>savitzky_golay</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>spline_derivative</string>
-                 </property>
-                </item>
+                <property name="toolTip"><string>Método de cálculo da derivada</string></property>
+                <item><property name="text"><string>finite_diff</string></property></item>
+                <item><property name="text"><string>savitzky_golay</string></property></item>
+                <item><property name="text"><string>spline_derivative</string></property></item>
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QLabel" name="derivWindowLabel">
-                <property name="text">
-                 <string>Janela:</string>
-                </property>
-               </widget>
+               <widget class="QLabel" name="derivWindowLabel"><property name="text"><string>Janela:</string></property></widget>
               </item>
               <item row="2" column="1">
                <widget class="QSpinBox" name="derivWindowSpin">
-                <property name="toolTip">
-                 <string>Tamanho da janela (para Savitzky-Golay)</string>
-                </property>
-                <property name="minimum">
-                 <number>3</number>
-                </property>
-                <property name="maximum">
-                 <number>51</number>
-                </property>
-                <property name="singleStep">
-                 <number>2</number>
-                </property>
-                <property name="value">
-                 <number>7</number>
-                </property>
+                <property name="toolTip"><string>Tamanho da janela (para Savitzky-Golay)</string></property>
+                <property name="minimum"><number>3</number></property>
+                <property name="maximum"><number>51</number></property>
+                <property name="singleStep"><number>2</number></property>
+                <property name="value"><number>7</number></property>
                </widget>
               </item>
               <item row="3" column="0" colspan="2">
                <widget class="QCheckBox" name="derivSmoothCheck">
-                <property name="text">
-                 <string>Suavizar antes</string>
-                </property>
-                <property name="toolTip">
-                 <string>Aplicar suavização antes de derivar</string>
-                </property>
+                <property name="text"><string>Suavizar antes</string></property>
+                <property name="toolTip"><string>Aplicar suavização antes de derivar</string></property>
                </widget>
               </item>
               <item row="4" column="0" colspan="2">
                <layout class="QHBoxLayout" name="derivButtonsLayout">
                 <item>
                  <widget class="QPushButton" name="derivPreviewBtn">
-                  <property name="text">
-                   <string>👁️ Preview</string>
-                  </property>
-                  <property name="objectName">
-                   <string>secondary</string>
-                  </property>
+                  <property name="text"><string>👁️ Preview</string></property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="derivApplyBtn">
-                  <property name="text">
-                   <string>📊 Calcular Derivada</string>
-                  </property>
+                  <property name="text"><string>📊 Calcular Derivada</string></property>
                  </widget>
                 </item>
                </layout>
@@ -579,56 +419,29 @@ QTabBar::tab:selected {
            <!-- Integrals Group -->
            <item>
             <widget class="QGroupBox" name="integGroup">
-             <property name="title">
-              <string>∫ Integrais</string>
-             </property>
+             <property name="title"><string>∫ Integrais</string></property>
              <layout class="QFormLayout" name="integLayout">
               <item row="0" column="0">
-               <widget class="QLabel" name="integMethodLabel">
-                <property name="text">
-                 <string>Método:</string>
-                </property>
-               </widget>
+               <widget class="QLabel" name="integMethodLabel"><property name="text"><string>Método:</string></property></widget>
               </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="integMethodCombo">
-                <property name="toolTip">
-                 <string>Método de integração numérica</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>trapezoid</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>simpson</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>cumulative</string>
-                 </property>
-                </item>
+                <property name="toolTip"><string>Método de integração numérica</string></property>
+                <item><property name="text"><string>trapezoid</string></property></item>
+                <item><property name="text"><string>simpson</string></property></item>
+                <item><property name="text"><string>cumulative</string></property></item>
                </widget>
               </item>
               <item row="1" column="0" colspan="2">
                <layout class="QHBoxLayout" name="integButtonsLayout">
                 <item>
                  <widget class="QPushButton" name="integPreviewBtn">
-                  <property name="text">
-                   <string>👁️ Preview</string>
-                  </property>
-                  <property name="objectName">
-                   <string>secondary</string>
-                  </property>
+                  <property name="text"><string>👁️ Preview</string></property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="integApplyBtn">
-                  <property name="text">
-                   <string>📊 Calcular Integral</string>
-                  </property>
+                  <property name="text"><string>📊 Calcular Integral</string></property>
                  </widget>
                 </item>
                </layout>
@@ -637,18 +450,35 @@ QTabBar::tab:selected {
             </widget>
            </item>
            
-           <!-- Spacer -->
+           <!-- Area Group -->
+           <item>
+            <widget class="QGroupBox" name="areaGroup">
+             <property name="title"><string>📏 Área</string></property>
+             <layout class="QFormLayout" name="areaLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="areaTypeLabel"><property name="text"><string>Tipo:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="areaTypeCombo">
+                <property name="toolTip"><string>Tipo de cálculo de área</string></property>
+                <item><property name="text"><string>Área sob a curva</string></property></item>
+                <item><property name="text"><string>Área entre curvas</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QPushButton" name="areaApplyBtn">
+                <property name="text"><string>📊 Calcular Área</string></property>
+                <property name="toolTip"><string>Calcular área sob a curva ou entre curvas</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
            <item>
             <spacer name="calculusSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
             </spacer>
            </item>
           </layout>
@@ -658,95 +488,983 @@ QTabBar::tab:selected {
       </layout>
      </widget>
      
-     <!-- Filters Tab -->
+     <!-- ========== FILTERS TAB ========== -->
      <widget class="QWidget" name="filtersTab">
       <attribute name="title">
-       <string>🔧</string>
+       <string>🎚️</string>
       </attribute>
       <attribute name="toolTip">
        <string>Filtros</string>
       </attribute>
       <layout class="QVBoxLayout" name="filtersTabLayout">
        <item>
-        <widget class="QLabel" name="filtersPlaceholder">
-         <property name="text">
-          <string>Filtros (a ser implementado via promoted widget)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+        <widget class="QScrollArea" name="filtersScrollArea">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <widget class="QWidget" name="filtersScrollContent">
+          <layout class="QVBoxLayout" name="filtersContentLayout">
+           <property name="spacing"><number>8</number></property>
+           
+           <!-- Smoothing Group -->
+           <item>
+            <widget class="QGroupBox" name="smoothGroup">
+             <property name="title"><string>〰️ Suavização</string></property>
+             <layout class="QFormLayout" name="smoothLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="smoothMethodLabel"><property name="text"><string>Método:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="smoothMethodCombo">
+                <property name="toolTip"><string>Método de suavização</string></property>
+                <item><property name="text"><string>gaussian</string></property></item>
+                <item><property name="text"><string>moving_average</string></property></item>
+                <item><property name="text"><string>savitzky_golay</string></property></item>
+                <item><property name="text"><string>median</string></property></item>
+                <item><property name="text"><string>exponential</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="smoothWindowLabel"><property name="text"><string>Janela:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="smoothWindowSpin">
+                <property name="toolTip"><string>Tamanho da janela de suavização</string></property>
+                <property name="minimum"><number>3</number></property>
+                <property name="maximum"><number>101</number></property>
+                <property name="singleStep"><number>2</number></property>
+                <property name="value"><number>5</number></property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="smoothSigmaLabel"><property name="text"><string>Sigma:</string></property></widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="smoothSigmaSpin">
+                <property name="toolTip"><string>Sigma para filtro Gaussiano</string></property>
+                <property name="minimum"><double>0.100000000000000</double></property>
+                <property name="maximum"><double>10.000000000000000</double></property>
+                <property name="value"><double>1.000000000000000</double></property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="smoothButtonsLayout">
+                <item>
+                 <widget class="QPushButton" name="smoothPreviewBtn">
+                  <property name="text"><string>👁️ Preview</string></property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="smoothApplyBtn">
+                  <property name="text"><string>〰️ Aplicar Suavização</string></property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Outliers Group -->
+           <item>
+            <widget class="QGroupBox" name="outlierGroup">
+             <property name="title"><string>🚫 Outliers</string></property>
+             <layout class="QFormLayout" name="outlierLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="outlierMethodLabel"><property name="text"><string>Método:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="outlierMethodCombo">
+                <property name="toolTip"><string>Método de detecção de outliers</string></property>
+                <item><property name="text"><string>zscore</string></property></item>
+                <item><property name="text"><string>iqr</string></property></item>
+                <item><property name="text"><string>mad</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="outlierThresholdLabel"><property name="text"><string>Limiar:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="outlierThresholdSpin">
+                <property name="toolTip"><string>Limiar para detecção (ex: 3 sigmas)</string></property>
+                <property name="minimum"><double>1.000000000000000</double></property>
+                <property name="maximum"><double>10.000000000000000</double></property>
+                <property name="value"><double>3.000000000000000</double></property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="outlierButtonsLayout">
+                <item>
+                 <widget class="QPushButton" name="outlierPreviewBtn">
+                  <property name="text"><string>👁️ Preview</string></property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="outlierApplyBtn">
+                  <property name="text"><string>🚫 Remover Outliers</string></property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- FFT Group -->
+           <item>
+            <widget class="QGroupBox" name="fftGroup">
+             <property name="title"><string>📊 FFT Analysis</string></property>
+             <layout class="QFormLayout" name="fftLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="fftWindowLabel"><property name="text"><string>Window:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="fftWindowCombo">
+                <property name="toolTip"><string>Window function for FFT</string></property>
+                <item><property name="text"><string>hann</string></property></item>
+                <item><property name="text"><string>hamming</string></property></item>
+                <item><property name="text"><string>blackman</string></property></item>
+                <item><property name="text"><string>bartlett</string></property></item>
+                <item><property name="text"><string>none</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="fftDetrendCheck">
+                <property name="text"><string>Remove Trend</string></property>
+                <property name="toolTip"><string>Remove linear trend before FFT</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QPushButton" name="fftApplyBtn">
+                <property name="text"><string>📊 Compute FFT</string></property>
+                <property name="toolTip"><string>Calcular Transformada Rápida de Fourier</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Correlation Group -->
+           <item>
+            <widget class="QGroupBox" name="corrGroup">
+             <property name="title"><string>🔗 Correlation</string></property>
+             <layout class="QFormLayout" name="corrLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="corrModeLabel"><property name="text"><string>Mode:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="corrModeCombo">
+                <property name="toolTip"><string>Auto-correlation or cross-correlation</string></property>
+                <item><property name="text"><string>auto</string></property></item>
+                <item><property name="text"><string>cross</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="corrNormalizeCheck">
+                <property name="text"><string>Normalize</string></property>
+                <property name="toolTip"><string>Normalize correlation to [-1, 1]</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QPushButton" name="corrApplyBtn">
+                <property name="text"><string>🔗 Compute Correlation</string></property>
+                <property name="toolTip"><string>Calcular auto-correlação ou correlação cruzada</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Digital Filters Group -->
+           <item>
+            <widget class="QGroupBox" name="digitalFiltersGroup">
+             <property name="title"><string>🎛️ Digital Filters</string></property>
+             <layout class="QFormLayout" name="digitalFiltersLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="filterTypeLabel"><property name="text"><string>Type:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="filterTypeCombo">
+                <property name="toolTip"><string>Filter type</string></property>
+                <item><property name="text"><string>lowpass</string></property></item>
+                <item><property name="text"><string>highpass</string></property></item>
+                <item><property name="text"><string>bandpass</string></property></item>
+                <item><property name="text"><string>bandstop</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="filterCutoffLabel"><property name="text"><string>Cutoff (Hz):</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="filterCutoffSpin">
+                <property name="toolTip"><string>Cutoff frequency (Hz)</string></property>
+                <property name="minimum"><double>0.100000000000000</double></property>
+                <property name="maximum"><double>1000.000000000000000</double></property>
+                <property name="value"><double>10.000000000000000</double></property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="filterCutoffHighLabel"><property name="text"><string>High Cutoff (Hz):</string></property></widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="filterCutoffHighSpin">
+                <property name="toolTip"><string>High cutoff frequency (Hz)</string></property>
+                <property name="minimum"><double>0.100000000000000</double></property>
+                <property name="maximum"><double>1000.000000000000000</double></property>
+                <property name="value"><double>50.000000000000000</double></property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="filterOrderLabel"><property name="text"><string>Order:</string></property></widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QSpinBox" name="filterOrderSpin">
+                <property name="toolTip"><string>Filter order (higher = sharper)</string></property>
+                <property name="minimum"><number>1</number></property>
+                <property name="maximum"><number>10</number></property>
+                <property name="value"><number>4</number></property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="filterMethodLabel"><property name="text"><string>Method:</string></property></widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="filterMethodCombo">
+                <property name="toolTip"><string>Filter design method</string></property>
+                <item><property name="text"><string>butter</string></property></item>
+                <item><property name="text"><string>chebyshev1</string></property></item>
+                <item><property name="text"><string>chebyshev2</string></property></item>
+                <item><property name="text"><string>elliptic</string></property></item>
+                <item><property name="text"><string>bessel</string></property></item>
+               </widget>
+              </item>
+              <item row="5" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="filterButtonsLayout">
+                <item>
+                 <widget class="QPushButton" name="filterPreviewBtn">
+                  <property name="text"><string>👁️ Preview</string></property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="filterApplyBtn">
+                  <property name="text"><string>🎛️ Apply Filter</string></property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <item>
+            <spacer name="filtersSpacer">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
      </widget>
      
-     <!-- Sync Tab -->
+     <!-- ========== SYNC TAB ========== -->
      <widget class="QWidget" name="syncTab">
       <attribute name="title">
-       <string>🔄</string>
+       <string>🔗</string>
       </attribute>
       <attribute name="toolTip">
        <string>Sincronização</string>
       </attribute>
       <layout class="QVBoxLayout" name="syncTabLayout">
        <item>
-        <widget class="QLabel" name="syncPlaceholder">
-         <property name="text">
-          <string>Sincronização (a ser implementado via promoted widget)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+        <widget class="QScrollArea" name="syncScrollArea">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <widget class="QWidget" name="syncScrollContent">
+          <layout class="QVBoxLayout" name="syncContentLayout">
+           <property name="spacing"><number>8</number></property>
+           
+           <!-- Datasets Group -->
+           <item>
+            <widget class="QGroupBox" name="syncDatasetsGroup">
+             <property name="title"><string>📊 Datasets para Sincronizar</string></property>
+             <layout class="QVBoxLayout" name="syncDatasetsLayout">
+              <item>
+               <widget class="QListWidget" name="syncDatasetsList">
+                <property name="selectionMode"><enum>QAbstractItemView::MultiSelection</enum></property>
+                <property name="toolTip"><string>Selecione os datasets para sincronizar (mínimo 2)</string></property>
+                <property name="maximumHeight"><number>150</number></property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="syncRefreshBtn">
+                <property name="text"><string>🔄 Atualizar Lista</string></property>
+                <property name="toolTip"><string>Recarregar lista de datasets disponíveis</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Sync Method Group -->
+           <item>
+            <widget class="QGroupBox" name="syncMethodGroup">
+             <property name="title"><string>⚙️ Método de Sincronização</string></property>
+             <layout class="QFormLayout" name="syncMethodLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="syncMethodLabel"><property name="text"><string>Método:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="syncMethodCombo">
+                <property name="toolTip"><string>common_grid_interpolate: Interpola todas as séries para uma grade temporal comum
+kalman_align: Usa filtro de Kalman para alinhamento suave</string></property>
+                <item><property name="text"><string>common_grid_interpolate</string></property></item>
+                <item><property name="text"><string>kalman_align</string></property></item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Temporal Grid Group -->
+           <item>
+            <widget class="QGroupBox" name="syncGridGroup">
+             <property name="title"><string>📏 Grade Temporal</string></property>
+             <layout class="QFormLayout" name="syncGridLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="syncGridMethodLabel"><property name="text"><string>Cálculo dt:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="syncGridMethodCombo">
+                <property name="toolTip"><string>Como calcular o intervalo de tempo (dt):
+median: Mediana dos intervalos (mais robusto)
+min: Menor intervalo (mais pontos)
+max: Maior intervalo (menos pontos)
+mean: Média dos intervalos</string></property>
+                <item><property name="text"><string>median</string></property></item>
+                <item><property name="text"><string>min</string></property></item>
+                <item><property name="text"><string>max</string></property></item>
+                <item><property name="text"><string>mean</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="syncDtFixedCheck">
+                <property name="text"><string>Usar dt fixo</string></property>
+                <property name="toolTip"><string>Definir intervalo de tempo manualmente</string></property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="syncDtValueLabel"><property name="text"><string>dt fixo:</string></property></widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="syncDtValueSpin">
+                <property name="toolTip"><string>Intervalo de tempo fixo em segundos</string></property>
+                <property name="enabled"><bool>false</bool></property>
+                <property name="minimum"><double>0.001000000000000</double></property>
+                <property name="maximum"><double>1000.000000000000000</double></property>
+                <property name="value"><double>1.000000000000000</double></property>
+                <property name="decimals"><number>3</number></property>
+                <property name="suffix"><string> s</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Interpolation Group -->
+           <item>
+            <widget class="QGroupBox" name="syncInterpGroup">
+             <property name="title"><string>📐 Interpolação</string></property>
+             <layout class="QFormLayout" name="syncInterpLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="syncInterpMethodLabel"><property name="text"><string>Método:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="syncInterpMethodCombo">
+                <property name="toolTip"><string>Método de interpolação para grade comum:
+linear: Interpolação linear (rápido)
+cubic: Spline cúbica (suave)
+nearest: Vizinho mais próximo (preserva valores)</string></property>
+                <item><property name="text"><string>linear</string></property></item>
+                <item><property name="text"><string>cubic</string></property></item>
+                <item><property name="text"><string>nearest</string></property></item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Kalman Group (hidden by default) -->
+           <item>
+            <widget class="QGroupBox" name="kalmanGroup">
+             <property name="title"><string>🎯 Filtro Kalman</string></property>
+             <layout class="QFormLayout" name="kalmanLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="syncProcessNoiseLabel"><property name="text"><string>Process Noise:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="syncProcessNoiseSpin">
+                <property name="toolTip"><string>Ruído do processo (menor = mais suave)</string></property>
+                <property name="minimum"><double>0.000100000000000</double></property>
+                <property name="maximum"><double>1.000000000000000</double></property>
+                <property name="value"><double>0.010000000000000</double></property>
+                <property name="decimals"><number>4</number></property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="syncMeasurementNoiseLabel"><property name="text"><string>Measurement Noise:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="syncMeasurementNoiseSpin">
+                <property name="toolTip"><string>Ruído da medição (menor = mais confiança nos dados)</string></property>
+                <property name="minimum"><double>0.001000000000000</double></property>
+                <property name="maximum"><double>10.000000000000000</double></property>
+                <property name="value"><double>0.100000000000000</double></property>
+                <property name="decimals"><number>3</number></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Output Group -->
+           <item>
+            <widget class="QGroupBox" name="syncOutputGroup">
+             <property name="title"><string>📤 Saída</string></property>
+             <layout class="QVBoxLayout" name="syncOutputLayout">
+              <item>
+               <widget class="QCheckBox" name="syncCreateNewCheck">
+                <property name="text"><string>Criar novo dataset sincronizado</string></property>
+                <property name="toolTip"><string>Criar um novo dataset com todas as séries sincronizadas</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="syncKeepOriginalCheck">
+                <property name="text"><string>Manter datasets originais</string></property>
+                <property name="toolTip"><string>Não modificar os datasets originais</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Sync Buttons -->
+           <item>
+            <layout class="QHBoxLayout" name="syncButtonsLayout">
+             <item>
+              <widget class="QPushButton" name="syncPreviewBtn">
+               <property name="text"><string>👁️ Preview</string></property>
+               <property name="toolTip"><string>Visualizar resultado da sincronização</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="syncApplyBtn">
+               <property name="text"><string>🔗 Sincronizar</string></property>
+               <property name="toolTip"><string>Aplicar sincronização aos datasets selecionados</string></property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           
+           <!-- Info Label -->
+           <item>
+            <widget class="QLabel" name="syncInfoLabel">
+             <property name="text"><string>💡 A sincronização alinha múltiplos datasets para uma
+grade temporal comum, permitindo comparações diretas.</string></property>
+             <property name="styleSheet"><string>color: #6c757d; font-size: 10px;</string></property>
+             <property name="wordWrap"><bool>true</bool></property>
+            </widget>
+           </item>
+           
+           <item>
+            <spacer name="syncSpacer">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
      </widget>
      
-     <!-- Streaming Tab -->
+     <!-- ========== STREAMING TAB ========== -->
      <widget class="QWidget" name="streamingTab">
       <attribute name="title">
-       <string>▶️</string>
+       <string>📡</string>
       </attribute>
       <attribute name="toolTip">
        <string>Streaming</string>
       </attribute>
       <layout class="QVBoxLayout" name="streamingTabLayout">
        <item>
-        <widget class="QLabel" name="streamingPlaceholder">
-         <property name="text">
-          <string>Streaming (a ser implementado via promoted widget)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+        <widget class="QScrollArea" name="streamingScrollArea">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <widget class="QWidget" name="streamingScrollContent">
+          <layout class="QVBoxLayout" name="streamingContentLayout">
+           <property name="spacing"><number>8</number></property>
+           
+           <!-- Stream Control Group -->
+           <item>
+            <widget class="QGroupBox" name="streamControlGroup">
+             <property name="title"><string>📡 Controle de Streaming</string></property>
+             <layout class="QFormLayout" name="streamControlLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="streamStatusLabelTitle"><property name="text"><string>Status:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="streamStatus">
+                <property name="text"><string>⏹️ Parado</string></property>
+                <property name="styleSheet"><string>font-weight: bold; color: #6c757d;</string></property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="streamRateLabel"><property name="text"><string>Taxa:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="streamRateSpin">
+                <property name="toolTip"><string>Taxa de atualização do gráfico (frames por segundo)</string></property>
+                <property name="minimum"><number>1</number></property>
+                <property name="maximum"><number>60</number></property>
+                <property name="value"><number>10</number></property>
+                <property name="suffix"><string> FPS</string></property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="streamWindowLabel"><property name="text"><string>Janela:</string></property></widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="streamWindowSpin">
+                <property name="toolTip"><string>Número de pontos visíveis na janela</string></property>
+                <property name="minimum"><number>100</number></property>
+                <property name="maximum"><number>100000</number></property>
+                <property name="value"><number>1000</number></property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="streamScrollModeLabel"><property name="text"><string>Scroll:</string></property></widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="streamScrollModeCombo">
+                <property name="toolTip"><string>Modo de rolagem do gráfico</string></property>
+                <item><property name="text"><string>Auto-scroll</string></property></item>
+                <item><property name="text"><string>Fixo</string></property></item>
+                <item><property name="text"><string>Follow Last</string></property></item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Buffer Group -->
+           <item>
+            <widget class="QGroupBox" name="bufferGroup">
+             <property name="title"><string>📊 Buffer de Dados</string></property>
+             <layout class="QFormLayout" name="bufferLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="bufferSizeLabel"><property name="text"><string>Tamanho:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="bufferSizeSpin">
+                <property name="toolTip"><string>Tamanho máximo do buffer de dados</string></property>
+                <property name="minimum"><number>1000</number></property>
+                <property name="maximum"><number>10000000</number></property>
+                <property name="value"><number>100000</number></property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="bufferCurrentLabelTitle"><property name="text"><string>Atual:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="bufferCurrentLabel">
+                <property name="text"><string>0 / 100000</string></property>
+                <property name="styleSheet"><string>color: #6c757d;</string></property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QCheckBox" name="autoDecimateCheck">
+                <property name="text"><string>Auto-decimação</string></property>
+                <property name="toolTip"><string>Reduzir automaticamente pontos para melhor performance</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Stream Control Buttons -->
+           <item>
+            <layout class="QHBoxLayout" name="streamButtonsLayout">
+             <item>
+              <widget class="QPushButton" name="streamStartBtn">
+               <property name="text"><string>▶️ Iniciar</string></property>
+               <property name="toolTip"><string>Iniciar streaming de dados</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="streamPauseBtn">
+               <property name="text"><string>⏸️ Pausar</string></property>
+               <property name="toolTip"><string>Pausar streaming</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="streamStopBtn">
+               <property name="text"><string>⏹️ Parar</string></property>
+               <property name="toolTip"><string>Parar streaming e limpar buffer</string></property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           
+           <!-- Statistics Group -->
+           <item>
+            <widget class="QGroupBox" name="streamStatsGroup">
+             <property name="title"><string>📈 Estatísticas em Tempo Real</string></property>
+             <layout class="QFormLayout" name="streamStatsLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="streamFpsLabelTitle"><property name="text"><string>FPS Real:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="streamFpsLabel">
+                <property name="text"><string>0 FPS</string></property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="streamLatencyLabelTitle"><property name="text"><string>Latência:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="streamLatencyLabel">
+                <property name="text"><string>0 ms</string></property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="streamPointsSecLabelTitle"><property name="text"><string>Pontos/s:</string></property></widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="streamPointsSecLabel">
+                <property name="text"><string>0 pts/s</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <item>
+            <spacer name="streamingSpacer">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
      </widget>
      
-     <!-- Export Tab -->
+     <!-- ========== EXPORT TAB ========== -->
      <widget class="QWidget" name="exportTab">
       <attribute name="title">
-       <string>📤</string>
+       <string>💾</string>
       </attribute>
       <attribute name="toolTip">
        <string>Exportação</string>
       </attribute>
       <layout class="QVBoxLayout" name="exportTabLayout">
        <item>
-        <widget class="QLabel" name="exportPlaceholder">
-         <property name="text">
-          <string>Exportação (a ser implementado via promoted widget)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+        <widget class="QScrollArea" name="exportScrollArea">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <widget class="QWidget" name="exportScrollContent">
+          <layout class="QVBoxLayout" name="exportContentLayout">
+           <property name="spacing"><number>8</number></property>
+           
+           <!-- Format Group -->
+           <item>
+            <widget class="QGroupBox" name="exportFormatGroup">
+             <property name="title"><string>📄 Formato</string></property>
+             <layout class="QFormLayout" name="exportFormatLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="exportFormatLabel"><property name="text"><string>Formato:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="exportFormatCombo">
+                <property name="toolTip"><string>Formato de exportação</string></property>
+                <item><property name="text"><string>CSV</string></property></item>
+                <item><property name="text"><string>Excel (.xlsx)</string></property></item>
+                <item><property name="text"><string>Parquet</string></property></item>
+                <item><property name="text"><string>HDF5</string></property></item>
+                <item><property name="text"><string>JSON</string></property></item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Options Group -->
+           <item>
+            <widget class="QGroupBox" name="exportOptionsGroup">
+             <property name="title"><string>⚙️ Opções</string></property>
+             <layout class="QVBoxLayout" name="exportOptionsLayout">
+              <item>
+               <widget class="QCheckBox" name="exportMetadataCheck">
+                <property name="text"><string>Incluir metadados</string></property>
+                <property name="toolTip"><string>Incluir informações de processamento</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="exportTimestampsCheck">
+                <property name="text"><string>Incluir timestamps</string></property>
+                <property name="toolTip"><string>Exportar coluna de timestamps</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="exportInterpFlagsCheck">
+                <property name="text"><string>Flags de interpolação</string></property>
+                <property name="toolTip"><string>Marcar pontos interpolados</string></property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="exportSelectedOnlyCheck">
+                <property name="text"><string>Apenas séries selecionadas</string></property>
+                <property name="toolTip"><string>Exportar apenas séries selecionadas</string></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Export Buttons -->
+           <item>
+            <layout class="QVBoxLayout" name="exportButtonsLayout">
+             <item>
+              <widget class="QPushButton" name="exportDataBtn">
+               <property name="text"><string>💾 Exportar Dados</string></property>
+               <property name="toolTip"><string>Exportar dados para arquivo</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="exportSessionBtn">
+               <property name="text"><string>📦 Exportar Sessão</string></property>
+               <property name="toolTip"><string>Exportar configuração e estado da sessão</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="exportPlotBtn">
+               <property name="text"><string>🖼️ Exportar Gráfico</string></property>
+               <property name="toolTip"><string>Exportar visualização atual como imagem</string></property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           
+           <item>
+            <spacer name="exportSpacer">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
      </widget>
      
-     <!-- History Tab -->
+     <!-- ========== SETTINGS TAB ========== -->
+     <widget class="QWidget" name="settingsTab">
+      <attribute name="title">
+       <string>⚙️</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Configurações</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="settingsTabLayout">
+       <item>
+        <widget class="QScrollArea" name="settingsScrollArea">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <widget class="QWidget" name="settingsScrollContent">
+          <layout class="QVBoxLayout" name="settingsContentLayout">
+           <property name="spacing"><number>8</number></property>
+           
+           <!-- Visualization Group -->
+           <item>
+            <widget class="QGroupBox" name="vizGroup">
+             <property name="title"><string>📊 Visualização</string></property>
+             <layout class="QFormLayout" name="vizLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="themeLabel"><property name="text"><string>Tema:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="themeCombo">
+                <property name="toolTip"><string>Tema de cores da aplicação</string></property>
+                <item><property name="text"><string>Claro</string></property></item>
+                <item><property name="text"><string>Escuro</string></property></item>
+                <item><property name="text"><string>Alto Contraste</string></property></item>
+                <item><property name="text"><string>Sistema</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="plotStyleLabel"><property name="text"><string>Estilo Gráfico:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="plotStyleCombo">
+                <property name="toolTip"><string>Estilo dos gráficos matplotlib</string></property>
+                <item><property name="text"><string>default</string></property></item>
+                <item><property name="text"><string>seaborn</string></property></item>
+                <item><property name="text"><string>ggplot</string></property></item>
+                <item><property name="text"><string>dark_background</string></property></item>
+                <item><property name="text"><string>bmh</string></property></item>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QCheckBox" name="antialiasingCheck">
+                <property name="text"><string>Anti-aliasing</string></property>
+                <property name="toolTip"><string>Suavização de linhas nos gráficos</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="plotDpiLabel"><property name="text"><string>DPI:</string></property></widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QSpinBox" name="plotDpiSpin">
+                <property name="toolTip"><string>Resolução dos gráficos (DPI)</string></property>
+                <property name="minimum"><number>72</number></property>
+                <property name="maximum"><number>300</number></property>
+                <property name="value"><number>100</number></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Performance Group -->
+           <item>
+            <widget class="QGroupBox" name="perfGroup">
+             <property name="title"><string>⚡ Performance</string></property>
+             <layout class="QFormLayout" name="perfLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="directRenderLabel"><property name="text"><string>Render Direto:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="directRenderLimitSpin">
+                <property name="toolTip"><string>Pontos máximos para renderização direta sem decimação</string></property>
+                <property name="minimum"><number>1000</number></property>
+                <property name="maximum"><number>1000000</number></property>
+                <property name="value"><number>10000</number></property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="targetPointsLabel"><property name="text"><string>Pontos Alvo:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="targetDisplayPointsSpin">
+                <property name="toolTip"><string>Número alvo de pontos após decimação</string></property>
+                <property name="minimum"><number>1000</number></property>
+                <property name="maximum"><number>50000</number></property>
+                <property name="value"><number>5000</number></property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="decimationLabel"><property name="text"><string>Decimação:</string></property></widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="decimationMethodCombo">
+                <property name="toolTip"><string>Algoritmo de decimação para grandes volumes</string></property>
+                <item><property name="text"><string>MINMAX</string></property></item>
+                <item><property name="text"><string>LTTB</string></property></item>
+                <item><property name="text"><string>RANDOM</string></property></item>
+                <item><property name="text"><string>EVERY_NTH</string></property></item>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="useThreadingCheck">
+                <property name="text"><string>Multi-threading</string></property>
+                <property name="toolTip"><string>Usar threads para operações pesadas</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Data Group -->
+           <item>
+            <widget class="QGroupBox" name="dataGroup">
+             <property name="title"><string>📁 Dados</string></property>
+             <layout class="QFormLayout" name="dataLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="dateFormatLabel"><property name="text"><string>Formato Data:</string></property></widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="dateFormatCombo">
+                <property name="toolTip"><string>Formato padrão para exibição de datas</string></property>
+                <item><property name="text"><string>%Y-%m-%d %H:%M:%S</string></property></item>
+                <item><property name="text"><string>%d/%m/%Y %H:%M:%S</string></property></item>
+                <item><property name="text"><string>%m/%d/%Y %H:%M:%S</string></property></item>
+                <item><property name="text"><string>ISO 8601</string></property></item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="numericPrecisionLabel"><property name="text"><string>Precisão:</string></property></widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="numericPrecisionSpin">
+                <property name="toolTip"><string>Casas decimais para exibição de números</string></property>
+                <property name="minimum"><number>1</number></property>
+                <property name="maximum"><number>15</number></property>
+                <property name="value"><number>6</number></property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QCheckBox" name="autoDetectTypesCheck">
+                <property name="text"><string>Auto-detectar tipos</string></property>
+                <property name="toolTip"><string>Detectar automaticamente tipos de dados ao carregar</string></property>
+                <property name="checked"><bool>true</bool></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           
+           <!-- Settings Buttons -->
+           <item>
+            <layout class="QHBoxLayout" name="settingsButtonsLayout">
+             <item>
+              <widget class="QPushButton" name="settingsApplyBtn">
+               <property name="text"><string>✅ Aplicar</string></property>
+               <property name="toolTip"><string>Aplicar configurações</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="settingsResetBtn">
+               <property name="text"><string>🔄 Restaurar Padrões</string></property>
+               <property name="toolTip"><string>Restaurar todas as configurações para os valores padrão</string></property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           
+           <item>
+            <spacer name="settingsSpacer">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     
+     <!-- ========== HISTORY TAB ========== -->
      <widget class="QWidget" name="historyTab">
       <attribute name="title">
        <string>📜</string>
@@ -758,7 +1476,7 @@ QTabBar::tab:selected {
        <item>
         <widget class="QListWidget" name="historyList">
          <property name="toolTip">
-          <string>Histórico de operações realizadas</string>
+          <string>Histórico de operações realizadas (duplo-clique para repetir)</string>
          </property>
         </widget>
        </item>
@@ -766,9 +1484,6 @@ QTabBar::tab:selected {
         <widget class="QPushButton" name="clearHistoryBtn">
          <property name="text">
           <string>🗑️ Limpar Histórico</string>
-         </property>
-         <property name="objectName">
-          <string>secondary</string>
          </property>
         </widget>
        </item>

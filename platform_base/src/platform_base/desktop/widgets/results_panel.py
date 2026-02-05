@@ -226,7 +226,7 @@ class ResultsPanel(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/resultsPanel.ui"
+    UI_FILE = "resultsPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -237,10 +237,8 @@ class ResultsPanel(QWidget, UiLoaderMixin):
 
         # Carregar interface do arquivo .ui
         if not self._load_ui():
-            logger.warning("ui_load_failed_using_fallback", cls="ResultsPanel")
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -275,131 +273,6 @@ class ResultsPanel(QWidget, UiLoaderMixin):
             self.clear_logs_btn.clicked.connect(self._clear_logs)
             
         logger.debug("results_panel_ui_loaded_from_file")
-
-    def _setup_ui_fallback(self):
-        """Setup user interface"""
-        layout = QVBoxLayout(self)
-
-        # Tab widget for different views
-        self.tabs = QTabWidget()
-
-        # Results tab
-        self.results_tab = self._create_results_tab()
-        self.tabs.addTab(self.results_tab, "Results")
-
-        # Logs tab
-        self.logs_tab = self._create_logs_tab()
-        self.tabs.addTab(self.logs_tab, "Logs")
-
-        # Quality tab
-        self.quality_tab = self._create_quality_tab()
-        self.tabs.addTab(self.quality_tab, "Quality")
-
-        layout.addWidget(self.tabs)
-
-        # Control buttons
-        buttons_layout = QHBoxLayout()
-
-        self.clear_results_btn = QPushButton("Clear Results")
-        self.clear_results_btn.clicked.connect(self._clear_results)
-        buttons_layout.addWidget(self.clear_results_btn)
-
-        self.export_results_btn = QPushButton("Export Results")
-        self.export_results_btn.clicked.connect(self._export_results)
-        buttons_layout.addWidget(self.export_results_btn)
-
-        buttons_layout.addStretch()
-
-        self.auto_show_check = QCheckBox("Auto-show on results")
-        self.auto_show_check.setChecked(True)
-        buttons_layout.addWidget(self.auto_show_check)
-
-        layout.addLayout(buttons_layout)
-
-    def _create_results_tab(self) -> QWidget:
-        """Create results tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Results table
-        self.results_table = ResultsTable()
-        layout.addWidget(self.results_table)
-
-        # Result details
-        details_group = QGroupBox("Result Details")
-        details_layout = QVBoxLayout(details_group)
-
-        self.result_details = QTextEdit()
-        self.result_details.setMaximumHeight(150)
-        self.result_details.setReadOnly(True)
-        details_layout.addWidget(self.result_details)
-
-        layout.addWidget(details_group)
-
-        # Connect selection
-        self.results_table.itemSelectionChanged.connect(self._on_result_selected)
-
-        return widget
-
-    def _create_logs_tab(self) -> QWidget:
-        """Create logs tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Log controls
-        controls_layout = QHBoxLayout()
-
-        controls_layout.addWidget(QLabel("Level:"))
-        self.log_level_combo = QComboBox()
-        self.log_level_combo.addItems(["all", "debug", "info", "warning", "error"])
-        self.log_level_combo.currentTextChanged.connect(self._on_log_level_changed)
-        controls_layout.addWidget(self.log_level_combo)
-
-        controls_layout.addWidget(QLabel("Filter:"))
-        self.log_filter_edit = QLineEdit()
-        self.log_filter_edit.setPlaceholderText("Search logs...")
-        self.log_filter_edit.textChanged.connect(self._on_log_filter_changed)
-        controls_layout.addWidget(self.log_filter_edit)
-
-        self.clear_logs_btn = QPushButton("Clear")
-        self.clear_logs_btn.clicked.connect(self._clear_logs)
-        controls_layout.addWidget(self.clear_logs_btn)
-
-        layout.addLayout(controls_layout)
-
-        # Log display
-        self.log_widget = LogWidget()
-        layout.addWidget(self.log_widget)
-
-        return widget
-
-    def _create_quality_tab(self) -> QWidget:
-        """Create quality metrics tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Quality summary
-        summary_group = QGroupBox("Data Quality Summary")
-        summary_layout = QVBoxLayout(summary_group)
-
-        self.quality_summary = QTextEdit()
-        self.quality_summary.setMaximumHeight(100)
-        self.quality_summary.setReadOnly(True)
-        summary_layout.addWidget(self.quality_summary)
-
-        layout.addWidget(summary_group)
-
-        # Quality metrics tree
-        metrics_group = QGroupBox("Quality Metrics")
-        metrics_layout = QVBoxLayout(metrics_group)
-
-        self.quality_tree = QTreeWidget()
-        self.quality_tree.setHeaderLabels(["Metric", "Value", "Status"])
-        metrics_layout.addWidget(self.quality_tree)
-
-        layout.addWidget(metrics_group)
-
-        return widget
 
     def _setup_log_polling(self):
         """Setup log polling timer"""

@@ -578,7 +578,7 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/shortcutsDialog.ui"
+    UI_FILE = "shortcutsDialog.ui"
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -589,11 +589,10 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
         self._manager = ShortcutManager()
         self._pending_changes: dict[str, str] = {}
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
         
         self._load_shortcuts()
 
@@ -620,66 +619,6 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
             apply_btn = button_box.button(QDialogButtonBox.StandardButton.Apply)
             if apply_btn:
                 apply_btn.clicked.connect(self._apply_changes)
-
-    def _setup_ui_fallback(self):
-        """Setup dialog UI."""
-        layout = QVBoxLayout(self)
-
-        # Search
-        search_layout = QHBoxLayout()
-        search_layout.addWidget(QLabel(tr("search") + ":"))
-        self._search_edit = QLineEdit()
-        self._search_edit.setPlaceholderText(tr("search_shortcuts"))
-        self._search_edit.textChanged.connect(self._filter_shortcuts)
-        search_layout.addWidget(self._search_edit)
-        layout.addLayout(search_layout)
-
-        # Table
-        self._table = QTableWidget()
-        self._table.setColumnCount(4)
-        self._table.setHorizontalHeaderLabels([
-            tr("action"),
-            tr("description"),
-            tr("shortcut"),
-            tr("default"),
-        ])
-        self._table.horizontalHeader().setStretchLastSection(True)
-        self._table.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
-        self._table.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
-        )
-        self._table.cellDoubleClicked.connect(self._edit_shortcut)
-        layout.addWidget(self._table)
-
-        # Buttons
-        button_layout = QHBoxLayout()
-
-        reset_btn = QPushButton(tr("reset_selected"))
-        reset_btn.clicked.connect(self._reset_selected)
-        button_layout.addWidget(reset_btn)
-
-        reset_all_btn = QPushButton(tr("reset_all"))
-        reset_all_btn.clicked.connect(self._reset_all)
-        button_layout.addWidget(reset_all_btn)
-
-        button_layout.addStretch()
-
-        # Dialog buttons
-        button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok |
-            QDialogButtonBox.StandardButton.Cancel |
-            QDialogButtonBox.StandardButton.Apply
-        )
-        button_box.accepted.connect(self._apply_and_close)
-        button_box.rejected.connect(self.reject)
-        button_box.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(
-            self._apply_changes
-        )
-        button_layout.addWidget(button_box)
-
-        layout.addLayout(button_layout)
 
     def _load_shortcuts(self):
         """Load shortcuts into table."""

@@ -42,7 +42,7 @@ class CompareSeriesDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/compareSeriesDialog.ui"
+    UI_FILE = "compareSeriesDialog.ui"
 
     def __init__(self, available_series: list, parent=None):
         super().__init__(parent)
@@ -50,11 +50,10 @@ class CompareSeriesDialog(QDialog, UiLoaderMixin):
         self.setWindowTitle("Comparar Séries")
         self.setMinimumWidth(400)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -82,63 +81,6 @@ class CompareSeriesDialog(QDialog, UiLoaderMixin):
             compare_btn.clicked.connect(self._compare)
         if close_btn:
             close_btn.clicked.connect(self.accept)
-
-    def _setup_ui_fallback(self):
-
-        # Seleção de séries
-        form = QFormLayout()
-
-        self.series1_combo = QComboBox()
-        self.series1_combo.addItems(available_series)
-        form.addRow("Série 1:", self.series1_combo)
-
-        self.series2_combo = QComboBox()
-        self.series2_combo.addItems(available_series)
-        if len(available_series) > 1:
-            self.series2_combo.setCurrentIndex(1)
-        form.addRow("Série 2:", self.series2_combo)
-
-        layout.addLayout(form)
-
-        # Métricas de comparação
-        metrics_group = QGroupBox("Métricas")
-        metrics_layout = QVBoxLayout(metrics_group)
-
-        self.correlation_check = QCheckBox("Correlação (Pearson)")
-        self.correlation_check.setChecked(True)
-        metrics_layout.addWidget(self.correlation_check)
-
-        self.rmse_check = QCheckBox("RMSE (Root Mean Square Error)")
-        self.rmse_check.setChecked(True)
-        metrics_layout.addWidget(self.rmse_check)
-
-        self.mae_check = QCheckBox("MAE (Mean Absolute Error)")
-        self.mae_check.setChecked(True)
-        metrics_layout.addWidget(self.mae_check)
-
-        self.dtw_check = QCheckBox("DTW Distance (Dynamic Time Warping)")
-        metrics_layout.addWidget(self.dtw_check)
-
-        layout.addWidget(metrics_group)
-
-        # Resultado
-        self.result_text = QTextEdit()
-        self.result_text.setReadOnly(True)
-        self.result_text.setMaximumHeight(150)
-        layout.addWidget(self.result_text)
-
-        # Botões
-        btn_layout = QHBoxLayout()
-
-        compare_btn = QPushButton("Comparar")
-        compare_btn.clicked.connect(self._compare)
-        btn_layout.addWidget(compare_btn)
-
-        close_btn = QPushButton("Fechar")
-        close_btn.clicked.connect(self.accept)
-        btn_layout.addWidget(close_btn)
-
-        layout.addLayout(btn_layout)
 
     def _compare(self):
         """Executa comparação"""
@@ -168,17 +110,16 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/smoothingConfigDialog.ui"
+    UI_FILE = "smoothingConfigDialog.ui"
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Suavização Visual")
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -193,43 +134,6 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
             apply_btn.clicked.connect(self.accept)
         if cancel_btn:
             cancel_btn.clicked.connect(self.reject)
-
-    def _setup_ui_fallback(self):
-        """Fallback: cria UI programaticamente"""
-        layout = QVBoxLayout(self)
-
-        form = QFormLayout()
-
-        self.method_combo = QComboBox()
-        self.method_combo.addItems(["Gaussian", "Moving Average", "Savitzky-Golay", "Median"])
-        form.addRow("Método:", self.method_combo)
-
-        self.window_spin = QSpinBox()
-        self.window_spin.setRange(3, 101)
-        self.window_spin.setValue(5)
-        self.window_spin.setSingleStep(2)
-        form.addRow("Tamanho da Janela:", self.window_spin)
-
-        self.sigma_spin = QDoubleSpinBox()
-        self.sigma_spin.setRange(0.1, 10.0)
-        self.sigma_spin.setValue(1.0)
-        self.sigma_spin.setSingleStep(0.1)
-        form.addRow("Sigma (Gaussian):", self.sigma_spin)
-
-        layout.addLayout(form)
-
-        # Botões
-        btn_layout = QHBoxLayout()
-
-        apply_btn = QPushButton("Aplicar")
-        apply_btn.clicked.connect(self.accept)
-        btn_layout.addWidget(apply_btn)
-
-        cancel_btn = QPushButton("Cancelar")
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(cancel_btn)
-
-        layout.addLayout(btn_layout)
 
     def get_config(self) -> dict[str, Any]:
         return {
@@ -247,7 +151,7 @@ class AnnotationDialog(QDialog, UiLoaderMixin):
     """
 
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/annotationDialog.ui"
+    UI_FILE = "annotationDialog.ui"
 
     def __init__(self, x_pos: float = 0, y_pos: float = 0, parent=None):
         super().__init__(parent)
@@ -256,11 +160,10 @@ class AnnotationDialog(QDialog, UiLoaderMixin):
         self.setWindowTitle("Adicionar Anotação")
         self.setMinimumWidth(400)
 
-        # Tenta carregar do arquivo .ui, senão usa fallback
+        # Carrega interface do arquivo .ui
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
@@ -284,60 +187,6 @@ class AnnotationDialog(QDialog, UiLoaderMixin):
             add_btn.clicked.connect(self.accept)
         if cancel_btn:
             cancel_btn.clicked.connect(self.reject)
-
-    def _setup_ui_fallback(self):
-        """Fallback: cria UI programaticamente"""
-        layout = QVBoxLayout(self)
-
-        form = QFormLayout()
-
-        self.x_spin = QDoubleSpinBox()
-        self.x_spin.setRange(-1e10, 1e10)
-        self.x_spin.setValue(self.x_pos)
-        self.x_spin.setDecimals(4)
-        form.addRow("Posição X:", self.x_spin)
-
-        self.y_spin = QDoubleSpinBox()
-        self.y_spin.setRange(-1e10, 1e10)
-        self.y_spin.setValue(y_pos)
-        self.y_spin.setDecimals(4)
-        form.addRow("Posição Y:", self.y_spin)
-
-        layout.addLayout(form)
-
-        # Texto da anotação
-        layout.addWidget(QLabel("Texto:"))
-        self.text_edit = QTextEdit()
-        self.text_edit.setMaximumHeight(100)
-        self.text_edit.setPlaceholderText("Digite o texto da anotação...")
-        layout.addWidget(self.text_edit)
-
-        # Opções
-        options_layout = QHBoxLayout()
-
-        self.arrow_check = QCheckBox("Mostrar seta")
-        self.arrow_check.setChecked(True)
-        options_layout.addWidget(self.arrow_check)
-
-        self.color_combo = QComboBox()
-        self.color_combo.addItems(["Vermelho", "Azul", "Verde", "Preto", "Laranja"])
-        options_layout.addWidget(QLabel("Cor:"))
-        options_layout.addWidget(self.color_combo)
-
-        layout.addLayout(options_layout)
-
-        # Botões
-        btn_layout = QHBoxLayout()
-
-        add_btn = QPushButton("Adicionar")
-        add_btn.clicked.connect(self.accept)
-        btn_layout.addWidget(add_btn)
-
-        cancel_btn = QPushButton("Cancelar")
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(cancel_btn)
-
-        layout.addLayout(btn_layout)
 
     def get_annotation(self) -> dict[str, Any]:
         color_map = {

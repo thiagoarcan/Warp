@@ -100,12 +100,10 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._on_timer_tick)
 
-        # Tentar carregar UI do arquivo .ui
+        # Carregar UI do arquivo .ui
         if not self._load_ui():
-            logger.warning("streaming_panel_ui_load_failed_using_fallback")
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         self._connect_signals()
         self._update_ui_state()
@@ -176,116 +174,6 @@ class StreamingPanel(QWidget, UiLoaderMixin):
             self._speed_combo.currentTextChanged.connect(self._on_speed_changed)
         if self._mode_combo:
             self._mode_combo.currentIndexChanged.connect(self._on_mode_changed)
-
-    def _setup_ui_fallback(self):
-        """Fallback: Setup UI programaticamente se arquivo .ui não carregar"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(8)
-
-        # Header
-        header = QLabel("🎬 Controle de Streaming")
-        header.setStyleSheet("font-size: 14px; font-weight: bold; color: #212529;")
-        layout.addWidget(header)
-
-        # Timeline
-        timeline_group = QGroupBox("⏱️ Timeline")
-        timeline_layout = QVBoxLayout(timeline_group)
-
-        self._timeline_slider = QSlider(Qt.Orientation.Horizontal)
-        self._timeline_slider.setMinimum(0)
-        self._timeline_slider.setMaximum(100)
-        timeline_layout.addWidget(self._timeline_slider)
-
-        # Labels de tempo
-        time_layout = QHBoxLayout()
-        self._current_time_label = QLabel("00:00:00")
-        self._current_time_label.setStyleSheet("font-family: monospace;")
-        time_layout.addWidget(self._current_time_label)
-
-        time_layout.addStretch()
-
-        self._frame_info_label = QLabel("Frame: 0 / 0")
-        self._frame_info_label.setStyleSheet("color: #6c757d;")
-        time_layout.addWidget(self._frame_info_label)
-
-        time_layout.addStretch()
-
-        self._total_time_label = QLabel("00:00:00")
-        self._total_time_label.setStyleSheet("font-family: monospace;")
-        time_layout.addWidget(self._total_time_label)
-
-        timeline_layout.addLayout(time_layout)
-        layout.addWidget(timeline_group)
-
-        # Controles
-        controls_group = QGroupBox("🎮 Controles")
-        controls_layout = QVBoxLayout(controls_group)
-
-        # Botões
-        buttons_layout = QHBoxLayout()
-        buttons_layout.setSpacing(4)
-
-        self._btn_start = QPushButton("⏮")
-        self._btn_start.setToolTip("Ir para início")
-        self._btn_start.setFixedSize(36, 36)
-        buttons_layout.addWidget(self._btn_start)
-
-        self._btn_prev = QPushButton("⏪")
-        self._btn_prev.setToolTip("Frame anterior")
-        self._btn_prev.setFixedSize(36, 36)
-        buttons_layout.addWidget(self._btn_prev)
-
-        self._btn_play = QPushButton("▶")
-        self._btn_play.setToolTip("Play/Pause")
-        self._btn_play.setFixedSize(48, 48)
-        buttons_layout.addWidget(self._btn_play)
-
-        self._btn_stop = QPushButton("⏹")
-        self._btn_stop.setToolTip("Stop")
-        self._btn_stop.setFixedSize(36, 36)
-        buttons_layout.addWidget(self._btn_stop)
-
-        self._btn_next = QPushButton("⏩")
-        self._btn_next.setToolTip("Próximo frame")
-        self._btn_next.setFixedSize(36, 36)
-        buttons_layout.addWidget(self._btn_next)
-
-        self._btn_end = QPushButton("⏭")
-        self._btn_end.setToolTip("Ir para fim")
-        self._btn_end.setFixedSize(36, 36)
-        buttons_layout.addWidget(self._btn_end)
-
-        controls_layout.addLayout(buttons_layout)
-
-        # Configurações
-        config_layout = QHBoxLayout()
-
-        config_layout.addWidget(QLabel("Velocidade:"))
-        self._speed_combo = QComboBox()
-        self._speed_combo.addItems(["0.1x", "0.25x", "0.5x", "1x", "2x", "5x", "10x"])
-        self._speed_combo.setCurrentText("1x")
-        config_layout.addWidget(self._speed_combo)
-
-        config_layout.addWidget(QLabel("Modo:"))
-        self._mode_combo = QComboBox()
-        self._mode_combo.addItem("Normal", PlaybackMode.NORMAL)
-        self._mode_combo.addItem("Loop ♻️", PlaybackMode.LOOP)
-        self._mode_combo.addItem("Ping-Pong ↔️", PlaybackMode.PING_PONG)
-        self._mode_combo.addItem("Reverso ⏪", PlaybackMode.REVERSE)
-        config_layout.addWidget(self._mode_combo)
-
-        config_layout.addWidget(QLabel("Step:"))
-        self._step_spin = QSpinBox()
-        self._step_spin.setRange(1, 100)
-        self._step_spin.setValue(1)
-        config_layout.addWidget(self._step_spin)
-
-        controls_layout.addLayout(config_layout)
-        layout.addWidget(controls_group)
-
-        layout.addStretch()
-        logger.debug("streaming_panel_ui_fallback_created")
 
     # ========================
     # Controles de playback

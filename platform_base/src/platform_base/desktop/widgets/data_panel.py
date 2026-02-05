@@ -54,7 +54,7 @@ class DataPanel(QWidget, UiLoaderMixin):
     """
     
     # Arquivo .ui que define a interface
-    UI_FILE = "desktop/ui_files/dataPanel.ui"
+    UI_FILE = "dataPanel.ui"
 
     def __init__(self, session_state: SessionState, signal_hub: SignalHub,
                  parent: QWidget | None = None):
@@ -65,12 +65,8 @@ class DataPanel(QWidget, UiLoaderMixin):
 
         # Carregar interface do arquivo .ui
         if not self._load_ui():
-            # Fallback para criação programática se .ui falhar
-            logger.warning("ui_load_failed_using_fallback", cls="DataPanel")
-            self._setup_ui_fallback()
-        else:
-            # Configurar widgets carregados do .ui
-            self._setup_ui_from_file()
+            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+        self._setup_ui_from_file()
 
         self._connect_signals()
 
@@ -112,87 +108,6 @@ class DataPanel(QWidget, UiLoaderMixin):
         self.metadata_text = self.metadataText
         self.quality_text = self.qualityText
         
-        # Set initial summary
-        self._update_summary()
-
-    def _setup_ui_fallback(self):
-        """Fallback: Setup UI programaticamente se arquivo .ui não carregar"""
-        layout = QVBoxLayout(self)
-
-        # Data tree section
-        tree_group = QGroupBox(tr("Datasets & Series"))
-        tree_layout = QVBoxLayout(tree_group)
-
-        # Tree view with model
-        self.data_tree = QTreeView()
-        self.tree_model = DatasetTreeModel(self.session_state.dataset_store)
-        self.data_tree.setModel(self.tree_model)
-
-        self.data_tree.setAlternatingRowColors(True)
-        self.data_tree.setSelectionMode(QTreeView.SelectionMode.ExtendedSelection)
-        self.data_tree.selectionModel().selectionChanged.connect(self._on_tree_selection_changed)
-        self.data_tree.doubleClicked.connect(self._on_item_double_clicked)
-
-        # Configure columns
-        header = self.data_tree.header()
-        header.setStretchLastSection(False)
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-
-        tree_layout.addWidget(self.data_tree)
-
-        # Tree action buttons
-        tree_buttons = QHBoxLayout()
-
-        self.load_btn = QPushButton(tr("Load Data"))
-        self.load_btn.clicked.connect(self._load_data)
-        tree_buttons.addWidget(self.load_btn)
-
-        self.remove_btn = QPushButton(tr("Remove"))
-        self.remove_btn.clicked.connect(self._remove_selected)
-        self.remove_btn.setEnabled(False)
-        tree_buttons.addWidget(self.remove_btn)
-
-        tree_buttons.addStretch()
-
-        self.refresh_btn = QPushButton(tr("Refresh"))
-        self.refresh_btn.clicked.connect(self._refresh_data)
-        tree_buttons.addWidget(self.refresh_btn)
-
-        tree_layout.addLayout(tree_buttons)
-        layout.addWidget(tree_group)
-
-        # Data info section
-        info_group = QGroupBox(tr("Data Information"))
-        info_layout = QVBoxLayout(info_group)
-
-        # Info tabs
-        self.info_tabs = QTabWidget()
-
-        # Summary tab
-        self.summary_text = QTextEdit()
-        self.summary_text.setReadOnly(True)
-        self.summary_text.setMaximumHeight(150)
-        self.info_tabs.addTab(self.summary_text, tr("Summary"))
-
-        # Metadata tab
-        self.metadata_text = QTextEdit()
-        self.metadata_text.setReadOnly(True)
-        self.metadata_text.setMaximumHeight(150)
-        self.info_tabs.addTab(self.metadata_text, tr("Metadata"))
-
-        # Quality tab
-        self.quality_text = QTextEdit()
-        self.quality_text.setReadOnly(True)
-        self.quality_text.setMaximumHeight(150)
-        self.info_tabs.addTab(self.quality_text, tr("Quality"))
-
-        info_layout.addWidget(self.info_tabs)
-        layout.addWidget(info_group)
-
         # Set initial summary
         self._update_summary()
 

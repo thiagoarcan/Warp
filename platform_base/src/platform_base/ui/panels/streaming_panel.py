@@ -198,9 +198,12 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         position_changed: Posição atual mudou (index ou timestamp)
         state_changed: Estado de playback mudou
         speed_changed: Velocidade mudou
+    
+    Interface carregada do arquivo streamingPanel.ui via UiLoaderMixin.
     """
 
-    UI_FILE = "desktop/ui_files/streamingPanel.ui"
+    # Arquivo .ui que define a interface (Fase 0: Migração UI - sem fallback)
+    UI_FILE = "streamingPanel.ui"
 
     position_changed = pyqtSignal(int)  # Índice atual
     state_changed = pyqtSignal(PlaybackState)
@@ -221,230 +224,146 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._on_timer_tick)
 
+        # Carregar interface do arquivo .ui (obrigatório, sem fallback)
         if not self._load_ui():
-            self._setup_ui_fallback()
-        else:
-            self._setup_ui_from_file()
+            raise RuntimeError(
+                f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
+                "Verifique se o arquivo existe em desktop/ui_files/"
+            )
+        
+        self._setup_ui_from_file()
         self._connect_signals()
         self._update_ui_state()
+        logger.debug("streaming_panel_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
-        """Configura widgets após carregar .ui"""
-        # Busca widgets do arquivo .ui
-        self._minimap = self.findChild(MinimapWidget, "minimap") or MinimapWidget()
-        self._timeline = self.findChild(TimelineSlider, "timeline") or TimelineSlider()
-        self._current_time = self.findChild(QLabel, "current_time") or QLabel("00:00:00")
-        self._total_time = self.findChild(QLabel, "total_time") or QLabel("00:00:00")
-        self._frame_info = self.findChild(QLabel, "frame_info") or QLabel("Frame: 0 / 0")
+        """
+        Configura widgets carregados do arquivo streamingPanel.ui
         
-        # Botões de controle
-        self._btn_start = self.findChild(QPushButton, "btn_start")
-        self._btn_prev = self.findChild(QPushButton, "btn_prev")
-        self._btn_play = self.findChild(QPushButton, "btn_play")
-        self._btn_next = self.findChild(QPushButton, "btn_next")
-        self._btn_end = self.findChild(QPushButton, "btn_end")
-        self._btn_stop = self.findChild(QPushButton, "btn_stop")
+        Mapeia os widgets do arquivo .ui para os atributos da classe,
+        mantendo compatibilidade com os métodos existentes.
         
-        # Combo e controles de velocidade
-        self._mode_combo = self.findChild(QComboBox, "mode_combo")
-        self._speed_slider = self.findChild(QSlider, "speed_slider")
-        self._step_spin = self.findChild(QSpinBox, "step_spin")
+        IMPORTANTE: Todos os widgets são carregados do arquivo .ui.
+        Não há fallback - se o widget não existir, será None.
+        """
+        from PyQt6.QtWidgets import QProgressBar, QLineEdit
         
-        # Configura minimap se necessário
-        if hasattr(self._minimap, 'position_changed'):
-            self._minimap.position_changed.connect(self._on_minimap_position)
+        # === WIDGETS DE STATUS ===
+        self._status_icon_label = self.findChild(QLabel, "statusIconLabel")
+        self._status_text_label = self.findChild(QLabel, "statusTextLabel")
+        self._rate_value_label = self.findChild(QLabel, "rateValueLabel")
+        self._buffer_progress = self.findChild(QProgressBar, "bufferProgress")
         
-        # Configura timeline
+        # === WIDGETS DE CONTROLE DE PLAYBACK ===
+        # Botões principais
+        self._btn_play = self.findChild(QPushButton, "playBtn")
+        self._btn_pause = self.findChild(QPushButton, "pauseBtn")
+        self._btn_stop = self.findChild(QPushButton, "stopBtn")
+        
+        # Para compatibilidade com código legado
+        self._btn_start = None  # Não existe no novo .ui
+        self._btn_prev = None   # Não existe no novo .ui
+        self._btn_next = None   # Não existe no novo .ui
+        self._btn_end = None    # Não existe no novo .ui
+        
+        # Slider de posição
+        self._timeline = self.findChild(QSlider, "positionSlider")
+        self._current_time = self.findChild(QLabel, "positionLabel")
+        self._total_time = self.findChild(QLabel, "durationLabel")
+        
+        # Controle de velocidade
+        self._speed_slider = self.findChild(QSlider, "speedSlider")
+        self._speed_value_label = self.findChild(QLabel, "speedValueLabel")
+        
+        # === WIDGETS DE FONTE DE DADOS ===
+        self._source_type_combo = self.findChild(QComboBox, "sourceTypeCombo")
+        self._source_path_edit = self.findChild(QLineEdit, "sourcePathEdit")
+        self._btn_browse = self.findChild(QPushButton, "browseBtn")
+        self._btn_connect = self.findChild(QPushButton, "connectBtn")
+        self._btn_disconnect = self.findChild(QPushButton, "disconnectBtn")
+        
+        # === WIDGETS DE CONFIGURAÇÃO ===
+        self._buffer_size_spin = self.findChild(QSpinBox, "bufferSizeSpin")
+        self._update_rate_spin = self.findChild(QSpinBox, "updateRateSpin")
+        self._auto_scroll_check = self.findChild(QCheckBox, "autoScrollCheck")
+        self._record_check = self.findChild(QCheckBox, "recordCheck")
+        
+        # === STATUS (para compatibilidade) ===
+        # Criamos um label de status se não existir no .ui
+        self._status_label = self._status_text_label or QLabel("⏹ Parado")
+        self._frame_info = QLabel("Frame: 0 / 0")  # Label auxiliar para info de frames
+        
+        # === MINIMAP (widget customizado - criar se necessário) ===
+        self._minimap = MinimapWidget()
+        self._minimap.position_changed.connect(self._on_minimap_position)
+        
+        # Configurar timeline
         if self._timeline:
             self._timeline.setMinimum(0)
             self._timeline.setMaximum(100)
             self._timeline.valueChanged.connect(self._on_timeline_changed)
-
-    def _setup_ui_fallback(self):
-        """Configura interface principal"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(16)
-
-        # Header
-        header = QLabel("🎬 Controle de Streaming")
-        header.setStyleSheet("""
-            font-size: 16px;
-            font-weight: 700;
-            color: #212529;
-        """)
-        layout.addWidget(header)
-
-        # Minimap
-        minimap_group = QGroupBox("📊 Navegação")
-        minimap_layout = QVBoxLayout(minimap_group)
-        self._minimap = MinimapWidget()
-        self._minimap.position_changed.connect(self._on_minimap_position)
-        minimap_layout.addWidget(self._minimap)
-        layout.addWidget(minimap_group)
-
-        # Timeline slider
-        timeline_group = QGroupBox("⏱️ Timeline")
-        timeline_layout = QVBoxLayout(timeline_group)
-
-        self._timeline = TimelineSlider()
-        self._timeline.setMinimum(0)
-        self._timeline.setMaximum(100)
-        self._timeline.valueChanged.connect(self._on_timeline_changed)
-        timeline_layout.addWidget(self._timeline)
-
-        # Labels de tempo
-        time_layout = QHBoxLayout()
-        self._current_time = QLabel("00:00:00")
-        self._current_time.setStyleSheet("font-family: monospace; font-size: 12px;")
-        time_layout.addWidget(self._current_time)
-
-        time_layout.addStretch()
-
-        self._frame_info = QLabel("Frame: 0 / 0")
-        self._frame_info.setStyleSheet("color: #6c757d; font-size: 11px;")
-        time_layout.addWidget(self._frame_info)
-
-        time_layout.addStretch()
-
-        self._total_time = QLabel("00:00:00")
-        self._total_time.setStyleSheet("font-family: monospace; font-size: 12px;")
-        time_layout.addWidget(self._total_time)
-
-        timeline_layout.addLayout(time_layout)
-        layout.addWidget(timeline_group)
-
-        # Controles de playback
-        controls_group = QGroupBox("🎮 Controles")
-        controls_layout = QVBoxLayout(controls_group)
-
-        # Botões principais
-        buttons_layout = QHBoxLayout()
-        buttons_layout.setSpacing(8)
-
-        # Botões de navegação
-        self._btn_start = self._create_control_button("⏮", "Ir para início")
-        self._btn_start.clicked.connect(self._go_to_start)
-        buttons_layout.addWidget(self._btn_start)
-
-        self._btn_prev = self._create_control_button("⏪", "Frame anterior")
-        self._btn_prev.clicked.connect(self._step_backward)
-        buttons_layout.addWidget(self._btn_prev)
-
-        # Play/Pause (maior)
-        self._btn_play = self._create_control_button("▶", "Play/Pause", large=True)
-        self._btn_play.clicked.connect(self._toggle_play)
-        buttons_layout.addWidget(self._btn_play)
-
-        # Stop
-        self._btn_stop = self._create_control_button("⏹", "Stop")
-        self._btn_stop.clicked.connect(self._stop)
-        buttons_layout.addWidget(self._btn_stop)
-
-        self._btn_next = self._create_control_button("⏩", "Próximo frame")
-        self._btn_next.clicked.connect(self._step_forward)
-        buttons_layout.addWidget(self._btn_next)
-
-        self._btn_end = self._create_control_button("⏭", "Ir para fim")
-        self._btn_end.clicked.connect(self._go_to_end)
-        buttons_layout.addWidget(self._btn_end)
-
-        controls_layout.addLayout(buttons_layout)
-
-        # Linha de configurações
-        config_layout = QHBoxLayout()
-        config_layout.setSpacing(16)
-
-        # Velocidade
-        speed_layout = QHBoxLayout()
-        speed_layout.addWidget(QLabel("Velocidade:"))
-
-        self._speed_combo = QComboBox()
-        self._speed_combo.addItems(["0.1x", "0.25x", "0.5x", "1x", "2x", "5x", "10x"])
-        self._speed_combo.setCurrentText("1x")
-        self._speed_combo.currentTextChanged.connect(self._on_speed_changed)
-        speed_layout.addWidget(self._speed_combo)
-
-        config_layout.addLayout(speed_layout)
-
-        # Modo
-        mode_layout = QHBoxLayout()
-        mode_layout.addWidget(QLabel("Modo:"))
-
-        self._mode_combo = QComboBox()
-        self._mode_combo.addItem("Normal", PlaybackMode.NORMAL)
-        self._mode_combo.addItem("Loop ♻️", PlaybackMode.LOOP)
-        self._mode_combo.addItem("Ping-Pong ↔️", PlaybackMode.PING_PONG)
-        self._mode_combo.addItem("Reverso ⏪", PlaybackMode.REVERSE)
-        self._mode_combo.currentIndexChanged.connect(self._on_mode_changed)
-        mode_layout.addWidget(self._mode_combo)
-
-        config_layout.addLayout(mode_layout)
-
-        # Step size
-        step_layout = QHBoxLayout()
-        step_layout.addWidget(QLabel("Step:"))
-
-        self._step_spin = QSpinBox()
-        self._step_spin.setMinimum(1)
-        self._step_spin.setMaximum(1000)
-        self._step_spin.setValue(1)
-        self._step_spin.setToolTip("Frames por step")
-        step_layout.addWidget(self._step_spin)
-
-        config_layout.addLayout(step_layout)
-
-        config_layout.addStretch()
-
-        controls_layout.addLayout(config_layout)
-        layout.addWidget(controls_group)
-
-        # Status
-        self._status_label = QLabel("⏹ Parado")
-        self._status_label.setStyleSheet("""
-            padding: 8px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            color: #6c757d;
-        """)
-        self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self._status_label)
-
-        layout.addStretch()
-
-    def _create_control_button(
-        self,
-        text: str,
-        tooltip: str,
-        large: bool = False,
-    ) -> QPushButton:
-        """Cria botão de controle estilizado"""
-        btn = QPushButton(text)
-        btn.setToolTip(tooltip)
-
-        size = 48 if large else 36
-        btn.setFixedSize(size, size)
-
-        btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: {size // 2}px;
-                font-size: {16 if large else 14}px;
-            }}
-            QPushButton:hover {{
-                background-color: #e9ecef;
-                border-color: #adb5bd;
-            }}
-            QPushButton:pressed {{
-                background-color: #dee2e6;
-            }}
-        """)
-
-        return btn
+        
+        # Configurar speed slider
+        if self._speed_slider:
+            self._speed_slider.valueChanged.connect(self._on_speed_slider_changed)
+        
+        # Conectar botões de controle
+        if self._btn_play:
+            self._btn_play.clicked.connect(self._play)
+        if self._btn_pause:
+            self._btn_pause.clicked.connect(self._pause)
+        if self._btn_stop:
+            self._btn_stop.clicked.connect(self._stop)
+        
+        # Conectar botões de conexão
+        if self._btn_connect:
+            self._btn_connect.clicked.connect(self._on_connect)
+        if self._btn_disconnect:
+            self._btn_disconnect.clicked.connect(self._on_disconnect)
 
     def _connect_signals(self):
         """Conecta signals internos"""
+
+    def _on_speed_slider_changed(self, value: int):
+        """Handler para mudança no slider de velocidade"""
+        self._speed = value / 100.0  # Slider vai de 25 a 400 (0.25x a 4x)
+        if self._speed_value_label:
+            self._speed_value_label.setText(f"{self._speed:.1f}x")
+        
+        # Atualiza timer se estiver reproduzindo
+        if self._state == PlaybackState.PLAYING:
+            base_interval = 33  # ~30 fps
+            interval = int(base_interval / self._speed)
+            interval = max(1, interval)
+            self._timer.setInterval(interval)
+        
+        self.speed_changed.emit(self._speed)
+        logger.debug(f"streaming_speed_changed: speed={self._speed}")
+    
+    def _on_connect(self):
+        """Handler para botão de conectar"""
+        if self._btn_connect:
+            self._btn_connect.setEnabled(False)
+        if self._btn_disconnect:
+            self._btn_disconnect.setEnabled(True)
+        if self._status_icon_label:
+            self._status_icon_label.setText("🟢")
+        if self._status_text_label:
+            self._status_text_label.setText("Conectado")
+        logger.info("streaming_connected")
+    
+    def _on_disconnect(self):
+        """Handler para botão de desconectar"""
+        self._stop()
+        if self._btn_connect:
+            self._btn_connect.setEnabled(True)
+        if self._btn_disconnect:
+            self._btn_disconnect.setEnabled(False)
+        if self._status_icon_label:
+            self._status_icon_label.setText("⚪")
+        if self._status_text_label:
+            self._status_text_label.setText("Desconectado")
+        logger.info("streaming_disconnected")
 
     def _update_ui_state(self):
         """Atualiza estado visual da UI"""
