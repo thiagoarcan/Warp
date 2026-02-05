@@ -35,7 +35,9 @@ class ActivityLogPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._init_ui()
-        self._operation_progress: dict[str, QProgressBar] = {}
+        # Store operation progress data: {operation_id: {widget, progress, label}}
+        self._operation_progress: dict[str, dict[str, QWidget | QProgressBar | QLabel]] = {}
+
         
     def _init_ui(self):
         """Inicializa a interface"""

@@ -160,6 +160,9 @@ class DataTablesPanel(QWidget):
     - Resultados de operações (results)
     """
     
+    # Number of expected tabs
+    EXPECTED_TAB_COUNT = 5
+    
     export_requested = pyqtSignal(str, str)  # (tipo, filepath)
     
     def __init__(self, parent=None):

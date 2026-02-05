@@ -229,7 +229,8 @@ class TestDataTablesPanel:
         qtbot.addWidget(panel)
         
         assert panel.tabs is not None
-        assert len(panel._views) == 5  # 5 tabs: raw, interpolated, synchronized, calculated, results
+        # Use the constant from the class
+        assert len(panel._views) == DataTablesPanel.EXPECTED_TAB_COUNT
     
     def test_set_raw_data(self, qapp, qtbot):
         """Test setting raw data"""
