@@ -160,6 +160,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         # Connect theme changes
         self._theme_manager.theme_changed.connect(self._on_theme_changed)
 
+        # Add all tooltips to UI elements
+        from platform_base.ui.tooltip_manager import TooltipManager
+        TooltipManager.add_all_tooltips(self)
+
         logger.info("modern_main_window_initialized")
 
     # =========================================================================
