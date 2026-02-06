@@ -5,7 +5,7 @@ Original implementation for Platform Base v2.0
 
 import numpy as np
 from typing import Tuple, Dict, Optional, List
-from scipy import integrate, interpolate, signal, stats
+from scipy import integrate, interpolate, stats
 from datetime import datetime, timedelta
 
 # Small constant to avoid division by zero
