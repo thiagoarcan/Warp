@@ -1576,11 +1576,51 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Convert XLSX file to CSV"""
         xlsx_path = self._xlsx_file_edit.text()
         
-        if not xlsx_path or not Path(xlsx_path).exists():
+        # Validate file path
+        if not xlsx_path:
             QMessageBox.warning(
                 dialog,
                 tr("Erro"),
-                tr("Por favor selecione um arquivo XLSX válido.")
+                tr("Por favor selecione um arquivo.")
+            )
+            return
+            
+        path = Path(xlsx_path)
+        
+        # Check existence
+        if not path.exists():
+            QMessageBox.warning(
+                dialog,
+                tr("Erro"),
+                tr("O arquivo selecionado não existe.")
+            )
+            return
+            
+        # Validate extension
+        if path.suffix.lower() not in ('.xlsx', '.xls'):
+            QMessageBox.warning(
+                dialog,
+                tr("Erro"),
+                tr("Por favor selecione um arquivo Excel válido (.xlsx ou .xls).")
+            )
+            return
+            
+        # Check if file exists and is readable
+        if not path.is_file():
+            QMessageBox.warning(
+                dialog,
+                tr("Erro"),
+                tr("O arquivo selecionado não é um arquivo válido.")
+            )
+            return
+            
+        # Check read permissions using os.access for cross-platform compatibility
+        import os
+        if not os.access(path, os.R_OK):
+            QMessageBox.warning(
+                dialog,
+                tr("Erro"),
+                tr("Arquivo não pode ser lido. Verifique as permissões.")
             )
             return
         

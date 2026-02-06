@@ -21,6 +21,7 @@ import json
 import sqlite3
 import threading
 import time
+import uuid
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -258,9 +259,8 @@ class TelemetryManager:
         Returns:
             Session ID
         """
-        self._session_id = hashlib.md5(
-            f"{time.time()}-{id(self)}".encode(), usedforsecurity=False
-        ).hexdigest()[:16]
+        # Use UUID for cryptographically secure random session ID
+        self._session_id = uuid.uuid4().hex[:16]
         self._session_start = datetime.now()
 
         self.track_event(TelemetryEventType.SESSION_START)
@@ -399,7 +399,7 @@ class TelemetryManager:
             **extra: Additional data
         """
         # Hash error message for anonymity
-        message_hash = hashlib.md5(error_message.encode(), usedforsecurity=False).hexdigest()[:8]
+        message_hash = hashlib.sha256(error_message.encode()).hexdigest()[:8]
 
         self.track_event(
             TelemetryEventType.ERROR_OCCURRED,

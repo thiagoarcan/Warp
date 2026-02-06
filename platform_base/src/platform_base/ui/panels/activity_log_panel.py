@@ -5,6 +5,7 @@ Exibe todas as operações que a aplicação está executando com progresso deta
 """
 
 from datetime import datetime
+from typing import Union
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
@@ -36,7 +37,7 @@ class ActivityLogPanel(QWidget):
         super().__init__(parent)
         self._init_ui()
         # Store operation progress data: {operation_id: {widget, progress, label}}
-        self._operation_progress: dict[str, dict[str, QWidget | QProgressBar | QLabel]] = {}
+        self._operation_progress: dict[str, dict[str, Union[QWidget, QProgressBar, QLabel]]] = {}
 
         
     def _init_ui(self):

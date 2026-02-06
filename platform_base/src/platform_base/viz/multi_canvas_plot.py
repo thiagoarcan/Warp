@@ -35,6 +35,8 @@ class IndependentPlotCanvas(pg.PlotWidget):
         # Series registry for this canvas
         self._series_registry: Dict[str, Dict[str, Any]] = {}
         self._visible_series: set = set()
+        # Bidirectional mapping for faster legend lookup
+        self._name_to_series_id: Dict[str, str] = {}
         
         # Plot configuration
         self.setBackground('w')
@@ -59,7 +61,7 @@ class IndependentPlotCanvas(pg.PlotWidget):
         self.scene().sigMouseMoved.connect(self._handle_mouse_hover)
         
         # Make legend interactive
-        self.legend_item.sigItemClicked.connect(self._handle_legend_click)
+        self.legend_item.sigItemClicked.connect(self._on_legend_item_clicked)
         
     def _handle_mouse_click(self, event):
         """Handle mouse clicks on plot"""
@@ -93,7 +95,19 @@ class IndependentPlotCanvas(pg.PlotWidget):
         tooltip_text = "\n".join(tooltip_lines)
         self.setToolTip(tooltip_text)
         
-    def _handle_legend_click(self, item, series_id):
+    def _on_legend_item_clicked(self, legend_item, label_item):
+        """Adapter for PyQtGraph legend click signal - converts to series_id"""
+        # PyQtGraph emits (legend_item, label_item), need to find series_id
+        # Use bidirectional mapping for O(1) lookup
+        label_text = label_item.text()  # Call the method to get text
+        series_id = self._name_to_series_id.get(label_text)
+        
+        if series_id:
+            self._handle_legend_click(series_id)
+        else:
+            logger.warning(f"Legend click for unknown series: {label_text}")
+    
+    def _handle_legend_click(self, series_id):
         """Toggle series visibility on legend click"""
         if series_id in self._visible_series:
             self.hide_series(series_id)
@@ -174,6 +188,9 @@ class IndependentPlotCanvas(pg.PlotWidget):
             'visible': True
         }
         
+        # Maintain bidirectional mapping
+        self._name_to_series_id[display_name] = series_id
+        
         self._visible_series.add(series_id)
         
         logger.debug(f"Series added to canvas {self.canvas_id}: {series_id}")
@@ -183,6 +200,7 @@ class IndependentPlotCanvas(pg.PlotWidget):
         if series_id in self._series_registry:
             series_info = self._series_registry[series_id]
             curve = series_info['curve_item']
+            display_name = series_info['name']
             
             # Remove from plot
             if series_info['axis_index'] == 0:
@@ -194,6 +212,9 @@ class IndependentPlotCanvas(pg.PlotWidget):
             
             # Release color
             self.hue_coordinator.release_series_hue(series_id)
+            
+            # Remove from bidirectional mapping
+            self._name_to_series_id.pop(display_name, None)
             
             # Unregister
             del self._series_registry[series_id]

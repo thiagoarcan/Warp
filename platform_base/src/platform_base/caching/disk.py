@@ -100,7 +100,7 @@ class DiskCache:
 
     def _get_cache_key(self, key: str) -> str:
         """Generate cache key hash."""
-        return hashlib.md5(key.encode()).hexdigest()
+        return hashlib.sha256(key.encode()).hexdigest()
 
     def _get_file_path(self, cache_key: str) -> Path:
         """Get file path for cache key."""

@@ -167,8 +167,8 @@ class DataTablesPanel(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._init_ui()
         self._views = {}
+        self._init_ui()
     
     def _init_ui(self):
         """Inicializa a interface"""

@@ -6,6 +6,8 @@ from typing import Literal
 import numpy as np
 from scipy.interpolate import CubicSpline, UnivariateSpline
 
+# Small constant to avoid division by zero and numerical issues
+EPSILON = 1e-10
 
 try:
     import numba
@@ -157,7 +159,7 @@ def _mls_interpolate(
         weights = np.exp(-(distances / weight_radius) ** 2)
 
         # Clamp very small weights to avoid numerical issues
-        weights = np.maximum(weights, 1e-10)
+        weights = np.maximum(weights, EPSILON)
 
         # Build design matrix for polynomial fitting
         A = np.column_stack([t_valid ** p for p in range(degree + 1)])
@@ -233,11 +235,11 @@ def _gpr_interpolate(
     # Define kernel
     if kernel_type == "matern":
         kernel = Matern(length_scale=length_scale, nu=2.5) + WhiteKernel(
-            noise_level=noise_level, noise_level_bounds=(1e-10, 1e5),
+            noise_level=noise_level, noise_level_bounds=(EPSILON, 1e5),
         )
     else:  # rbf
         kernel = RBF(length_scale=length_scale) + WhiteKernel(
-            noise_level=noise_level, noise_level_bounds=(1e-10, 1e5),
+            noise_level=noise_level, noise_level_bounds=(EPSILON, 1e5),
         )
 
     # Fit GPR
@@ -245,7 +247,7 @@ def _gpr_interpolate(
         kernel=kernel,
         n_restarts_optimizer=n_restarts,
         normalize_y=False,
-        alpha=1e-10,  # Small regularization to improve numerical stability
+        alpha=EPSILON,  # Small regularization to improve numerical stability
     )
 
     gpr.fit(t_valid_norm.reshape(-1, 1), v_valid_norm)

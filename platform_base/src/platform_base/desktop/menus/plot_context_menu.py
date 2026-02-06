@@ -34,6 +34,9 @@ from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+# Small constant to avoid division by zero and comparison with near-zero values
+EPSILON = 1e-10
+
 if TYPE_CHECKING:
     from platform_base.core.models import DatasetID, SeriesID
     from platform_base.desktop.session_state import SessionState
@@ -512,7 +515,7 @@ class PlotContextMenu(QMenu):
 <tr><th>Rank</th><th>Frequency (Hz)</th><th>Magnitude</th></tr>"""
 
             for i, (freq, mag) in enumerate(zip(top_freqs, top_mags), 1):
-                if mag > 1e-10:  # Only show significant peaks
+                if mag > EPSILON:  # Only show significant peaks
                     msg += f"<tr><td>{i}</td><td>{freq:.4g}</td><td>{mag:.4g}</td></tr>"
 
             msg += "</table>"

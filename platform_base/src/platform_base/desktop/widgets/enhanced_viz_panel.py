@@ -6,6 +6,7 @@ Original implementation for Platform Base v2.0
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from pathlib import Path
+import hashlib
 
 import numpy as np
 import pandas as pd
@@ -519,6 +520,7 @@ class EnhancedVizPanel(QWidget):
         try:
             with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
                 sheet_counter = 0
+                used_sheet_names = set()
                 
                 # Export all series from all canvases
                 for tab_id, tab_widget in self.active_tabs.items():
@@ -530,7 +532,29 @@ class EnhancedVizPanel(QWidget):
                             })
                             
                             # Excel sheet name limit is 31 characters
-                            sheet_name = f"{series_id[:31]}"
+                            # Add collision detection
+                            base_sheet_name = series_id[:31]
+                            sheet_name = base_sheet_name
+                            counter = 1
+                            while sheet_name in used_sheet_names:
+                                # Add suffix to avoid collision
+                                # Limit counter to prevent excessively long suffixes
+                                if counter > 99:
+                                    # If we've tried 99 variations, use a hash
+                                    hash_suffix = hashlib.sha256(series_id.encode()).hexdigest()[:6]
+                                    sheet_name = f"{series_id[:24]}_{hash_suffix}"
+                                    break
+                                suffix = f"_{counter}"
+                                max_base_len = 31 - len(suffix)
+                                # Ensure at least 3 characters from base name for meaningfulness
+                                if max_base_len >= 3:
+                                    sheet_name = f"{series_id[:max_base_len]}{suffix}"
+                                else:
+                                    # Suffix is too long, use minimal meaningful base
+                                    sheet_name = f"Ser{suffix}"
+                                counter += 1
+                            
+                            used_sheet_names.add(sheet_name)
                             df.to_excel(writer, sheet_name=sheet_name, index=False)
                             sheet_counter += 1
                             
