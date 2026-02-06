@@ -8,6 +8,9 @@ from typing import Tuple, Dict, Optional, List
 from scipy import integrate, interpolate, signal, stats
 from datetime import datetime, timedelta
 
+# Small constant to avoid division by zero
+EPSILON = 1e-10
+
 
 class ComputationEngine:
     """Performs mathematical computations on time series data"""
@@ -43,7 +46,7 @@ class ComputationEngine:
             dv = np.diff(result_values)
             
             # Avoid division by zero
-            dt = np.where(dt == 0, 1e-10, dt)
+            dt = np.where(dt == 0, EPSILON, dt)
             
             result_values = dv / dt
             result_times = result_times[:-1]
@@ -206,21 +209,21 @@ class ComputationEngine:
         elif regression_type == 'exponential':
             # y = a * exp(b * x)
             # ln(y) = ln(a) + b * x
-            log_vals = np.log(np.abs(values) + 1e-10)
+            log_vals = np.log(np.abs(values) + EPSILON)
             coeffs = np.polyfit(timestamps, log_vals, 1)
             fitted = np.exp(coeffs[1]) * np.exp(coeffs[0] * timestamps)
             
         elif regression_type == 'logarithmic':
             # y = a + b * ln(x)
-            log_times = np.log(np.abs(timestamps) + 1e-10)
+            log_times = np.log(np.abs(timestamps) + EPSILON)
             coeffs = np.polyfit(log_times, values, 1)
             fitted = coeffs[0] * log_times + coeffs[1]
             
         elif regression_type == 'power':
             # y = a * x^b
             # ln(y) = ln(a) + b * ln(x)
-            log_times = np.log(np.abs(timestamps) + 1e-10)
-            log_vals = np.log(np.abs(values) + 1e-10)
+            log_times = np.log(np.abs(timestamps) + EPSILON)
+            log_vals = np.log(np.abs(values) + EPSILON)
             coeffs = np.polyfit(log_times, log_vals, 1)
             fitted = np.exp(coeffs[1]) * (timestamps ** coeffs[0])
             

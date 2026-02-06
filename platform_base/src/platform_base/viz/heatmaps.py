@@ -16,6 +16,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+# Small constant to avoid division by zero
+EPSILON = 1e-10
+
 try:
     import pyqtgraph as pg
     import scipy.stats
@@ -817,7 +820,7 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
                                        nperseg=nperseg, noverlap=noverlap)
 
         # Convert to dB
-        Sxx_db = 10 * np.log10(Sxx + 1e-10)
+        Sxx_db = 10 * np.log10(Sxx + EPSILON)
 
         # Create labels
         time_labels = [f"{ti:.2f}s" for ti in t[::max(1, len(t)//10)]]
