@@ -1606,7 +1606,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             return
             
         # Check read permissions
-        if not path.is_file() or not path.stat().st_mode & 0o400:
+        if not path.is_file() or not (path.stat().st_mode & 0o400):
             QMessageBox.warning(
                 dialog,
                 tr("Erro"),

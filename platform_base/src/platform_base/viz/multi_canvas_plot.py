@@ -97,7 +97,7 @@ class IndependentPlotCanvas(pg.PlotWidget):
         """Adapter for PyQtGraph legend click signal - converts to series_id"""
         # PyQtGraph emits (legend_item, label_item), need to find series_id
         # Do reverse lookup in registry to find series_id from label
-        label_text = label_item.text
+        label_text = label_item.text()  # Call the method to get text
         series_id = None
         
         for sid, info in self._series_registry.items():

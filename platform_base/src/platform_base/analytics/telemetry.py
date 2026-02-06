@@ -21,6 +21,7 @@ import json
 import sqlite3
 import threading
 import time
+import uuid
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -258,9 +259,8 @@ class TelemetryManager:
         Returns:
             Session ID
         """
-        self._session_id = hashlib.sha256(
-            f"{time.time()}-{id(self)}".encode()
-        ).hexdigest()[:16]
+        # Use UUID for cryptographically secure random session ID
+        self._session_id = uuid.uuid4().hex[:16]
         self._session_start = datetime.now()
 
         self.track_event(TelemetryEventType.SESSION_START)
