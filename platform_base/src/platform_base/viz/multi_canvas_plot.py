@@ -59,7 +59,7 @@ class IndependentPlotCanvas(pg.PlotWidget):
         self.scene().sigMouseMoved.connect(self._handle_mouse_hover)
         
         # Make legend interactive
-        self.legend_item.sigItemClicked.connect(self._handle_legend_click)
+        self.legend_item.sigItemClicked.connect(self._on_legend_item_clicked)
         
     def _handle_mouse_click(self, event):
         """Handle mouse clicks on plot"""
@@ -93,7 +93,22 @@ class IndependentPlotCanvas(pg.PlotWidget):
         tooltip_text = "\n".join(tooltip_lines)
         self.setToolTip(tooltip_text)
         
-    def _handle_legend_click(self, item, series_id):
+    def _on_legend_item_clicked(self, legend_item, label_item):
+        """Adapter for PyQtGraph legend click signal - converts to series_id"""
+        # PyQtGraph emits (legend_item, label_item), need to find series_id
+        # Do reverse lookup in registry to find series_id from label
+        label_text = label_item.text
+        series_id = None
+        
+        for sid, info in self._series_registry.items():
+            if info['name'] == label_text:
+                series_id = sid
+                break
+        
+        if series_id:
+            self._handle_legend_click(series_id)
+    
+    def _handle_legend_click(self, series_id):
         """Toggle series visibility on legend click"""
         if series_id in self._visible_series:
             self.hide_series(series_id)

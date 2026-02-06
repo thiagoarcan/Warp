@@ -519,6 +519,7 @@ class EnhancedVizPanel(QWidget):
         try:
             with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
                 sheet_counter = 0
+                used_sheet_names = set()
                 
                 # Export all series from all canvases
                 for tab_id, tab_widget in self.active_tabs.items():
@@ -530,7 +531,18 @@ class EnhancedVizPanel(QWidget):
                             })
                             
                             # Excel sheet name limit is 31 characters
-                            sheet_name = f"{series_id[:31]}"
+                            # Add collision detection
+                            base_sheet_name = series_id[:31]
+                            sheet_name = base_sheet_name
+                            counter = 1
+                            while sheet_name in used_sheet_names:
+                                # Add suffix to avoid collision
+                                suffix = f"_{counter}"
+                                max_base_len = 31 - len(suffix)
+                                sheet_name = f"{series_id[:max_base_len]}{suffix}"
+                                counter += 1
+                            
+                            used_sheet_names.add(sheet_name)
                             df.to_excel(writer, sheet_name=sheet_name, index=False)
                             sheet_counter += 1
                             
