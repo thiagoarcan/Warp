@@ -107,6 +107,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.operations_panel = None
         self.streaming_panel = None
         self.results_panel: ResultsPanel | None = None
+        self.resource_monitor_panel = None  # NEW: Resource monitor
+        self.activity_log_panel = None  # NEW: Activity log
+        self.data_tables_panel = None  # NEW: Data tables
 
         # Dock references
         self.data_dock: QDockWidget | None = None
@@ -114,11 +117,18 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.operations_dock: QDockWidget | None = None
         self.streaming_dock: QDockWidget | None = None
         self.results_dock: QDockWidget | None = None
+        self.resource_monitor_dock: QDockWidget | None = None  # NEW
+        self.activity_log_dock: QDockWidget | None = None  # NEW
+        self.data_tables_dock: QDockWidget | None = None  # NEW
 
         # Status bar widgets
         self.status_label: QLabel | None = None
         self.progress_bar: QProgressBar | None = None
         self.memory_label: QLabel | None = None
+
+        # NEW: Detached panels manager
+        from platform_base.ui.panels.detached_manager import DetachedManager
+        self.detached_manager = DetachedManager(self)
 
         # Carregar interface do arquivo .ui ou criar programaticamente
         if self._load_ui():
@@ -149,6 +159,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Connect theme changes
         self._theme_manager.theme_changed.connect(self._on_theme_changed)
+
+        # Add all tooltips to UI elements
+        from platform_base.ui.tooltip_manager import TooltipManager
+        TooltipManager.add_all_tooltips(self)
 
         logger.info("modern_main_window_initialized")
 
@@ -342,6 +356,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Configure main window properties"""
         self.setWindowTitle("Platform Base v2.0 - Análise de Séries Temporais")
         self.setMinimumSize(1280, 720)
+        # Set default size to Full HD (1920x1080) for Full HD displays
         self.resize(1920, 1080)
 
         self.setDockNestingEnabled(True)
@@ -406,6 +421,47 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         self.tabifyDockWidget(self.streaming_dock, self.results_dock)
         self.streaming_dock.raise_()
+
+        # === NEW PANELS ===
+        
+        # Resource Monitor Panel (Bottom Right)
+        from platform_base.ui.panels.resource_monitor_panel import ResourceMonitorPanel
+        self.resource_monitor_panel = ResourceMonitorPanel()
+        self.resource_monitor_dock = QDockWidget(tr("💻 Recursos"), self)
+        self.resource_monitor_dock.setWidget(self.resource_monitor_panel)
+        self.resource_monitor_dock.setObjectName("ResourceMonitorPanel")
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.resource_monitor_dock)
+        self.detached_manager.register_dock(self.resource_monitor_dock)
+        
+        # Activity Log Panel (Bottom)
+        from platform_base.ui.panels.activity_log_panel import ActivityLogPanel
+        self.activity_log_panel = ActivityLogPanel()
+        self.activity_log_dock = QDockWidget(tr("📝 Log de Atividades"), self)
+        self.activity_log_dock.setWidget(self.activity_log_panel)
+        self.activity_log_dock.setObjectName("ActivityLogPanel")
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.activity_log_dock)
+        self.detached_manager.register_dock(self.activity_log_dock)
+        
+        # Data Tables Panel (Bottom)
+        from platform_base.ui.panels.data_tables_panel import DataTablesPanel
+        self.data_tables_panel = DataTablesPanel()
+        self.data_tables_dock = QDockWidget(tr("📊 Tabelas de Dados"), self)
+        self.data_tables_dock.setWidget(self.data_tables_panel)
+        self.data_tables_dock.setObjectName("DataTablesPanel")
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.data_tables_dock)
+        self.detached_manager.register_dock(self.data_tables_dock)
+        
+        # Tabify bottom panels
+        self.tabifyDockWidget(self.results_dock, self.activity_log_dock)
+        self.tabifyDockWidget(self.activity_log_dock, self.data_tables_dock)
+        
+        # Tabify resource monitor with config
+        self.tabifyDockWidget(self.config_dock, self.resource_monitor_dock)
+        
+        # Register all docks with detached manager
+        for dock in [self.data_dock, self.config_dock, self.operations_dock,
+                     self.streaming_dock, self.results_dock]:
+            self.detached_manager.register_dock(dock)
 
         logger.debug("dockable_panels_created")
 
@@ -482,6 +538,19 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         panels_menu.addAction(self.operations_dock.toggleViewAction())
         panels_menu.addAction(self.streaming_dock.toggleViewAction())
         panels_menu.addAction(self.results_dock.toggleViewAction())
+        panels_menu.addSeparator()
+        panels_menu.addAction(self.resource_monitor_dock.toggleViewAction())  # NEW
+        panels_menu.addAction(self.activity_log_dock.toggleViewAction())  # NEW
+        panels_menu.addAction(self.data_tables_dock.toggleViewAction())  # NEW
+
+        view_menu.addSeparator()
+
+        # NEW: Re-dock all detached panels
+        redock_action = QAction(tr("🔗 Desgarrados (Re-dock)"), self)
+        redock_action.setToolTip(tr("Re-doca todos os painéis destacados"))
+        redock_action.setShortcut(QKeySequence("Ctrl+Shift+D"))
+        redock_action.triggered.connect(self._redock_all_panels)
+        view_menu.addAction(redock_action)
 
         view_menu.addSeparator()
 
@@ -541,6 +610,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         settings_action = QAction(tr("⚙️ &Configurações..."), self)
         settings_action.triggered.connect(self._show_settings)
         tools_menu.addAction(settings_action)
+
+        tools_menu.addSeparator()
+
+        # NEW: XLSX to CSV converter
+        xlsx_converter_action = QAction(tr("📊 Converter XLSX para CSV..."), self)
+        xlsx_converter_action.setToolTip(tr("Converte arquivos Excel para CSV"))
+        xlsx_converter_action.triggered.connect(self._show_xlsx_converter)
+        tools_menu.addAction(xlsx_converter_action)
 
         # Help Menu
         help_menu = menubar.addMenu(tr("❓ &Ajuda"))
@@ -1415,6 +1492,140 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         logger.info("application_closing")
         event.accept()
+
+    # =========================================================================
+    # NEW METHODS - CUSTOM FUNCTIONALITY
+    # =========================================================================
+
+    @pyqtSlot()
+    def _redock_all_panels(self):
+        """Re-dock all detached (floating) panels"""
+        count = self.detached_manager.get_detached_count()
+        if count == 0:
+            QMessageBox.information(
+                self,
+                tr("Re-dock"),
+                tr("Nenhum painel destacado encontrado.")
+            )
+            return
+        
+        # Re-dock all panels
+        self.detached_manager.redock_all()
+        
+        # Update status
+        self.status_label.setText(f"✅ {count} painéis re-docados")
+        if self.activity_log_panel:
+            self.activity_log_panel.log_success(f"{count} painéis re-docados")
+        
+        logger.info("panels_redocked", count=count)
+
+    @pyqtSlot()
+    def _show_xlsx_converter(self):
+        """Show XLSX to CSV converter dialog"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLabel, QLineEdit
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle(tr("Converter XLSX para CSV"))
+        dialog.setMinimumWidth(500)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Info label
+        info_label = QLabel(tr(
+            "<h3>Conversor XLSX → CSV</h3>"
+            "<p>Selecione um arquivo Excel (.xlsx) para converter em CSV.</p>"
+        ))
+        info_label.setTextFormat(Qt.TextFormat.RichText)
+        layout.addWidget(info_label)
+        
+        # File selection
+        file_layout = QHBoxLayout()
+        self._xlsx_file_edit = QLineEdit()
+        self._xlsx_file_edit.setPlaceholderText(tr("Selecione arquivo XLSX..."))
+        file_layout.addWidget(self._xlsx_file_edit)
+        
+        browse_btn = QPushButton(tr("📂 Procurar"))
+        browse_btn.clicked.connect(lambda: self._browse_xlsx_file(dialog))
+        file_layout.addWidget(browse_btn)
+        layout.addLayout(file_layout)
+        
+        # Convert button
+        convert_btn = QPushButton(tr("🔄 Converter"))
+        convert_btn.clicked.connect(lambda: self._convert_xlsx_file(dialog))
+        layout.addWidget(convert_btn)
+        
+        # Close button
+        close_btn = QPushButton(tr("Fechar"))
+        close_btn.clicked.connect(dialog.close)
+        layout.addWidget(close_btn)
+        
+        dialog.exec()
+
+    def _browse_xlsx_file(self, dialog):
+        """Browse for XLSX file"""
+        filepath, _ = QFileDialog.getOpenFileName(
+            dialog,
+            tr("Selecionar Arquivo XLSX"),
+            str(Path.home()),
+            tr("Arquivos Excel (*.xlsx);;Todos os Arquivos (*)")
+        )
+        if filepath:
+            self._xlsx_file_edit.setText(filepath)
+
+    def _convert_xlsx_file(self, dialog):
+        """Convert XLSX file to CSV"""
+        xlsx_path = self._xlsx_file_edit.text()
+        
+        if not xlsx_path or not Path(xlsx_path).exists():
+            QMessageBox.warning(
+                dialog,
+                tr("Erro"),
+                tr("Por favor selecione um arquivo XLSX válido.")
+            )
+            return
+        
+        # Perform conversion
+        from platform_base.utils.xlsx_to_csv import XlsxToCsvConverter
+        
+        converter = XlsxToCsvConverter()
+        
+        # Connect signals
+        def on_progress(progress, message):
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(progress)
+            self.status_label.setText(message)
+            if self.activity_log_panel:
+                self.activity_log_panel.log_info(message)
+        
+        def on_completed(csv_path):
+            self.progress_bar.setVisible(False)
+            self.status_label.setText("✅ Conversão concluída")
+            if self.activity_log_panel:
+                self.activity_log_panel.log_success(f"Arquivo convertido: {csv_path}")
+            QMessageBox.information(
+                dialog,
+                tr("Sucesso"),
+                f"Arquivo convertido com sucesso:\n{csv_path}"
+            )
+            dialog.close()
+        
+        def on_failed(error):
+            self.progress_bar.setVisible(False)
+            self.status_label.setText("❌ Conversão falhou")
+            if self.activity_log_panel:
+                self.activity_log_panel.log_error(f"Conversão falhou: {error}")
+            QMessageBox.critical(
+                dialog,
+                tr("Erro"),
+                f"Erro na conversão:\n{error}"
+            )
+        
+        converter.progress_updated.connect(on_progress)
+        converter.conversion_completed.connect(on_completed)
+        converter.conversion_failed.connect(on_failed)
+        
+        # Start conversion
+        converter.convert(xlsx_path)
 
 
 # Alias para compatibilidade
