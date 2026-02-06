@@ -537,9 +537,20 @@ class EnhancedVizPanel(QWidget):
                             counter = 1
                             while sheet_name in used_sheet_names:
                                 # Add suffix to avoid collision
+                                # Limit counter to prevent excessively long suffixes
+                                if counter > 99:
+                                    # If we've tried 99 variations, use a hash
+                                    import hashlib
+                                    hash_suffix = hashlib.sha256(series_id.encode()).hexdigest()[:6]
+                                    sheet_name = f"{series_id[:24]}_{hash_suffix}"
+                                    break
                                 suffix = f"_{counter}"
                                 max_base_len = 31 - len(suffix)
-                                sheet_name = f"{series_id[:max_base_len]}{suffix}"
+                                if max_base_len > 0:
+                                    sheet_name = f"{series_id[:max_base_len]}{suffix}"
+                                else:
+                                    # Suffix is too long, use minimal base
+                                    sheet_name = f"S{suffix}"
                                 counter += 1
                             
                             used_sheet_names.add(sheet_name)

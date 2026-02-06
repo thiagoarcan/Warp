@@ -1605,8 +1605,17 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             )
             return
             
+        # Check if file exists and is readable
+        if not path.is_file():
+            QMessageBox.warning(
+                dialog,
+                tr("Erro"),
+                tr("O arquivo selecionado não é um arquivo válido.")
+            )
+            return
+            
         # Check read permissions
-        if not path.is_file() or not (path.stat().st_mode & 0o400):
+        if not (path.stat().st_mode & 0o400):
             QMessageBox.warning(
                 dialog,
                 tr("Erro"),
