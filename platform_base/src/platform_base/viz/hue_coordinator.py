@@ -4,7 +4,6 @@ Original implementation for Platform Base v2.0
 """
 
 from typing import Dict, List, Optional, Tuple
-import hashlib
 
 
 class HueCoordinator:
@@ -44,11 +43,11 @@ class HueCoordinator:
         
         if not available_hues:
             # Generate deterministic color from hash if pool exhausted
-            hash_obj = hashlib.md5(series_identifier.encode())
-            hex_digest = hash_obj.hexdigest()
-            r = int(hex_digest[0:2], 16)
-            g = int(hex_digest[2:4], 16)
-            b = int(hex_digest[4:6], 16)
+            # Use built-in hash for better performance and no security concerns
+            hash_val = hash(series_identifier) & 0xFFFFFF  # 24-bit color
+            r = (hash_val >> 16) & 0xFF
+            g = (hash_val >> 8) & 0xFF
+            b = hash_val & 0xFF
             hue_code = f"#{r:02X}{g:02X}{b:02X}"
         else:
             hue_code = available_hues[self._next_hue_idx % len(available_hues)]

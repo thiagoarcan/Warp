@@ -239,7 +239,7 @@ class ConfigManager:
             content = source.path.read_text(encoding="utf-8")
 
             # Calculate checksum
-            new_checksum = hashlib.md5(content.encode()).hexdigest()
+            new_checksum = hashlib.sha256(content.encode()).hexdigest()
 
             # Skip if unchanged
             if source.checksum == new_checksum:

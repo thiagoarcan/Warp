@@ -258,8 +258,8 @@ class TelemetryManager:
         Returns:
             Session ID
         """
-        self._session_id = hashlib.md5(
-            f"{time.time()}-{id(self)}".encode(), usedforsecurity=False
+        self._session_id = hashlib.sha256(
+            f"{time.time()}-{id(self)}".encode()
         ).hexdigest()[:16]
         self._session_start = datetime.now()
 
@@ -399,7 +399,7 @@ class TelemetryManager:
             **extra: Additional data
         """
         # Hash error message for anonymity
-        message_hash = hashlib.md5(error_message.encode(), usedforsecurity=False).hexdigest()[:8]
+        message_hash = hashlib.sha256(error_message.encode()).hexdigest()[:8]
 
         self.track_event(
             TelemetryEventType.ERROR_OCCURRED,

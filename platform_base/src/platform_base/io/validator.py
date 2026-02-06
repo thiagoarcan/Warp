@@ -121,8 +121,8 @@ class FileIntegrityInfo:
     """File integrity information."""
     path: Path
     size_bytes: int
-    checksum_md5: str
-    checksum_sha256: str | None = None
+    checksum_sha256: str
+    checksum_md5: str | None = None  # Kept for backward compatibility
     is_truncated: bool = False
     encoding: str = "unknown"
     encoding_confidence: float = 0.0
@@ -132,8 +132,8 @@ class FileIntegrityInfo:
         return {
             'path': str(self.path),
             'size_bytes': self.size_bytes,
-            'checksum_md5': self.checksum_md5,
             'checksum_sha256': self.checksum_sha256,
+            'checksum_md5': self.checksum_md5,
             'is_truncated': self.is_truncated,
             'encoding': self.encoding,
             'encoding_confidence': self.encoding_confidence,
@@ -264,13 +264,13 @@ def validate_values(
     )
 
 
-def calculate_checksum(file_path: str | Path, algorithm: str = "md5") -> str:
+def calculate_checksum(file_path: str | Path, algorithm: str = "sha256") -> str:
     """
     Calculate file checksum.
     
     Args:
         file_path: Path to file
-        algorithm: Hash algorithm (md5, sha256)
+        algorithm: Hash algorithm (sha256, md5)
     
     Returns:
         Hex digest of checksum
@@ -365,8 +365,8 @@ def check_file_integrity(file_path: str | Path) -> FileIntegrityInfo:
         raise FileNotFoundError(f"File not found: {path}")
 
     # Calculate checksums
-    md5_checksum = calculate_checksum(path, "md5")
     sha256_checksum = calculate_checksum(path, "sha256")
+    md5_checksum = calculate_checksum(path, "md5")  # Kept for backward compatibility
 
     # Detect encoding
     encoding, confidence = detect_encoding(path)
@@ -377,8 +377,8 @@ def check_file_integrity(file_path: str | Path) -> FileIntegrityInfo:
     return FileIntegrityInfo(
         path=path,
         size_bytes=path.stat().st_size,
-        checksum_md5=md5_checksum,
         checksum_sha256=sha256_checksum,
+        checksum_md5=md5_checksum,
         is_truncated=is_truncated,
         encoding=encoding,
         encoding_confidence=confidence,
