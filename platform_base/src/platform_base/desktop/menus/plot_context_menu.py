@@ -28,14 +28,14 @@ from PyQt6.QtWidgets import (
     QSpinBox,
     QVBoxLayout,
     QWidget,
-
-# Small constant to avoid division by zero and comparison with near-zero values
-EPSILON = 1e-10
 )
 
 from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
+# Small constant to avoid division by zero and comparison with near-zero values
+EPSILON = 1e-10
 
 if TYPE_CHECKING:
     from platform_base.core.models import DatasetID, SeriesID
