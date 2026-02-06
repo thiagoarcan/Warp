@@ -1614,8 +1614,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             )
             return
             
-        # Check read permissions
-        if not (path.stat().st_mode & 0o400):
+        # Check read permissions using os.access for cross-platform compatibility
+        import os
+        if not os.access(path, os.R_OK):
             QMessageBox.warning(
                 dialog,
                 tr("Erro"),

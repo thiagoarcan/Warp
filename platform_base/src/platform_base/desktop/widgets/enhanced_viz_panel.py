@@ -6,6 +6,7 @@ Original implementation for Platform Base v2.0
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from pathlib import Path
+import hashlib
 
 import numpy as np
 import pandas as pd
@@ -540,17 +541,17 @@ class EnhancedVizPanel(QWidget):
                                 # Limit counter to prevent excessively long suffixes
                                 if counter > 99:
                                     # If we've tried 99 variations, use a hash
-                                    import hashlib
                                     hash_suffix = hashlib.sha256(series_id.encode()).hexdigest()[:6]
                                     sheet_name = f"{series_id[:24]}_{hash_suffix}"
                                     break
                                 suffix = f"_{counter}"
                                 max_base_len = 31 - len(suffix)
-                                if max_base_len > 0:
+                                # Ensure at least 3 characters from base name for meaningfulness
+                                if max_base_len >= 3:
                                     sheet_name = f"{series_id[:max_base_len]}{suffix}"
                                 else:
-                                    # Suffix is too long, use minimal base
-                                    sheet_name = f"S{suffix}"
+                                    # Suffix is too long, use minimal meaningful base
+                                    sheet_name = f"Ser{suffix}"
                                 counter += 1
                             
                             used_sheet_names.add(sheet_name)
