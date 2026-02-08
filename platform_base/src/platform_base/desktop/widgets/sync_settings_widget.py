@@ -14,13 +14,12 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
-    QFormLayout,
-    QLabel,
     QWidget,
 )
 
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState

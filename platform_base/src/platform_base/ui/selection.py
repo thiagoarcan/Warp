@@ -8,6 +8,8 @@ import numpy as np
 
 from platform_base.core.models import Dataset, TimeWindow, ViewData
 from platform_base.utils.logging import get_logger
+from platform_base.utils.safe_eval import safe_eval_threshold
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -470,7 +472,7 @@ class DataSelector:
                     # Left side deve estar vazio (operação unária) ou ser 'values'
                     if left in {"", "values"}:
                         try:
-                            threshold = float(eval(right, {"__builtins__": {}}, stats))
+                            threshold = safe_eval_threshold(right, stats)
                             if op == ">":
                                 return values > threshold
                             if op == "<":

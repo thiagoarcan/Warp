@@ -22,6 +22,7 @@ from platform_base.processing.calculus import (
 )
 from platform_base.utils.errors import CalculusError
 
+
 # ============================================
 # FIXTURES
 # ============================================

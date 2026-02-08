@@ -15,6 +15,7 @@ from platform_base.core.models import Lineage, Series
 from platform_base.desktop.workers.base_worker import BaseWorker
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 
@@ -154,7 +155,7 @@ class CalculusWorker(BaseWorker):
                     parts = self.operation.split("_")
                     if len(parts) > 1 and parts[1] and parts[1][0].isdigit():
                         order = int(parts[1][0])
-                        
+
                 result = calculate_derivative(
                     source_series.values,
                     dataset.t_seconds,
@@ -186,7 +187,7 @@ class CalculusWorker(BaseWorker):
                     "cutoff": self.parameters.get("cutoff", 0.1),
                 }
                 result_values = smooth(source_series.values, method, smooth_params)
-                
+
                 # Create result object similar to derivative/integral
                 from dataclasses import dataclass
                 @dataclass
@@ -195,7 +196,7 @@ class CalculusWorker(BaseWorker):
                     class Metadata:
                         duration_ms: float = 0.0
                     metadata = Metadata()
-                    
+
                 result = SmoothResult(values=result_values)
                 operation_name = f"smoothed ({method})"
                 unit_suffix = ""
@@ -204,7 +205,7 @@ class CalculusWorker(BaseWorker):
                 # Handle outlier removal
                 threshold = self.parameters.get("threshold", 3.0)
                 method = self.parameters.get("method", "zscore")
-                
+
                 values = source_series.values.copy()
                 if method == "zscore":
                     mean = np.nanmean(values)
@@ -213,7 +214,7 @@ class CalculusWorker(BaseWorker):
                         z_scores = np.abs((values - mean) / std)
                         outlier_mask = z_scores > threshold
                         values[outlier_mask] = np.nan
-                        
+
                 from dataclasses import dataclass
                 @dataclass
                 class OutlierResult:
@@ -221,7 +222,7 @@ class CalculusWorker(BaseWorker):
                     class Metadata:
                         duration_ms: float = 0.0
                     metadata = Metadata()
-                    
+
                 result = OutlierResult(values=values)
                 operation_name = "outliers removed"
                 unit_suffix = ""
@@ -385,41 +386,41 @@ class ProcessingWorkerManager:
                        dataset_id: str, series_id: str) -> str:
         """
         Start a processing operation (generic entry point).
-        
+
         Args:
             operation_type: Type of operation (derivative, integral, interpolation, etc.)
             params: Operation parameters
             dataset_id: Target dataset ID
             series_id: Target series ID
-            
+
         Returns:
             operation_id: Unique ID for tracking the operation
         """
         self._operation_counter += 1
         operation_id = f"op_{self._operation_counter}_{operation_type}"
-        
+
         # Map operation type to appropriate worker
         if operation_type == "interpolation":
             method = params.get("method", "linear")
             self.start_interpolation(operation_id, dataset_id, series_id, method, params)
-            
+
         elif operation_type in ("derivative", "derivative_1st", "derivative_2nd", "derivative_3rd"):
             self.start_calculus(operation_id, dataset_id, series_id, operation_type, params)
-            
+
         elif operation_type in ("integral", "area", "area_under_curve"):
             self.start_calculus(operation_id, dataset_id, series_id, "integral", params)
-            
+
         elif operation_type in ("smoothing", "smooth", "filter"):
             # Smoothing is handled by calculus worker
             self.start_calculus(operation_id, dataset_id, series_id, "smoothing", params)
-            
+
         elif operation_type == "remove_outliers":
             self.start_calculus(operation_id, dataset_id, series_id, "remove_outliers", params)
-            
+
         else:
             logger.warning("unknown_operation_type", operation_type=operation_type)
             raise ValueError(f"Unknown operation type: {operation_type}")
-            
+
         return operation_id
 
     def start_interpolation(self, operation_id: str, dataset_id: str,

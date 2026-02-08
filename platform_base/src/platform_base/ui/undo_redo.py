@@ -19,6 +19,7 @@ from PyQt6.QtGui import QUndoCommand, QUndoStack
 
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 

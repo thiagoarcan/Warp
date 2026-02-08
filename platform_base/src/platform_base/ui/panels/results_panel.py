@@ -17,16 +17,12 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
     QFrame,
-    QGridLayout,
     QHBoxLayout,
     QLabel,
-    QPushButton,
-    QScrollArea,
     QSizePolicy,
-    QSplitter,
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
@@ -37,6 +33,7 @@ from PyQt6.QtWidgets import (
 
 from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -132,8 +129,8 @@ class StatCard(QFrame):
                 border-radius: 8px;
             }
             QFrame#statCard:hover {
-                border-color: #0d6efd;
-                box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+                border: 2px solid #0d6efd;
+                background-color: #f8f9ff;
             }
         """)
         self.setFixedHeight(100)
@@ -252,7 +249,7 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         self._details_text = self.findChild(QTextEdit, "details_text")
         self._tabs = self.findChild(QTabWidget, "tabs")
         self._cards_container = self.findChild(QWidget, "cards_container")
-        
+
         # Inicializa widgets se não encontrados
         if self._series_info is None:
             self._series_info = QLabel("Nenhuma série selecionada")
@@ -265,68 +262,68 @@ class ResultsPanel(QWidget, UiLoaderMixin):
 
     def update_distribution(self, values: np.ndarray):
         """Atualiza o histograma e estatísticas de distribuição.
-        
+
         Args:
             values: Array de valores para análise de distribuição.
         """
-        if not hasattr(self, '_hist_plot') or self._hist_plot is None:
+        if not hasattr(self, "_hist_plot") or self._hist_plot is None:
             return
-            
+
         try:
             import pyqtgraph as pg
             from scipy import stats as scipy_stats
 
             # Filter out NaN values
             clean_values = values[~np.isnan(values)]
-            
+
             if len(clean_values) == 0:
                 return
-            
+
             # Clear previous plot
             self._hist_plot.clear()
-            
+
             # Calculate histogram
             n_bins = min(50, max(10, int(np.sqrt(len(clean_values)))))
             hist, bins = np.histogram(clean_values, bins=n_bins)
-            
+
             # Create bar graph for histogram
             bin_centers = (bins[:-1] + bins[1:]) / 2
             bar_width = bins[1] - bins[0]
-            
+
             bar_item = pg.BarGraphItem(
                 x=bin_centers,
                 height=hist,
                 width=bar_width * 0.9,
                 brush=pg.mkBrush(100, 150, 255, 180),
-                pen=pg.mkPen(color=(50, 100, 200), width=1)
+                pen=pg.mkPen(color=(50, 100, 200), width=1),
             )
             self._hist_plot.addItem(bar_item)
-            
+
             # Add mean line
             mean_val = np.mean(clean_values)
             mean_line = pg.InfiniteLine(
                 pos=mean_val,
                 angle=90,
-                pen=pg.mkPen(color='r', width=2, style=2),  # Dashed red
-                label=f'Média: {mean_val:.2f}'
+                pen=pg.mkPen(color="r", width=2, style=2),  # Dashed red
+                label=f"Média: {mean_val:.2f}",
             )
             self._hist_plot.addItem(mean_line)
-            
+
             # Add median line
             median_val = np.median(clean_values)
             median_line = pg.InfiniteLine(
                 pos=median_val,
                 angle=90,
-                pen=pg.mkPen(color='g', width=2, style=3),  # Dot-dash green
-                label=f'Mediana: {median_val:.2f}'
+                pen=pg.mkPen(color="g", width=2, style=3),  # Dot-dash green
+                label=f"Mediana: {median_val:.2f}",
             )
             self._hist_plot.addItem(median_line)
-            
+
             # Update distribution statistics
             q1 = np.percentile(clean_values, 25)
             q3 = np.percentile(clean_values, 75)
             iqr = q3 - q1
-            
+
             # Calculate skewness and kurtosis
             try:
                 skewness = scipy_stats.skew(clean_values)
@@ -334,26 +331,26 @@ class ResultsPanel(QWidget, UiLoaderMixin):
             except Exception:
                 skewness = 0.0
                 kurtosis = 0.0
-            
+
             # Update labels
-            if hasattr(self, '_dist_labels') and self._dist_labels:
-                self._dist_labels['min'].setText(f"{np.min(clean_values):.4g}")
-                self._dist_labels['max'].setText(f"{np.max(clean_values):.4g}")
-                self._dist_labels['q1'].setText(f"{q1:.4g}")
-                self._dist_labels['median'].setText(f"{median_val:.4g}")
-                self._dist_labels['q3'].setText(f"{q3:.4g}")
-                self._dist_labels['iqr'].setText(f"{iqr:.4g}")
-                self._dist_labels['skewness'].setText(f"{skewness:.4f}")
-                self._dist_labels['kurtosis'].setText(f"{kurtosis:.4f}")
-            
+            if hasattr(self, "_dist_labels") and self._dist_labels:
+                self._dist_labels["min"].setText(f"{np.min(clean_values):.4g}")
+                self._dist_labels["max"].setText(f"{np.max(clean_values):.4g}")
+                self._dist_labels["q1"].setText(f"{q1:.4g}")
+                self._dist_labels["median"].setText(f"{median_val:.4g}")
+                self._dist_labels["q3"].setText(f"{q3:.4g}")
+                self._dist_labels["iqr"].setText(f"{iqr:.4g}")
+                self._dist_labels["skewness"].setText(f"{skewness:.4f}")
+                self._dist_labels["kurtosis"].setText(f"{kurtosis:.4f}")
+
             # Hide info label
-            if hasattr(self, '_dist_info'):
+            if hasattr(self, "_dist_info"):
                 self._dist_info.setVisible(False)
-            if hasattr(self, '_dist_stats_widget'):
+            if hasattr(self, "_dist_stats_widget"):
                 self._dist_stats_widget.setVisible(True)
-                
+
             logger.debug("distribution_updated", n_values=len(clean_values), n_bins=n_bins)
-            
+
         except Exception as e:
             logger.warning(f"distribution_update_failed: {e}")
 
@@ -512,9 +509,9 @@ class ResultsPanel(QWidget, UiLoaderMixin):
 
 # Export para uso em outros módulos
 __all__ = [
+    "ComparisonResult",
     "ResultsPanel",
     "StatCard",
     "StatisticsResult",
     "StatisticsTable",
-    "ComparisonResult",
 ]

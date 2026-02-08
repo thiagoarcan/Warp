@@ -16,19 +16,14 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
     QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QProgressBar,
     QPushButton,
     QSlider,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -40,6 +35,7 @@ from platform_base.viz.streaming import (
     StreamingState,
     TickUpdate,
 )
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -60,7 +56,7 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
     - Speed control
     - Window size control
     - Filtros de qualidade
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -89,7 +85,7 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._setup_connections()
         logger.debug("streaming_control_widget_initialized", ui_loaded=self._ui_loaded)
 
@@ -99,27 +95,27 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
         self.play_pause_btn = self.findChild(QPushButton, "playPauseBtn")
         self.stop_btn = self.findChild(QPushButton, "stopBtn")
         self.loop_checkbox = self.findChild(QCheckBox, "loopCheckbox")
-        
+
         # Time controls
         self.time_label_start = self.findChild(QLabel, "timeLabelStart")
         self.time_slider = self.findChild(QSlider, "timeSlider")
         self.time_label_end = self.findChild(QLabel, "timeLabelEnd")
         self.current_time_label = self.findChild(QLabel, "currentTimeLabel")
         self.progress_bar = self.findChild(QProgressBar, "progressBar")
-        
+
         # Settings controls
         self.speed_spinbox = self.findChild(QDoubleSpinBox, "speedSpinbox")
         self.window_size_spinbox = self.findChild(QSpinBox, "windowSizeSpinbox")
         self.interval_spinbox = self.findChild(QSpinBox, "intervalSpinbox")
         self.hide_nan_checkbox = self.findChild(QCheckBox, "hideNanCheckbox")
         self.hide_interpolated_checkbox = self.findChild(QCheckBox, "hideInterpolatedCheckbox")
-        
+
         # Status labels
         self.total_points_label = self.findChild(QLabel, "totalPointsLabel")
         self.eligible_points_label = self.findChild(QLabel, "eligiblePointsLabel")
         self.window_points_label = self.findChild(QLabel, "windowPointsLabel")
         self.fps_label = self.findChild(QLabel, "fpsLabel")
-        
+
         # Validação de widgets essenciais
         self._validate_widgets()
 
@@ -143,13 +139,13 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
             "windowPointsLabel": self.window_points_label,
             "fpsLabel": self.fps_label,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
-        
+
         if missing:
             raise RuntimeError(
                 f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
-                f"Verifique se {self.UI_FILE} está completo."
+                f"Verifique se {self.UI_FILE} está completo.",
             )
 
     def _setup_connections(self):
@@ -158,15 +154,15 @@ class StreamingControlWidget(QWidget, UiLoaderMixin):
         self.play_pause_btn.clicked.connect(self._toggle_playback)
         self.stop_btn.clicked.connect(self._stop_playback)
         self.loop_checkbox.stateChanged.connect(self._on_loop_changed)
-        
+
         # Time controls
         self.time_slider.valueChanged.connect(self._on_slider_changed)
-        
+
         # Settings controls
         self.speed_spinbox.valueChanged.connect(self._on_speed_changed)
         self.window_size_spinbox.valueChanged.connect(self._on_window_size_changed)
         self.interval_spinbox.valueChanged.connect(self._on_interval_changed)
-        
+
         # Filter controls
         self.hide_nan_checkbox.stateChanged.connect(self._on_filters_changed)
         if self.hide_interpolated_checkbox:
@@ -469,7 +465,7 @@ def get_window_presets() -> dict[str, float]:
 class StreamingControls(QWidget, UiLoaderMixin):
     """
     Simplified streaming controls widget.
-    
+
     Provides basic play/pause/stop functionality and timeline control.
     For more advanced features, use StreamingControlWidget.
     Interface carregada do arquivo .ui via UiLoaderMixin.
@@ -503,7 +499,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         logger.debug("streaming_controls_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
@@ -512,16 +508,16 @@ class StreamingControls(QWidget, UiLoaderMixin):
         self.play_btn = self.findChild(QPushButton, "playBtn")
         self.pause_btn = self.findChild(QPushButton, "pauseBtn")
         self.stop_btn = self.findChild(QPushButton, "stopBtn")
-        
+
         # Timeline
         self.timeline = self.findChild(QSlider, "timeline")
         self.position_label = self.findChild(QLabel, "positionLabel")
         self.duration_label = self.findChild(QLabel, "durationLabel")
-        
+
         # Speed and window controls
         self.speed_spinbox = self.findChild(QDoubleSpinBox, "speedSpinbox")
         self.window_spinbox = self.findChild(QDoubleSpinBox, "windowSpinbox")
-        
+
         # Conecta sinais
         if self.play_btn:
             self.play_btn.clicked.connect(self.play)
@@ -618,7 +614,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def seek(self, position: float):
         """
         Seek to a specific position.
-        
+
         Args:
             position: Position in seconds
         """
@@ -634,7 +630,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def set_duration(self, duration: float):
         """
         Set total duration.
-        
+
         Args:
             duration: Duration in seconds
         """
@@ -649,7 +645,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def set_speed(self, speed: float):
         """
         Set playback speed.
-        
+
         Args:
             speed: Speed multiplier (1.0 = normal)
         """
@@ -667,7 +663,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def set_window_size(self, size: float):
         """
         Set visualization window size.
-        
+
         Args:
             size: Window size in seconds
         """
@@ -685,7 +681,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def step_forward(self, step: float = 1.0):
         """
         Step forward by given amount.
-        
+
         Args:
             step: Step size in seconds
         """
@@ -694,7 +690,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def step_backward(self, step: float = 1.0):
         """
         Step backward by given amount.
-        
+
         Args:
             step: Step size in seconds
         """
@@ -703,7 +699,7 @@ class StreamingControls(QWidget, UiLoaderMixin):
     def set_range(self, start: float, end: float):
         """
         Set playback range.
-        
+
         Args:
             start: Start position in seconds
             end: End position in seconds

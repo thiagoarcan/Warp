@@ -18,18 +18,9 @@ from typing import Any
 
 from PyQt6.QtCore import QSettings, pyqtSignal
 from PyQt6.QtWidgets import (
-    QCheckBox,
     QColorDialog,
-    QComboBox,
-    QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
     QPushButton,
-    QSpinBox,
     QTabWidget,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -93,7 +84,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         config_changed: Emitido quando qualquer configuração muda
         theme_changed: Emitido quando tema muda
         performance_changed: Emitido quando config de performance muda
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -114,7 +105,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._load_settings()
         self._connect_signals()
 
@@ -122,11 +113,11 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         # Tabs principais
         self.tabs = self.findChild(QTabWidget, "configTabs")
-        
+
         # Botões de ação
         reset_btn = self.findChild(QPushButton, "resetBtn")
         apply_btn = self.findChild(QPushButton, "applyBtn")
-        
+
         if reset_btn:
             reset_btn.clicked.connect(self._reset_defaults)
         if apply_btn:

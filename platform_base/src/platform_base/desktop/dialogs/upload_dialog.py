@@ -12,26 +12,22 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from PyQt6.QtCore import pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
     QFileDialog,
-    QFormLayout,
     QGroupBox,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QMessageBox,
+    QPlainTextEdit,
     QProgressBar,
     QPushButton,
     QSpinBox,
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
-    QTextEdit,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -39,6 +35,7 @@ from platform_base.desktop.workers.base_worker import BaseWorker
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -195,10 +192,10 @@ class UploadDialog(QDialog, UiLoaderMixin):
     - Data preview
     - Progress indication
     - Error handling
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "uploadDialog.ui"
 
@@ -240,44 +237,49 @@ class UploadDialog(QDialog, UiLoaderMixin):
         self.browse_multi_btn = self.findChild(QPushButton, "browseMultiBtn")
         self.files_list_label = self.findChild(QLabel, "filesListLabel")
         self.format_label = self.findChild(QLabel, "formatLabel")
-        
+
         self.tabs = self.findChild(QTabWidget, "tabs")
-        
+
         # Configuration widgets
         self.encoding_combo = self.findChild(QComboBox, "encodingCombo")
         self.delimiter_combo = self.findChild(QComboBox, "delimiterCombo")
         self.timestamp_combo = self.findChild(QComboBox, "timestampCombo")
         self.sheet_combo = self.findChild(QComboBox, "sheetCombo")
         self.hdf5_key_combo = self.findChild(QComboBox, "hdf5KeyCombo")
-        
+        self.skip_rows_spin = self.findChild(QSpinBox, "skipRowsSpin")
+        self.chunk_check = self.findChild(QCheckBox, "chunkCheck")
+        self.chunk_size_spin = self.findChild(QSpinBox, "chunkSizeSpin")
+
         # Excel and HDF5 groups
         self.excel_group = self.findChild(QGroupBox, "excelGroup")
         self.hdf5_group = self.findChild(QGroupBox, "hdf5Group")
-        
+
         # Preview widgets
         self.preview_table = self.findChild(QTableWidget, "previewTable")
         self.preview_info_label = self.findChild(QLabel, "previewInfoLabel")
-        
+        self.preview_info = self.findChild(QPlainTextEdit, "previewInfo")
+
         # Progress widgets
         self.progress_bar = self.findChild(QProgressBar, "progressBar")
         self.status_label = self.findChild(QLabel, "statusLabel")
         self.loaded_files_label = self.findChild(QLabel, "loadedFilesLabel")
-        
+
         # Buttons
         self.preview_btn = self.findChild(QPushButton, "previewBtn")
+        self.refresh_preview_btn = self.findChild(QPushButton, "refreshPreviewBtn")
         self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
         self.load_all_btn = self.findChild(QPushButton, "loadAllBtn")
         self.load_btn = self.findChild(QPushButton, "loadBtn")
-        
+
         # Inicializa o contador de arquivos carregados
         self.loaded_count = 0
-        
+
         # Oculta grupos específicos de formato inicialmente
         if self.excel_group:
             self.excel_group.setVisible(False)
         if self.hdf5_group:
             self.hdf5_group.setVisible(False)
-        
+
         logger.debug("upload_dialog_ui_loaded_from_file")
 
     def _connect_signals(self):
@@ -468,7 +470,7 @@ class UploadDialog(QDialog, UiLoaderMixin):
             "timestamp_column": self.timestamp_combo.currentData(),
             "skip_rows": self.skip_rows_spin.value(),
             "sheet_name": self.sheet_combo.currentText() if self.sheet_combo.count() > 0 else 0,
-            "hdf5_key": self.hdf5_key_edit.text() if self.hdf5_key_edit.text() else None,
+            "hdf5_key": self.hdf5_key_combo.currentText() if self.hdf5_key_combo.currentText() else None,
             "chunk_size": self.chunk_size_spin.value() if self.chunk_check.isChecked() else None,
         }
 

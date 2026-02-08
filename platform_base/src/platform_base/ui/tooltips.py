@@ -20,10 +20,10 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer
 from PyQt6.QtGui import QEnterEvent
-from PyQt6.QtWidgets import QApplication, QLabel, QToolTip, QWidget
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget
 
-from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.ui.shortcuts import ShortcutManager
@@ -251,7 +251,7 @@ TOOLTIPS: dict[str, dict[str, str]] = {
 class TooltipManager:
     """
     Manages tooltips for the application.
-    
+
     Provides:
     - Automatic tooltip application
     - Shortcut hints
@@ -284,10 +284,10 @@ class TooltipManager:
     def get_tooltip(self, widget_id: str) -> str:
         """
         Get formatted tooltip for a widget.
-        
+
         Args:
             widget_id: Widget identifier
-            
+
         Returns:
             Formatted tooltip string
         """
@@ -315,7 +315,7 @@ class TooltipManager:
     def apply_tooltip(self, widget: QWidget, widget_id: str):
         """
         Apply tooltip to a widget.
-        
+
         Args:
             widget: Widget to apply tooltip to
             widget_id: Widget identifier for tooltip lookup
@@ -327,7 +327,7 @@ class TooltipManager:
     def apply_all_tooltips(self, parent: QWidget, mappings: dict[str, QWidget]):
         """
         Apply tooltips to multiple widgets.
-        
+
         Args:
             parent: Parent widget (for context)
             mappings: Dict of widget_id -> widget
@@ -338,7 +338,7 @@ class TooltipManager:
     def register_tooltip(self, widget_id: str, tooltip: str, shortcut: str | None = None):
         """
         Register a custom tooltip.
-        
+
         Args:
             widget_id: Widget identifier
             tooltip: Tooltip text
@@ -359,7 +359,7 @@ class TooltipManager:
 class RichTooltip(QLabel):
     """
     Rich tooltip widget with extended features.
-    
+
     Supports:
     - HTML content
     - Images
@@ -401,7 +401,7 @@ class RichTooltip(QLabel):
     ):
         """
         Show tooltip with delay.
-        
+
         Args:
             text: Tooltip text (can be HTML)
             pos: Global position to show at
@@ -441,14 +441,12 @@ class RichTooltip(QLabel):
         # Adjust horizontal
         if x + self.width() > screen_rect.right():
             x = screen_rect.right() - self.width()
-        if x < screen_rect.left():
-            x = screen_rect.left()
+        x = max(x, screen_rect.left())
 
         # Adjust vertical
         if y + self.height() > screen_rect.bottom():
             y = pos.y() - self.height() - 5  # Show above cursor
-        if y < screen_rect.top():
-            y = screen_rect.top()
+        y = max(y, screen_rect.top())
 
         return QPoint(x, y)
 
@@ -462,7 +460,7 @@ class RichTooltip(QLabel):
 class TooltipEventFilter(QObject):
     """
     Event filter for automatic tooltip management.
-    
+
     Installs on parent widget to handle tooltip events
     for all child widgets.
     """
@@ -509,9 +507,9 @@ class TooltipEventFilter(QObject):
 def apply_standard_tooltips(window: QWidget):
     """
     Apply standard tooltips to a main window.
-    
+
     Finds widgets by object name and applies appropriate tooltips.
-    
+
     Args:
         window: Main window widget
     """
@@ -532,8 +530,8 @@ def get_tooltip_manager() -> TooltipManager:
 
 
 __all__ = [
-    "RichTooltip",
     "TOOLTIPS",
+    "RichTooltip",
     "TooltipConfig",
     "TooltipEventFilter",
     "TooltipManager",

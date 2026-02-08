@@ -7,6 +7,7 @@ from the desktop module.
 
 from platform_base.desktop.signal_hub import SignalHub
 
+
 __all__ = [
     "SignalHub",
 ]

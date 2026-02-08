@@ -16,6 +16,7 @@ from platform_base.analytics.telemetry import (
     track_operation,
 )
 
+
 __all__ = [
     "TelemetryConfig",
     "TelemetryEvent",
@@ -23,7 +24,7 @@ __all__ = [
     "TelemetryManager",
     "TelemetryStats",
     "get_telemetry_manager",
+    "track_error",
     "track_feature",
     "track_operation",
-    "track_error",
 ]

@@ -36,10 +36,20 @@ env/
 .dash_cache/
 .test_cache/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.cache/
+.benchmarks/
 
 # Testing
 .coverage
 htmlcov/
+
+# Profiling
+*.prof
+test_profiling/
+profiling_reports/
 
 # OS
 .DS_Store

@@ -14,6 +14,7 @@ import pytest
 
 from platform_base.processing.smoothing import smooth
 
+
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -66,7 +67,7 @@ class TestSavitzkyGolaySmoothing:
         """Savitzky-Golay reduz variância do ruído."""
         _, y = noisy_sine
         result = smooth(y, "savitzky_golay", {"window_length": 21, "polyorder": 3})
-        
+
         # Variância do resultado deve ser menor que do original
         assert np.var(result) < np.var(y)
 
@@ -74,33 +75,33 @@ class TestSavitzkyGolaySmoothing:
         """Savitzky-Golay preserva forma geral do sinal."""
         t, y = noisy_sine
         result = smooth(y, "savitzky_golay", {"window_length": 11, "polyorder": 3})
-        
+
         # Correlação com seno puro deve aumentar
         pure_sine = np.sin(t)
         original_corr = np.corrcoef(y, pure_sine)[0, 1]
         result_corr = np.corrcoef(result, pure_sine)[0, 1]
-        
+
         assert result_corr > original_corr
 
     def test_savgol_with_different_window_sizes(self, noisy_sine):
         """Savitzky-Golay funciona com diferentes tamanhos de janela."""
         _, y = noisy_sine
-        
+
         for window_length in [5, 11, 21, 31]:
             result = smooth(y, "savitzky_golay", {
-                "window_length": window_length, 
-                "polyorder": 2
+                "window_length": window_length,
+                "polyorder": 2,
             })
             assert len(result) == len(y)
 
     def test_savgol_with_different_orders(self, noisy_sine):
         """Savitzky-Golay funciona com diferentes ordens de polinômio."""
         _, y = noisy_sine
-        
+
         for polyorder in [1, 2, 3, 4]:
             result = smooth(y, "savitzky_golay", {
-                "window_length": 11, 
-                "polyorder": polyorder
+                "window_length": 11,
+                "polyorder": polyorder,
             })
             assert len(result) == len(y)
 
@@ -128,24 +129,24 @@ class TestGaussianSmoothing:
         """Gaussian reduz variância do ruído."""
         _, y = noisy_sine
         result = smooth(y, "gaussian", {"sigma": 3.0})
-        
+
         # Diferenças entre pontos consecutivos devem ser menores
         original_diff_var = np.var(np.diff(y))
         result_diff_var = np.var(np.diff(result))
-        
+
         assert result_diff_var < original_diff_var
 
     def test_gaussian_higher_sigma_more_smooth(self, noisy_sine):
         """Maior sigma produz mais suavização."""
         _, y = noisy_sine
-        
+
         result_1 = smooth(y, "gaussian", {"sigma": 1.0})
         result_5 = smooth(y, "gaussian", {"sigma": 5.0})
-        
+
         # Com sigma maior, a variância das diferenças é menor
         diff_var_1 = np.var(np.diff(result_1))
         diff_var_5 = np.var(np.diff(result_5))
-        
+
         assert diff_var_5 < diff_var_1
 
     def test_gaussian_default_sigma(self, noisy_sine):
@@ -170,14 +171,14 @@ class TestMedianFilter:
     def test_median_removes_outliers(self, impulse_signal):
         """Median filter remove outliers/picos."""
         result = smooth(impulse_signal, "median", {"kernel_size": 5})
-        
+
         # O valor máximo absoluto deve ser menor após filtrar
         assert np.max(np.abs(result)) < np.max(np.abs(impulse_signal))
 
     def test_median_preserves_step(self, step_signal):
         """Median filter preserva edges de step function."""
         result = smooth(step_signal, "median", {"kernel_size": 3})
-        
+
         # Após o transiente, deve manter ~1.0 no meio
         assert np.mean(result[30:70]) > 0.9
 
@@ -210,25 +211,25 @@ class TestLowpassFilter:
         """Lowpass filter remove alta frequência."""
         np.random.seed(42)
         t = np.linspace(0, 1, 1001)
-        
+
         # Sinal composto: baixa freq + alta freq
         low_freq = np.sin(2 * np.pi * 2 * t)  # 2 Hz
         high_freq = 0.5 * np.sin(2 * np.pi * 50 * t)  # 50 Hz
         signal = low_freq + high_freq
-        
+
         # Cutoff em 0.1 (freq normalizada) deve remover 50 Hz
         result = smooth(signal, "lowpass", {"cutoff": 0.1, "order": 3})
-        
+
         # O resultado deve estar mais próximo da componente de baixa frequência
         correlation_original = np.corrcoef(signal, low_freq)[0, 1]
         correlation_filtered = np.corrcoef(result, low_freq)[0, 1]
-        
+
         assert correlation_filtered > correlation_original
 
     def test_lowpass_with_different_orders(self, noisy_sine):
         """Lowpass filter funciona com diferentes ordens."""
         _, y = noisy_sine
-        
+
         for order in [1, 2, 3, 4, 5]:
             result = smooth(y, "lowpass", {"cutoff": 0.1, "order": order})
             assert len(result) == len(y)
@@ -250,10 +251,10 @@ class TestSmoothingEdgeCases:
     def test_invalid_method_raises(self):
         """Método inválido levanta ValueError."""
         values = np.random.randn(100)
-        
+
         with pytest.raises(ValueError) as exc_info:
             smooth(values, "invalid_method", {})
-        
+
         assert "Unknown smoothing method" in str(exc_info.value)
 
     def test_small_array_savgol(self):
@@ -271,7 +272,7 @@ class TestSmoothingEdgeCases:
     def test_constant_array(self):
         """Smoothing de array constante retorna constante."""
         values = np.ones(100) * 5.0
-        
+
         for method, params in [
             ("gaussian", {"sigma": 2.0}),
             ("savitzky_golay", {"window_length": 7, "polyorder": 2}),
@@ -292,14 +293,14 @@ class TestSmoothingSmoke:
     def test_all_methods_work(self):
         """Todos os métodos funcionam com dados básicos."""
         values = np.random.randn(100)
-        
+
         methods_params = [
             ("savitzky_golay", {"window_length": 7, "polyorder": 2}),
             ("gaussian", {"sigma": 1.0}),
             ("median", {"kernel_size": 5}),
             ("lowpass", {"cutoff": 0.1, "order": 3}),
         ]
-        
+
         for method, params in methods_params:
             result = smooth(values, method, params)
             assert len(result) == len(values)
@@ -310,7 +311,7 @@ class TestSmoothingSmoke:
         np.random.seed(42)
         values = np.random.randn(100)
         result = smooth(values, "gaussian", {"sigma": 3.0})
-        
+
         assert np.var(result) < np.var(values)
 
 

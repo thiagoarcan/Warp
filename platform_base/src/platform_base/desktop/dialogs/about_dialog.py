@@ -8,21 +8,16 @@ Interface carregada de: desktop/ui_files/aboutDialog.ui
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QDialog,
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QTabWidget,
     QTextEdit,
-    QVBoxLayout,
     QWidget,
 )
 
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
-from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
 
@@ -38,10 +33,10 @@ class AboutDialog(QDialog, UiLoaderMixin):
     - Credits and acknowledgments
     - System information
     - License information
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "aboutDialog.ui"
 
@@ -68,17 +63,17 @@ class AboutDialog(QDialog, UiLoaderMixin):
         self.system_text = self.findChild(QTextEdit, "systemText")
         self.license_text = self.findChild(QTextEdit, "licenseText")
         self.close_btn = self.findChild(QPushButton, "closeBtn")
-        
+
         # Configura logo
         if self.logo_label:
             self.logo_label.setStyleSheet("border: 1px solid gray; background: lightblue;")
-        
+
         # Popula conteúdo das abas
         self._populate_about_tab()
         self._populate_credits_tab()
         self._populate_system_tab()
         self._populate_license_tab()
-        
+
         logger.debug("about_dialog_ui_loaded_from_file")
 
     def _populate_about_tab(self):
@@ -154,7 +149,7 @@ class AboutDialog(QDialog, UiLoaderMixin):
         """Popula a aba System com informações do sistema"""
         if not self.system_text:
             return
-        
+
         import platform
         import sys
 

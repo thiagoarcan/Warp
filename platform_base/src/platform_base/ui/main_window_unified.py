@@ -26,7 +26,6 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
-    QMenu,
     QMessageBox,
     QProgressBar,
     QTabWidget,
@@ -46,6 +45,7 @@ from platform_base.ui.themes import AVAILABLE_THEMES, ThemeMode, get_theme_manag
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -69,7 +69,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     - Sistema drag-and-drop para visualizações
     - Tradução completa PT-BR
     - Persistência de layout com QSettings
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin quando disponível.
     """
 
@@ -97,7 +97,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             ProcessingWorkerManager,
         )
         self.processing_manager = ProcessingWorkerManager(
-            session_state.dataset_store, signal_hub
+            session_state.dataset_store, signal_hub,
         )
 
         # Panel references
@@ -179,10 +179,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
     def _insert_panels_into_placeholders(self):
         """Insere os painéis reais nos placeholders definidos no .ui"""
-        
+
         # Data Panel
         self.data_panel = DataPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'dataDock') and hasattr(self, 'dataPanelPlaceholder'):
+        if hasattr(self, "dataDock") and hasattr(self, "dataPanelPlaceholder"):
             layout = QVBoxLayout(self.dataPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.data_panel)
@@ -195,18 +195,28 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Visualization Panel (central widget)
         self.viz_panel = VizPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'vizPanelPlaceholder'):
+        if hasattr(self, "vizPanelPlaceholder"):
             layout = QVBoxLayout(self.vizPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.viz_panel)
         else:
-            central_layout = QHBoxLayout()
-            central_layout.addWidget(self.viz_panel)
-            self.centralWidget().setLayout(central_layout)
+            central_widget = self.centralWidget()
+            if central_widget is not None:
+                existing_layout = central_widget.layout()
+                if existing_layout is not None:
+                    existing_layout.addWidget(self.viz_panel)
+                else:
+                    central_layout = QHBoxLayout(central_widget)
+                    central_layout.addWidget(self.viz_panel)
+            else:
+                central_widget = QWidget()
+                self.setCentralWidget(central_widget)
+                central_layout = QHBoxLayout(central_widget)
+                central_layout.addWidget(self.viz_panel)
 
         # Config Panel
         self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'configDock') and hasattr(self, 'configPanelPlaceholder'):
+        if hasattr(self, "configDock") and hasattr(self, "configPanelPlaceholder"):
             layout = QVBoxLayout(self.configPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.config_panel)
@@ -220,7 +230,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         # Operations Panel
         from platform_base.ui.panels.operations_panel import OperationsPanel
         self.operations_panel = OperationsPanel(self.session_state)
-        if hasattr(self, 'operationsDock') and hasattr(self, 'operationsPanelPlaceholder'):
+        if hasattr(self, "operationsDock") and hasattr(self, "operationsPanelPlaceholder"):
             layout = QVBoxLayout(self.operationsPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.operations_panel)
@@ -240,7 +250,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.streaming_panel = StreamingPanel()
         self.streaming_panel.position_changed.connect(self._on_streaming_position_changed)
         self.streaming_panel.state_changed.connect(self._on_streaming_state_changed)
-        if hasattr(self, 'streamingDock') and hasattr(self, 'streamingPanelPlaceholder'):
+        if hasattr(self, "streamingDock") and hasattr(self, "streamingPanelPlaceholder"):
             layout = QVBoxLayout(self.streamingPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.streaming_panel)
@@ -253,7 +263,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Results Panel
         self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'resultsDock') and hasattr(self, 'resultsPanelPlaceholder'):
+        if hasattr(self, "resultsDock") and hasattr(self, "resultsPanelPlaceholder"):
             layout = QVBoxLayout(self.resultsPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.results_panel)
@@ -272,47 +282,47 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
     def _connect_ui_actions(self):
         """Conecta as QActions do .ui aos métodos da classe"""
-        
+
         # File menu actions
-        if hasattr(self, 'actionNewSession'):
+        if hasattr(self, "actionNewSession"):
             self.actionNewSession.triggered.connect(self._new_session)
-        if hasattr(self, 'actionOpenSession'):
+        if hasattr(self, "actionOpenSession"):
             self.actionOpenSession.triggered.connect(self._open_session)
-        if hasattr(self, 'actionSaveSession'):
+        if hasattr(self, "actionSaveSession"):
             self.actionSaveSession.triggered.connect(self._save_session)
-        if hasattr(self, 'actionLoadData'):
+        if hasattr(self, "actionLoadData"):
             self.actionLoadData.triggered.connect(self._load_data)
-        if hasattr(self, 'actionExportData'):
+        if hasattr(self, "actionExportData"):
             self.actionExportData.triggered.connect(self._export_data)
-        if hasattr(self, 'actionExit'):
+        if hasattr(self, "actionExit"):
             self.actionExit.triggered.connect(self.close)
 
         # Edit menu actions
-        if hasattr(self, 'actionUndo'):
+        if hasattr(self, "actionUndo"):
             self.undo_action = self.actionUndo
             self.actionUndo.triggered.connect(self._undo_operation)
         else:
             self.undo_action = QAction(tr("&Desfazer"), self)
             self.undo_action.setEnabled(False)
 
-        if hasattr(self, 'actionRedo'):
+        if hasattr(self, "actionRedo"):
             self.redo_action = self.actionRedo
             self.actionRedo.triggered.connect(self._redo_operation)
         else:
             self.redo_action = QAction(tr("&Refazer"), self)
             self.redo_action.setEnabled(False)
 
-        if hasattr(self, 'actionFindSeries'):
+        if hasattr(self, "actionFindSeries"):
             self.actionFindSeries.triggered.connect(self._find_series)
 
         # View menu actions
-        if hasattr(self, 'actionRefreshData'):
+        if hasattr(self, "actionRefreshData"):
             self.actionRefreshData.triggered.connect(self._refresh_data)
-        if hasattr(self, 'actionFullscreen'):
+        if hasattr(self, "actionFullscreen"):
             self.actionFullscreen.triggered.connect(self._toggle_fullscreen)
 
         # Panel toggles
-        if hasattr(self, 'menuPanels'):
+        if hasattr(self, "menuPanels"):
             self.menuPanels.addAction(self.data_dock.toggleViewAction())
             self.menuPanels.addAction(self.config_dock.toggleViewAction())
             self.menuPanels.addAction(self.operations_dock.toggleViewAction())
@@ -320,15 +330,15 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self.menuPanels.addAction(self.results_dock.toggleViewAction())
 
         # Tools menu actions
-        if hasattr(self, 'actionSettings'):
+        if hasattr(self, "actionSettings"):
             self.actionSettings.triggered.connect(self._show_settings)
 
         # Help menu actions
-        if hasattr(self, 'actionContextualHelp'):
+        if hasattr(self, "actionContextualHelp"):
             self.actionContextualHelp.triggered.connect(self._show_contextual_help)
-        if hasattr(self, 'actionKeyboardShortcuts'):
+        if hasattr(self, "actionKeyboardShortcuts"):
             self.actionKeyboardShortcuts.triggered.connect(self._show_keyboard_shortcuts)
-        if hasattr(self, 'actionAbout'):
+        if hasattr(self, "actionAbout"):
             self.actionAbout.triggered.connect(self._show_about)
 
         logger.debug("ui_actions_connected")
@@ -380,9 +390,8 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Visualization Panel (Center)
         self.viz_panel = VizPanel(self.session_state, self.signal_hub)
-        central_layout = QHBoxLayout()
+        central_layout = QHBoxLayout(self.centralWidget())
         central_layout.addWidget(self.viz_panel)
-        self.centralWidget().setLayout(central_layout)
 
         # Config Panel (Right)
         self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
@@ -423,7 +432,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.streaming_dock.raise_()
 
         # === NEW PANELS ===
-        
+
         # Resource Monitor Panel (Bottom Right)
         from platform_base.ui.panels.resource_monitor_panel import ResourceMonitorPanel
         self.resource_monitor_panel = ResourceMonitorPanel()
@@ -432,7 +441,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.resource_monitor_dock.setObjectName("ResourceMonitorPanel")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.resource_monitor_dock)
         self.detached_manager.register_dock(self.resource_monitor_dock)
-        
+
         # Activity Log Panel (Bottom)
         from platform_base.ui.panels.activity_log_panel import ActivityLogPanel
         self.activity_log_panel = ActivityLogPanel()
@@ -441,7 +450,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.activity_log_dock.setObjectName("ActivityLogPanel")
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.activity_log_dock)
         self.detached_manager.register_dock(self.activity_log_dock)
-        
+
         # Data Tables Panel (Bottom)
         from platform_base.ui.panels.data_tables_panel import DataTablesPanel
         self.data_tables_panel = DataTablesPanel()
@@ -450,14 +459,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.data_tables_dock.setObjectName("DataTablesPanel")
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.data_tables_dock)
         self.detached_manager.register_dock(self.data_tables_dock)
-        
+
         # Tabify bottom panels
         self.tabifyDockWidget(self.results_dock, self.activity_log_dock)
         self.tabifyDockWidget(self.activity_log_dock, self.data_tables_dock)
-        
+
         # Tabify resource monitor with config
         self.tabifyDockWidget(self.config_dock, self.resource_monitor_dock)
-        
+
         # Register all docks with detached manager
         for dock in [self.data_dock, self.config_dock, self.operations_dock,
                      self.streaming_dock, self.results_dock]:
@@ -758,17 +767,17 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if self.operations_panel:
             self.operations_panel.operation_requested.connect(self._handle_operation_request)
             self.operations_panel.export_requested.connect(self._handle_export_request)
-            if hasattr(self.operations_panel, 'streaming_data_updated'):
+            if hasattr(self.operations_panel, "streaming_data_updated"):
                 self.operations_panel.streaming_data_updated.connect(self._on_streaming_data_updated)
 
         # Undo/redo manager signals
         self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
         self.undo_manager.can_redo_changed.connect(self.redo_action.setEnabled)
         self.undo_manager.undo_text_changed.connect(
-            lambda text: self.undo_action.setText(f"⏪ Desfazer {text}" if text else "⏪ Desfazer")
+            lambda text: self.undo_action.setText(f"⏪ Desfazer {text}" if text else "⏪ Desfazer"),
         )
         self.undo_manager.redo_text_changed.connect(
-            lambda text: self.redo_action.setText(f"⏩ Refazer {text}" if text else "⏩ Refazer")
+            lambda text: self.redo_action.setText(f"⏩ Refazer {text}" if text else "⏩ Refazer"),
         )
 
         logger.debug("signals_connected")
@@ -838,9 +847,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         dataset_id = None
         series_ids = None
 
-        if hasattr(self.data_panel, 'get_selected_dataset_id'):
+        if hasattr(self.data_panel, "get_selected_dataset_id"):
             dataset_id = self.data_panel.get_selected_dataset_id()
-        if hasattr(self.data_panel, 'get_selected_series_ids'):
+        if hasattr(self.data_panel, "get_selected_series_ids"):
             series_ids = self.data_panel.get_selected_series_ids()
 
         if not dataset_id:
@@ -852,20 +861,20 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         )
 
         file_path, selected_filter = QFileDialog.getSaveFileName(
-            self, tr("📤 Exportar Dados"), "", file_filters
+            self, tr("📤 Exportar Dados"), "", file_filters,
         )
 
         if not file_path:
             return
 
         # Determine format
-        if "CSV" in selected_filter or file_path.endswith('.csv'):
+        if "CSV" in selected_filter or file_path.endswith(".csv"):
             format_type = "csv"
-        elif "Excel" in selected_filter or file_path.endswith('.xlsx'):
+        elif "Excel" in selected_filter or file_path.endswith(".xlsx"):
             format_type = "xlsx"
-        elif "Parquet" in selected_filter or file_path.endswith('.parquet'):
+        elif "Parquet" in selected_filter or file_path.endswith(".parquet"):
             format_type = "parquet"
-        elif "HDF5" in selected_filter or file_path.endswith(('.h5', '.hdf5')):
+        elif "HDF5" in selected_filter or file_path.endswith((".h5", ".hdf5")):
             format_type = "hdf5"
         else:
             format_type = "csv"
@@ -878,9 +887,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             from platform_base.desktop.workers.export_worker import DataExportWorker
 
             export_config = {
-                'delimiter': ',',
-                'encoding': 'utf-8',
-                'include_metadata': True,
+                "delimiter": ",",
+                "encoding": "utf-8",
+                "include_metadata": True,
             }
 
             self._export_worker = DataExportWorker(
@@ -889,21 +898,21 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 series_ids=series_ids,
                 output_path=file_path,
                 format_type=format_type,
-                export_config=export_config
+                export_config=export_config,
             )
 
             self._export_worker.progress.connect(lambda p, m: (
                 self.progress_bar.setValue(p),
-                self.status_label.setText(m)
+                self.status_label.setText(m),
             ))
             self._export_worker.error.connect(lambda e: (
                 QMessageBox.critical(self, tr("Erro"), str(e)),
-                self.progress_bar.setVisible(False)
+                self.progress_bar.setVisible(False),
             ))
             self._export_worker.finished.connect(lambda: (
                 self.progress_bar.setVisible(False),
                 self.status_label.setText("✅ Exportação concluída"),
-                QMessageBox.information(self, tr("Sucesso"), f"Dados exportados para:\n{file_path}")
+                QMessageBox.information(self, tr("Sucesso"), f"Dados exportados para:\n{file_path}"),
             ))
 
             self._export_worker.start()
@@ -948,14 +957,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self.data_panel._search_edit.selectAll()
             return
 
-        if hasattr(self, 'data_dock'):
+        if hasattr(self, "data_dock"):
             self.data_dock.raise_()
             self.data_dock.setFocus()
 
         from PyQt6.QtWidgets import QInputDialog
         search_text, ok = QInputDialog.getText(
             self, tr("🔍 Buscar Série"),
-            tr("Nome da série:")
+            tr("Nome da série:"),
         )
 
         if ok and search_text:
@@ -971,9 +980,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _refresh_data(self):
         """Refresh data"""
         self.status_label.setText("🔄 Atualizando...")
-        if hasattr(self.viz_panel, 'refresh'):
+        if hasattr(self.viz_panel, "refresh"):
             self.viz_panel.refresh()
-        if hasattr(self.signal_hub, 'data_changed'):
+        if hasattr(self.signal_hub, "data_changed"):
             self.signal_hub.data_changed.emit()
         self.status_label.setText("✅ Dados atualizados")
         logger.info("data_refreshed")
@@ -996,7 +1005,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         else:
             QMessageBox.information(
                 self, tr("Remover Série"),
-                tr("Selecione uma série no Painel de Dados e pressione Delete.")
+                tr("Selecione uma série no Painel de Dados e pressione Delete."),
             )
 
     @pyqtSlot()
@@ -1053,7 +1062,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 <h3>🚀 Platform Base v2.0</h3>
                 <p><b>Análise de Séries Temporais</b></p>
                 <p>TRANSPETRO</p>
-                """
+                """,
             )
 
     @pyqtSlot()
@@ -1072,7 +1081,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             <li><b>F5:</b> Atualizar</li>
             <li><b>F11:</b> Tela cheia</li>
             </ul>
-            """)
+            """),
         )
 
     @pyqtSlot()
@@ -1080,7 +1089,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Show keyboard shortcuts"""
         shortcuts_text = """
         <h2>⌨️ Atalhos de Teclado</h2>
-        
+
         <h3>Arquivo</h3>
         <table>
         <tr><td><b>Ctrl+N</b></td><td>Nova Sessão</td></tr>
@@ -1090,7 +1099,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         <tr><td><b>Ctrl+E</b></td><td>Exportar Dados</td></tr>
         <tr><td><b>Ctrl+Q</b></td><td>Sair</td></tr>
         </table>
-        
+
         <h3>Editar</h3>
         <table>
         <tr><td><b>Ctrl+Z</b></td><td>Desfazer</td></tr>
@@ -1098,7 +1107,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         <tr><td><b>Ctrl+F</b></td><td>Buscar Série</td></tr>
         <tr><td><b>Delete</b></td><td>Remover Seleção</td></tr>
         </table>
-        
+
         <h3>Visualizar</h3>
         <table>
         <tr><td><b>F5</b></td><td>Atualizar</td></tr>
@@ -1106,7 +1115,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         <tr><td><b>Ctrl+Tab</b></td><td>Próxima Aba</td></tr>
         <tr><td><b>Ctrl+Shift+Tab</b></td><td>Aba Anterior</td></tr>
         </table>
-        
+
         <h3>Ajuda</h3>
         <table>
         <tr><td><b>F1</b></td><td>Ajuda Contextual</td></tr>
@@ -1148,30 +1157,30 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             if operation_type == "interpolation":
                 method = params.get("method", "linear")
                 self.processing_manager.start_interpolation(
-                    operation_id, dataset_id, series_id, method, params
+                    operation_id, dataset_id, series_id, method, params,
                 )
             elif operation_type == "calculus":
                 operation = params.get("operation", "derivative_1st")
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation, params
+                    operation_id, dataset_id, series_id, operation, params,
                 )
             elif operation_type == "synchronization":
                 series_ids = list(selection.series_ids)
                 method = params.get("method", "dtw")
                 self.processing_manager.start_synchronization(
-                    operation_id, dataset_id, series_ids, method, params
+                    operation_id, dataset_id, series_ids, method, params,
                 )
             elif operation_type in ("derivative", "derivative_1st", "derivative_2nd", "derivative_3rd"):
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation_type, params
+                    operation_id, dataset_id, series_id, operation_type, params,
                 )
             elif operation_type == "integral":
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, "integral", params
+                    operation_id, dataset_id, series_id, "integral", params,
                 )
             elif operation_type in ("smoothing", "remove_outliers"):
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation_type, params
+                    operation_id, dataset_id, series_id, operation_type, params,
                 )
             else:
                 logger.warning("unknown_operation_type", operation_type=operation_type)
@@ -1252,13 +1261,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if not selection:
             QMessageBox.warning(
                 self, tr("Aviso"),
-                tr("Selecione uma série antes de realizar esta operação.")
+                tr("Selecione uma série antes de realizar esta operação."),
             )
             return
 
         try:
-            dataset_id = selection[0].dataset_id if hasattr(selection[0], 'dataset_id') else None
-            series_id = selection[0].series_id if hasattr(selection[0], 'series_id') else None
+            dataset_id = selection[0].dataset_id if hasattr(selection[0], "dataset_id") else None
+            series_id = selection[0].series_id if hasattr(selection[0], "series_id") else None
 
             if not dataset_id or not series_id:
                 QMessageBox.warning(self, tr("Aviso"), tr("Seleção inválida."))
@@ -1268,7 +1277,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 operation_type=operation_name,
                 dataset_id=dataset_id,
                 series_id=series_id,
-                params=params
+                params=params,
             )
 
             self.status_label.setText(f"⚡ Processando: {operation_name}...")
@@ -1285,17 +1294,17 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         logger.info("export_requested", format=format_type, options=options)
 
         file_filters = {
-            'csv': "CSV (*.csv)",
-            'excel': "Excel (*.xlsx)",
-            'parquet': "Parquet (*.parquet)",
-            'hdf5': "HDF5 (*.h5 *.hdf5)",
-            'json': "JSON (*.json)",
+            "csv": "CSV (*.csv)",
+            "excel": "Excel (*.xlsx)",
+            "parquet": "Parquet (*.parquet)",
+            "hdf5": "HDF5 (*.h5 *.hdf5)",
+            "json": "JSON (*.json)",
         }
 
         file_filter = file_filters.get(format_type, "Todos (*.*)")
 
         file_path, _ = QFileDialog.getSaveFileName(
-            self, f"Exportar como {format_type.upper()}", "", file_filter
+            self, f"Exportar como {format_type.upper()}", "", file_filter,
         )
 
         if file_path:
@@ -1305,7 +1314,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _on_streaming_data_updated(self, series_id: str, x_data, y_data):
         """Handle streaming data update"""
         try:
-            if hasattr(self.viz_panel, 'update_streaming_data'):
+            if hasattr(self.viz_panel, "update_streaming_data"):
                 self.viz_panel.update_streaming_data(series_id, x_data, y_data)
         except Exception as e:
             logger.exception("streaming_update_failed", error=str(e))
@@ -1325,7 +1334,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
                 if total_points > 0:
                     time_position = dataset.t_seconds[min(position, total_points - 1)]
-                    if hasattr(self.signal_hub, 'streaming_time_changed'):
+                    if hasattr(self.signal_hub, "streaming_time_changed"):
                         self.signal_hub.streaming_time_changed.emit(time_position)
 
             self.status_label.setText(f"📡 Posição: {position}")
@@ -1338,15 +1347,15 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         from platform_base.ui.panels.streaming_panel import PlaybackState
 
         if state == PlaybackState.PLAYING:
-            if hasattr(self.signal_hub, 'streaming_started'):
+            if hasattr(self.signal_hub, "streaming_started"):
                 self.signal_hub.streaming_started.emit()
             self.status_label.setText("▶️ Streaming: Reproduzindo")
         elif state == PlaybackState.PAUSED:
-            if hasattr(self.signal_hub, 'streaming_paused'):
+            if hasattr(self.signal_hub, "streaming_paused"):
                 self.signal_hub.streaming_paused.emit()
             self.status_label.setText("⏸️ Streaming: Pausado")
         elif state == PlaybackState.STOPPED:
-            if hasattr(self.signal_hub, 'streaming_stopped'):
+            if hasattr(self.signal_hub, "streaming_stopped"):
                 self.signal_hub.streaming_stopped.emit()
             self.status_label.setText("⏹️ Streaming: Parado")
 
@@ -1505,60 +1514,60 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.information(
                 self,
                 tr("Re-dock"),
-                tr("Nenhum painel destacado encontrado.")
+                tr("Nenhum painel destacado encontrado."),
             )
             return
-        
+
         # Re-dock all panels
         self.detached_manager.redock_all()
-        
+
         # Update status
         self.status_label.setText(f"✅ {count} painéis re-docados")
         if self.activity_log_panel:
             self.activity_log_panel.log_success(f"{count} painéis re-docados")
-        
+
         logger.info("panels_redocked", count=count)
 
     @pyqtSlot()
     def _show_xlsx_converter(self):
         """Show XLSX to CSV converter dialog"""
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLabel, QLineEdit
-        
+        from PyQt6.QtWidgets import QDialog, QLabel, QLineEdit, QPushButton, QVBoxLayout
+
         dialog = QDialog(self)
         dialog.setWindowTitle(tr("Converter XLSX para CSV"))
         dialog.setMinimumWidth(500)
-        
+
         layout = QVBoxLayout(dialog)
-        
+
         # Info label
         info_label = QLabel(tr(
             "<h3>Conversor XLSX → CSV</h3>"
-            "<p>Selecione um arquivo Excel (.xlsx) para converter em CSV.</p>"
+            "<p>Selecione um arquivo Excel (.xlsx) para converter em CSV.</p>",
         ))
         info_label.setTextFormat(Qt.TextFormat.RichText)
         layout.addWidget(info_label)
-        
+
         # File selection
         file_layout = QHBoxLayout()
         self._xlsx_file_edit = QLineEdit()
         self._xlsx_file_edit.setPlaceholderText(tr("Selecione arquivo XLSX..."))
         file_layout.addWidget(self._xlsx_file_edit)
-        
+
         browse_btn = QPushButton(tr("📂 Procurar"))
         browse_btn.clicked.connect(lambda: self._browse_xlsx_file(dialog))
         file_layout.addWidget(browse_btn)
         layout.addLayout(file_layout)
-        
+
         # Convert button
         convert_btn = QPushButton(tr("🔄 Converter"))
         convert_btn.clicked.connect(lambda: self._convert_xlsx_file(dialog))
         layout.addWidget(convert_btn)
-        
+
         # Close button
         close_btn = QPushButton(tr("Fechar"))
         close_btn.clicked.connect(dialog.close)
         layout.addWidget(close_btn)
-        
+
         dialog.exec()
 
     def _browse_xlsx_file(self, dialog):
@@ -1567,7 +1576,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             dialog,
             tr("Selecionar Arquivo XLSX"),
             str(Path.home()),
-            tr("Arquivos Excel (*.xlsx);;Todos os Arquivos (*)")
+            tr("Arquivos Excel (*.xlsx);;Todos os Arquivos (*)"),
         )
         if filepath:
             self._xlsx_file_edit.setText(filepath)
@@ -1575,20 +1584,20 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _convert_xlsx_file(self, dialog):
         """Convert XLSX file to CSV"""
         xlsx_path = self._xlsx_file_edit.text()
-        
+
         if not xlsx_path or not Path(xlsx_path).exists():
             QMessageBox.warning(
                 dialog,
                 tr("Erro"),
-                tr("Por favor selecione um arquivo XLSX válido.")
+                tr("Por favor selecione um arquivo XLSX válido."),
             )
             return
-        
+
         # Perform conversion
         from platform_base.utils.xlsx_to_csv import XlsxToCsvConverter
-        
+
         converter = XlsxToCsvConverter()
-        
+
         # Connect signals
         def on_progress(progress, message):
             self.progress_bar.setVisible(True)
@@ -1596,7 +1605,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self.status_label.setText(message)
             if self.activity_log_panel:
                 self.activity_log_panel.log_info(message)
-        
+
         def on_completed(csv_path):
             self.progress_bar.setVisible(False)
             self.status_label.setText("✅ Conversão concluída")
@@ -1605,10 +1614,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.information(
                 dialog,
                 tr("Sucesso"),
-                f"Arquivo convertido com sucesso:\n{csv_path}"
+                f"Arquivo convertido com sucesso:\n{csv_path}",
             )
             dialog.close()
-        
+
         def on_failed(error):
             self.progress_bar.setVisible(False)
             self.status_label.setText("❌ Conversão falhou")
@@ -1617,13 +1626,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.critical(
                 dialog,
                 tr("Erro"),
-                f"Erro na conversão:\n{error}"
+                f"Erro na conversão:\n{error}",
             )
-        
+
         converter.progress_updated.connect(on_progress)
         converter.conversion_completed.connect(on_completed)
         converter.conversion_failed.connect(on_failed)
-        
+
         # Start conversion
         converter.convert(xlsx_path)
 

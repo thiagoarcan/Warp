@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'calculusDialog.ui'
@@ -8,33 +7,31 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
-    QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtCore import QCoreApplication, QMetaObject, Qt
+from PySide6.QtWidgets import (
+    QDialogButtonBox,
+    QVBoxLayout,
+    QWidget,
+)
 
-class Ui_CalculusDialog(object):
+
+class Ui_CalculusDialog:
     def setupUi(self, CalculusDialog):
         if not CalculusDialog.objectName():
-            CalculusDialog.setObjectName(u"CalculusDialog")
+            CalculusDialog.setObjectName("CalculusDialog")
         CalculusDialog.resize(600, 400)
         self.mainLayout = QVBoxLayout(CalculusDialog)
-        self.mainLayout.setObjectName(u"mainLayout")
+        self.mainLayout.setObjectName("mainLayout")
         self.contentWidget = QWidget(CalculusDialog)
-        self.contentWidget.setObjectName(u"contentWidget")
+        self.contentWidget.setObjectName("contentWidget")
         self.contentLayout = QVBoxLayout(self.contentWidget)
-        self.contentLayout.setObjectName(u"contentLayout")
+        self.contentLayout.setObjectName("contentLayout")
         self.contentLayout.setContentsMargins(0, 0, 0, 0)
 
         self.mainLayout.addWidget(self.contentWidget)
 
         self.buttonBox = QDialogButtonBox(CalculusDialog)
-        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setObjectName("buttonBox")
         self.buttonBox.setOrientation(Qt.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
 
@@ -49,6 +46,6 @@ class Ui_CalculusDialog(object):
     # setupUi
 
     def retranslateUi(self, CalculusDialog):
-        CalculusDialog.setWindowTitle(QCoreApplication.translate("CalculusDialog", u"CalculusDialog", None))
+        CalculusDialog.setWindowTitle(QCoreApplication.translate("CalculusDialog", "CalculusDialog", None))
     # retranslateUi
 

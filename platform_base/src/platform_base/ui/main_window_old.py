@@ -11,6 +11,7 @@ Layout moderno com:
 
 from __future__ import annotations
 
+from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -22,7 +23,6 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
-    QMenu,
     QMessageBox,
     QProgressBar,
     QSizePolicy,
@@ -37,6 +37,7 @@ from platform_base.ui.panels.operations_panel import OperationsPanel
 from platform_base.ui.panels.viz_panel import VizPanel
 from platform_base.ui.themes import AVAILABLE_THEMES, ThemeMode, get_theme_manager
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.ui.state import SessionState
@@ -57,7 +58,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     - Design moderno seguindo guidelines de UX
     - Persistência de layout com QSettings
     - 5 temas visuais: Light, Dark, Ocean, Forest, Sunset
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin quando disponível.
     """
 
@@ -100,7 +101,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         # Conecta mudança de tema
         self._theme_manager.theme_changed.connect(self._on_theme_changed)
 
-        logger.info("modern_main_window_initialized", ui_loaded=getattr(self, '_ui_loaded', False))
+        logger.info("modern_main_window_initialized", ui_loaded=getattr(self, "_ui_loaded", False))
 
     def _setup_modern_ui(self):
         """Configura interface moderna e responsiva para Full HD (1920x1080)"""
@@ -108,7 +109,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.setWindowTitle("Platform Base v2.0 - Análise de Séries Temporais")
         self.setMinimumSize(1280, 720)  # Mínimo HD
         self.resize(1920, 1080)  # Full HD padrão
-        
+
         # Tentar maximizar se a tela suportar
         from PyQt6.QtWidgets import QApplication
         screen = QApplication.primaryScreen()
@@ -364,11 +365,11 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Menu Temas 🎨
         themes_menu = menubar.addMenu("🎨 &Temas")
-        
+
         # Grupo de ações para seleção exclusiva
         theme_group = QActionGroup(self)
         theme_group.setExclusive(True)
-        
+
         # Adiciona cada tema disponível
         theme_map = {
             "light": ThemeMode.LIGHT,
@@ -377,7 +378,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             "forest": ThemeMode.FOREST,
             "sunset": ThemeMode.SUNSET,
         }
-        
+
         for theme_id, theme_info in AVAILABLE_THEMES.items():
             action = QAction(theme_info["name"], self)
             action.setCheckable(True)
@@ -387,13 +388,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             theme_group.addAction(action)
             themes_menu.addAction(action)
             self._theme_actions[theme_id] = action
-            
+
             # Marca o tema atual como selecionado
             if self._theme_manager.current_mode == theme_map[theme_id]:
                 action.setChecked(True)
-        
+
         themes_menu.addSeparator()
-        
+
         # Opção de seguir sistema
         system_theme_action = QAction("🖥️ Seguir Sistema", self)
         system_theme_action.setCheckable(True)
@@ -402,7 +403,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         theme_group.addAction(system_theme_action)
         themes_menu.addAction(system_theme_action)
         self._theme_actions["system"] = system_theme_action
-        
+
         if self._theme_manager.current_mode == ThemeMode.SYSTEM:
             system_theme_action.setChecked(True)
 
@@ -457,7 +458,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if self._operations_panel:
             self._operations_panel.operation_requested.connect(self._handle_operation_request)
             self._operations_panel.export_requested.connect(self._handle_export_request)
-        
+
         # Connect viz panel calculation requests to operations panel
         if self._viz_panel and self._operations_panel:
             if hasattr(self._viz_panel, "calculation_requested"):
@@ -725,7 +726,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _handle_operation_request(self, operation_name: str, params: dict):
         """
         Handler para requisições de operações matemáticas do OperationsPanel.
-        
+
         Conecta a UI ao backend de processamento.
         """
         logger.info("operation_requested", operation=operation_name, params=params)
@@ -733,15 +734,15 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         # Obter série selecionada do combobox do operations panel
         series_id = None
         dataset_id = self.session_state.current_dataset
-        
-        if self._operations_panel and hasattr(self._operations_panel, '_series_combo'):
+
+        if self._operations_panel and hasattr(self._operations_panel, "_series_combo"):
             series_id = self._operations_panel._series_combo.currentData()
-        
+
         if not dataset_id or not series_id:
             QMessageBox.warning(
                 self,
                 "⚠️ Nenhuma Série Selecionada",
-                "Por favor, selecione uma série no painel de operações antes de realizar o cálculo."
+                "Por favor, selecione uma série no painel de operações antes de realizar o cálculo.",
             )
             return
 
@@ -752,18 +753,18 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 QMessageBox.warning(
                     self,
                     "⚠️ Dados Inválidos",
-                    "Não foi possível encontrar a série selecionada."
+                    "Não foi possível encontrar a série selecionada.",
                 )
                 return
-                
+
             series = dataset.series[series_id]
-            
+
             # Processar operação
             self.session_state.start_operation(f"Calculando {operation_name}...")
-            
+
             try:
                 result = self._execute_operation(operation_name, series, dataset, params)
-                
+
                 if result is not None:
                     # Adicionar resultado como nova série
                     new_series_id = f"{series_id}_{operation_name}"
@@ -771,7 +772,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                     self.session_state.finish_operation(True, f"✅ {operation_name} calculada com sucesso")
                 else:
                     self.session_state.finish_operation(False, f"❌ {operation_name} não retornou resultado")
-                    
+
             except Exception as e:
                 self.session_state.finish_operation(False, f"❌ Erro: {e}")
                 raise
@@ -781,20 +782,20 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.critical(
                 self,
                 "❌ Operação Falhou",
-                f"Falha ao executar '{operation_name}':\n{str(e)}"
+                f"Falha ao executar '{operation_name}':\n{e!s}",
             )
 
     def _execute_operation(self, operation_name: str, series, dataset, params: dict):
         """Executa a operação matemática especificada"""
         import numpy as np
-        
+
         values = series.values
         t_seconds = dataset.t_seconds
-        
+
         if operation_name == "derivative":
             order = params.get("order", 1)
             method = params.get("method", "finite_diff")
-            
+
             if method == "finite_diff":
                 # Derivada numérica simples
                 result = np.gradient(values, t_seconds)
@@ -809,12 +810,12 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 result = savgol_filter(values, window, polyorder=min(3, window-1), deriv=order)
             else:
                 result = np.gradient(values, t_seconds)
-                
+
             return result
-            
-        elif operation_name == "integral":
+
+        if operation_name == "integral":
             method = params.get("method", "trapezoid")
-            
+
             if method == "trapezoid":
                 from scipy import integrate
                 result = integrate.cumulative_trapezoid(values, t_seconds, initial=0)
@@ -824,25 +825,25 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 result = integrate.cumulative_trapezoid(values, t_seconds, initial=0)
             else:  # cumulative
                 result = np.cumsum(values) * np.gradient(t_seconds).mean()
-                
+
             return result
-            
-        elif operation_name == "smoothing":
+
+        if operation_name == "smoothing":
             method = params.get("method", "moving_average")
             window = params.get("window", 5)
-            
+
             if method == "moving_average":
-                result = np.convolve(values, np.ones(window)/window, mode='same')
+                result = np.convolve(values, np.ones(window)/window, mode="same")
             elif method == "gaussian":
                 from scipy.ndimage import gaussian_filter1d
                 sigma = params.get("sigma", 2.0)
                 result = gaussian_filter1d(values, sigma)
             else:
                 result = values.copy()
-                
+
             return result
-            
-        elif operation_name == "remove_outliers":
+
+        if operation_name == "remove_outliers":
             threshold = params.get("threshold", 3.0)
             mean = np.mean(values)
             std = np.std(values)
@@ -854,22 +855,22 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 result[nans] = np.interp(
                     np.flatnonzero(nans),
                     np.flatnonzero(~nans),
-                    result[~nans]
+                    result[~nans],
                 )
             return result
-        
-        elif operation_name == "fft":
+
+        if operation_name == "fft":
             # Transformada Rápida de Fourier
             from scipy import signal
-            
+
             window_type = params.get("window", "hann")
             detrend = params.get("detrend", True)
-            
+
             # Remover tendência se solicitado
             data = values.copy()
             if detrend:
                 data = signal.detrend(data)
-            
+
             # Aplicar janela se especificada
             n = len(data)
             if window_type and window_type != "none":
@@ -884,41 +885,37 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 else:
                     window = np.ones(n)
                 data = data * window
-            
+
             # Calcular FFT
             fft_result = np.fft.fft(data)
-            
+
             # Retornar magnitude (metade positiva)
             n_half = n // 2
-            magnitude = np.abs(fft_result[:n_half]) * 2.0 / n
-            
-            return magnitude
-        
-        elif operation_name == "filter":
+            return np.abs(fft_result[:n_half]) * 2.0 / n
+
+
+        if operation_name == "filter":
             from scipy import signal
-            
+
             filter_type = params.get("filter_type", "lowpass")
             cutoff = params.get("cutoff_frequency", 0.1)
             order = params.get("filter_order", 4)
             method = params.get("method", "butter")
-            
+
             # Calcular frequência de amostragem
             dt = np.mean(np.diff(t_seconds)) if len(t_seconds) > 1 else 1.0
             fs = 1.0 / dt
             nyq = fs / 2.0
-            
+
             # Normalizar frequência de corte
-            if isinstance(cutoff, tuple):
-                wn = (cutoff[0] / nyq, cutoff[1] / nyq)
-            else:
-                wn = cutoff / nyq
-            
+            wn = (cutoff[0] / nyq, cutoff[1] / nyq) if isinstance(cutoff, tuple) else cutoff / nyq
+
             # Limitar wn para evitar erros
             if isinstance(wn, tuple):
                 wn = (max(0.001, min(0.999, wn[0])), max(0.001, min(0.999, wn[1])))
             else:
                 wn = max(0.001, min(0.999, wn))
-            
+
             # Criar filtro
             if method == "butter":
                 b, a = signal.butter(order, wn, btype=filter_type)
@@ -930,19 +927,17 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 b, a = signal.ellip(order, 0.5, 20, wn, btype=filter_type)
             else:
                 b, a = signal.butter(order, wn, btype=filter_type)
-            
+
             # Aplicar filtro
-            result = signal.filtfilt(b, a, values)
-            
-            return result
-            
-        else:
-            logger.warning(f"Unknown operation: {operation_name}")
-            return None
+            return signal.filtfilt(b, a, values)
+
+
+        logger.warning(f"Unknown operation: {operation_name}")
+        return None
 
     def _add_result_series(self, dataset_id: str, series_id: str, values, operation_name: str):
         """Adiciona resultado como nova série no dataset"""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         import numpy as np
         from pint import UnitRegistry
@@ -953,13 +948,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             Series,
             SeriesMetadata,
         )
-        
+
         ureg = UnitRegistry()
-        
+
         dataset = self.session_state.get_dataset(dataset_id)
         if not dataset:
             return
-            
+
         # Criar nova série
         new_series = Series(
             series_id=series_id,
@@ -968,7 +963,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             values=np.array(values),
             interpolation_info=InterpolationInfo(
                 is_interpolated=np.zeros(len(values), dtype=bool),
-                method_used=np.array([operation_name] * len(values), dtype='<U32'),
+                method_used=np.array([operation_name] * len(values), dtype="<U32"),
             ),
             metadata=SeriesMetadata(
                 original_name=series_id,
@@ -979,24 +974,24 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 origin_series=[],
                 operation=operation_name,
                 parameters={},
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 version="2.0.0",
             ),
         )
-        
+
         # Adicionar ao dataset
         dataset.series[series_id] = new_series
-        
+
         # Emitir sinal de mudança
         self.session_state.dataset_changed.emit(dataset_id)
-        
+
         logger.info(f"result_series_added: {series_id}")
 
     @pyqtSlot(str, str, str, dict)
     def _handle_viz_calculation_request(self, dataset_name: str, series_id: str, calc_type: str, params: dict):
         """Handler para requisições de cálculo vindas do menu de contexto do gráfico"""
         logger.info("viz_calculation_requested", calc_type=calc_type, series=series_id, params=params)
-        
+
         # Mapear calc_type para operation_name
         operation_map = {
             "derivative": "derivative",
@@ -1005,9 +1000,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             "interpolation": "interpolation",
             "filter": "smoothing",
         }
-        
+
         operation_name = operation_map.get(calc_type, calc_type)
-        
+
         # Encontrar dataset_id pelo nome do dataset
         dataset_id = None
         all_datasets = self.session_state.get_all_datasets()
@@ -1019,19 +1014,19 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             if ds_id == dataset_name:
                 dataset_id = ds_id
                 break
-        
+
         if not dataset_id:
             # Usar dataset atual se não encontrou
             dataset_id = self.session_state.current_dataset
-        
+
         if not dataset_id:
             QMessageBox.warning(
                 self,
                 "⚠️ Nenhum Dataset",
-                "Não foi possível identificar o dataset para o cálculo."
+                "Não foi possível identificar o dataset para o cálculo.",
             )
             return
-        
+
         # Delegar para handler principal
         self._handle_operation_request(operation_name, params)
 
@@ -1042,22 +1037,22 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Mapear filtros de arquivo
         file_filters = {
-            'csv': "Arquivos CSV (*.csv)",
-            'excel': "Arquivos Excel (*.xlsx)",
-            'parquet': "Arquivos Parquet (*.parquet)",
-            'hdf5': "Arquivos HDF5 (*.h5 *.hdf5)",
-            'json': "Arquivos JSON (*.json)",
+            "csv": "Arquivos CSV (*.csv)",
+            "excel": "Arquivos Excel (*.xlsx)",
+            "parquet": "Arquivos Parquet (*.parquet)",
+            "hdf5": "Arquivos HDF5 (*.h5 *.hdf5)",
+            "json": "Arquivos JSON (*.json)",
         }
 
         file_filter = file_filters.get(format_type, "Todos os Arquivos (*.*)")
-        
+
         # Obter dataset atual
         dataset_id = self.session_state.current_dataset
         if not dataset_id:
             QMessageBox.warning(
                 self,
                 "⚠️ Nenhum Dataset",
-                "Por favor, carregue um dataset antes de exportar."
+                "Por favor, carregue um dataset antes de exportar.",
             )
             return
 
@@ -1065,7 +1060,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self,
             f"Exportar como {format_type.upper()}",
             "",
-            file_filter
+            file_filter,
         )
 
         if file_path:
@@ -1076,24 +1071,24 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 QMessageBox.critical(
                     self,
                     "❌ Erro na Exportação",
-                    f"Falha ao exportar:\n{str(e)}"
+                    f"Falha ao exportar:\n{e!s}",
                 )
 
     def _export_to_file(self, dataset_id: str, file_path: str, format_type: str, options: dict):
         """Exporta dataset para arquivo"""
         import pandas as pd
-        
+
         dataset = self.session_state.get_dataset(dataset_id)
         if not dataset:
             raise ValueError("Dataset não encontrado")
-            
+
         # Criar DataFrame
         data = {"timestamp": dataset.t_datetime}
         for series_id, series in dataset.series.items():
             data[series_id] = series.values
-            
+
         df = pd.DataFrame(data)
-        
+
         # Exportar conforme formato
         if format_type == "csv":
             df.to_csv(file_path, index=False)
@@ -1107,7 +1102,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             df.to_json(file_path, orient="records", date_format="iso")
         else:
             raise ValueError(f"Formato não suportado: {format_type}")
-            
+
         logger.info(f"export_completed: {file_path}")
 
     # Action handlers
@@ -1277,7 +1272,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                     sizes = [int(s) for s in splitter_sizes]
                     # Garantir tamanhos mínimos razoáveis
                     min_sizes = [200, 600, 200]  # Tamanhos mínimos para cada painel
-                    sizes = [max(size, min_size) for size, min_size in zip(sizes, min_sizes)]
+                    sizes = [max(size, min_size) for size, min_size in zip(sizes, min_sizes, strict=False)]
                     self._main_splitter.setSizes(sizes)
                 except (ValueError, TypeError):
                     # Em caso de erro, usar tamanhos padrão
@@ -1285,7 +1280,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             else:
                 # Sem sizes salvos, usar padrão
                 self._main_splitter.setSizes([300, 1000, 300])
-            
+
             # NÃO restaurar splitter_state - pode estar corrompido e travar o splitter
             # O setSizes() acima é suficiente para restaurar as proporções
 
@@ -1312,7 +1307,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
     def _ensure_panel_widgets_visible(self):
         """Garante que todos os widgets dos painéis estejam visíveis
-        
+
         CORREÇÃO: Após restaurar o layout, alguns widgets podem ficar ocultos
         devido a estados salvos anteriormente. Este método percorre a hierarquia
         de widgets e garante que todos estejam visíveis.
@@ -1321,31 +1316,31 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             """Recursivamente mostra todos os widgets filhos"""
             if widget is None:
                 return
-            
+
             # Mostra este widget
             widget.setVisible(True)
             widget.show()
-            
+
             # Processa todos os filhos
             for child in widget.findChildren(QWidget):
-                if hasattr(child, 'setVisible'):
+                if hasattr(child, "setVisible"):
                     child.setVisible(True)
                     child.show()
-        
+
         # Aplicar aos painéis principais
         if self._data_panel:
             show_all_children(self._data_panel)
-            
+
         if self._viz_panel:
             show_all_children(self._viz_panel)
-            
+
         if self._operations_panel:
             show_all_children(self._operations_panel)
-        
+
         # Forçar atualização do layout
         if self._main_splitter:
             self._main_splitter.update()
-        
+
         self.update()
         logger.debug("panel_widgets_visibility_ensured")
 
@@ -1400,14 +1395,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     # =========================================================================
     # GERENCIAMENTO DE TEMAS
     # =========================================================================
-    
+
     def _on_theme_action_triggered(self):
         """Chamado quando um tema é selecionado no menu"""
         action = self.sender()
         if action and action.data():
             theme_mode = action.data()
             self._theme_manager.set_theme(theme_mode)
-            
+
             # Mensagem de confirmação
             theme_names = {
                 ThemeMode.LIGHT: "☀️ Clássico",
@@ -1419,7 +1414,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             }
             self._status_label.setText(f"🎨 Tema: {theme_names.get(theme_mode, 'Desconhecido')}")
             logger.info("theme_changed_by_user", theme=theme_mode.name)
-    
+
     def _on_theme_changed(self, mode: ThemeMode):
         """Chamado quando o tema muda (para atualizar checkmarks no menu)"""
         # Atualiza os checkmarks
@@ -1431,7 +1426,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             ThemeMode.SUNSET: "sunset",
             ThemeMode.SYSTEM: "system",
         }
-        
+
         theme_id = theme_map_reverse.get(mode)
         if theme_id and theme_id in self._theme_actions:
             self._theme_actions[theme_id].setChecked(True)

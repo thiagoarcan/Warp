@@ -60,7 +60,7 @@ class TestSelectionCriteria:
     def test_base_criteria_creation(self):
         criteria = SelectionCriteria(
             selection_type=SelectionType.TEMPORAL,
-            mode=SelectionMode.REPLACE
+            mode=SelectionMode.REPLACE,
         )
         assert criteria.selection_type == SelectionType.TEMPORAL
         assert criteria.mode == SelectionMode.REPLACE
@@ -79,7 +79,7 @@ class TestTemporalSelection:
         selection = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             start_time=0.0,
-            end_time=10.0
+            end_time=10.0,
         )
         assert selection.start_time == 0.0
         assert selection.end_time == 10.0
@@ -90,7 +90,7 @@ class TestTemporalSelection:
         selection = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             start_time=10.0,
-            end_time=0.0
+            end_time=0.0,
         )
         assert selection.start_time == 0.0
         assert selection.end_time == 10.0
@@ -99,7 +99,7 @@ class TestTemporalSelection:
         selection = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             start_time=0.0,
-            end_time=10.0
+            end_time=10.0,
         )
         assert selection.matches_point(5.0, 0.0) is True
         assert selection.matches_point(0.0, 0.0) is True
@@ -109,7 +109,7 @@ class TestTemporalSelection:
         selection = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             start_time=0.0,
-            end_time=10.0
+            end_time=10.0,
         )
         assert selection.matches_point(-1.0, 0.0) is False
         assert selection.matches_point(11.0, 0.0) is False
@@ -118,7 +118,7 @@ class TestTemporalSelection:
         selection = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             start_time=5.0,
-            end_time=15.0
+            end_time=15.0,
         )
         assert selection.duration == 10.0
 
@@ -130,7 +130,7 @@ class TestGraphicalSelection:
         rect = QRectF(0.0, 0.0, 10.0, 10.0)
         selection = GraphicalSelection(
             selection_type=SelectionType.GRAPHICAL,
-            region=rect
+            region=rect,
         )
         assert selection.selection_type == SelectionType.GRAPHICAL
 
@@ -139,7 +139,7 @@ class TestGraphicalSelection:
         rect = QRectF(0.0, 0.0, 10.0, 10.0)
         selection = GraphicalSelection(
             selection_type=SelectionType.GRAPHICAL,
-            region=rect
+            region=rect,
         )
         # Points inside
         assert selection.matches_point(5.0, 5.0) is True
@@ -149,7 +149,7 @@ class TestGraphicalSelection:
         rect = QRectF(0.0, 0.0, 10.0, 10.0)
         selection = GraphicalSelection(
             selection_type=SelectionType.GRAPHICAL,
-            region=rect
+            region=rect,
         )
         # Points outside
         assert selection.matches_point(-1.0, 5.0) is False
@@ -163,7 +163,7 @@ class TestGraphicalSelection:
         rect = QRectF(5.0, 0.0, 10.0, 10.0)  # x=5, width=10, so range is 5-15
         selection = GraphicalSelection(
             selection_type=SelectionType.GRAPHICAL,
-            region=rect
+            region=rect,
         )
         time_range = selection.time_range
         assert time_range[0] == 5.0
@@ -177,7 +177,7 @@ class TestGraphicalSelection:
         rect = QRectF(0.0, 2.0, 10.0, 8.0)  # y=2, height=8, so range is 2-10
         selection = GraphicalSelection(
             selection_type=SelectionType.GRAPHICAL,
-            region=rect
+            region=rect,
         )
         value_range = selection.value_range
         # In Qt, bottom() = y + height, top() = y for QRectF
@@ -195,7 +195,7 @@ class TestConditionalSelection:
     def test_conditional_selection_creation(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="value > 5"
+            condition="value > 5",
         )
         assert selection.selection_type == SelectionType.CONDITIONAL
         assert selection.condition == "value > 5"
@@ -203,7 +203,7 @@ class TestConditionalSelection:
     def test_simple_value_condition(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="value > 5"
+            condition="value > 5",
         )
         assert selection.matches_point(0.0, 10.0) is True
         assert selection.matches_point(0.0, 3.0) is False
@@ -211,7 +211,7 @@ class TestConditionalSelection:
     def test_time_based_condition(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="t > 10"
+            condition="t > 10",
         )
         assert selection.matches_point(15.0, 0.0) is True
         assert selection.matches_point(5.0, 0.0) is False
@@ -219,7 +219,7 @@ class TestConditionalSelection:
     def test_combined_condition(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="t > 5 and value < 10"
+            condition="t > 5 and value < 10",
         )
         assert selection.matches_point(10.0, 5.0) is True
         assert selection.matches_point(3.0, 5.0) is False
@@ -228,7 +228,7 @@ class TestConditionalSelection:
     def test_math_functions_in_condition(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="abs(value) < 5"
+            condition="abs(value) < 5",
         )
         assert selection.matches_point(0.0, 3.0) is True
         assert selection.matches_point(0.0, -3.0) is True
@@ -237,7 +237,7 @@ class TestConditionalSelection:
     def test_invalid_condition_returns_false(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="invalid_function(value)"
+            condition="invalid_function(value)",
         )
         # Should not raise, but return False
         assert selection.matches_point(0.0, 5.0) is False
@@ -282,7 +282,7 @@ class TestSelectionState:
             selection_type=SelectionType.TEMPORAL,
             mode=SelectionMode.REPLACE,
             start_time=4.0,
-            end_time=16.0
+            end_time=16.0,
         )
 
         state.apply_criteria(criteria, t_data, value_data)
@@ -301,23 +301,23 @@ class TestSelectionState:
             selection_type=SelectionType.TEMPORAL,
             mode=SelectionMode.REPLACE,
             start_time=0.0,
-            end_time=2.0
+            end_time=2.0,
         )
         state.apply_criteria(criteria1, t_data, value_data)
-        assert state.selected_mask[0] == True
+        assert state.selected_mask[0]
 
         # Add more
         criteria2 = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             mode=SelectionMode.ADD,
             start_time=18.0,
-            end_time=22.0
+            end_time=22.0,
         )
         state.apply_criteria(criteria2, t_data, value_data)
 
         # Both first and last should be selected
-        assert state.selected_mask[0] == True
-        assert state.selected_mask[4] == True
+        assert state.selected_mask[0]
+        assert state.selected_mask[4]
 
     def test_apply_criteria_mismatched_arrays_raises(self):
         state = SelectionState(dataset_id="test")
@@ -327,7 +327,7 @@ class TestSelectionState:
         criteria = TemporalSelection(
             selection_type=SelectionType.TEMPORAL,
             start_time=0.0,
-            end_time=5.0
+            end_time=5.0,
         )
 
         with pytest.raises(ValueError, match="same length"):
@@ -351,7 +351,7 @@ class TestSelectionStateAdvanced:
             selection_type=SelectionType.TEMPORAL,
             mode=SelectionMode.SUBTRACT,
             start_time=4.0,
-            end_time=16.0
+            end_time=16.0,
         )
         state.apply_criteria(criteria, t_data, value_data)
 
@@ -373,7 +373,7 @@ class TestSelectionStateAdvanced:
             selection_type=SelectionType.TEMPORAL,
             mode=SelectionMode.INTERSECT,
             start_time=4.0,
-            end_time=25.0
+            end_time=25.0,
         )
         state.apply_criteria(criteria, t_data, value_data)
 
@@ -388,7 +388,7 @@ class TestConditionalSelectionAdvanced:
     def test_sqrt_condition(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="sqrt(value) < 3"
+            condition="sqrt(value) < 3",
         )
         assert selection.matches_point(0.0, 4.0) is True  # sqrt(4) = 2 < 3
         assert selection.matches_point(0.0, 16.0) is False  # sqrt(16) = 4 > 3
@@ -396,7 +396,7 @@ class TestConditionalSelectionAdvanced:
     def test_trig_condition(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="sin(t) > 0"
+            condition="sin(t) > 0",
         )
         assert selection.matches_point(np.pi / 2, 0.0) is True  # sin(pi/2) = 1
         assert selection.matches_point(np.pi * 1.5, 0.0) is False  # sin(3pi/2) = -1
@@ -404,7 +404,7 @@ class TestConditionalSelectionAdvanced:
     def test_pi_constant(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="t < pi"
+            condition="t < pi",
         )
         assert selection.matches_point(3.0, 0.0) is True  # 3 < 3.14159...
         assert selection.matches_point(4.0, 0.0) is False  # 4 > 3.14159...
@@ -412,7 +412,7 @@ class TestConditionalSelectionAdvanced:
     def test_complex_expression(self):
         selection = ConditionalSelection(
             selection_type=SelectionType.CONDITIONAL,
-            condition="abs(value - 10) < 2"
+            condition="abs(value - 10) < 2",
         )
         assert selection.matches_point(0.0, 9.0) is True
         assert selection.matches_point(0.0, 11.0) is True

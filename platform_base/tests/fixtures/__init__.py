@@ -27,35 +27,36 @@ from tests.fixtures.qt_fixtures import (
     widget_shown,
 )
 
+
 __all__ = [
-    # QApplication
-    "qapp",
-    "qapp_session",
-    "qtbot_extended",
-    # Factories
-    "widget_factory",
+    # Cleanup
+    "cleanup_qt_objects",
+    "dialog_exec_mock",
     "dialog_factory",
-    "signal_spy_factory",
-    # Signals
-    "signal_blocker",
+    # Events
+    "key_event_factory",
     # Mocks
     "mock_main_window",
     "mock_signal_hub_qt",
     "mock_viz_panel",
-    # Real components
-    "real_signal_hub",
-    "real_session_state",
-    # Context managers
-    "widget_shown",
-    "dialog_exec_mock",
-    # Events
-    "key_event_factory",
     "mouse_event_factory",
+    # QApplication
+    "qapp",
+    "qapp_session",
     # Threading
     "qt_thread_executor",
-    # Cleanup
-    "cleanup_qt_objects",
+    "qtbot_extended",
+    "real_session_state",
+    # Real components
+    "real_signal_hub",
     # Decorators
     "requires_display",
     "requires_opengl",
+    # Signals
+    "signal_blocker",
+    "signal_spy_factory",
+    # Factories
+    "widget_factory",
+    # Context managers
+    "widget_shown",
 ]

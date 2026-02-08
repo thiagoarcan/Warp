@@ -16,8 +16,6 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
     QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QSpinBox,
@@ -30,6 +28,7 @@ from PyQt6.QtWidgets import (
 from platform_base.desktop.widgets.sync_settings_widget import SyncSettingsWidget
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -239,10 +238,10 @@ class ConfigPanel(QWidget, UiLoaderMixin):
     - Parameter adjustment widgets
     - Execute operation buttons
     - Operation history
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "configPanel.ui"
 
@@ -273,12 +272,12 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         self.operation_combo = self.findChild(QComboBox, "operationCombo")
         self.history_list = self.findChild(QTextEdit, "historyList")
         self.status_label = self.findChild(QLabel, "statusLabel")
-        
+
         # Widgets de configuração nos placeholders
         interp_placeholder = self.findChild(QWidget, "interpWidget")
         calculus_placeholder = self.findChild(QWidget, "calculusWidget")
         sync_placeholder = self.findChild(QWidget, "syncWidget")
-        
+
         # Inserir widgets de configuração nos placeholders
         if interp_placeholder:
             layout = QVBoxLayout(interp_placeholder)
@@ -287,7 +286,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             self.interp_widget.parameters_changed.connect(
                 lambda params: self._update_params("interpolation", params))
             layout.addWidget(self.interp_widget)
-        
+
         if calculus_placeholder:
             layout = QVBoxLayout(calculus_placeholder)
             layout.setContentsMargins(0, 0, 0, 0)
@@ -295,7 +294,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             self.calculus_widget.parameters_changed.connect(
                 lambda params: self._update_params("calculus", params))
             layout.addWidget(self.calculus_widget)
-        
+
         if sync_placeholder:
             layout = QVBoxLayout(sync_placeholder)
             layout.setContentsMargins(0, 0, 0, 0)
@@ -304,7 +303,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             self.sync_widget.settings_changed.connect(
                 lambda params: self._update_params("sync", params))
             layout.addWidget(self.sync_widget)
-        
+
         # Conectar botões
         if self.execute_btn:
             self.execute_btn.clicked.connect(self._execute_operation)
@@ -312,7 +311,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             self.preview_btn.clicked.connect(self._preview_operation)
         if self.operation_combo:
             self.operation_combo.currentTextChanged.connect(self._on_operation_changed)
-            
+
         logger.debug("config_panel_ui_loaded_from_file")
 
     @pyqtSlot(str)
@@ -320,8 +319,8 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         """Handle operation change in combo box."""
         logger.debug("operation_changed", operation=operation)
         # Enable/disable derivative-specific options if present
-        if hasattr(self, 'calculus_widget') and self.calculus_widget:
-            if hasattr(self.calculus_widget, 'derivative_method'):
+        if hasattr(self, "calculus_widget") and self.calculus_widget:
+            if hasattr(self.calculus_widget, "derivative_method"):
                 is_derivative = "derivative" in operation.lower()
                 self.calculus_widget.derivative_method.setEnabled(is_derivative)
 
@@ -415,7 +414,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
 
         except Exception as e:
             logger.exception(f"Preview failed: {e}")
-            self.status_label.setText(f"Preview failed: {str(e)}")
+            self.status_label.setText(f"Preview failed: {e!s}")
 
     @pyqtSlot(object)
     def _on_selection_changed(self, selection_state):

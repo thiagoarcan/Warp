@@ -15,14 +15,14 @@ Features:
 from __future__ import annotations
 
 import gc
-import os
 import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -52,12 +52,12 @@ class MemorySnapshot:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'timestamp': self.timestamp.isoformat(),
-            'used_mb': self.used_mb,
-            'available_mb': self.available_mb,
-            'total_mb': self.total_mb,
-            'percent_used': self.percent_used,
-            'process_mb': self.process_mb,
+            "timestamp": self.timestamp.isoformat(),
+            "used_mb": self.used_mb,
+            "available_mb": self.available_mb,
+            "total_mb": self.total_mb,
+            "percent_used": self.percent_used,
+            "process_mb": self.process_mb,
         }
 
 
@@ -73,25 +73,25 @@ class MemoryWarning:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'level': self.level,
-            'percent_used': self.percent_used,
-            'used_mb': self.used_mb,
-            'available_mb': self.available_mb,
-            'suggestions': self.suggestions,
+            "level": self.level,
+            "percent_used": self.percent_used,
+            "used_mb": self.used_mb,
+            "available_mb": self.available_mb,
+            "suggestions": self.suggestions,
         }
 
 
 class MemoryMonitor:
     """
     Memory usage monitor with warnings and auto-save.
-    
+
     Monitors memory usage and triggers warnings/actions at configurable thresholds.
     """
 
     _instance: MemoryMonitor | None = None
     _lock = threading.Lock()
 
-    def __new__(cls) -> MemoryMonitor:
+    def __new__(cls) -> Self:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -107,9 +107,9 @@ class MemoryMonitor:
         self._running = False
         self._monitor_thread: threading.Thread | None = None
         self._callbacks: dict[str, list[Callable[[MemoryWarning], None]]] = {
-            'caution': [],
-            'warning': [],
-            'critical': [],
+            "caution": [],
+            "warning": [],
+            "critical": [],
         }
 
         # Configuration
@@ -169,7 +169,7 @@ class MemoryMonitor:
         process = psutil.Process()
         process_mb = process.memory_info().rss / 1024 / 1024
 
-        snapshot = MemorySnapshot(
+        return MemorySnapshot(
             timestamp=datetime.now(),
             used_mb=mem.used / 1024 / 1024,
             available_mb=mem.available / 1024 / 1024,
@@ -178,32 +178,30 @@ class MemoryMonitor:
             process_mb=process_mb,
         )
 
-        return snapshot
 
     def estimate_file_memory(self, file_size_bytes: int) -> float:
         """
         Estimate memory needed to load a file.
-        
+
         Args:
             file_size_bytes: Size of file in bytes
-            
+
         Returns:
             Estimated memory in MB
         """
         # Rule of thumb: pandas DataFrame uses ~2-3x file size
         # Add some overhead for processing
         multiplier = 3.5
-        estimated_mb = (file_size_bytes / 1024 / 1024) * multiplier
+        return (file_size_bytes / 1024 / 1024) * multiplier
 
-        return estimated_mb
 
     def can_load_file(self, file_size_bytes: int) -> tuple[bool, str]:
         """
         Check if file can be loaded without exceeding memory limits.
-        
+
         Args:
             file_size_bytes: Size of file in bytes
-            
+
         Returns:
             Tuple of (can_load, reason)
         """
@@ -304,17 +302,13 @@ class MemoryMonitor:
 
         # Determine warning level
         level = None
-        threshold = 0.0
 
         if percent >= self.critical_threshold:
             level = "critical"
-            threshold = self.critical_threshold
         elif percent >= self.warning_threshold:
             level = "warning"
-            threshold = self.warning_threshold
         elif percent >= self.caution_threshold:
             level = "caution"
-            threshold = self.caution_threshold
 
         # If threshold exceeded, create warning
         if level:

@@ -19,12 +19,13 @@ from platform_base.processing.synchronization import synchronize
 from platform_base.ui.export import export_selection, export_session
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 
 def _get_custom_white_template() -> go.layout.Template:
     """Get a customized plotly_white template with #ffffff backgrounds.
-    
+
     Returns:
         A plotly Template object based on plotly_white but with
         plot_bgcolor and paper_bgcolor set to '#ffffff' instead of 'white'.

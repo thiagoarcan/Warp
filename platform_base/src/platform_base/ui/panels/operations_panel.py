@@ -17,12 +17,11 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QColor, QFont
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
-    QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -30,7 +29,6 @@ from PyQt6.QtWidgets import (
     QListWidgetItem,
     QMessageBox,
     QPushButton,
-    QScrollArea,
     QSizePolicy,
     QSpinBox,
     QTabWidget,
@@ -42,6 +40,7 @@ from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.ui.preview_dialog import OperationPreviewDialog
 from platform_base.utils.logging import get_logger
 from platform_base.utils.widgets import StableComboBox
+
 
 if TYPE_CHECKING:
     from platform_base.ui.state import SessionState
@@ -70,7 +69,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
     - Tab Filtros: Suavização, Butterworth, Outliers
     - Tab Export: CSV, Excel, Parquet, HDF5, JSON
     - Histórico: Últimas 50 operações
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -103,9 +102,9 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(
                 f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
-                "Verifique se o arquivo existe em desktop/ui_files/"
+                "Verifique se o arquivo existe em desktop/ui_files/",
             )
-        
+
         self._setup_ui_from_file()
         self._setup_connections()
         logger.debug("operations_panel_initialized", ui_loaded=self._ui_loaded)
@@ -113,29 +112,29 @@ class OperationsPanel(QWidget, UiLoaderMixin):
     def _setup_ui_from_file(self):
         """
         Configura widgets carregados do arquivo .ui
-        
+
         Mapeia os widgets do arquivo operationsPanel.ui para os atributos
         da classe, mantendo compatibilidade com os métodos existentes.
-        
+
         IMPORTANTE: Todos os widgets são carregados do arquivo .ui.
         Não há fallback - se o widget não existir, será None.
         """
         # Configurações básicas
         self.setMinimumWidth(150)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        
+
         # === WIDGETS PRINCIPAIS ===
         self._tabs = self.findChild(QTabWidget, "tabWidget")
         self._series_combo = self.findChild(QComboBox, "seriesCombo")
         self._history_list = self.findChild(QListWidget, "historyList")
-        
+
         # === TAB INTERPOLAÇÃO ===
         self._interp_method = self.findChild(QComboBox, "interpMethodCombo")
         self._interp_points = self.findChild(QSpinBox, "interpPointsSpin")
         self._interp_smooth = self.findChild(QDoubleSpinBox, "interpSmoothSpin")
         self._interp_degree = self.findChild(QSpinBox, "interpDegreeSpin")
         self._interp_extrapolate = self.findChild(QCheckBox, "interpExtrapolateCheck")
-        
+
         # Botões de interpolação
         interp_preview_btn = self.findChild(QPushButton, "interpPreviewBtn")
         interp_apply_btn = self.findChild(QPushButton, "interpApplyBtn")
@@ -143,14 +142,14 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             interp_preview_btn.clicked.connect(self._preview_interpolation)
         if interp_apply_btn:
             interp_apply_btn.clicked.connect(self._apply_interpolation)
-        
+
         # === TAB CÁLCULOS (DERIVADAS/INTEGRAIS) ===
         self._deriv_order = self.findChild(QComboBox, "derivOrderCombo")
         self._deriv_method = self.findChild(QComboBox, "derivMethodCombo")
         self._deriv_window = self.findChild(QSpinBox, "derivWindowSpin")
         self._deriv_smooth = self.findChild(QCheckBox, "derivSmoothCheck")
         self._area_type = self.findChild(QComboBox, "areaTypeCombo")
-        
+
         # Botões de derivada
         deriv_preview_btn = self.findChild(QPushButton, "derivPreviewBtn")
         deriv_apply_btn = self.findChild(QPushButton, "derivApplyBtn")
@@ -158,7 +157,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             deriv_preview_btn.clicked.connect(self._preview_derivative)
         if deriv_apply_btn:
             deriv_apply_btn.clicked.connect(self._calculate_derivative)
-        
+
         # Integral
         self._integ_method = self.findChild(QComboBox, "integMethodCombo")
         integ_preview_btn = self.findChild(QPushButton, "integPreviewBtn")
@@ -167,12 +166,12 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             integ_preview_btn.clicked.connect(self._preview_integral)
         if integ_apply_btn:
             integ_apply_btn.clicked.connect(self._calculate_integral)
-        
+
         # Área
         area_apply_btn = self.findChild(QPushButton, "areaApplyBtn")
         if area_apply_btn:
             area_apply_btn.clicked.connect(self._calculate_area)
-        
+
         # === TAB FILTROS ===
         self._smooth_method = self.findChild(QComboBox, "smoothMethodCombo")
         self._smooth_window = self.findChild(QSpinBox, "smoothWindowSpin")
@@ -190,7 +189,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._filter_cutoff_high_label = self.findChild(QLabel, "filterCutoffHighLabel")
         self._filter_order = self.findChild(QSpinBox, "filterOrderSpin")
         self._filter_method = self.findChild(QComboBox, "filterMethodCombo")
-        
+
         # Botões de filtros
         smooth_preview_btn = self.findChild(QPushButton, "smoothPreviewBtn")
         smooth_apply_btn = self.findChild(QPushButton, "smoothApplyBtn")
@@ -198,22 +197,22 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             smooth_preview_btn.clicked.connect(self._preview_smoothing)
         if smooth_apply_btn:
             smooth_apply_btn.clicked.connect(self._apply_smoothing)
-            
+
         outlier_preview_btn = self.findChild(QPushButton, "outlierPreviewBtn")
         outlier_apply_btn = self.findChild(QPushButton, "outlierApplyBtn")
         if outlier_preview_btn:
             outlier_preview_btn.clicked.connect(self._preview_remove_outliers)
         if outlier_apply_btn:
             outlier_apply_btn.clicked.connect(self._remove_outliers)
-            
+
         fft_apply_btn = self.findChild(QPushButton, "fftApplyBtn")
         if fft_apply_btn:
             fft_apply_btn.clicked.connect(self._compute_fft)
-            
+
         corr_apply_btn = self.findChild(QPushButton, "corrApplyBtn")
         if corr_apply_btn:
             corr_apply_btn.clicked.connect(self._compute_correlation)
-            
+
         filter_preview_btn = self.findChild(QPushButton, "filterPreviewBtn")
         filter_apply_btn = self.findChild(QPushButton, "filterApplyBtn")
         if filter_preview_btn:
@@ -222,7 +221,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             filter_apply_btn.clicked.connect(self._apply_filter)
         if self._filter_type:
             self._filter_type.currentTextChanged.connect(self._on_filter_type_changed)
-        
+
         # === TAB SINCRONIZAÇÃO ===
         self._sync_datasets_list = self.findChild(QListWidget, "syncDatasetsList")
         self._sync_method = self.findChild(QComboBox, "syncMethodCombo")
@@ -235,7 +234,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._sync_measurement_noise = self.findChild(QDoubleSpinBox, "syncMeasurementNoiseSpin")
         self._sync_create_new = self.findChild(QCheckBox, "syncCreateNewCheck")
         self._sync_keep_original = self.findChild(QCheckBox, "syncKeepOriginalCheck")
-        
+
         # Botões de sincronização
         sync_refresh_btn = self.findChild(QPushButton, "syncRefreshBtn")
         sync_preview_btn = self.findChild(QPushButton, "syncPreviewBtn")
@@ -250,7 +249,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             self._sync_method.currentTextChanged.connect(self._on_sync_method_changed)
         if self._sync_dt_fixed:
             self._sync_dt_fixed.toggled.connect(self._on_sync_dt_fixed_changed)
-        
+
         # === TAB STREAMING ===
         self._streaming_rate = self.findChild(QSpinBox, "streamRateSpin")
         self._streaming_window = self.findChild(QSpinBox, "streamWindowSpin")
@@ -261,7 +260,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._streaming_latency_label = self.findChild(QLabel, "streamLatencyLabel")
         self._streaming_points_label = self.findChild(QLabel, "streamPointsSecLabel")
         self._streaming_status_label = self.findChild(QLabel, "streamStatus")
-        
+
         # Botões de streaming
         stream_start_btn = self.findChild(QPushButton, "streamStartBtn")
         stream_pause_btn = self.findChild(QPushButton, "streamPauseBtn")
@@ -272,14 +271,14 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             stream_pause_btn.clicked.connect(self._pause_streaming)
         if stream_stop_btn:
             stream_stop_btn.clicked.connect(self._stop_streaming)
-        
+
         # === TAB EXPORTAÇÃO ===
         self._export_format = self.findChild(QComboBox, "exportFormatCombo")
         self._export_metadata = self.findChild(QCheckBox, "exportMetadataCheck")
         self._export_timestamps = self.findChild(QCheckBox, "exportTimestampsCheck")
         self._export_interp_flags = self.findChild(QCheckBox, "exportInterpFlagsCheck")
         self._export_selected_only = self.findChild(QCheckBox, "exportSelectedOnlyCheck")
-        
+
         # Botões de exportação
         export_data_btn = self.findChild(QPushButton, "exportDataBtn")
         export_session_btn = self.findChild(QPushButton, "exportSessionBtn")
@@ -290,7 +289,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             export_session_btn.clicked.connect(self._export_session)
         if export_plot_btn:
             export_plot_btn.clicked.connect(self._export_plot)
-        
+
         # === TAB CONFIGURAÇÕES ===
         self._theme_combo = self.findChild(QComboBox, "themeCombo")
         self._plot_style_combo = self.findChild(QComboBox, "plotStyleCombo")
@@ -303,7 +302,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._date_format = self.findChild(QComboBox, "dateFormatCombo")
         self._numeric_precision = self.findChild(QSpinBox, "numericPrecisionSpin")
         self._auto_detect_types = self.findChild(QCheckBox, "autoDetectTypesCheck")
-        
+
         # Botões de configurações
         settings_apply_btn = self.findChild(QPushButton, "settingsApplyBtn")
         settings_reset_btn = self.findChild(QPushButton, "settingsResetBtn")
@@ -311,18 +310,18 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             settings_apply_btn.clicked.connect(self._apply_settings)
         if settings_reset_btn:
             settings_reset_btn.clicked.connect(self._reset_settings)
-        
+
         # === TAB HISTÓRICO ===
         clear_history_btn = self.findChild(QPushButton, "clearHistoryBtn")
         if clear_history_btn:
             clear_history_btn.clicked.connect(self._clear_history)
         if self._history_list:
             self._history_list.itemDoubleClicked.connect(self._replay_operation)
-        
+
         # Inicializar lista de datasets se existir
         if self._sync_datasets_list:
             QTimer.singleShot(100, self._refresh_sync_datasets)
-        
+
         logger.debug("operations_panel_ui_setup_complete")
 
     def _create_combo_box(self) -> StableComboBox:
@@ -333,14 +332,14 @@ class OperationsPanel(QWidget, UiLoaderMixin):
 
     def _on_sync_method_changed(self, method: str):
         """Mostra/oculta parâmetros Kalman conforme método selecionado"""
-        if hasattr(self, '_kalman_group') and self._kalman_group:
+        if hasattr(self, "_kalman_group") and self._kalman_group:
             self._kalman_group.setVisible(method == "kalman_align")
 
     def _on_sync_dt_fixed_changed(self, checked: bool):
         """Habilita/desabilita campo de dt fixo"""
-        if hasattr(self, '_sync_dt_value') and self._sync_dt_value:
+        if hasattr(self, "_sync_dt_value") and self._sync_dt_value:
             self._sync_dt_value.setEnabled(checked)
-        if hasattr(self, '_sync_grid_method') and self._sync_grid_method:
+        if hasattr(self, "_sync_grid_method") and self._sync_grid_method:
             self._sync_grid_method.setEnabled(not checked)
 
     def _refresh_sync_datasets(self):
@@ -397,102 +396,102 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         import numpy as np
         from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
         from matplotlib.figure import Figure
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout
-        
+        from PyQt6.QtWidgets import QDialog
+
         selected_datasets = self._get_selected_sync_datasets()
 
         if len(selected_datasets) < 2:
             QMessageBox.warning(
                 self, "Aviso",
                 "Selecione pelo menos 2 datasets para sincronizar.\n"
-                "Use Ctrl+Click para selecionar múltiplos."
+                "Use Ctrl+Click para selecionar múltiplos.",
             )
             return
 
         params = self._get_sync_params()
-        
+
         # Coletar dados para preview
         all_series_data = {}
         all_t_data = {}
-        
+
         for dataset_id in selected_datasets:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or not dataset.series:
                 continue
-                
+
             for series_id, series in dataset.series.items():
                 key = f"{dataset_id}/{series_id}"
                 if series.values is not None and len(series.values) > 0:
                     all_series_data[key] = np.array(series.values[:1000])  # Limitar para preview
-                    if hasattr(dataset, 't_seconds') and dataset.t_seconds is not None:
+                    if hasattr(dataset, "t_seconds") and dataset.t_seconds is not None:
                         all_t_data[key] = np.array(dataset.t_seconds[:1000])
                     else:
                         all_t_data[key] = np.arange(len(series.values[:1000]))
-        
+
         if len(all_series_data) < 2:
             QMessageBox.warning(self, "Aviso", "Dados insuficientes para preview.")
             return
-            
+
         # Criar diálogo de preview
         dialog = QDialog(self)
         dialog.setWindowTitle("Preview de Sincronização")
         dialog.resize(900, 700)
         dialog_layout = QVBoxLayout(dialog)
-        
+
         # Criar figura com 2 subplots
         fig = Figure(figsize=(10, 8), dpi=100)
         canvas = FigureCanvas(fig)
-        
+
         # Subplot 1: Dados originais
         ax1 = fig.add_subplot(211)
-        ax1.set_title("Dados Originais (antes da sincronização)", fontsize=12, fontweight='bold')
-        
-        colors = ['#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1', '#20c997']
+        ax1.set_title("Dados Originais (antes da sincronização)", fontsize=12, fontweight="bold")
+
+        colors = ["#0d6efd", "#198754", "#dc3545", "#fd7e14", "#6f42c1", "#20c997"]
         for i, (key, values) in enumerate(all_series_data.items()):
             t = all_t_data[key]
             color = colors[i % len(colors)]
             ax1.plot(t, values, label=key[:30], color=color, alpha=0.8, linewidth=1)
-        
+
         ax1.set_xlabel("Tempo (s)")
         ax1.set_ylabel("Valor")
-        ax1.legend(loc='upper right', fontsize=8)
+        ax1.legend(loc="upper right", fontsize=8)
         ax1.grid(True, alpha=0.3)
-        
+
         # Subplot 2: Histograma de intervalos de tempo
         ax2 = fig.add_subplot(212)
-        ax2.set_title("Distribuição de Intervalos de Tempo (dt)", fontsize=12, fontweight='bold')
-        
+        ax2.set_title("Distribuição de Intervalos de Tempo (dt)", fontsize=12, fontweight="bold")
+
         all_dts = []
         for key, t in all_t_data.items():
             if len(t) > 1:
                 dt = np.diff(t)
                 all_dts.extend(dt)
-        
+
         if all_dts:
-            ax2.hist(all_dts, bins=50, color='#0d6efd', alpha=0.7, edgecolor='white')
-            ax2.axvline(np.median(all_dts), color='#dc3545', linestyle='--', 
-                       label=f'Mediana: {np.median(all_dts):.4f}s')
-            ax2.axvline(np.mean(all_dts), color='#198754', linestyle='--', 
-                       label=f'Média: {np.mean(all_dts):.4f}s')
+            ax2.hist(all_dts, bins=50, color="#0d6efd", alpha=0.7, edgecolor="white")
+            ax2.axvline(np.median(all_dts), color="#dc3545", linestyle="--",
+                       label=f"Mediana: {np.median(all_dts):.4f}s")
+            ax2.axvline(np.mean(all_dts), color="#198754", linestyle="--",
+                       label=f"Média: {np.mean(all_dts):.4f}s")
             ax2.legend()
-        
+
         ax2.set_xlabel("dt (segundos)")
         ax2.set_ylabel("Frequência")
         ax2.grid(True, alpha=0.3)
-        
+
         fig.tight_layout()
-        
+
         dialog_layout.addWidget(canvas)
-        
+
         # Info label
         info_label = QLabel(
             f"📊 Datasets: {', '.join(selected_datasets)}\n"
             f"📈 Total de séries: {len(all_series_data)}\n"
-            f"⚙️ Método: {params['method']} | Interpolação: {params['interp_method']}"
+            f"⚙️ Método: {params['method']} | Interpolação: {params['interp_method']}",
         )
         info_label.setStyleSheet("padding: 10px; background: #f8f9fa; border-radius: 4px;")
         dialog_layout.addWidget(info_label)
-        
+
         # Botões
         btn_layout = QHBoxLayout()
         close_btn = QPushButton("Fechar")
@@ -500,7 +499,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         btn_layout.addStretch()
         btn_layout.addWidget(close_btn)
         dialog_layout.addLayout(btn_layout)
-        
+
         dialog.exec()
         logger.info(f"sync_preview_shown: {len(all_series_data)} series")
 
@@ -527,7 +526,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             QMessageBox.warning(
                 self, "Aviso",
                 "Selecione pelo menos 2 datasets para sincronizar.\n"
-                "Use Ctrl+Click para selecionar múltiplos."
+                "Use Ctrl+Click para selecionar múltiplos.",
             )
             return
 
@@ -552,7 +551,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
                         series_dict[key] = np.array(series.values, dtype=float)
 
                         # Usar timestamps se disponível, senão criar índice
-                        if hasattr(dataset, 't_seconds') and dataset.t_seconds is not None:
+                        if hasattr(dataset, "t_seconds") and dataset.t_seconds is not None:
                             t_dict[key] = np.array(dataset.t_seconds, dtype=float)
                         else:
                             t_dict[key] = np.arange(len(series.values), dtype=float)
@@ -560,7 +559,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             if len(series_dict) < 2:
                 QMessageBox.warning(
                     self, "Aviso",
-                    "Não há séries suficientes para sincronizar."
+                    "Não há séries suficientes para sincronizar.",
                 )
                 return
 
@@ -585,15 +584,15 @@ class OperationsPanel(QWidget, UiLoaderMixin):
                         metadata=SeriesMetadata(
                             original_name=key,
                             source_column=key,
-                            description=f"Série sincronizada de {key}"
-                        )
+                            description=f"Série sincronizada de {key}",
+                        ),
                     )
                     synced_series[series_id] = series
 
                 # Criar timestamps como datetime
                 t_common = result.t_common
-                base_time = np.datetime64('2024-01-01T00:00:00')
-                t_datetime = base_time + (t_common * 1e9).astype('timedelta64[ns]')
+                base_time = np.datetime64("2024-01-01T00:00:00")
+                t_datetime = base_time + (t_common * 1e9).astype("timedelta64[ns]")
 
                 synced_dataset = Dataset(
                     dataset_id="synchronized",
@@ -604,7 +603,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
                         filename="synchronized.sync",
                         format="sync",
                         size_bytes=0,
-                        checksum="sync_generated"
+                        checksum="sync_generated",
                     ),
                     t_seconds=np.array(t_common, dtype=np.float64),
                     t_datetime=t_datetime,
@@ -617,7 +616,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
                             "sync_method": params["method"],
                             "alignment_error": result.alignment_error,
                             "confidence": result.confidence,
-                        }
+                        },
                     ),
                     created_at=dt.now(),
                 )
@@ -638,7 +637,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
                 f"Pontos na grade comum: {len(result.t_common):,}\n"
                 f"Erro de alinhamento: {result.alignment_error:.4f}\n"
                 f"Confiança: {result.confidence:.1%}\n\n"
-                "Novo dataset 'synchronized' criado."
+                "Novo dataset 'synchronized' criado.",
             )
 
             logger.info(f"sync_completed: n_series={len(result.synced_series)}, "
@@ -648,7 +647,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             logger.exception(f"sync_failed: {e}")
             QMessageBox.critical(
                 self, "Erro na Sincronização",
-                f"Falha ao sincronizar datasets:\n{e!s}"
+                f"Falha ao sincronizar datasets:\n{e!s}",
             )
 
     # === HANDLERS DE STREAMING ===
@@ -658,48 +657,48 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         # Verificar se há dataset carregado
         all_datasets = self.session_state.get_all_datasets()
         if not all_datasets:
-            QMessageBox.warning(self, "Aviso", 
+            QMessageBox.warning(self, "Aviso",
                 "Nenhum dataset carregado.\n\n"
                 "Carregue um arquivo Excel/CSV primeiro para fazer streaming dos dados históricos.")
             return
-        
+
         # Obter dados do dataset atual
-        dataset_id = list(all_datasets.keys())[0]  # Primeiro dataset
+        dataset_id = next(iter(all_datasets.keys()))  # Primeiro dataset
         dataset = all_datasets[dataset_id]
 
         if not dataset.series:
-            QMessageBox.warning(self, "Aviso", 
+            QMessageBox.warning(self, "Aviso",
                 "O dataset não contém séries de dados.")
             return
-        
+
         # Configurar dados para streaming
         self._streaming_data = {}
         total_points = 0
-        
+
         for series_id, series in dataset.series.items():
             if series.values is not None and len(series.values) > 0:
                 x_data = np.arange(len(series.values))  # Índice como tempo
                 # Usar t_seconds se disponível
-                if hasattr(dataset, 't_seconds') and dataset.t_seconds is not None:
+                if hasattr(dataset, "t_seconds") and dataset.t_seconds is not None:
                     x_data = np.array(dataset.t_seconds)
                     if len(x_data) > len(series.values):
                         x_data = x_data[:len(series.values)]
                     elif len(x_data) < len(series.values):
                         x_data = np.arange(len(series.values))
-                
+
                 y_data = np.array(series.values)
                 self._streaming_data[series_id] = {
-                    'x': x_data,
-                    'y': y_data,
-                    'name': series.name or series_id
+                    "x": x_data,
+                    "y": y_data,
+                    "name": series.name or series_id,
                 }
                 total_points = max(total_points, len(y_data))
-        
+
         if not self._streaming_data:
-            QMessageBox.warning(self, "Aviso", 
+            QMessageBox.warning(self, "Aviso",
                 "Não há dados válidos para streaming.")
             return
-        
+
         # Configurar parâmetros de streaming
         self._streaming_position = 0
         self._streaming_paused = False
@@ -707,33 +706,33 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._total_points_sent = 0
         self._streaming_start_time = time.time()
         self._last_fps_update = time.time()
-        
+
         # Calcular intervalo do timer baseado no FPS configurado
         fps = self._stream_rate.value()
         interval_ms = int(1000 / fps)  # Converter FPS para milissegundos
-        
+
         # Calcular pontos por frame baseado na janela
         window_size = self._stream_window.value()
         total_frames_needed = total_points // window_size
         if total_frames_needed == 0:
             total_frames_needed = 1
-        
+
         # Criar e iniciar timer
         if self._streaming_timer is None:
             self._streaming_timer = QTimer(self)
             self._streaming_timer.timeout.connect(self._streaming_update)
-        
+
         self._streaming_timer.setInterval(interval_ms)
         self._streaming_timer.start()
-        
+
         # Atualizar UI
         self._stream_status.setText("▶️ Streaming")
         self._stream_status.setStyleSheet("font-weight: bold; color: #28a745;")
-        
+
         # Atualizar info do buffer
         buffer_size = self._buffer_size.value()
         self._buffer_current.setText(f"0 / {buffer_size:,}")
-        
+
         logger.info(f"streaming_started_historical: dataset={dataset_id}, "
                    f"series_count={len(self._streaming_data)}, "
                    f"total_points={total_points}, fps={fps}")
@@ -742,70 +741,70 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         """Atualiza streaming com próximo chunk de dados"""
         if self._streaming_paused:
             return
-        
+
         window_size = self._stream_window.value()
         scroll_mode = self._stream_scroll.currentText()
         buffer_size = self._buffer_size.value()
-        
+
         # Determinar chunk de dados a enviar
         end_pos = self._streaming_position + window_size
-        
+
         # Para cada série, enviar o chunk atual
         points_this_frame = 0
         all_done = True
-        
+
         for series_id, data in self._streaming_data.items():
-            x_data = data['x']
-            y_data = data['y']
-            series_name = data['name']
-            
+            x_data = data["x"]
+            y_data = data["y"]
+            data["name"]
+
             if self._streaming_position < len(y_data):
                 all_done = False
-                
+
                 # Calcular slice de dados
                 start_idx = max(0, self._streaming_position - buffer_size) if scroll_mode == "Janela Deslizante" else 0
                 end_idx = min(end_pos, len(y_data))
-                
+
                 x_chunk = x_data[start_idx:end_idx]
                 y_chunk = y_data[start_idx:end_idx]
-                
+
                 points_this_frame += len(y_chunk)
-                
+
                 # Emitir sinal com dados atualizados
                 self.streaming_data_updated.emit(series_id, x_chunk, y_chunk)
-        
+
         # Atualizar posição
         self._streaming_position = end_pos
         self._frame_count += 1
         self._total_points_sent += points_this_frame
-        
+
         # Atualizar estatísticas a cada 0.5 segundos
         current_time = time.time()
         if current_time - self._last_fps_update >= 0.5:
             elapsed = current_time - self._streaming_start_time
-            
+
             # FPS real
             real_fps = self._frame_count / elapsed if elapsed > 0 else 0
             self._stream_fps_label.setText(f"{real_fps:.1f} FPS")
-            
+
             # Latência (estimada como tempo por frame)
             latency_ms = (1000 / real_fps) if real_fps > 0 else 0
             self._stream_latency.setText(f"{latency_ms:.1f} ms")
-            
+
             # Pontos por segundo
             points_per_sec = self._total_points_sent / elapsed if elapsed > 0 else 0
             self._stream_points_sec.setText(f"{points_per_sec:,.0f} pts/s")
-            
+
             # Buffer atual
             buffer_used = min(self._streaming_position, buffer_size)
             self._buffer_current.setText(f"{buffer_used:,} / {buffer_size:,}")
-            
+
             self._last_fps_update = current_time
-        
+
         # Verificar se chegou ao fim
         if all_done:
             self._stop_streaming()
-            QMessageBox.information(self, "Streaming Concluído", 
+            QMessageBox.information(self, "Streaming Concluído",
                 f"Streaming finalizado!\n\n"
                 f"Total de frames: {self._frame_count:,}\n"
                 f"Total de pontos: {self._total_points_sent:,}\n"
@@ -819,24 +818,23 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             self._stream_status.setText("⏸️ Pausado")
             self._stream_status.setStyleSheet("font-weight: bold; color: #ffc107;")
             logger.info("streaming_paused")
-        else:
-            # Retomar se estava pausado
-            if self._streaming_paused and self._streaming_timer:
-                self._streaming_paused = False
-                self._streaming_timer.start()
-                self._stream_status.setText("▶️ Streaming")
-                self._stream_status.setStyleSheet("font-weight: bold; color: #28a745;")
-                logger.info("streaming_resumed")
+        # Retomar se estava pausado
+        elif self._streaming_paused and self._streaming_timer:
+            self._streaming_paused = False
+            self._streaming_timer.start()
+            self._stream_status.setText("▶️ Streaming")
+            self._stream_status.setStyleSheet("font-weight: bold; color: #28a745;")
+            logger.info("streaming_resumed")
 
     def _stop_streaming(self):
         """Para streaming e reseta estado"""
         if self._streaming_timer:
             self._streaming_timer.stop()
-        
+
         self._streaming_position = 0
         self._streaming_paused = False
         self._streaming_data = {}
-        
+
         # Resetar estatísticas
         self._stream_status.setText("⏹️ Parado")
         self._stream_status.setStyleSheet("font-weight: bold; color: #6c757d;")
@@ -844,7 +842,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._stream_latency.setText("0 ms")
         self._stream_points_sec.setText("0 pts/s")
         self._buffer_current.setText("0 / 100000")
-        
+
         logger.info("streaming_stopped")
 
     # === HANDLERS DE CONFIGURAÇÃO ===
@@ -890,25 +888,25 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         """Atualiza o combobox de seleção de série com as séries do dataset atual"""
         try:
             self._series_combo.clear()
-            
+
             if not dataset_id:
                 self._series_combo.addItem("(Nenhum dataset carregado)")
                 self._series_combo.setEnabled(False)
                 return
-                
+
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or not dataset.series:
                 self._series_combo.addItem("(Nenhuma série disponível)")
                 self._series_combo.setEnabled(False)
                 return
-                
+
             # Adicionar séries ao combobox
             for series_id, series in dataset.series.items():
                 # Usar nome do dataset + nome da série para melhor identificação
                 display_name = f"{dataset_id} / {series.name if series.name else series_id}"
                 n_points = len(series.values) if series.values is not None else 0
                 self._series_combo.addItem(f"{display_name} ({n_points:,} pts)", series_id)
-                
+
             self._series_combo.setEnabled(True)
         except Exception as e:
             logger.exception("_update_series_selector_failed", error=str(e))
@@ -1183,7 +1181,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         if filter_type in ("bandpass", "bandstop"):
             params["cutoff_frequency"] = (
                 self._filter_cutoff.value(),
-                self._filter_cutoff_high.value()
+                self._filter_cutoff_high.value(),
             )
         else:
             params["cutoff_frequency"] = self._filter_cutoff.value()
@@ -1205,7 +1203,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         if filter_type in ("bandpass", "bandstop"):
             params["cutoff_frequency"] = (
                 self._filter_cutoff.value(),
-                self._filter_cutoff_high.value()
+                self._filter_cutoff_high.value(),
             )
         else:
             params["cutoff_frequency"] = self._filter_cutoff.value()
@@ -1312,27 +1310,26 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         Returns:
             numpy.ndarray ou None se não houver seleção
         """
-        import numpy as np
 
         # Obter série selecionada do combobox
-        if not hasattr(self, '_series_combo') or self._series_combo.count() == 0:
+        if not hasattr(self, "_series_combo") or self._series_combo.count() == 0:
             logger.debug("No series selector available")
             return None
-            
+
         series_id = self._series_combo.currentData()
         if not series_id:
             logger.debug("No series selected in combo")
             return None
-            
+
         # Obter dados do SessionState
         if self.session_state and self.session_state.current_dataset:
             dataset = self.session_state.get_dataset(self.session_state.current_dataset)
             if dataset and series_id in dataset.series:
                 series = dataset.series[series_id]
-                if hasattr(series, 'values') and series.values is not None:
+                if hasattr(series, "values") and series.values is not None:
                     logger.debug(f"Got series data: {series_id}, {len(series.values)} points")
                     return series.values
-                    
+
         logger.debug("No series data available")
         return None
 

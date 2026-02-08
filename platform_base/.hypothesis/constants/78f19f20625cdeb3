@@ -1,4 +1,0 @@
-# file: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Warp\platform_base\src\platform_base\core\session_state.py
-# hypothesis_version: 6.151.4
-
-['ProcessingState', 'SelectionState', 'SessionState', 'StreamingState', 'UIState', 'ViewState']

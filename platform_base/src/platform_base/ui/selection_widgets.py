@@ -20,13 +20,8 @@ import numpy as np
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import (
     QComboBox,
-    QDialogButtonBox,
     QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
-    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMessageBox,
@@ -34,9 +29,9 @@ from PyQt6.QtWidgets import (
     QSpinBox,
     QTabWidget,
     QTextEdit,
-    QVBoxLayout,
     QWidget,
 )
+
 
 try:
     import pyqtgraph as pg
@@ -52,6 +47,7 @@ from platform_base.ui.selection import DataSelector, Selection, SelectionMode
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
     from platform_base.ui.state import SessionState
@@ -63,10 +59,10 @@ logger = get_logger(__name__)
 class RangePickerWidget(QWidget, UiLoaderMixin):
     """
     Widget para seleção temporal com range picker
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "rangePickerWidget.ui"
 
@@ -84,7 +80,7 @@ class RangePickerWidget(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         logger.debug("range_picker_widget_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
@@ -95,7 +91,7 @@ class RangePickerWidget(QWidget, UiLoaderMixin):
         self.select_btn = self.findChild(QPushButton, "selectBtn")
         self.reset_btn = self.findChild(QPushButton, "resetBtn")
         self.plot_widget = self.findChild(QWidget, "plotWidget")
-        
+
         # Conecta sinais se widgets encontrados
         if self.start_spinbox:
             self.start_spinbox.valueChanged.connect(self._on_manual_range_change)
@@ -192,10 +188,10 @@ class RangePickerWidget(QWidget, UiLoaderMixin):
 class BrushSelectionWidget(QWidget, UiLoaderMixin):
     """
     Widget para seleção interativa com brush
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "brushSelectionWidget.ui"
 
@@ -213,7 +209,7 @@ class BrushSelectionWidget(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         logger.debug("brush_selection_widget_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
@@ -224,7 +220,7 @@ class BrushSelectionWidget(QWidget, UiLoaderMixin):
         self.select_btn = self.findChild(QPushButton, "selectBtn")
         self.selection_info = self.findChild(QLabel, "selectionInfoLabel")
         self.plot_widget = self.findChild(QWidget, "plotWidget")
-        
+
         # Conecta sinais se widgets encontrados
         if self.enable_selection_btn:
             self.enable_selection_btn.clicked.connect(self._toggle_selection)
@@ -332,10 +328,10 @@ class BrushSelectionWidget(QWidget, UiLoaderMixin):
 class QueryBuilderWidget(QWidget, UiLoaderMixin):
     """
     Widget para construção de queries condicionais
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "queryBuilderWidget.ui"
 
@@ -346,12 +342,12 @@ class QueryBuilderWidget(QWidget, UiLoaderMixin):
         super().__init__(parent)
 
         self.available_series: list[str] = []
-        
+
         # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         logger.debug("query_builder_widget_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
@@ -365,7 +361,7 @@ class QueryBuilderWidget(QWidget, UiLoaderMixin):
         self.percentile_input = self.findChild(QSpinBox, "percentileInput")
         self.query_preview = self.findChild(QTextEdit, "queryPreview")
         self.execute_btn = self.findChild(QPushButton, "executeBtn")
-        
+
         # Conecta sinais se widgets encontrados
         if self.value_type_combo:
             self.value_type_combo.currentTextChanged.connect(self._on_value_type_changed)
@@ -449,10 +445,10 @@ class QueryBuilderWidget(QWidget, UiLoaderMixin):
 class SelectionHistoryWidget(QWidget, UiLoaderMixin):
     """
     Widget para histórico de seleções
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "selectionHistoryWidget.ui"
 
@@ -463,19 +459,19 @@ class SelectionHistoryWidget(QWidget, UiLoaderMixin):
         super().__init__(parent)
 
         self.selections: list[Selection] = []
-        
+
         # Carrega do arquivo .ui ou lança erro
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         logger.debug("selection_history_widget_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
         self.clear_btn = self.findChild(QPushButton, "clearBtn")
         self.history_list = self.findChild(QListWidget, "historyList")
-        
+
         if self.clear_btn:
             self.clear_btn.clicked.connect(self._clear_history)
         if self.history_list:
@@ -545,10 +541,10 @@ class SelectionHistoryWidget(QWidget, UiLoaderMixin):
 class SelectionManagerWidget(QWidget, UiLoaderMixin):
     """
     Widget principal do sistema de seleção
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "selectionManagerWidget.ui"
 
@@ -567,7 +563,7 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._setup_connections()
         logger.debug("selection_manager_widget_initialized", ui_loaded=self._ui_loaded)
 
@@ -575,27 +571,27 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         self.dataset_combo = self.findChild(QComboBox, "datasetCombo")
         self.selection_tabs = self.findChild(QTabWidget, "selectionTabs")
-        
+
         # Cria subwidgets
         self.range_picker = RangePickerWidget()
         self.brush_selection = BrushSelectionWidget()
         self.query_builder = QueryBuilderWidget()
         self.history_widget = SelectionHistoryWidget()
-        
+
         if self.dataset_combo:
             self.dataset_combo.currentTextChanged.connect(self._on_dataset_changed)
-        
+
         # Adiciona subwidgets às tabs se tabs existir
         if self.selection_tabs:
             self.range_picker.range_selected.connect(self._on_temporal_selection)
             self.selection_tabs.addTab(self.range_picker, "Time Range")
-            
+
             self.brush_selection.points_selected.connect(self._on_interactive_selection)
             self.selection_tabs.addTab(self.brush_selection, "Interactive")
-            
+
             self.query_builder.query_built.connect(self._on_conditional_selection)
             self.selection_tabs.addTab(self.query_builder, "Conditional")
-            
+
             self.history_widget.selection_restored.connect(self._on_history_restore)
             self.selection_tabs.addTab(self.history_widget, "History")
 
@@ -731,7 +727,7 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
 class SelectionSync(QWidget, UiLoaderMixin):
     """
     Widget para sincronização de seleção entre múltiplas views.
-    
+
     Permite que seleções feitas em uma view sejam refletidas em outras
     views conectadas. Interface carregada do arquivo .ui via UiLoaderMixin.
     """
@@ -761,12 +757,12 @@ class SelectionSync(QWidget, UiLoaderMixin):
         self.sync_checkbox = self.findChild(QPushButton, "syncCheckbox")
         self.views_list = self.findChild(QListWidget, "viewsList")
         self.status_label = self.findChild(QLabel, "statusLabel")
-        
+
         if self.sync_checkbox:
             self.sync_checkbox.setCheckable(True)
             self.sync_checkbox.setChecked(True)
             self.sync_checkbox.clicked.connect(self._on_sync_toggled)
-        
+
         if self.status_label:
             self.status_label.setText("No selection")
 
@@ -776,10 +772,10 @@ class SelectionSync(QWidget, UiLoaderMixin):
         self.sync_checkbox.setText("Sync Enabled" if checked else "Sync Disabled")
         self.sync_enabled.emit(checked)
 
-    def add_view(self, view: QWidget, name: str = None):
+    def add_view(self, view: QWidget, name: str | None = None):
         """
         Add a view to sync.
-        
+
         Args:
             view: Widget to synchronize
             name: Display name for the view
@@ -795,7 +791,7 @@ class SelectionSync(QWidget, UiLoaderMixin):
     def remove_view(self, view: QWidget):
         """
         Remove a view from sync.
-        
+
         Args:
             view: Widget to remove
         """
@@ -808,7 +804,7 @@ class SelectionSync(QWidget, UiLoaderMixin):
     def sync_selection(self, selection: Selection):
         """
         Sync a selection to all views.
-        
+
         Args:
             selection: Selection to sync
         """
@@ -848,7 +844,7 @@ class SelectionSync(QWidget, UiLoaderMixin):
 class SelectionToolbar(QWidget, UiLoaderMixin):
     """
     Toolbar with selection mode buttons and tools.
-    
+
     Provides quick access to different selection modes and operations.
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
@@ -865,7 +861,7 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self._current_mode = 'single'
+        self._current_mode = "single"
         self._mode_buttons: dict[str, QPushButton] = {}
 
         # Carrega do arquivo .ui ou lança erro
@@ -879,26 +875,26 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
         self.clear_btn = self.findChild(QPushButton, "clearBtn")
         self.select_all_btn = self.findChild(QPushButton, "selectAllBtn")
         self.invert_btn = self.findChild(QPushButton, "invertBtn")
-        
+
         # Busca botões de modo pelo objectName
         mode_names = {
-            'single': 'singleBtn',
-            'box': 'boxBtn',
-            'lasso': 'lassoBtn',
-            'range': 'rangeBtn'
+            "single": "singleBtn",
+            "box": "boxBtn",
+            "lasso": "lassoBtn",
+            "range": "rangeBtn",
         }
-        
+
         for mode_id, btn_name in mode_names.items():
             btn = self.findChild(QPushButton, btn_name)
             if btn:
                 btn.setCheckable(True)
                 btn.clicked.connect(lambda checked, m=mode_id: self._on_mode_clicked(m))
                 self._mode_buttons[mode_id] = btn
-        
+
         # Configura botão padrão
-        if 'single' in self._mode_buttons:
-            self._mode_buttons['single'].setChecked(True)
-        
+        if "single" in self._mode_buttons:
+            self._mode_buttons["single"].setChecked(True)
+
         # Conecta sinais dos botões de ação
         if self.clear_btn:
             self.clear_btn.clicked.connect(self.clear_requested.emit)
@@ -923,7 +919,7 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
     def set_mode(self, mode: str):
         """
         Set current selection mode.
-        
+
         Args:
             mode: Mode name ('single', 'box', 'lasso', 'range')
         """
@@ -947,7 +943,7 @@ class SelectionToolbar(QWidget, UiLoaderMixin):
 class SelectionInfo(QWidget, UiLoaderMixin):
     """
     Widget displaying information about current selection.
-    
+
     Shows count, statistics, and metadata about selected data.
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
@@ -976,7 +972,7 @@ class SelectionInfo(QWidget, UiLoaderMixin):
         self.max_label = self.findChild(QLabel, "maxLabel")
         self.mean_label = self.findChild(QLabel, "meanLabel")
         self.std_label = self.findChild(QLabel, "stdLabel")
-        
+
         # Inicializa valores
         if self.count_value:
             self.count_value.setText("0 / 0 points")
@@ -994,7 +990,7 @@ class SelectionInfo(QWidget, UiLoaderMixin):
     def update_count(self, selected: int, total: int):
         """
         Update selection count display.
-        
+
         Args:
             selected: Number of selected points
             total: Total number of points
@@ -1010,7 +1006,7 @@ class SelectionInfo(QWidget, UiLoaderMixin):
     def show_stats(self, stats: dict):
         """
         Display statistics for selected data.
-        
+
         Args:
             stats: Dictionary with 'min', 'max', 'mean', 'std' keys
         """

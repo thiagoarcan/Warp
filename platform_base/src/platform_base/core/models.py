@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Core Data Models
+================
+
+This module defines the core data models used throughout the platform_base application.
+It includes models for datasets, series, views, sessions, and related metadata.
+
+All models use Pydantic for validation and serialization.
+"""
 from __future__ import annotations
 
 import hashlib

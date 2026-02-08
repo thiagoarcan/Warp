@@ -25,7 +25,6 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
-    QGroupBox,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -105,11 +104,11 @@ class ExportWorkerThread(QThread):
 class ExportDialog(QDialog, UiLoaderMixin):
     """
     Diálogo completo de exportação de dados
-    
+
     Interface 100% carregada do arquivo .ui via UiLoaderMixin.
     Nenhum widget é criado programaticamente.
     """
-    
+
     UI_FILE = "exportDialog.ui"
 
     export_requested = pyqtSignal(dict)  # config
@@ -130,62 +129,62 @@ class ExportDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(
                 f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
-                "Verifique se existe em desktop/ui_files/"
+                "Verifique se existe em desktop/ui_files/",
             )
-        
+
         self._setup_ui_from_file()
         self._populate_series_tree()
         self._setup_connections()
         self._initialize_widget_states()
-        
+
         logger.debug("export_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
         """Busca referências a todos os widgets definidos no arquivo .ui"""
-        
+
         # === Widgets principais ===
         self._main_splitter = self.findChild(QSplitter, "mainSplitter")
         self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
-        
+
         # === Painel de seleção de séries ===
         self._series_tree = self.findChild(QTreeWidget, "seriesTree")
         self._select_all_btn = self.findChild(QPushButton, "selectAllBtn")
         self._clear_selection_btn = self.findChild(QPushButton, "clearSelectionBtn")
         self._selection_info = self.findChild(QLabel, "selectionInfoLabel")
-        
+
         # === Tabs de configuração ===
         self._config_tabs = self.findChild(QTabWidget, "configTabs")
-        
+
         # === Aba Formato ===
         self._format_combo = self.findChild(QComboBox, "formatCombo")
         self._delimiter_combo = self.findChild(QComboBox, "delimiterCombo")
         self._encoding_combo = self.findChild(QComboBox, "encodingCombo")
         self._decimal_combo = self.findChild(QComboBox, "decimalCombo")
-        
+
         # === Aba Opções ===
         self._include_header_check = self.findChild(QCheckBox, "includeHeaderCheck")
         self._include_index_check = self.findChild(QCheckBox, "includeIndexCheck")
         self._include_metadata_check = self.findChild(QCheckBox, "includeMetadataCheck")
         self._compress_check = self.findChild(QCheckBox, "compressCheck")
         self._date_format_check = self.findChild(QCheckBox, "dateFormatCheck")
-        
+
         # === Aba Preview ===
         self._preview_text = self.findChild(QTextEdit, "previewText")
-        
+
         # === Destino ===
         self._path_edit = self.findChild(QLineEdit, "pathEdit")
         self._browse_btn = self.findChild(QPushButton, "browseBtn")
-        
+
         # === Progresso ===
         self._progress_bar = self.findChild(QProgressBar, "progressBar")
         self._progress_label = self.findChild(QLabel, "progressLabel")
-        
+
         # === Botão Preview ===
         self._preview_btn = self.findChild(QPushButton, "previewBtn")
-        
+
         # Validação
         self._validate_widgets()
-        
+
         logger.debug("export_dialog_ui_widgets_loaded")
 
     def _validate_widgets(self):
@@ -207,13 +206,13 @@ class ExportDialog(QDialog, UiLoaderMixin):
             "progressBar": self._progress_bar,
             "buttonBox": self._button_box,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
-        
+
         if missing:
             raise RuntimeError(
                 f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
-                f"Verifique se {self.UI_FILE} está completo."
+                f"Verifique se {self.UI_FILE} está completo.",
             )
 
     def _setup_connections(self):
@@ -224,17 +223,17 @@ class ExportDialog(QDialog, UiLoaderMixin):
         if self._clear_selection_btn:
             self._clear_selection_btn.clicked.connect(self._clear_selection)
         self._series_tree.itemChanged.connect(self._on_series_selection_changed)
-        
+
         # Formato
         self._format_combo.currentIndexChanged.connect(self._on_format_changed)
-        
+
         # Navegação
         self._browse_btn.clicked.connect(self._browse_destination)
-        
+
         # Preview
         if self._preview_btn:
             self._preview_btn.clicked.connect(self._show_preview)
-        
+
         # Botões
         if self._button_box:
             self._button_box.accepted.connect(self._start_export)
@@ -476,12 +475,12 @@ class ExportDialog(QDialog, UiLoaderMixin):
         if not self._path_edit.text():
             QMessageBox.warning(self, "Atenção", "Selecione um destino para o arquivo.")
             return
-        
+
         selected = self._get_selected_series()
         if not selected:
             QMessageBox.warning(self, "Atenção", "Selecione ao menos uma série para exportar.")
             return
-        
+
         config = self._get_export_config()
         self.export_requested.emit(config)
         self.accept()
@@ -501,7 +500,7 @@ def show_export_dialog(available_series: list[tuple[str, str, int]] | None = Non
     Args:
         available_series: Lista de (dataset_name, series_name, row_count)
         parent: Widget pai
-        
+
     Returns:
         Dicionário com configuração ou None se cancelado
     """

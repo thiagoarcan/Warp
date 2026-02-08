@@ -76,6 +76,7 @@ class Ui_CompareSeriesDialog(object):
 
         self.maeCheck = QCheckBox(self.metricsGroup)
         self.maeCheck.setObjectName(u"maeCheck")
+        self.maeCheck.setChecked(True)
 
         self.metricsLayout.addWidget(self.maeCheck)
 
@@ -107,7 +108,7 @@ class Ui_CompareSeriesDialog(object):
 
         self.buttonLayout.addWidget(self.compareBtn)
 
-        self.buttonSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.buttonSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.buttonLayout.addItem(self.buttonSpacer)
 

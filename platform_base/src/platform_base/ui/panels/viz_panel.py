@@ -24,10 +24,8 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDoubleSpinBox,
-    QFormLayout,
     QFrame,
     QGridLayout,
-    QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -46,6 +44,7 @@ from platform_base.ui.panels.performance import (
     decimate_for_plot,
 )
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.ui.state import SessionState
@@ -79,7 +78,7 @@ class MatplotlibWidget(QWidget):
     # Signal para cálculos
     calculation_requested = pyqtSignal(str, str, str, dict)  # dataset_id, series_id, calc_type, params
 
-    def __init__(self, series, plot_type: str = "2d", parent=None, dataset_name: str = "", 
+    def __init__(self, series, plot_type: str = "2d", parent=None, dataset_name: str = "",
                  t_datetime=None, t_seconds=None):
         super().__init__(parent)
 
@@ -88,7 +87,7 @@ class MatplotlibWidget(QWidget):
         self.series = series  # Série principal (compatibilidade)
         self.plot_type = plot_type
         self._dataset_name = dataset_name or "Dataset"
-        
+
         # Dados de tempo para eixo X
         self._t_datetime = t_datetime  # numpy.datetime64 array
         self._t_seconds = t_seconds    # numpy.float64 array
@@ -149,7 +148,7 @@ class MatplotlibWidget(QWidget):
 
         # Conectar evento de movimento do mouse para tooltip de coordenadas
         self._coord_cid = self.canvas.mpl_connect("motion_notify_event", self._on_mouse_move)
-        
+
         # Tooltip para coordenadas (QLabel na toolbar)
         self._coord_label = None  # Será criada na toolbar
 
@@ -162,28 +161,28 @@ class MatplotlibWidget(QWidget):
             if self._coord_label:
                 self._coord_label.setText("")
             return
-            
+
         try:
             x, y = event.xdata, event.ydata
-            
+
             # Formatar X como datetime se disponível
             if self._t_datetime is not None and len(self._t_datetime) > 0:
                 # Converter índice x para datetime
                 idx = int(x) if x >= 0 else 0
                 idx = min(idx, len(self._t_datetime) - 1)
                 dt_val = self._t_datetime[idx]
-                x_str = str(np.datetime_as_string(dt_val, unit='s'))
+                x_str = str(np.datetime_as_string(dt_val, unit="s"))
             else:
                 x_str = f"{x:.2f}"
-            
+
             coord_text = f"X: {x_str}  |  Y: {y:.4f}"
-            
+
             if self._coord_label:
                 self._coord_label.setText(coord_text)
-                
+
             # Emitir sinal de coordenadas
             self.coordinates_changed.emit(x, y)
-            
+
         except Exception as e:
             logger.debug(f"Error updating crosshair position: {e}")
 
@@ -286,7 +285,7 @@ class MatplotlibWidget(QWidget):
         layout.addWidget(save_btn)
 
         layout.addStretch()
-        
+
         # Coordenadas do mouse (tooltip em tempo real)
         self._coord_label = QLabel("")
         self._coord_label.setStyleSheet("font-size: 10px; color: #0d6efd; font-weight: bold; padding: 0 8px;")
@@ -351,18 +350,16 @@ class MatplotlibWidget(QWidget):
     def _plot_single_series(self, ax, series, dataset_name: str, color_idx: int):
         """Plota uma única série no eixo e retorna o objeto de linha"""
         import matplotlib.dates as mdates
-        
+
         values = series.values
         n_points = len(values)
-        
+
         # Usar datetime se disponível, senão usar índice
         if self._t_datetime is not None and len(self._t_datetime) == n_points:
             # Converter datetime64 para matplotlib dates
-            x_data = mdates.date2num(self._t_datetime.astype('datetime64[ms]').astype('datetime64[us]'))
-            use_datetime = True
+            x_data = mdates.date2num(self._t_datetime.astype("datetime64[ms]").astype("datetime64[us]"))
         else:
             x_data = np.arange(n_points)
-            use_datetime = False
 
         # Otimização de performance
         if n_points > _perf_config.direct_render_limit:
@@ -401,24 +398,21 @@ class MatplotlibWidget(QWidget):
 
         # Título dinâmico
         n_series = len(self.series_list) if self.series_list else 1
-        if n_series == 1:
-            title = "Análise Temporal"
-        else:
-            title = f"Comparativo ({n_series} séries)"
+        title = "Análise Temporal" if n_series == 1 else f"Comparativo ({n_series} séries)"
         ax.set_title(title, fontsize=16, fontweight="bold", color="#212529", pad=20)
 
         # Configurar eixo X para datetime se disponível
         if self._t_datetime is not None and len(self._t_datetime) > 0:
             ax.set_xlabel("Data/Hora", fontsize=13, color="#495057", fontweight="500")
             # Formatar ticks de data automaticamente
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
             ax.xaxis.set_major_locator(mdates.AutoDateLocator())
             # Rotacionar labels para melhor legibilidade
-            plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha="right")
             self.figure.tight_layout()
         else:
             ax.set_xlabel("Índice da Amostra", fontsize=13, color="#495057", fontweight="500")
-            
+
         ax.set_ylabel("Valor", fontsize=13, color="#495057", fontweight="500")
 
         # Grid moderno
@@ -444,7 +438,7 @@ class MatplotlibWidget(QWidget):
                           fontsize=11)
         legend.get_frame().set_linewidth(1.5)
         legend.get_frame().set_boxstyle("round,pad=0.3")
-        
+
         # Tornar legenda arrastável (método compatível com várias versões)
         try:
             legend.set_draggable(True)
@@ -916,10 +910,10 @@ class MatplotlibWidget(QWidget):
                 menu.addAction(clear_sel_action)
 
             menu.addSeparator()
-            
+
             # === CÁLCULOS MATEMÁTICOS ===
             calc_menu = menu.addMenu("🧮 Cálculos")
-            
+
             # Derivadas
             deriv_menu = calc_menu.addMenu("📈 Derivadas")
             deriv1_action = QAction("1ª Derivada", self)
@@ -931,19 +925,19 @@ class MatplotlibWidget(QWidget):
             deriv3_action = QAction("3ª Derivada", self)
             deriv3_action.triggered.connect(lambda: self._request_calculation("derivative", {"order": 3}))
             deriv_menu.addAction(deriv3_action)
-            
+
             # Integral
             integral_action = QAction("∫ Integral", self)
             integral_action.triggered.connect(lambda: self._request_calculation("integral", {}))
             calc_menu.addAction(integral_action)
-            
+
             # Área sob curva
             area_action = QAction("📏 Área sob Curva", self)
             area_action.triggered.connect(lambda: self._request_calculation("area", {}))
             calc_menu.addAction(area_action)
-            
+
             calc_menu.addSeparator()
-            
+
             # Interpolação
             interp_menu = calc_menu.addMenu("📐 Interpolação")
             interp_linear_action = QAction("Linear", self)
@@ -955,7 +949,7 @@ class MatplotlibWidget(QWidget):
             interp_akima_action = QAction("Akima", self)
             interp_akima_action.triggered.connect(lambda: self._request_calculation("interpolation", {"method": "akima"}))
             interp_menu.addAction(interp_akima_action)
-            
+
             # Filtros
             filter_menu = calc_menu.addMenu("🎚️ Filtros")
             smooth_action = QAction("Suavização (Moving Average)", self)
@@ -964,15 +958,15 @@ class MatplotlibWidget(QWidget):
             savgol_action = QAction("Savitzky-Golay", self)
             savgol_action.triggered.connect(lambda: self._request_calculation("filter", {"type": "savgol"}))
             filter_menu.addAction(savgol_action)
-            
+
             menu.addSeparator()
-            
+
             # === EIXO Y SECUNDÁRIO ===
             axis_menu = menu.addMenu("📊 Eixos")
             add_y_axis_action = QAction("➕ Adicionar Eixo Y Secundário", self)
             add_y_axis_action.triggered.connect(self._add_secondary_y_axis)
             axis_menu.addAction(add_y_axis_action)
-            
+
             menu.addSeparator()
 
             # === OPÇÕES DE VISUALIZAÇÃO AVANÇADAS ===
@@ -1092,26 +1086,26 @@ class MatplotlibWidget(QWidget):
             if not self.series_list:
                 QMessageBox.warning(self, "Aviso", "Nenhuma série disponível para cálculo.")
                 return
-                
+
             # Usar primeira série visível
             series_info = self.series_list[0]
             dataset_name = series_info["dataset_name"]
             series_id = series_info["series"].series_id if hasattr(series_info["series"], "series_id") else "unknown"
-            
+
             # Emitir sinal de cálculo solicitado
             self.calculation_requested.emit(dataset_name, series_id, calc_type, params)
-            
+
             # Feedback visual
             self._info_label.setText(f"Cálculo: {calc_type}")
             logger.info(f"calculation_requested: type={calc_type}, params={params}")
-            
+
             # Mostrar mensagem temporária
             QMessageBox.information(self, "Cálculo Solicitado",
                 f"Tipo: {calc_type}\n"
                 f"Série: {dataset_name}\n"
                 f"Parâmetros: {params}\n\n"
                 "Use o painel de Operações para configurar e executar o cálculo.")
-                
+
         except Exception as e:
             logger.exception(f"request_calculation_error: {e}")
             QMessageBox.warning(self, "Erro", f"Erro ao solicitar cálculo: {e}")
@@ -1122,26 +1116,26 @@ class MatplotlibWidget(QWidget):
             if not hasattr(self, "_ax") or self._ax is None:
                 QMessageBox.warning(self, "Aviso", "Nenhum gráfico disponível.")
                 return
-                
+
             # Verificar se já existe eixo secundário
             if hasattr(self, "_ax2") and self._ax2 is not None:
                 QMessageBox.information(self, "Info", "Eixo Y secundário já existe.")
                 return
-                
+
             # Criar eixo Y secundário
             self._ax2 = self._ax.twinx()
             self._ax2.set_ylabel("Eixo Y Secundário", fontsize=13, color="#dc3545", fontweight="500")
             self._ax2.spines["right"].set_color("#dc3545")
-            self._ax2.tick_params(axis='y', labelcolor='#dc3545')
-            
+            self._ax2.tick_params(axis="y", labelcolor="#dc3545")
+
             self.canvas.draw()
             self._info_label.setText("Eixo Y secundário adicionado")
             logger.info("secondary_y_axis_added")
-            
+
             QMessageBox.information(self, "Sucesso",
                 "Eixo Y secundário criado.\n\n"
                 "Arraste uma nova série para o gráfico para plotá-la no eixo secundário.")
-                
+
         except Exception as e:
             logger.exception(f"add_secondary_y_axis_error: {e}")
             QMessageBox.warning(self, "Erro", f"Erro ao criar eixo secundário: {e}")
@@ -1833,13 +1827,13 @@ class AxesConfigDialog(QDialog, UiLoaderMixin):
         self._yscale_combo = self.findChild(QComboBox, "yscale_combo")
         self._grid_check = self.findChild(QCheckBox, "grid_check")
         self._grid_alpha_spin = self.findChild(QDoubleSpinBox, "grid_alpha_spin")
-        
+
         # Conecta sinais
         if self._xlim_auto_check:
             self._xlim_auto_check.stateChanged.connect(self._on_xlim_auto_changed)
         if self._ylim_auto_check:
             self._ylim_auto_check.stateChanged.connect(self._on_ylim_auto_changed)
-        
+
         # Botões OK/Cancel
         ok_btn = self.findChild(QPushButton, "ok_btn")
         cancel_btn = self.findChild(QPushButton, "cancel_btn")
@@ -2013,7 +2007,7 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
     - Sistema intuitivo de drag-and-drop
     - Múltiplas visualizações em abas
     - Interface moderna e responsiva
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -2035,17 +2029,17 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
             self._setup_modern_ui_fallback()
         else:
             self._setup_ui_from_file()
-        
+
         self._setup_connections()
         logger.debug("modern_viz_panel_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
         self._viz_tabs = self.findChild(QTabWidget, "vizTabs")
-        
+
         new_2d_btn = self.findChild(QPushButton, "new2dBtn")
         new_3d_btn = self.findChild(QPushButton, "new3dBtn")
-        
+
         if new_2d_btn:
             new_2d_btn.clicked.connect(self.create_2d_plot)
         if new_3d_btn:
@@ -2216,7 +2210,7 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
     def _on_dataset_changed(self, dataset_id: str):
         """Handler para mudança de dataset"""
         # Update UI quando dataset mudar
-        pass  # Implementar refresh se necessário
+        # Implementar refresh se necessário
 
     # Handlers para drop de séries
     @pyqtSlot(str, str)
@@ -2249,10 +2243,10 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
             series = dataset.series[series_id]
             dataset_name = dataset.source.filename if dataset.source else dataset_id
-            
+
             # Obter dados de tempo do dataset
-            t_datetime = getattr(dataset, 't_datetime', None)
-            t_seconds = getattr(dataset, 't_seconds', None)
+            t_datetime = getattr(dataset, "t_datetime", None)
+            t_seconds = getattr(dataset, "t_seconds", None)
 
             # Verificar se tab atual é um gráfico 2D que pode receber mais séries
             current_idx = self._viz_tabs.currentIndex()
@@ -2274,7 +2268,7 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
             # Conectar signal de drop para adicionar mais séries
             if isinstance(plot_widget, MatplotlibWidget):
                 plot_widget.series_drop_requested.connect(
-                    lambda ds_id, sr_id, pw=plot_widget: self._on_series_drop_on_plot(pw, ds_id, sr_id)
+                    lambda ds_id, sr_id, pw=plot_widget: self._on_series_drop_on_plot(pw, ds_id, sr_id),
                 )
 
             # Add as new tab
@@ -2320,17 +2314,17 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
         """Cria gráfico para série específica (API pública)"""
         self._create_plot(dataset_id, series_id, plot_type)
 
-    def _create_plot_widget(self, series, plot_type: str, dataset_name: str = "", 
+    def _create_plot_widget(self, series, plot_type: str, dataset_name: str = "",
                            t_datetime=None, t_seconds=None) -> QWidget:
         """Cria widget de gráfico REAL usando matplotlib"""
         try:
             # Criar widget matplotlib real com nome do dataset e dados de tempo
             widget = MatplotlibWidget(series, plot_type, dataset_name=dataset_name,
                                    t_datetime=t_datetime, t_seconds=t_seconds)
-            
+
             # Conectar signal de cálculo do widget ao panel
             widget.calculation_requested.connect(self.calculation_requested.emit)
-            
+
             return widget
 
         except Exception as e:

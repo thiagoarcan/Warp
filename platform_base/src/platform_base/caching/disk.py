@@ -77,7 +77,7 @@ class DiskCache:
         try:
             if self._lru_file.exists():
                 with open(self._lru_file, "rb") as f:
-                    return pickle.load(f)
+                    return pickle.load(f)  # nosec B301 - trusted internal cache data
         except Exception as e:
             logger.warning(
                 "lru_order_load_failed",
@@ -100,7 +100,7 @@ class DiskCache:
 
     def _get_cache_key(self, key: str) -> str:
         """Generate cache key hash."""
-        return hashlib.md5(key.encode()).hexdigest()
+        return hashlib.md5(key.encode(), usedforsecurity=False).hexdigest()
 
     def _get_file_path(self, cache_key: str) -> Path:
         """Get file path for cache key."""
@@ -221,7 +221,7 @@ class DiskCache:
                 return None
 
             with open(file_path, "rb") as f:
-                value = pickle.load(f)
+                value = pickle.load(f)  # nosec B301 - trusted internal cache data
 
             # Update LRU order
             self._lru_order[cache_key] = time.time()

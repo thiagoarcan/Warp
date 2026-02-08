@@ -21,13 +21,10 @@ from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QSlider,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -199,7 +196,7 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         position_changed: Posição atual mudou (index ou timestamp)
         state_changed: Estado de playback mudou
         speed_changed: Velocidade mudou
-    
+
     Interface carregada do arquivo streamingPanel.ui via UiLoaderMixin.
     """
 
@@ -229,9 +226,9 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(
                 f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
-                "Verifique se o arquivo existe em desktop/ui_files/"
+                "Verifique se o arquivo existe em desktop/ui_files/",
             )
-        
+
         self._setup_ui_from_file()
         self._connect_signals()
         self._update_ui_state()
@@ -240,74 +237,74 @@ class StreamingPanel(QWidget, UiLoaderMixin):
     def _setup_ui_from_file(self):
         """
         Configura widgets carregados do arquivo streamingPanel.ui
-        
+
         Mapeia os widgets do arquivo .ui para os atributos da classe,
         mantendo compatibilidade com os métodos existentes.
-        
+
         IMPORTANTE: Todos os widgets são carregados do arquivo .ui.
         Não há fallback - se o widget não existir, será None.
         """
-        from PyQt6.QtWidgets import QProgressBar, QLineEdit
-        
+        from PyQt6.QtWidgets import QLineEdit, QProgressBar
+
         # === WIDGETS DE STATUS ===
         self._status_icon_label = self.findChild(QLabel, "statusIconLabel")
         self._status_text_label = self.findChild(QLabel, "statusTextLabel")
         self._rate_value_label = self.findChild(QLabel, "rateValueLabel")
         self._buffer_progress = self.findChild(QProgressBar, "bufferProgress")
-        
+
         # === WIDGETS DE CONTROLE DE PLAYBACK ===
         # Botões principais
         self._btn_play = self.findChild(QPushButton, "playBtn")
         self._btn_pause = self.findChild(QPushButton, "pauseBtn")
         self._btn_stop = self.findChild(QPushButton, "stopBtn")
-        
+
         # Para compatibilidade com código legado
         self._btn_start = None  # Não existe no novo .ui
         self._btn_prev = None   # Não existe no novo .ui
         self._btn_next = None   # Não existe no novo .ui
         self._btn_end = None    # Não existe no novo .ui
-        
+
         # Slider de posição
         self._timeline = self.findChild(QSlider, "positionSlider")
         self._current_time = self.findChild(QLabel, "positionLabel")
         self._total_time = self.findChild(QLabel, "durationLabel")
-        
+
         # Controle de velocidade
         self._speed_slider = self.findChild(QSlider, "speedSlider")
         self._speed_value_label = self.findChild(QLabel, "speedValueLabel")
-        
+
         # === WIDGETS DE FONTE DE DADOS ===
         self._source_type_combo = self.findChild(QComboBox, "sourceTypeCombo")
         self._source_path_edit = self.findChild(QLineEdit, "sourcePathEdit")
         self._btn_browse = self.findChild(QPushButton, "browseBtn")
         self._btn_connect = self.findChild(QPushButton, "connectBtn")
         self._btn_disconnect = self.findChild(QPushButton, "disconnectBtn")
-        
+
         # === WIDGETS DE CONFIGURAÇÃO ===
         self._buffer_size_spin = self.findChild(QSpinBox, "bufferSizeSpin")
         self._update_rate_spin = self.findChild(QSpinBox, "updateRateSpin")
         self._auto_scroll_check = self.findChild(QCheckBox, "autoScrollCheck")
         self._record_check = self.findChild(QCheckBox, "recordCheck")
-        
+
         # === STATUS (para compatibilidade) ===
         # Criamos um label de status se não existir no .ui
         self._status_label = self._status_text_label or QLabel("⏹ Parado")
         self._frame_info = QLabel("Frame: 0 / 0")  # Label auxiliar para info de frames
-        
+
         # === MINIMAP (widget customizado - criar se necessário) ===
         self._minimap = MinimapWidget()
         self._minimap.position_changed.connect(self._on_minimap_position)
-        
+
         # Configurar timeline
         if self._timeline:
             self._timeline.setMinimum(0)
             self._timeline.setMaximum(100)
             self._timeline.valueChanged.connect(self._on_timeline_changed)
-        
+
         # Configurar speed slider
         if self._speed_slider:
             self._speed_slider.valueChanged.connect(self._on_speed_slider_changed)
-        
+
         # Conectar botões de controle
         if self._btn_play:
             self._btn_play.clicked.connect(self._play)
@@ -315,7 +312,7 @@ class StreamingPanel(QWidget, UiLoaderMixin):
             self._btn_pause.clicked.connect(self._pause)
         if self._btn_stop:
             self._btn_stop.clicked.connect(self._stop)
-        
+
         # Conectar botões de conexão
         if self._btn_connect:
             self._btn_connect.clicked.connect(self._on_connect)
@@ -330,17 +327,17 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         self._speed = value / 100.0  # Slider vai de 25 a 400 (0.25x a 4x)
         if self._speed_value_label:
             self._speed_value_label.setText(f"{self._speed:.1f}x")
-        
+
         # Atualiza timer se estiver reproduzindo
         if self._state == PlaybackState.PLAYING:
             base_interval = 33  # ~30 fps
             interval = int(base_interval / self._speed)
             interval = max(1, interval)
             self._timer.setInterval(interval)
-        
+
         self.speed_changed.emit(self._speed)
         logger.debug(f"streaming_speed_changed: speed={self._speed}")
-    
+
     def _on_connect(self):
         """Handler para botão de conectar"""
         if self._btn_connect:
@@ -352,7 +349,7 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         if self._status_text_label:
             self._status_text_label.setText("Conectado")
         logger.info("streaming_connected")
-    
+
     def _on_disconnect(self):
         """Handler para botão de desconectar"""
         self._stop()

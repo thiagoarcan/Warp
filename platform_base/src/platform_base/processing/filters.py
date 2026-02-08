@@ -54,7 +54,7 @@ def apply_filter(
 ) -> FilterResult:
     """
     Apply digital filter to signal.
-    
+
     Args:
         values: Input signal values
         sampling_rate: Sampling rate in Hz
@@ -64,10 +64,10 @@ def apply_filter(
         filter_order: Filter order (higher = sharper transition, more ringing)
         method: Filter design method ('butter', 'chebyshev1', 'chebyshev2', 'elliptic', 'bessel')
         zero_phase: Use zero-phase filtering (filtfilt instead of lfilter)
-        
+
     Returns:
         FilterResult with filtered signal
-        
+
     Raises:
         ValidationError: If input parameters are invalid
     """
@@ -87,7 +87,7 @@ def apply_filter(
     if len(clean_values) < 2 * filter_order:
         raise ValidationError(
             f"Not enough valid data points for filter order {filter_order} "
-            f"(need at least {2 * filter_order})"
+            f"(need at least {2 * filter_order})",
         )
 
     # Normalize cutoff frequencies to Nyquist frequency
@@ -96,13 +96,13 @@ def apply_filter(
     if filter_type in ("lowpass", "highpass"):
         if isinstance(cutoff_frequency, tuple):
             raise ValidationError(
-                f"{filter_type} filter requires single cutoff frequency, got tuple"
+                f"{filter_type} filter requires single cutoff frequency, got tuple",
             )
 
         if cutoff_frequency <= 0 or cutoff_frequency >= nyquist_freq:
             raise ValidationError(
                 f"Cutoff frequency must be between 0 and Nyquist frequency "
-                f"({nyquist_freq} Hz), got {cutoff_frequency} Hz"
+                f"({nyquist_freq} Hz), got {cutoff_frequency} Hz",
             )
 
         normalized_cutoff = cutoff_frequency / nyquist_freq
@@ -110,7 +110,7 @@ def apply_filter(
     elif filter_type in ("bandpass", "bandstop"):
         if not isinstance(cutoff_frequency, tuple) or len(cutoff_frequency) != 2:
             raise ValidationError(
-                f"{filter_type} filter requires tuple of (low, high) frequencies"
+                f"{filter_type} filter requires tuple of (low, high) frequencies",
             )
 
         low_freq, high_freq = cutoff_frequency
@@ -118,13 +118,13 @@ def apply_filter(
         if low_freq >= high_freq:
             raise ValidationError(
                 f"Low frequency must be less than high frequency, "
-                f"got {low_freq} >= {high_freq}"
+                f"got {low_freq} >= {high_freq}",
             )
 
         if low_freq <= 0 or high_freq >= nyquist_freq:
             raise ValidationError(
                 f"Frequencies must be between 0 and Nyquist frequency "
-                f"({nyquist_freq} Hz), got ({low_freq}, {high_freq})"
+                f"({nyquist_freq} Hz), got ({low_freq}, {high_freq})",
             )
 
         normalized_cutoff = (low_freq / nyquist_freq, high_freq / nyquist_freq)
@@ -147,12 +147,12 @@ def apply_filter(
             attenuation_db = 40  # 40 dB stopband attenuation
             b, a = signal.ellip(filter_order, ripple_db, attenuation_db, normalized_cutoff, btype=filter_type)
         elif method == "bessel":
-            b, a = signal.bessel(filter_order, normalized_cutoff, btype=filter_type, norm='phase')
+            b, a = signal.bessel(filter_order, normalized_cutoff, btype=filter_type, norm="phase")
         else:
             raise ValidationError(f"Unknown filter method: {method}")
 
     except Exception as e:
-        raise ValidationError(f"Filter design failed: {str(e)}")
+        raise ValidationError(f"Filter design failed: {e!s}")
 
     # Apply filter
     try:
@@ -164,7 +164,7 @@ def apply_filter(
             filtered_values = signal.lfilter(b, a, clean_values)
 
     except Exception as e:
-        raise ValidationError(f"Filter application failed: {str(e)}")
+        raise ValidationError(f"Filter application failed: {e!s}")
 
     logger.info(
         "filter_applied",
@@ -196,14 +196,14 @@ def apply_lowpass_filter(
 ) -> FilterResult:
     """
     Apply lowpass filter to remove high-frequency noise.
-    
+
     Args:
         values: Input signal values
         sampling_rate: Sampling rate in Hz
         cutoff_frequency: Cutoff frequency in Hz (frequencies above this are attenuated)
         filter_order: Filter order (default: 4)
         method: Filter design method (default: 'butter')
-        
+
     Returns:
         FilterResult with filtered signal
     """
@@ -226,14 +226,14 @@ def apply_highpass_filter(
 ) -> FilterResult:
     """
     Apply highpass filter to remove low-frequency trends.
-    
+
     Args:
         values: Input signal values
         sampling_rate: Sampling rate in Hz
         cutoff_frequency: Cutoff frequency in Hz (frequencies below this are attenuated)
         filter_order: Filter order (default: 4)
         method: Filter design method (default: 'butter')
-        
+
     Returns:
         FilterResult with filtered signal
     """
@@ -257,7 +257,7 @@ def apply_bandpass_filter(
 ) -> FilterResult:
     """
     Apply bandpass filter to isolate a specific frequency range.
-    
+
     Args:
         values: Input signal values
         sampling_rate: Sampling rate in Hz
@@ -265,7 +265,7 @@ def apply_bandpass_filter(
         high_frequency: Upper cutoff frequency in Hz
         filter_order: Filter order (default: 4)
         method: Filter design method (default: 'butter')
-        
+
     Returns:
         FilterResult with filtered signal
     """
@@ -289,9 +289,9 @@ def apply_bandstop_filter(
 ) -> FilterResult:
     """
     Apply bandstop (notch) filter to remove a specific frequency range.
-    
+
     Useful for removing interference at specific frequencies (e.g., 50/60 Hz power line noise).
-    
+
     Args:
         values: Input signal values
         sampling_rate: Sampling rate in Hz
@@ -299,7 +299,7 @@ def apply_bandstop_filter(
         high_frequency: Upper cutoff frequency in Hz
         filter_order: Filter order (default: 4)
         method: Filter design method (default: 'butter')
-        
+
     Returns:
         FilterResult with filtered signal
     """

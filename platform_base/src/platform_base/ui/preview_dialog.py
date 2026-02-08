@@ -22,9 +22,7 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QDialog,
     QDialogButtonBox,
-    QHBoxLayout,
     QLabel,
-    QPushButton,
     QSizePolicy,
     QSplitter,
     QVBoxLayout,
@@ -126,10 +124,10 @@ class OperationPreviewDialog(QDialog, UiLoaderMixin):
     - Comparação antes/depois
     - Estatísticas do resultado
     - Opção de aplicar ou cancelar
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "operationPreviewDialog.ui"
 
@@ -149,9 +147,9 @@ class OperationPreviewDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._compute_preview()
-        
+
         logger.debug("operation_preview_dialog_initialized", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
@@ -159,7 +157,7 @@ class OperationPreviewDialog(QDialog, UiLoaderMixin):
         # Encontra widgets do arquivo .ui
         self.content_widget = self.findChild(QWidget, "contentWidget")
         self.button_box = self.findChild(QDialogButtonBox, "buttonBox")
-        
+
         # Se o contentWidget existe mas está vazio, preenche programaticamente
         if self.content_widget:
             content_layout = self.content_widget.layout()

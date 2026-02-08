@@ -228,7 +228,7 @@ class BooleanParameterWidget(ParameterWidget):
 class PreviewWidget(QWidget, UiLoaderMixin):
     """
     Widget de preview para operações
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -249,16 +249,16 @@ class PreviewWidget(QWidget, UiLoaderMixin):
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
         from PyQt6.QtWidgets import QFrame
-        
+
         # Busca o frame e layout do canvas
         self.canvas_frame = self.findChild(QFrame, "canvasFrame")
-        
+
         # Valida widgets obrigatórios
         if not self.canvas_frame:
             raise RuntimeError("PreviewWidget: canvasFrame não encontrado no arquivo .ui")
-        
+
         canvas_layout = self.canvas_frame.layout()
-        
+
         # Adiciona matplotlib canvas ou placeholder
         if MATPLOTLIB_AVAILABLE and canvas_layout:
             self.figure = Figure(figsize=(8, 6))
@@ -301,7 +301,7 @@ class PreviewWidget(QWidget, UiLoaderMixin):
 class BaseOperationDialog(QDialog, UiLoaderMixin):
     """
     Diálogo base para operações
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -332,20 +332,20 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._setup_connections()
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
         # Splitter e painéis
         self.splitter = self.findChild(QSplitter, "splitter")
-        
+
         # Botões
         self.reset_btn = self.findChild(QPushButton, "resetBtn")
         self.preview_btn = self.findChild(QPushButton, "previewBtn")
         self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
         self.apply_btn = self.findChild(QPushButton, "applyBtn")
-        
+
         # Preview widget - precisa ser criado programaticamente
         preview_container = self.findChild(QWidget, "previewContainer")
         if preview_container:
@@ -354,7 +354,7 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
                 preview_layout = QVBoxLayout(preview_container)
             self.preview_widget = PreviewWidget()
             preview_layout.addWidget(self.preview_widget)
-            
+
             self.preview_status = self.findChild(QLabel, "previewStatus")
             if not self.preview_status:
                 self.preview_status = QLabel("Ready")
@@ -362,7 +362,7 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
         else:
             self.preview_widget = PreviewWidget()
             self.preview_status = QLabel("Ready")
-        
+
         # Conecta sinais
         if self.reset_btn:
             self.reset_btn.clicked.connect(self._reset_parameters)
@@ -435,13 +435,13 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
                     logger.warning(
                         "parameter_widget_missing_get_value",
                         widget_name=name,
-                        widget_type=type(widget).__name__
+                        widget_type=type(widget).__name__,
                     )
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "parameter_get_value_error",
                     widget_name=name,
-                    error=str(e)
+                    error=str(e),
                 )
         return params
 
@@ -490,13 +490,13 @@ class BaseOperationDialog(QDialog, UiLoaderMixin):
                     logger.debug(
                         "parameter_widget_no_reset",
                         widget_name=name,
-                        widget_type=type(widget).__name__
+                        widget_type=type(widget).__name__,
                     )
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "parameter_reset_error",
                     widget_name=name,
-                    error=str(e)
+                    error=str(e),
                 )
 
     @pyqtSlot()

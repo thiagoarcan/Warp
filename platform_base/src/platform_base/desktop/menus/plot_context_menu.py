@@ -12,27 +12,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QPointF, pyqtSignal
+from PyQt6.QtCore import QPointF, Qt, pyqtSignal
 from PyQt6.QtGui import QKeySequence
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QInputDialog,
     QMenu,
     QMessageBox,
     QPushButton,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
 from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import DatasetID, SeriesID
@@ -46,7 +43,7 @@ logger = get_logger(__name__)
 class MathAnalysisDialog(QDialog, UiLoaderMixin):
     """
     Dialog for mathematical analysis operations
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -73,27 +70,27 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
         # Widgets de botões
         self.apply_btn = self.findChild(QPushButton, "applyBtn")
         self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
-        
+
         # Widgets de derivada
         self.derivative_order = self.findChild(QSpinBox, "derivativeOrder")
         self.derivative_method = self.findChild(QComboBox, "derivativeMethod")
         self.enable_smoothing = self.findChild(QCheckBox, "enableSmoothing")
         self.smoothing_window = self.findChild(QSpinBox, "smoothingWindow")
-        
+
         # Widgets de integral
         self.integral_method = self.findChild(QComboBox, "integralMethod")
-        
+
         # Widgets de smoothing
         self.smooth_method = self.findChild(QComboBox, "smoothMethod")
         self.window_size = self.findChild(QSpinBox, "windowSize")
         self.polyorder = self.findChild(QSpinBox, "polyorder")
-        
+
         # Valida widgets obrigatórios
         self._validate_widgets()
-        
+
         # Conecta sinais
         self._setup_connections()
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
@@ -108,13 +105,13 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
             "windowSize": self.window_size,
             "polyorder": self.polyorder,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"MathAnalysisDialog: Widgets não encontrados no arquivo .ui: {missing}"
+                f"MathAnalysisDialog: Widgets não encontrados no arquivo .ui: {missing}",
             )
-    
+
     def _setup_connections(self):
         """Conecta sinais aos slots"""
         self.apply_btn.clicked.connect(self._apply_operation)
@@ -150,14 +147,19 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
             }
 
         elif self.operation == "interpolate":
+            # Use reasonable defaults if widgets not available
+            interp_method = getattr(self, 'interp_method', None)
             params = {
-                "method": self.interp_method.currentText(),
+                "method": interp_method.currentText() if interp_method else "linear",
             }
 
         elif self.operation == "resample":
+            # Use reasonable defaults if widgets not available
+            resample_method = getattr(self, 'resample_method', None)
+            target_points = getattr(self, 'target_points', None)
             params = {
-                "method": self.resample_method.currentText(),
-                "n_points": self.target_points.value(),
+                "method": resample_method.currentText() if resample_method else "lttb",
+                "n_points": target_points.value() if target_points else 1000,
             }
 
         self.operation_requested.emit(self.operation, params)
@@ -511,7 +513,7 @@ class PlotContextMenu(QMenu):
 <table>
 <tr><th>Rank</th><th>Frequency (Hz)</th><th>Magnitude</th></tr>"""
 
-            for i, (freq, mag) in enumerate(zip(top_freqs, top_mags), 1):
+            for i, (freq, mag) in enumerate(zip(top_freqs, top_mags, strict=False), 1):
                 if mag > 1e-10:  # Only show significant peaks
                     msg += f"<tr><td>{i}</td><td>{freq:.4g}</td><td>{mag:.4g}</td></tr>"
 
@@ -579,7 +581,7 @@ class PlotContextMenu(QMenu):
                     if np.sum(valid_mask) > 1:
                         corr_matrix[i, j] = np.corrcoef(
                             vals_i[valid_mask],
-                            vals_j[valid_mask]
+                            vals_j[valid_mask],
                         )[0, 1]
                     else:
                         corr_matrix[i, j] = np.nan
@@ -651,7 +653,7 @@ class PlotContextMenu(QMenu):
             return
 
         try:
-            from platform_base.streaming.filters import ButterworthFilter, FilterType
+            from platform_base.streaming.filters import FilterType
 
             # Get cutoff frequency from user
             cutoff, ok = QInputDialog.getDouble(
@@ -826,7 +828,7 @@ class PlotContextMenu(QMenu):
 
         if hasattr(parent_widget, "_series_data") and parent_widget._series_data:
             # Get all series data
-            for series_id, series_data in parent_widget._series_data.items():
+            for series_data in parent_widget._series_data.values():
                 if "x_data" in series_data and "y_data" in series_data:
                     x_data = series_data["x_data"]
                     # Create selection for entire range
@@ -879,7 +881,6 @@ class PlotContextMenu(QMenu):
 
     def _copy_to_clipboard(self):
         """Copy plot or data to clipboard"""
-        from PyQt6.QtGui import QGuiApplication, QImage
         from PyQt6.QtWidgets import QApplication
 
         parent_widget = self.parent()
@@ -895,7 +896,6 @@ class PlotContextMenu(QMenu):
                 logger.info("plot_copied_to_clipboard")
             elif hasattr(parent_widget, "_series_data"):
                 # Copy data as text
-                import numpy as np
 
                 text_lines = ["Time,Value,Series"]
                 for series_id, series_data in parent_widget._series_data.items():
@@ -903,7 +903,7 @@ class PlotContextMenu(QMenu):
                         x_data = series_data["x_data"]
                         y_data = series_data["y_data"]
                         name = series_data.get("name", series_id)
-                        for x, y in zip(x_data[:100], y_data[:100]):  # Limit to first 100 points
+                        for x, y in zip(x_data[:100], y_data[:100], strict=False):  # Limit to first 100 points
                             text_lines.append(f"{x},{y},{name}")
 
                 QApplication.clipboard().setText("\n".join(text_lines))

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+
 pd = pytest.importorskip("pandas")
 
 from platform_base.io.loader import load
@@ -29,7 +30,7 @@ def test_load_csv(tmp_path):
             "timestamp": pd.date_range("2024-01-01", periods=15, freq="s"),
             "a": list(range(1, 16)),
             "b": list(range(10, 25)),
-        }
+        },
     )
     path = tmp_path / "data.csv"
     df.to_csv(path, index=False)
@@ -42,14 +43,14 @@ def test_load_scada_sample():
     sample = _sample_scada_xlsx()
     if sample is None:
         pytest.skip("No SCADA sample file found (XXX_*-*.xlsx pattern)")
-    
+
     # Load the SCADA file
     dataset = load(str(sample), config={"max_rows": 2000})
-    
+
     # Verify dataset was created with series
     assert dataset is not None
     assert len(dataset.series) >= 1, f"Expected at least 1 series, got {len(dataset.series)}"
-    
+
     # Verify time series has valid data
     assert len(dataset.t_seconds) > 0
     assert "valor" in dataset.series, "Expected 'valor' column as series"
@@ -60,14 +61,14 @@ def test_load_scada_csv_fixture():
     fixture_path = Path(__file__).parent.parent / "fixtures" / "BAR_FT-OP10_sample.csv"
     if not fixture_path.exists():
         pytest.skip("SCADA CSV fixture not found")
-    
+
     dataset = load(str(fixture_path))
-    
+
     # Verify dataset was loaded correctly
     assert dataset is not None
     assert len(dataset.series) == 1
     assert "valor" in dataset.series
     assert len(dataset.t_seconds) == 1536  # Known size from original file
-    
+
     # Verify timestamps are properly parsed
     assert not pd.isna(dataset.t_datetime).all(), "All timestamps are NaT"

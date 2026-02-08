@@ -23,20 +23,17 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QFileDialog,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QMessageBox,
     QProgressBar,
     QPushButton,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
 from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -338,7 +335,7 @@ class VideoExportWorker(QThread):
 class VideoExportDialog(QDialog, UiLoaderMixin):
     """
     Dialog para configurar exportação de vídeo
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -360,10 +357,10 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(
                 f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
-                "Verifique se existe em desktop/ui_files/"
+                "Verifique se existe em desktop/ui_files/",
             )
         self._setup_ui_from_file()
-        
+
         self._update_ui_from_settings()
 
     def _setup_ui_from_file(self):
@@ -372,35 +369,35 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
         self.path_edit = self.findChild(QLabel, "pathEdit")
         self.browse_btn = self.findChild(QPushButton, "browseBtn")
         self.format_combo = self.findChild(QComboBox, "formatCombo")
-        
+
         # Quality settings
         self.quality_combo = self.findChild(QComboBox, "qualityCombo")
         self.width_spinbox = self.findChild(QSpinBox, "widthSpinbox")
         self.height_spinbox = self.findChild(QSpinBox, "heightSpinbox")
         self.fps_spinbox = self.findChild(QSpinBox, "fpsSpinbox")
-        
+
         # Duration settings
         self.full_duration_checkbox = self.findChild(QCheckBox, "fullDurationCheckbox")
         self.custom_duration_spinbox = self.findChild(QSpinBox, "customDurationSpinbox")
-        
+
         # View settings
         self.layout_combo = self.findChild(QComboBox, "layoutCombo")
         self.include_all_views_checkbox = self.findChild(QCheckBox, "includeAllViewsCheckbox")
-        
+
         # Progress
         self.progress_bar = self.findChild(QProgressBar, "progressBar")
         self.status_label = self.findChild(QLabel, "statusLabel")
-        
+
         # Buttons
         self.export_btn = self.findChild(QPushButton, "exportBtn")
         self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
-        
+
         # Validação de widgets essenciais
         self._validate_widgets()
-        
+
         # Conecta sinais
         self._setup_connections()
-        
+
         # Inicializa progresso como oculto
         if self.progress_bar:
             self.progress_bar.setVisible(False)
@@ -424,13 +421,13 @@ class VideoExportDialog(QDialog, UiLoaderMixin):
             "exportBtn": self.export_btn,
             "cancelBtn": self.cancel_btn,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
-        
+
         if missing:
             raise RuntimeError(
                 f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
-                f"Verifique se {self.UI_FILE} está completo."
+                f"Verifique se {self.UI_FILE} está completo.",
             )
 
     def _setup_connections(self):
@@ -643,13 +640,13 @@ def export_animation(frames: list, output_path: str, fps: int = 30,
                      format: str = "mp4") -> bool:
     """
     Export animation from a sequence of frames.
-    
+
     Args:
         frames: List of numpy arrays (RGB images)
         output_path: Output file path
         fps: Frames per second
         format: Output format
-        
+
     Returns:
         True if successful
     """
@@ -688,14 +685,14 @@ def export_animation(frames: list, output_path: str, fps: int = 30,
         logger.warning("OpenCV not available for video export")
         return False
     except Exception as e:
-        logger.error(f"Animation export failed: {e}")
+        logger.exception(f"Animation export failed: {e}")
         return False
 
 
 class VideoExport:
     """
     Simple video export class for creating videos from data visualizations.
-    
+
     This provides a high-level interface for video export without requiring
     the full streaming infrastructure.
     """
@@ -704,7 +701,7 @@ class VideoExport:
                  format: str = "mp4", quality: str = "medium"):
         """
         Initialize video export.
-        
+
         Args:
             width: Video width in pixels
             height: Video height in pixels
@@ -792,18 +789,17 @@ class VideoExport:
     def add_frame(self, frame) -> None:
         """
         Add a frame to the video.
-        
+
         Args:
             frame: Numpy array (RGB image) or QPixmap/QImage
         """
-        import numpy as np
 
         # Convert QPixmap/QImage to numpy if needed
-        if hasattr(frame, 'toImage'):
+        if hasattr(frame, "toImage"):
             # QPixmap
             image = frame.toImage()
             frame = self._qimage_to_numpy(image)
-        elif hasattr(frame, 'bits'):
+        elif hasattr(frame, "bits"):
             # QImage
             frame = self._qimage_to_numpy(frame)
 
@@ -830,13 +826,13 @@ class VideoExport:
 
         return arr[:, :, :3]  # RGB only
 
-    def export(self, output_path: str = None) -> bool:
+    def export(self, output_path: str | None = None) -> bool:
         """
         Export video to file.
-        
+
         Args:
             output_path: Output file path (optional, uses set_output_path if not provided)
-            
+
         Returns:
             True if successful
         """
@@ -851,26 +847,25 @@ class VideoExport:
 
         return export_animation(self._frames, path, self._fps, self._format)
 
-    def render_frame(self, plot_widget, timestamp: float = None) -> None:
+    def render_frame(self, plot_widget, timestamp: float | None = None) -> None:
         """
         Render current state of plot widget as a frame.
-        
+
         Args:
             plot_widget: PyQtGraph PlotWidget or similar
             timestamp: Optional timestamp to show on frame
         """
-        import numpy as np
 
         try:
             # Capture from pyqtgraph widget
-            if hasattr(plot_widget, 'grab'):
+            if hasattr(plot_widget, "grab"):
                 pixmap = plot_widget.grab()
                 self.add_frame(pixmap)
-            elif hasattr(plot_widget, 'render'):
+            elif hasattr(plot_widget, "render"):
                 # Try render method
                 import pyqtgraph as pg
                 exporter = pg.exporters.ImageExporter(plot_widget.plotItem)
-                exporter.parameters()['width'] = self._width
+                exporter.parameters()["width"] = self._width
                 img = exporter.export(toBytes=True)
                 self.add_frame(img)
         except Exception as e:
@@ -884,7 +879,7 @@ class VideoExport:
                 plt.figure()
                 plt.imshow(self._frames[0])
                 plt.title(f"Frame 1 of {len(self._frames)}")
-                plt.axis('off')
+                plt.axis("off")
                 plt.show()
             except ImportError:
                 logger.info("matplotlib not available for preview")
@@ -911,13 +906,13 @@ class VideoExport:
                              format: str = "mp4") -> bool:
         """
         Create video from sequence of matplotlib figures.
-        
+
         Args:
             figures: List of matplotlib Figure objects
             output_path: Output file path
             fps: Frames per second
             format: Output format
-            
+
         Returns:
             True if successful
         """

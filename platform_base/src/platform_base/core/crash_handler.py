@@ -14,9 +14,9 @@ Features:
 
 from __future__ import annotations
 
+import contextlib
 import faulthandler
 import json
-import os
 import platform
 import sys
 import threading
@@ -24,7 +24,8 @@ import traceback
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -55,17 +56,17 @@ class CrashReport:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'timestamp': self.timestamp,
-            'app_version': self.app_version,
-            'python_version': self.python_version,
-            'os_info': self.os_info,
-            'exception_type': self.exception_type,
-            'exception_message': self.exception_message,
-            'stack_trace': self.stack_trace,
-            'last_actions': self.last_actions,
-            'memory_info': self.memory_info,
-            'thread_info': self.thread_info,
-            'extra_info': self.extra_info,
+            "timestamp": self.timestamp,
+            "app_version": self.app_version,
+            "python_version": self.python_version,
+            "os_info": self.os_info,
+            "exception_type": self.exception_type,
+            "exception_message": self.exception_message,
+            "stack_trace": self.stack_trace,
+            "last_actions": self.last_actions,
+            "memory_info": self.memory_info,
+            "thread_info": self.thread_info,
+            "extra_info": self.extra_info,
         }
 
     def to_json(self, sanitize: bool = True) -> str:
@@ -83,7 +84,7 @@ class CrashReport:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(self.to_json(sanitize=sanitize))
 
 
@@ -92,10 +93,10 @@ def _sanitize_crash_data(data: dict[str, Any]) -> dict[str, Any]:
     import re
 
     sensitive_patterns = [
-        (re.compile(r'([A-Za-z]:\\Users\\[^\\]+)', re.IGNORECASE), r'[USER_PATH]'),
-        (re.compile(r'(/home/[^/]+)', re.IGNORECASE), r'[USER_PATH]'),
-        (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'password: [REDACTED]'),
-        (re.compile(r'token["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r'token: [REDACTED]'),
+        (re.compile(r"([A-Za-z]:\\Users\\[^\\]+)", re.IGNORECASE), r"[USER_PATH]"),
+        (re.compile(r"(/home/[^/]+)", re.IGNORECASE), r"[USER_PATH]"),
+        (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"password: [REDACTED]"),
+        (re.compile(r'token["\']?\s*[:=]\s*["\']?[^"\',\s]+', re.IGNORECASE), r"token: [REDACTED]"),
     ]
 
     def sanitize_value(value: Any) -> Any:
@@ -104,9 +105,9 @@ def _sanitize_crash_data(data: dict[str, Any]) -> dict[str, Any]:
             for pattern, replacement in sensitive_patterns:
                 result = pattern.sub(replacement, result)
             return result
-        elif isinstance(value, dict):
+        if isinstance(value, dict):
             return {k: sanitize_value(v) for k, v in value.items()}
-        elif isinstance(value, list):
+        if isinstance(value, list):
             return [sanitize_value(v) for v in value]
         return value
 
@@ -116,14 +117,14 @@ def _sanitize_crash_data(data: dict[str, Any]) -> dict[str, Any]:
 class CrashHandler:
     """
     Global crash handler for the application.
-    
+
     Captures all unhandled exceptions and creates crash reports.
     """
 
     _instance: CrashHandler | None = None
     _lock = threading.Lock()
 
-    def __new__(cls) -> CrashHandler:
+    def __new__(cls) -> Self:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -155,7 +156,7 @@ class CrashHandler:
     ) -> None:
         """
         Initialize the crash handler.
-        
+
         Args:
             crash_dir: Directory for crash reports
             app_version: Application version string
@@ -198,7 +199,7 @@ class CrashHandler:
     def set_emergency_save(self, callback: Callable[[], bool]) -> None:
         """
         Set callback for emergency save before crash.
-        
+
         Args:
             callback: Function that saves current state, returns True on success
         """
@@ -207,7 +208,7 @@ class CrashHandler:
     def set_recovery_callback(self, callback: Callable[[Path], None]) -> None:
         """
         Set callback for recovery dialog.
-        
+
         Args:
             callback: Function that handles recovery (receives crash report path)
         """
@@ -216,7 +217,7 @@ class CrashHandler:
     def record_action(self, action: str) -> None:
         """
         Record a user action for crash context.
-        
+
         Args:
             action: Description of the action
         """
@@ -238,11 +239,11 @@ class CrashHandler:
             vm = psutil.virtual_memory()
 
             return {
-                'process_rss_mb': memory.rss / (1024 * 1024),
-                'process_vms_mb': memory.vms / (1024 * 1024),
-                'system_total_mb': vm.total / (1024 * 1024),
-                'system_available_mb': vm.available / (1024 * 1024),
-                'system_percent': vm.percent,
+                "process_rss_mb": memory.rss / (1024 * 1024),
+                "process_vms_mb": memory.vms / (1024 * 1024),
+                "system_total_mb": vm.total / (1024 * 1024),
+                "system_available_mb": vm.available / (1024 * 1024),
+                "system_percent": vm.percent,
             }
         except Exception:
             return {}
@@ -252,10 +253,10 @@ class CrashHandler:
         threads = []
         for thread in threading.enumerate():
             threads.append({
-                'name': thread.name,
-                'daemon': thread.daemon,
-                'alive': thread.is_alive(),
-                'ident': thread.ident,
+                "name": thread.name,
+                "daemon": thread.daemon,
+                "alive": thread.is_alive(),
+                "ident": thread.ident,
             })
         return threads
 
@@ -273,7 +274,7 @@ class CrashHandler:
             os_info=f"{platform.system()} {platform.release()} ({platform.machine()})",
             exception_type=exc_type.__name__,
             exception_message=str(exc_value),
-            stack_trace=''.join(traceback.format_exception(exc_type, exc_value, exc_tb)),
+            stack_trace="".join(traceback.format_exception(exc_type, exc_value, exc_tb)),
             last_actions=list(self._last_actions),
             memory_info=self._get_memory_info(),
             thread_info=self._get_thread_info(),
@@ -309,10 +310,8 @@ class CrashHandler:
         )
 
         for old_report in reports[self._max_reports:]:
-            try:
+            with contextlib.suppress(Exception):
                 old_report.unlink()
-            except Exception:
-                pass
 
     def _handle_exception(
         self,
@@ -330,10 +329,8 @@ class CrashHandler:
         try:
             # Emergency save
             if self._emergency_save_callback:
-                try:
+                with contextlib.suppress(Exception):
                     self._emergency_save_callback()
-                except Exception:
-                    pass
 
             # Create and save crash report
             report = self._create_crash_report(exc_type, exc_value, exc_tb)
@@ -343,10 +340,8 @@ class CrashHandler:
 
                 # Show recovery dialog if available
                 if self._recovery_callback:
-                    try:
+                    with contextlib.suppress(Exception):
                         self._recovery_callback(report_path)
-                    except Exception:
-                        pass
 
             # Print to stderr for debugging
             print("\n" + "=" * 60, file=sys.stderr)
@@ -384,27 +379,27 @@ class CrashHandler:
         if not reports:
             return None
 
-        with open(reports[0], 'r', encoding='utf-8') as f:
+        with open(reports[0], encoding="utf-8") as f:
             data = json.load(f)
 
         return CrashReport(
-            timestamp=data['timestamp'],
-            app_version=data['app_version'],
-            python_version=data['python_version'],
-            os_info=data['os_info'],
-            exception_type=data['exception_type'],
-            exception_message=data['exception_message'],
-            stack_trace=data['stack_trace'],
-            last_actions=data.get('last_actions', []),
-            memory_info=data.get('memory_info', {}),
-            thread_info=data.get('thread_info', []),
-            extra_info=data.get('extra_info', {}),
+            timestamp=data["timestamp"],
+            app_version=data["app_version"],
+            python_version=data["python_version"],
+            os_info=data["os_info"],
+            exception_type=data["exception_type"],
+            exception_message=data["exception_message"],
+            stack_trace=data["stack_trace"],
+            last_actions=data.get("last_actions", []),
+            memory_info=data.get("memory_info", {}),
+            thread_info=data.get("thread_info", []),
+            extra_info=data.get("extra_info", {}),
         )
 
     def check_for_crash_recovery(self) -> Path | None:
         """
         Check if there's a recent crash to recover from.
-        
+
         Returns:
             Path to crash report if recovery needed, None otherwise
         """

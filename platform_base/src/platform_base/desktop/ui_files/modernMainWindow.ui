@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ModernMainWindow</class>
- <widget class="QWidget" name="ModernMainWindow">
+ <widget class="QMainWindow" name="ModernMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ModernMainWindow</string>
+   <string>Platform Base v2.0 - Análise de Séries Temporais</string>
   </property>
-  <layout class="QVBoxLayout" name="mainLayout">
-   <item>
-    <widget class="QWidget" name="contentWidget">
-     <layout class="QVBoxLayout" name="contentLayout"/>
-    </widget>
-   </item>
-  </layout>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="centralLayout"/>
+  </widget>
  </widget>
  <resources/>
- <connections>
- </connections>
+ <connections/>
 </ui>

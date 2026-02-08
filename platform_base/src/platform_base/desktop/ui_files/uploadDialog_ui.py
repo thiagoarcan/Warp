@@ -15,11 +15,12 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QDialog, QFormLayout,
-    QGroupBox, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QProgressBar, QPushButton, QSizePolicy,
-    QSpacerItem, QTabWidget, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
+    QFormLayout, QGroupBox, QHBoxLayout, QHeaderView,
+    QLabel, QLineEdit, QPlainTextEdit, QProgressBar,
+    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
+    QWidget)
 
 class Ui_UploadDialog(object):
     def setupUi(self, UploadDialog):
@@ -117,6 +118,33 @@ class Ui_UploadDialog(object):
 
         self.generalLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.timestampCombo)
 
+        self.skipRowsLabel = QLabel(self.generalGroup)
+        self.skipRowsLabel.setObjectName(u"skipRowsLabel")
+
+        self.generalLayout.setWidget(3, QFormLayout.ItemRole.LabelRole, self.skipRowsLabel)
+
+        self.skipRowsSpin = QSpinBox(self.generalGroup)
+        self.skipRowsSpin.setObjectName(u"skipRowsSpin")
+        self.skipRowsSpin.setMinimum(0)
+        self.skipRowsSpin.setMaximum(1000)
+        self.skipRowsSpin.setValue(0)
+
+        self.generalLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.skipRowsSpin)
+
+        self.chunkCheck = QCheckBox(self.generalGroup)
+        self.chunkCheck.setObjectName(u"chunkCheck")
+
+        self.generalLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.chunkCheck)
+
+        self.chunkSizeSpin = QSpinBox(self.generalGroup)
+        self.chunkSizeSpin.setObjectName(u"chunkSizeSpin")
+        self.chunkSizeSpin.setMinimum(1000)
+        self.chunkSizeSpin.setMaximum(1000000)
+        self.chunkSizeSpin.setValue(10000)
+        self.chunkSizeSpin.setSingleStep(1000)
+
+        self.generalLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.chunkSizeSpin)
+
 
         self.configTabLayout.addWidget(self.generalGroup)
 
@@ -175,6 +203,13 @@ class Ui_UploadDialog(object):
 
         self.previewTabLayout.addWidget(self.previewInfoLabel)
 
+        self.previewInfo = QPlainTextEdit(self.previewTab)
+        self.previewInfo.setObjectName(u"previewInfo")
+        self.previewInfo.setReadOnly(True)
+        self.previewInfo.setMaximumSize(QSize(16777215, 150))
+
+        self.previewTabLayout.addWidget(self.previewInfo)
+
         self.tabs.addTab(self.previewTab, "")
 
         self.mainLayout.addWidget(self.tabs)
@@ -210,6 +245,12 @@ class Ui_UploadDialog(object):
         self.previewBtn.setEnabled(False)
 
         self.buttonsLayout.addWidget(self.previewBtn)
+
+        self.refreshPreviewBtn = QPushButton(UploadDialog)
+        self.refreshPreviewBtn.setObjectName(u"refreshPreviewBtn")
+        self.refreshPreviewBtn.setEnabled(False)
+
+        self.buttonsLayout.addWidget(self.refreshPreviewBtn)
 
         self.buttonsSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
@@ -272,6 +313,8 @@ class Ui_UploadDialog(object):
         self.delimiterCombo.setItemText(3, QCoreApplication.translate("UploadDialog", u"|", None))
 
         self.timestampLabel.setText(QCoreApplication.translate("UploadDialog", u"Timestamp Column:", None))
+        self.skipRowsLabel.setText(QCoreApplication.translate("UploadDialog", u"Skip Rows:", None))
+        self.chunkCheck.setText(QCoreApplication.translate("UploadDialog", u"Chunked Loading", None))
         self.excelGroup.setTitle(QCoreApplication.translate("UploadDialog", u"Excel Settings", None))
         self.sheetLabel.setText(QCoreApplication.translate("UploadDialog", u"Sheet:", None))
         self.hdf5Group.setTitle(QCoreApplication.translate("UploadDialog", u"HDF5 Settings", None))
@@ -283,6 +326,7 @@ class Ui_UploadDialog(object):
         self.statusLabel.setText(QCoreApplication.translate("UploadDialog", u"Select a file to begin", None))
         self.loadedFilesLabel.setStyleSheet(QCoreApplication.translate("UploadDialog", u"color: green; font-weight: bold;", None))
         self.previewBtn.setText(QCoreApplication.translate("UploadDialog", u"Generate Preview", None))
+        self.refreshPreviewBtn.setText(QCoreApplication.translate("UploadDialog", u"Refresh Preview", None))
         self.cancelBtn.setText(QCoreApplication.translate("UploadDialog", u"Close", None))
         self.loadAllBtn.setStyleSheet(QCoreApplication.translate("UploadDialog", u"font-weight: bold;", None))
         self.loadAllBtn.setText(QCoreApplication.translate("UploadDialog", u"Load All Selected", None))

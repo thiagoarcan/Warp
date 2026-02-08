@@ -25,6 +25,7 @@ except ImportError:
     NUMBA_AVAILABLE = False
 
 from platform_base.utils.logging import get_logger
+from platform_base.utils.safe_eval import compile_safe_condition
 
 
 if TYPE_CHECKING:
@@ -499,19 +500,11 @@ class ConditionalFilter(StreamFilter):
     def _compile_condition(self):
         """Compile condition string to callable"""
         try:
-            # Safe evaluation context
-            safe_dict = {
-                "__builtins__": {},
-                "abs": abs, "min": min, "max": max, "len": len,
-                "sum": sum, "avg": lambda x: sum(x) / len(x) if x else 0,
-                "sin": np.sin, "cos": np.cos, "tan": np.tan,
-                "sqrt": np.sqrt, "log": np.log, "exp": np.exp,
-                "pi": np.pi, "e": np.e,
-            }
-
-            # Create function that has access to current value, time, and history
-            func_code = f"lambda t, value, t_hist, v_hist: {self.condition}"
-            self._compiled_condition = eval(func_code, safe_dict)
+            # Use safe expression evaluator (no eval())
+            # Function has access to current value, time, and history
+            self._compiled_condition = compile_safe_condition(
+                self.condition, ["t", "value", "t_hist", "v_hist"],
+            )
 
         except Exception as e:
             logger.exception("conditional_filter_compile_error",

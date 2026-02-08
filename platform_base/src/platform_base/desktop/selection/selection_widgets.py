@@ -10,27 +10,24 @@ Provides UI components for advanced selection functionality:
 from __future__ import annotations
 
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QAction, QActionGroup, QFont
+from PyQt6.QtGui import QAction, QActionGroup
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QProgressBar,
     QPushButton,
     QSpinBox,
     QTextEdit,
     QToolBar,
-    QVBoxLayout,
     QWidget,
 )
 
 from platform_base.desktop.selection import SelectionMode, SelectionType
 from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -208,7 +205,7 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         logger.debug("conditional_selection_dialog_created", ui_loaded=self._ui_loaded)
 
     def _setup_ui_from_file(self):
@@ -219,21 +216,21 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
         self.percentile_spin = self.findChild(QSpinBox, "percentileSpin")
         self.percentile_type = self.findChild(QComboBox, "percentileType")
         self.mode_combo = self.findChild(QComboBox, "modeCombo")
-        
+
         self.apply_threshold_btn = self.findChild(QPushButton, "applyThresholdBtn")
         self.apply_percentile_btn = self.findChild(QPushButton, "applyPercentileBtn")
         self.apply_btn = self.findChild(QPushButton, "applyBtn")
         self.close_btn = self.findChild(QPushButton, "closeBtn")
-        
+
         # Valida todos os widgets obrigatórios
         self._validate_widgets()
-        
+
         # Configura valores iniciais
         self.condition_edit.setPlainText("value > 0")
-        
+
         # Conecta sinais
         self._setup_connections()
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
@@ -248,13 +245,13 @@ class ConditionalSelectionDialog(QDialog, UiLoaderMixin):
             "applyBtn": self.apply_btn,
             "closeBtn": self.close_btn,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"ConditionalSelectionDialog: Widgets não encontrados no arquivo .ui: {missing}"
+                f"ConditionalSelectionDialog: Widgets não encontrados no arquivo .ui: {missing}",
             )
-    
+
     def _setup_connections(self):
         """Conecta sinais aos slots"""
         self.apply_threshold_btn.clicked.connect(self._apply_threshold_condition)
@@ -312,7 +309,7 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
     - Selection percentage
     - Value statistics (min, max, mean, etc.)
     - Time range information
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -326,7 +323,7 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._clear_stats()
         logger.debug("selection_stats_widget_created", ui_loaded=self._ui_loaded)
 
@@ -342,10 +339,10 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
         self.std_value_label = self.findChild(QLabel, "stdValueLabel")
         self.time_ranges_label = self.findChild(QLabel, "timeRangesLabel")
         self.total_duration_label = self.findChild(QLabel, "totalDurationLabel")
-        
+
         # Valida todos os widgets obrigatórios
         self._validate_widgets()
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
@@ -360,11 +357,11 @@ class SelectionStatsWidget(QWidget, UiLoaderMixin):
             "timeRangesLabel": self.time_ranges_label,
             "totalDurationLabel": self.total_duration_label,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"SelectionStatsWidget: Widgets não encontrados no arquivo .ui: {missing}"
+                f"SelectionStatsWidget: Widgets não encontrados no arquivo .ui: {missing}",
             )
 
     def update_stats(self, total_points: int, selected_points: int,
@@ -447,7 +444,7 @@ class SelectionPanel(QWidget, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._connect_signals()
         logger.debug("selection_panel_initialized", ui_loaded=self._ui_loaded)
 
@@ -455,34 +452,34 @@ class SelectionPanel(QWidget, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         # Busca containers do arquivo .ui
         from PyQt6.QtWidgets import QFrame
-        
+
         self.toolbar_container = self.findChild(QFrame, "toolbarContainer")
         self.stats_container = self.findChild(QFrame, "statsContainer")
-        
+
         # Valida widgets obrigatórios
         self._validate_widgets()
-        
+
         # Cria os widgets filhos
         self.toolbar = SelectionToolbar()
         self.stats_widget = SelectionStatsWidget()
-        
+
         # Adiciona aos containers do arquivo .ui
         if self.toolbar_container and self.toolbar_container.layout():
             self.toolbar_container.layout().addWidget(self.toolbar)
         if self.stats_container and self.stats_container.layout():
             self.stats_container.layout().addWidget(self.stats_widget)
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
             "toolbarContainer": self.toolbar_container,
             "statsContainer": self.stats_container,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"SelectionPanel: Widgets não encontrados no arquivo .ui: {missing}"
+                f"SelectionPanel: Widgets não encontrados no arquivo .ui: {missing}",
             )
 
     def _connect_signals(self):

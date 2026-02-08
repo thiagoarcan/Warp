@@ -13,7 +13,7 @@ Cobertura:
 import numpy as np
 import pytest
 
-from platform_base.processing.downsampling import downsample, SUPPORTED_METHODS
+from platform_base.processing.downsampling import SUPPORTED_METHODS, downsample
 from platform_base.utils.errors import DownsampleError
 
 
@@ -64,9 +64,9 @@ class TestLTTBDownsampling:
         """LTTB reduz número de pontos para o target."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         # Deve ter aproximadamente o número de pontos solicitado
         assert len(result.values) <= target + 2
         assert len(result.values) >= target - 2
@@ -75,9 +75,9 @@ class TestLTTBDownsampling:
         """LTTB preserva primeiro e último pontos."""
         t, y = large_sine_wave
         target = 100
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         # Primeiro e último pontos devem ser preservados
         assert result.t_seconds[0] == t[0]
         assert result.t_seconds[-1] == t[-1]
@@ -88,13 +88,13 @@ class TestLTTBDownsampling:
         """LTTB preserva forma geral do sinal."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         # Amplitude máxima e mínima devem ser aproximadamente preservadas
         original_range = np.max(y) - np.min(y)
         result_range = np.max(result.values) - np.min(result.values)
-        
+
         # Deve preservar pelo menos 90% da amplitude
         assert result_range > 0.9 * original_range
 
@@ -102,9 +102,9 @@ class TestLTTBDownsampling:
         """LTTB não faz downsampling se target >= n_data."""
         t, y = large_sine_wave
         target = len(y) + 100  # Maior que os dados
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         # Deve retornar todos os pontos originais
         assert len(result.values) == len(y)
 
@@ -112,13 +112,13 @@ class TestLTTBDownsampling:
         """LTTB retorna índices válidos."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         # Todos os índices devem estar no range válido
         assert np.all(result.selected_indices >= 0)
         assert np.all(result.selected_indices < len(y))
-        
+
         # Índices devem ser únicos
         assert len(np.unique(result.selected_indices)) == len(result.selected_indices)
 
@@ -134,9 +134,9 @@ class TestMinMaxDownsampling:
         """MinMax preserva valores extremos (picos)."""
         t, y = data_with_peaks
         target = 100
-        
+
         result = downsample(y, t, n_points=target, method="minmax")
-        
+
         # Os picos devem estar presentes nos valores
         assert np.max(result.values) >= 1.9  # Pico positivo (~2.0)
         assert np.min(result.values) <= -1.9  # Pico negativo (~-2.0)
@@ -145,9 +145,9 @@ class TestMinMaxDownsampling:
         """MinMax reduz número de pontos."""
         t, y = large_sine_wave
         target = 200
-        
+
         result = downsample(y, t, n_points=target, method="minmax")
-        
+
         # MinMax pode ter até 2x buckets (min e max por bucket)
         assert len(result.values) <= target * 2
 
@@ -155,9 +155,9 @@ class TestMinMaxDownsampling:
         """MinMax preserva range dos dados."""
         t, y = random_walk
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="minmax")
-        
+
         # Range deve ser preservado
         assert np.max(result.values) == pytest.approx(np.max(y), abs=0.01)
         assert np.min(result.values) == pytest.approx(np.min(y), abs=0.01)
@@ -174,9 +174,9 @@ class TestAdaptiveDownsampling:
         """Adaptive reduz número de pontos."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="adaptive")
-        
+
         # Deve reduzir o número de pontos
         assert len(result.values) < len(y)
         assert len(result.values) <= target * 2  # Margem para adaptividade
@@ -185,9 +185,9 @@ class TestAdaptiveDownsampling:
         """Adaptive aloca mais pontos em regiões de alta variância."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="adaptive")
-        
+
         # Apenas verifica que funciona sem erro
         assert len(result.values) > 0
         assert len(result.t_seconds) == len(result.values)
@@ -204,9 +204,9 @@ class TestUniformDownsampling:
         """Uniform reduz para exatamente o target de pontos."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="uniform")
-        
+
         # Deve ter exatamente o número de pontos solicitado
         assert len(result.values) == target
 
@@ -214,9 +214,9 @@ class TestUniformDownsampling:
         """Uniform preserva primeiro e último pontos."""
         t, y = large_sine_wave
         target = 100
-        
+
         result = downsample(y, t, n_points=target, method="uniform")
-        
+
         # Primeiro e último devem ser iguais
         assert result.t_seconds[0] == t[0]
         assert result.t_seconds[-1] == t[-1]
@@ -225,9 +225,9 @@ class TestUniformDownsampling:
         """Uniform produz pontos uniformemente espaçados."""
         t, y = large_sine_wave
         target = 100
-        
+
         result = downsample(y, t, n_points=target, method="uniform")
-        
+
         # Diferenças devem ser aproximadamente constantes
         diffs = np.diff(result.t_seconds)
         assert np.std(diffs) < np.mean(diffs) * 0.01  # Variação < 1%
@@ -244,9 +244,9 @@ class TestPeakAwareDownsampling:
         """Peak-aware preserva picos identificados."""
         t, y = data_with_peaks
         target = 100
-        
+
         result = downsample(y, t, n_points=target, method="peak_aware")
-        
+
         # Picos devem estar presentes ou muito próximos
         assert np.max(result.values) > 1.8  # Pico positivo
         assert np.min(result.values) < -1.8  # Pico negativo
@@ -263,9 +263,9 @@ class TestDownsamplingEdgeCases:
         """Target igual ao tamanho dos dados retorna dados originais."""
         t, y = large_sine_wave
         target = len(y)
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         assert len(result.values) == len(y)
 
     def test_very_small_target(self):
@@ -273,9 +273,9 @@ class TestDownsamplingEdgeCases:
         t = np.linspace(0, 10, 1000)
         y = np.sin(t)
         target = 3
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         assert len(result.values) >= 2  # Pelo menos 2 pontos
 
     def test_small_input_array(self):
@@ -283,16 +283,16 @@ class TestDownsamplingEdgeCases:
         t = np.array([0, 1, 2, 3, 4])
         y = np.array([0, 1, 0, 1, 0])
         target = 3
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         assert len(result.values) >= 2
 
     def test_invalid_method_raises(self):
         """Método inválido levanta erro."""
         t = np.linspace(0, 10, 100)
         y = np.sin(t)
-        
+
         with pytest.raises((DownsampleError, ValueError)):
             downsample(y, t, n_points=50, method="invalid_method")
 
@@ -300,7 +300,7 @@ class TestDownsamplingEdgeCases:
         """Target negativo levanta erro."""
         t = np.linspace(0, 10, 100)
         y = np.sin(t)
-        
+
         with pytest.raises((DownsampleError, ValueError)):
             downsample(y, t, n_points=-10, method="lttb")
 
@@ -308,7 +308,7 @@ class TestDownsamplingEdgeCases:
         """Target zero levanta erro."""
         t = np.linspace(0, 10, 100)
         y = np.sin(t)
-        
+
         with pytest.raises((DownsampleError, ValueError)):
             downsample(y, t, n_points=0, method="lttb")
 
@@ -324,9 +324,9 @@ class TestDownsamplingMetadata:
         """Downsampling gera metadata correta."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         assert result.metadata is not None
         assert "downsample" in result.metadata.operation.lower()
 
@@ -334,9 +334,9 @@ class TestDownsamplingMetadata:
         """Índices selecionados correspondem aos valores."""
         t, y = large_sine_wave
         target = 500
-        
+
         result = downsample(y, t, n_points=target, method="lttb")
-        
+
         # Verificar que os valores correspondem aos índices
         np.testing.assert_array_almost_equal(
             result.values,
@@ -359,16 +359,16 @@ class TestDownsamplingPerformance:
     def test_lttb_large_dataset_performance(self):
         """LTTB em dataset grande completa em tempo razoável."""
         import time
-        
+
         n = 1_000_000
         t = np.linspace(0, 1000, n)
         y = np.sin(t) + 0.1 * np.random.randn(n)
         target = 10_000
-        
+
         start = time.time()
         result = downsample(y, t, n_points=target, method="lttb")
         elapsed = time.time() - start
-        
+
         # Deve completar em tempo razoável (incluindo numba compilation)
         assert elapsed < 30.0  # 30 segundos max (primeira execução com numba)
         assert len(result.values) <= target + 2
@@ -391,9 +391,9 @@ class TestDownsamplingSmoke:
         """LTTB básico funciona."""
         t = np.linspace(0, 10, 1000)
         y = np.sin(t)
-        
+
         result = downsample(y, t, n_points=100, method="lttb")
-        
+
         assert len(result.values) <= 102
         assert len(result.t_seconds) == len(result.values)
 
@@ -401,8 +401,8 @@ class TestDownsamplingSmoke:
         """MinMax básico funciona."""
         t = np.linspace(0, 10, 1000)
         y = np.sin(t)
-        
+
         result = downsample(y, t, n_points=100, method="minmax")
-        
+
         assert len(result.values) > 0
         assert len(result.t_seconds) == len(result.values)

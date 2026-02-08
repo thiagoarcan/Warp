@@ -33,6 +33,7 @@ from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
 
@@ -407,10 +408,10 @@ class SettingsDialog(QDialog, UiLoaderMixin):
     - Performance and caching options
     - Logging configuration
     - Settings persistence with QSettings
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "settingsDialog.ui"
 
@@ -429,7 +430,7 @@ class SettingsDialog(QDialog, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui
-        
+
         Conecta widgets definidos no arquivo .ui aos handlers Python.
         """
         try:
@@ -437,20 +438,20 @@ class SettingsDialog(QDialog, UiLoaderMixin):
             self.apply_btn = self.findChild(QPushButton, "applyButton")
             self.ok_btn = self.findChild(QPushButton, "okButton")
             self.cancel_btn = self.findChild(QPushButton, "cancelButton")
-            
+
             if self.tabs is None:
                 logger.debug("settings_dialog_ui_widgets_not_found")
                 return
-                
+
             if self.apply_btn:
                 self.apply_btn.clicked.connect(self._apply_settings)
             if self.ok_btn:
                 self.ok_btn.clicked.connect(self.accept)
             if self.cancel_btn:
                 self.cancel_btn.clicked.connect(self.reject)
-                
+
             logger.debug("settings_dialog_ui_loaded_from_file")
-            
+
         except Exception as e:
             logger.warning(f"settings_dialog_ui_setup_failed: {e}")
 

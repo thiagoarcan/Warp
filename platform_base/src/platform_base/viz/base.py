@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
+
 try:
     import numba
     NUMBA_AVAILABLE = True
@@ -12,6 +13,7 @@ except ImportError:
     NUMBA_AVAILABLE = False
 
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.viz.config import VizConfig
@@ -320,14 +322,14 @@ class BaseFigure(ABC):
     def render(self, data) -> None:
         """
         Renderiza a visualização com os dados fornecidos.
-        
+
         Args:
             data: Dados para renderização. Pode ser:
                   - np.ndarray: Array de valores Y
                   - tuple[np.ndarray, np.ndarray]: Arrays (X, Y)
                   - SeriesVisualizationData: Dados de série completos
                   - list[SeriesVisualizationData]: Múltiplas séries
-        
+
         Note:
             Este método deve ser implementado pelas subclasses.
             A implementação deve:
@@ -336,17 +338,17 @@ class BaseFigure(ABC):
             3. Renderizar usando o backend apropriado (pyqtgraph, matplotlib, etc.)
             4. Atualizar o cache interno
         """
-        pass  # Subclasses must implement
+        # Subclasses must implement
 
     @abstractmethod
     def update_selection(self, selection_indices: np.ndarray) -> None:
         """
         Atualiza visualização com nova seleção.
-        
+
         Args:
             selection_indices: Array de índices dos pontos selecionados.
                               Índices correspondem aos dados originais (não downsampled).
-        
+
         Note:
             Este método deve ser implementado pelas subclasses.
             A implementação deve:
@@ -355,13 +357,13 @@ class BaseFigure(ABC):
             3. Destacar visualmente os pontos selecionados
             4. Emitir signals de seleção se aplicável
         """
-        pass  # Subclasses must implement
+        # Subclasses must implement
 
     @abstractmethod
     def export(self, file_path: str, format: str, **kwargs) -> bool:
         """
         Exporta visualização para arquivo.
-        
+
         Args:
             file_path: Caminho do arquivo de destino
             format: Formato de exportação ('png', 'svg', 'pdf', 'csv', 'json')
@@ -371,15 +373,15 @@ class BaseFigure(ABC):
                      - height (int): Altura em pixels
                      - background (str): Cor de fundo
                      - include_legend (bool): Incluir legenda
-        
+
         Returns:
             bool: True se exportação bem sucedida, False caso contrário
-        
+
         Note:
             Este método deve ser implementado pelas subclasses.
             Formatos suportados dependem do backend de renderização.
         """
-        pass  # Subclasses must implement
+        # Subclasses must implement
 
     def clear_cache(self):
         """Limpa cache interno"""
@@ -477,14 +479,13 @@ class BaseFigure(ABC):
 # =============================================================================
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
 class SeriesVisualizationData:
     """
     Data container for series visualization.
-    
+
     This class encapsulates all the data needed to visualize a time series,
     including original data, downsampled data for display, and visual properties.
     """
@@ -591,7 +592,7 @@ class SeriesVisualizationData:
         """Set Y-axis assignment (0=primary, 1=secondary)."""
         self.y_axis = axis
 
-    def copy(self) -> "SeriesVisualizationData":
+    def copy(self) -> SeriesVisualizationData:
         """Create a copy of this visualization data."""
         return SeriesVisualizationData(
             series_id=self.series_id,
@@ -611,21 +612,21 @@ class SeriesVisualizationData:
         )
 
     @classmethod
-    def from_series(cls, series, color: str = None) -> "SeriesVisualizationData":
+    def from_series(cls, series, color: str | None = None) -> SeriesVisualizationData:
         """
         Create visualization data from a Series object.
-        
+
         Args:
             series: Series object with values, timestamps, name, series_id
             color: Optional color override
-            
+
         Returns:
             SeriesVisualizationData instance
         """
         return cls(
-            series_id=getattr(series, 'series_id', str(id(series))),
-            name=getattr(series, 'name', 'Unknown'),
-            x_data=np.asarray(getattr(series, 'timestamps', np.arange(len(series.values)))),
+            series_id=getattr(series, "series_id", str(id(series))),
+            name=getattr(series, "name", "Unknown"),
+            x_data=np.asarray(getattr(series, "timestamps", np.arange(len(series.values)))),
             y_data=np.asarray(series.values),
             color=color or "#1f77b4",
         )

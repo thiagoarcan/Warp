@@ -11,6 +11,8 @@ Features:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -39,6 +41,11 @@ from platform_base.viz.streaming import (
     TimeInterval,
     ValuePredicate,
 )
+
+
+if TYPE_CHECKING:
+    import numpy as np
+
 
 logger = get_logger(__name__)
 
@@ -701,7 +708,7 @@ class StreamFiltersWidget(QWidget):
 class StreamFilter:
     """
     Base class for signal processing filters.
-    
+
     All filter classes should inherit from this and implement
     the apply() method.
     """
@@ -709,28 +716,28 @@ class StreamFilter:
     def __init__(self, fs: float = 1000.0):
         """
         Initialize filter.
-        
+
         Args:
             fs: Sampling frequency in Hz
         """
         self.fs = fs
         self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply filter to data.
-        
+
         Args:
             data: Input signal array (1D numpy array of float values)
-            
+
         Returns:
             Filtered signal array (same shape as input)
-        
+
         Note:
             Subclasses (LowpassFilter, HighpassFilter, BandpassFilter, etc.)
             must override this method with specific filter implementations.
             Base implementation returns data unchanged.
-        
+
         Example (subclass):
             def apply(self, data: np.ndarray) -> np.ndarray:
                 if self._coefficients is None:
@@ -744,20 +751,20 @@ class StreamFilter:
 
     def reset(self):
         """Reset filter state.
-        
-        Clears any internal state (coefficients, buffers) and 
+
+        Clears any internal state (coefficients, buffers) and
         re-designs the filter. Useful when changing filter parameters
         or switching between data streams.
         """
         self._coefficients = None
 
-    def get_frequency_response(self, n_points: int = 512) -> tuple["np.ndarray", "np.ndarray"]:
+    def get_frequency_response(self, n_points: int = 512) -> tuple[np.ndarray, np.ndarray]:
         """
         Get frequency response of filter.
-        
+
         Args:
             n_points: Number of frequency points
-            
+
         Returns:
             Tuple of (frequencies, magnitude response)
         """
@@ -780,14 +787,14 @@ class StreamFilter:
 class LowpassFilter(StreamFilter):
     """
     Butterworth lowpass filter.
-    
+
     Attenuates frequencies above the cutoff frequency.
     """
 
     def __init__(self, cutoff: float, fs: float = 1000.0, order: int = 4):
         """
         Initialize lowpass filter.
-        
+
         Args:
             cutoff: Cutoff frequency in Hz
             fs: Sampling frequency in Hz
@@ -813,22 +820,21 @@ class LowpassFilter(StreamFilter):
                 normalized_cutoff = 0.01
 
             self._coefficients = scipy_signal.butter(
-                self.order, normalized_cutoff, btype='low'
+                self.order, normalized_cutoff, btype="low",
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply lowpass filter to data.
-        
+
         Args:
             data: Input signal array
-            
+
         Returns:
             Filtered signal array
         """
-        import numpy as np
 
         if self._coefficients is None:
             return data
@@ -838,8 +844,7 @@ class LowpassFilter(StreamFilter):
 
             b, a = self._coefficients
             # Use filtfilt for zero-phase filtering
-            filtered = scipy_signal.filtfilt(b, a, data)
-            return filtered
+            return scipy_signal.filtfilt(b, a, data)
         except (ImportError, ValueError):
             return data
 
@@ -847,14 +852,14 @@ class LowpassFilter(StreamFilter):
 class HighpassFilter(StreamFilter):
     """
     Butterworth highpass filter.
-    
+
     Attenuates frequencies below the cutoff frequency.
     """
 
     def __init__(self, cutoff: float, fs: float = 1000.0, order: int = 4):
         """
         Initialize highpass filter.
-        
+
         Args:
             cutoff: Cutoff frequency in Hz
             fs: Sampling frequency in Hz
@@ -880,22 +885,21 @@ class HighpassFilter(StreamFilter):
                 normalized_cutoff = 0.01
 
             self._coefficients = scipy_signal.butter(
-                self.order, normalized_cutoff, btype='high'
+                self.order, normalized_cutoff, btype="high",
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply highpass filter to data.
-        
+
         Args:
             data: Input signal array
-            
+
         Returns:
             Filtered signal array
         """
-        import numpy as np
 
         if self._coefficients is None:
             return data
@@ -905,8 +909,7 @@ class HighpassFilter(StreamFilter):
 
             b, a = self._coefficients
             # Use filtfilt for zero-phase filtering
-            filtered = scipy_signal.filtfilt(b, a, data)
-            return filtered
+            return scipy_signal.filtfilt(b, a, data)
         except (ImportError, ValueError):
             return data
 
@@ -914,14 +917,14 @@ class HighpassFilter(StreamFilter):
 class BandpassFilter(StreamFilter):
     """
     Butterworth bandpass filter.
-    
+
     Passes frequencies within a specified range.
     """
 
     def __init__(self, low_cutoff: float, high_cutoff: float, fs: float = 1000.0, order: int = 4):
         """
         Initialize bandpass filter.
-        
+
         Args:
             low_cutoff: Low cutoff frequency in Hz
             high_cutoff: High cutoff frequency in Hz
@@ -948,18 +951,18 @@ class BandpassFilter(StreamFilter):
             high = max(low + 0.01, min(0.99, high))
 
             self._coefficients = scipy_signal.butter(
-                self.order, [low, high], btype='band'
+                self.order, [low, high], btype="band",
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply bandpass filter to data.
-        
+
         Args:
             data: Input signal array
-            
+
         Returns:
             Filtered signal array
         """
@@ -970,8 +973,7 @@ class BandpassFilter(StreamFilter):
             from scipy import signal as scipy_signal
 
             b, a = self._coefficients
-            filtered = scipy_signal.filtfilt(b, a, data)
-            return filtered
+            return scipy_signal.filtfilt(b, a, data)
         except (ImportError, ValueError):
             return data
 
@@ -979,7 +981,7 @@ class BandpassFilter(StreamFilter):
 class NotchFilter(StreamFilter):
     """
     Notch (band-stop) filter.
-    
+
     Removes a specific frequency from the signal.
     Commonly used to remove 50Hz/60Hz powerline interference.
     """
@@ -987,7 +989,7 @@ class NotchFilter(StreamFilter):
     def __init__(self, freq: float, q: float = 30.0, fs: float = 1000.0):
         """
         Initialize notch filter.
-        
+
         Args:
             freq: Notch frequency in Hz
             q: Quality factor (higher = narrower notch)
@@ -1013,18 +1015,18 @@ class NotchFilter(StreamFilter):
                 normalized_freq = 0.01
 
             self._coefficients = scipy_signal.iirnotch(
-                normalized_freq, self.q
+                normalized_freq, self.q,
             )
         except ImportError:
             self._coefficients = None
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply notch filter to data.
-        
+
         Args:
             data: Input signal array
-            
+
         Returns:
             Filtered signal array
         """
@@ -1035,8 +1037,7 @@ class NotchFilter(StreamFilter):
             from scipy import signal as scipy_signal
 
             b, a = self._coefficients
-            filtered = scipy_signal.filtfilt(b, a, data)
-            return filtered
+            return scipy_signal.filtfilt(b, a, data)
         except (ImportError, ValueError):
             return data
 
@@ -1044,14 +1045,14 @@ class NotchFilter(StreamFilter):
 class MovingAverageFilter(StreamFilter):
     """
     Moving average filter for smoothing.
-    
+
     Simple FIR filter that computes the average of N consecutive samples.
     """
 
     def __init__(self, window_size: int = 5, fs: float = 1000.0):
         """
         Initialize moving average filter.
-        
+
         Args:
             window_size: Number of samples to average
             fs: Sampling frequency in Hz
@@ -1059,13 +1060,13 @@ class MovingAverageFilter(StreamFilter):
         super().__init__(fs)
         self.window_size = max(1, window_size)
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply moving average filter to data.
-        
+
         Args:
             data: Input signal array
-            
+
         Returns:
             Filtered signal array
         """
@@ -1076,15 +1077,14 @@ class MovingAverageFilter(StreamFilter):
 
         # Use convolution for efficient moving average
         kernel = np.ones(self.window_size) / self.window_size
-        filtered = np.convolve(data, kernel, mode='same')
+        return np.convolve(data, kernel, mode="same")
 
-        return filtered
 
 
 class FilterChain:
     """
     Chain of filters to be applied sequentially.
-    
+
     Allows combining multiple filters into a single processing pipeline.
     """
 
@@ -1095,7 +1095,7 @@ class FilterChain:
     def add_filter(self, filter_obj: StreamFilter):
         """
         Add a filter to the chain.
-        
+
         Args:
             filter_obj: Filter to add
         """
@@ -1104,7 +1104,7 @@ class FilterChain:
     def remove_filter(self, index: int):
         """
         Remove a filter from the chain by index.
-        
+
         Args:
             index: Index of filter to remove
         """
@@ -1115,13 +1115,13 @@ class FilterChain:
         """Remove all filters from the chain."""
         self._filters.clear()
 
-    def apply(self, data: "np.ndarray") -> "np.ndarray":
+    def apply(self, data: np.ndarray) -> np.ndarray:
         """
         Apply all filters in the chain sequentially.
-        
+
         Args:
             data: Input signal array
-            
+
         Returns:
             Filtered signal array
         """
@@ -1147,7 +1147,7 @@ class FilterChain:
 class FilterDialog(QWidget, UiLoaderMixin):
     """
     Dialog for configuring signal processing filters.
-    
+
     Provides UI for creating and configuring various filter types.
     """
 
@@ -1179,7 +1179,7 @@ class FilterDialog(QWidget, UiLoaderMixin):
         self.order_spinbox = self.findChild(QSpinBox, "order_spinbox")
         self.preview_button = self.findChild(QPushButton, "preview_button")
         self.create_button = self.findChild(QPushButton, "create_button")
-        
+
         # Conecta sinais
         if self.filter_type_combo:
             self.filter_type_combo.currentTextChanged.connect(self._on_filter_type_changed)
@@ -1187,7 +1187,7 @@ class FilterDialog(QWidget, UiLoaderMixin):
             self.preview_button.clicked.connect(self._on_preview)
         if self.create_button:
             self.create_button.clicked.connect(self._on_create)
-        
+
         # Initialize visibility
         if self.filter_type_combo:
             self._on_filter_type_changed(self.filter_type_combo.currentText())
@@ -1230,31 +1230,31 @@ class FilterDialog(QWidget, UiLoaderMixin):
             self._current_filter = LowpassFilter(
                 cutoff=self.cutoff_spinbox.value(),
                 fs=fs,
-                order=self.order_spinbox.value()
+                order=self.order_spinbox.value(),
             )
         elif filter_type == "Highpass":
             self._current_filter = HighpassFilter(
                 cutoff=self.cutoff_spinbox.value(),
                 fs=fs,
-                order=self.order_spinbox.value()
+                order=self.order_spinbox.value(),
             )
         elif filter_type == "Bandpass":
             self._current_filter = BandpassFilter(
                 low_cutoff=self.cutoff_spinbox.value(),
                 high_cutoff=self.high_cutoff_spinbox.value(),
                 fs=fs,
-                order=self.order_spinbox.value()
+                order=self.order_spinbox.value(),
             )
         elif filter_type == "Notch":
             self._current_filter = NotchFilter(
                 freq=self.cutoff_spinbox.value(),
                 q=self.q_spinbox.value(),
-                fs=fs
+                fs=fs,
             )
         elif filter_type == "Moving Average":
             self._current_filter = MovingAverageFilter(
                 window_size=self.window_spinbox.value(),
-                fs=fs
+                fs=fs,
             )
 
         return self._current_filter

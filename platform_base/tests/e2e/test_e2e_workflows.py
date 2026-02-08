@@ -8,12 +8,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+
 pytestmark = pytest.mark.e2e
 
 
 class TestUserWorkflowAnalysis:
     """E2E tests for typical analysis workflows."""
-    
+
     def test_load_visualize_calculate_export_workflow(self, tmp_path):
         """Complete user workflow: Load → Visualize → Calculate → Export."""
         from platform_base.io.loader import load
@@ -25,38 +26,38 @@ class TestUserWorkflowAnalysis:
         velocity = np.sin(0.1 * t) * 10  # Simulated velocity
         df = pd.DataFrame({"time": t, "velocity": velocity})
         df.to_csv(csv_file, index=False)
-        
+
         # Step 1: Load
         dataset = load(csv_file)
         assert dataset is not None
-        series = list(dataset.series.values())[0]
-        
+        series = next(iter(dataset.series.values()))
+
         # Step 2: User views data (simulated)
         assert len(series.values) == 1000
-        
+
         # Step 3: Calculate derivative (acceleration)
         accel_result = derivative(series.values, dataset.t_seconds, order=1)
         assert accel_result is not None
-        
+
         # Step 4: Calculate cumulative integral (position)
         position_result = integral(series.values, dataset.t_seconds, method="cumulative")
         assert position_result is not None
-        
+
         # Step 5: Export results
         output_file = tmp_path / "results.csv"
         df_results = pd.DataFrame({
             "time": dataset.t_seconds,
             "velocity": series.values,
             "acceleration": accel_result.values,
-            "position": position_result.values
+            "position": position_result.values,
         })
         df_results.to_csv(output_file, index=False)
-        
+
         assert output_file.exists()
         df_check = pd.read_csv(output_file)
         assert "acceleration" in df_check.columns
         assert "position" in df_check.columns
-    
+
     def test_multi_file_comparison_workflow(self, tmp_path):
         """Workflow: Load multiple files → Compare → Export comparison."""
         from platform_base.io.loader import load
@@ -71,35 +72,35 @@ class TestUserWorkflowAnalysis:
             df = pd.DataFrame({"time": t, f"sensor_{i}": y})
             df.to_csv(csv_file, index=False)
             files.append(csv_file)
-        
+
         # Load all files
         datasets = [load(f) for f in files]
         assert len(datasets) == 3
-        
+
         # Synchronize all series
         series_dict = {}
         time_dict = {}
         for i, ds in enumerate(datasets):
-            series = list(ds.series.values())[0]
+            series = next(iter(ds.series.values()))
             series_dict[f"sensor_{i}"] = series.values
             time_dict[f"sensor_{i}"] = ds.t_seconds
-        
+
         synced = synchronize(series_dict, time_dict, method="common_grid_interpolate", params={})
-        
+
         # Verify synchronization
         assert len(synced.synced_series) == 3
         lengths = [len(v) for v in synced.synced_series.values()]
         assert len(set(lengths)) == 1  # All same length after sync
-        
+
         # Export comparison
         output = tmp_path / "comparison.csv"
         df_compare = pd.DataFrame({
             "time": synced.t_common,
-            **synced.synced_series
+            **synced.synced_series,
         })
         df_compare.to_csv(output, index=False)
         assert output.exists()
-    
+
     def test_data_quality_workflow(self, tmp_path):
         """Workflow: Load → Check quality → Clean → Interpolate → Analyze."""
         from platform_base.io.loader import load
@@ -109,25 +110,25 @@ class TestUserWorkflowAnalysis:
         csv_file = tmp_path / "noisy_data.csv"
         t = np.linspace(0, 100, 1000)
         y = np.sin(0.1 * t) + 0.5 * np.random.randn(len(t))
-        
+
         # Introduce NaN gaps
         y[200:220] = np.nan
         y[500:510] = np.nan
-        
+
         df = pd.DataFrame({"time": t, "value": y})
         df.to_csv(csv_file, index=False)
-        
+
         # Load data
         dataset = load(csv_file)
-        series = list(dataset.series.values())[0]
-        
+        series = next(iter(dataset.series.values()))
+
         # Check quality
         nan_count = np.isnan(series.values).sum()
         assert nan_count > 0  # Has gaps
-        
+
         # Interpolate to fill gaps
         result = interpolate(series.values, dataset.t_seconds, method="linear", params={})
-        
+
         # Verify gaps filled
         result_nan_count = np.isnan(result.values).sum()
         assert result_nan_count <= nan_count  # Should have fewer or equal NaN
@@ -135,7 +136,7 @@ class TestUserWorkflowAnalysis:
 
 class TestDataStreamingWorkflow:
     """E2E tests for streaming/playback workflows."""
-    
+
     def test_streaming_playback_workflow(self):
         """Workflow: Load time series → Stream/playback → Apply filters in real-time."""
         from platform_base.streaming.filters import FilterAction, QualityFilter
@@ -146,15 +147,15 @@ class TestDataStreamingWorkflow:
         signal = np.sin(2 * np.pi * t) + 0.1 * np.random.randn(len(t))
         # Add outlier
         signal[500] = 100.0
-        
+
         # Create QualityFilter with correct API
         filter_obj = QualityFilter(
             name="quality_filter",
             outlier_method="zscore",
             outlier_threshold=3.0,
-            window_size=20
+            window_size=20,
         )
-        
+
         # Simulate streaming - process point by point
         filtered_values = []
         for i in range(len(signal)):
@@ -168,7 +169,7 @@ class TestDataStreamingWorkflow:
                 filtered_values.append(filtered_values[-1] if filtered_values else np.nan)
             else:
                 filtered_values.append(np.nan)
-        
+
         # Verify filtering worked
         assert len(filtered_values) == len(signal)
         # Verify QualityFilter efficiency is tracked
@@ -177,7 +178,7 @@ class TestDataStreamingWorkflow:
 
 class TestExportWorkflows:
     """E2E tests for various export workflows."""
-    
+
     def test_export_multiple_formats_workflow(self, tmp_path):
         """Workflow: Process data → Export to multiple formats."""
         from platform_base.io.loader import load
@@ -188,33 +189,33 @@ class TestExportWorkflows:
         y = np.sin(t)
         df = pd.DataFrame({"time": t, "value": y})
         df.to_csv(csv_file, index=False)
-        
+
         # Load
         dataset = load(csv_file)
-        series = list(dataset.series.values())[0]
-        
+        series = next(iter(dataset.series.values()))
+
         # Export to different formats
         formats = {
             "csv": tmp_path / "export.csv",
             "xlsx": tmp_path / "export.xlsx",
-            "parquet": tmp_path / "export.parquet"
+            "parquet": tmp_path / "export.parquet",
         }
-        
+
         for fmt, output_path in formats.items():
             df_export = pd.DataFrame({
                 "time": dataset.t_seconds,
-                "value": series.values
+                "value": series.values,
             })
-            
+
             if fmt == "csv":
                 df_export.to_csv(output_path, index=False)
             elif fmt == "xlsx":
                 df_export.to_excel(output_path, index=False)
             elif fmt == "parquet":
                 df_export.to_parquet(output_path, index=False)
-            
+
             assert output_path.exists()
-    
+
     def test_export_with_metadata_workflow(self, tmp_path):
         """Workflow: Add metadata → Export with embedded metadata."""
         from datetime import datetime
@@ -231,21 +232,21 @@ class TestExportWorkflows:
         # Create dataset with metadata
         t = np.linspace(0, 10, 100)
         y = np.sin(t)
-        
+
         series_meta = SeriesMetadata(
             original_name="Test Signal",
             source_column="value",
             original_unit="m/s",
-            description="IMU-001 sensor in Engine Room"
+            description="IMU-001 sensor in Engine Room",
         )
         series = Series(
             series_id="test",
             name="Test Signal",
             values=y,
             unit=parse_unit("m/s"),
-            metadata=series_meta
+            metadata=series_meta,
         )
-        
+
         dataset = Dataset(
             dataset_id="test_ds",
             version=1,
@@ -255,38 +256,38 @@ class TestExportWorkflows:
                 filename="test.csv",
                 format="csv",
                 size_bytes=1000,
-                checksum="abc123"
+                checksum="abc123",
             ),
             series={"test": series},
             t_seconds=t,
-            t_datetime=np.array([np.datetime64('2020-01-01') + np.timedelta64(int(s), 's') for s in t]),
+            t_datetime=np.array([np.datetime64("2020-01-01") + np.timedelta64(int(s), "s") for s in t]),
             metadata=DatasetMetadata(description="Test Dataset"),
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
-        
+
         # Export with metadata
         output = tmp_path / "with_metadata.csv"
         df = pd.DataFrame({
             "time": t,
-            "value": y
+            "value": y,
         })
         df.to_csv(output, index=False)
-        
+
         # Metadata would be in separate file or embedded
         metadata_file = tmp_path / "metadata.json"
         import json
         metadata_file.write_text(json.dumps({
             "dataset": {"description": dataset.metadata.description},
-            "series": {"original_name": series.metadata.original_name}
+            "series": {"original_name": series.metadata.original_name},
         }))
-        
+
         assert output.exists()
         assert metadata_file.exists()
 
 
 class TestInteractiveAnalysisWorkflow:
     """E2E tests for interactive analysis scenarios."""
-    
+
     def test_iterative_parameter_tuning_workflow(self, tmp_path):
         """Workflow: Load → Try different parameters → Select best → Export."""
         from platform_base.io.loader import load
@@ -298,39 +299,39 @@ class TestInteractiveAnalysisWorkflow:
         y = np.sin(t)
         df = pd.DataFrame({"time": t, "value": y})
         df.to_csv(csv_file, index=False)
-        
+
         # Load
         dataset = load(csv_file)
-        series = list(dataset.series.values())[0]
-        
+        series = next(iter(dataset.series.values()))
+
         # Try different interpolation methods
         methods = ["linear", "spline_cubic", "smoothing_spline"]
         results = {}
-        
+
         for method in methods:
             result = interpolate(series.values, dataset.t_seconds, method=method, params={})
             results[method] = result
-            
+
             # Calculate some metric (e.g., smoothness)
             if len(result.values) > 1:
                 smoothness = np.mean(np.abs(np.diff(result.values)))
                 results[method] = {"result": result, "smoothness": smoothness}
             else:
-                results[method] = {"result": result, "smoothness": float('inf')}
-        
+                results[method] = {"result": result, "smoothness": float("inf")}
+
         # Select best (e.g., smoothest)
         best_method = min(results.keys(), key=lambda k: results[k]["smoothness"])
-        
+
         # Export best result
         output = tmp_path / f"result_{best_method}.csv"
         df_result = pd.DataFrame({
             "time": dataset.t_seconds,
-            "value": results[best_method]["result"].values
+            "value": results[best_method]["result"].values,
         })
         df_result.to_csv(output, index=False)
-        
+
         assert output.exists()
-    
+
     def test_anomaly_detection_workflow(self, tmp_path):
         """Workflow: Load → Detect anomalies → Mark → Export."""
         from platform_base.io.loader import load
@@ -339,35 +340,35 @@ class TestInteractiveAnalysisWorkflow:
         csv_file = tmp_path / "sensor_with_anomalies.csv"
         t = np.linspace(0, 100, 1000)
         y = np.sin(0.1 * t)
-        
+
         # Add anomalies (spikes)
         anomaly_indices = [100, 250, 600, 850]
         for idx in anomaly_indices:
             y[idx] = y[idx] + 10  # Spike
-        
+
         df = pd.DataFrame({"time": t, "value": y})
         df.to_csv(csv_file, index=False)
-        
+
         # Load
         dataset = load(csv_file)
-        series = list(dataset.series.values())[0]
-        
+        series = next(iter(dataset.series.values()))
+
         # Simple anomaly detection: values > 3 std from mean
         mean = np.mean(series.values)
         std = np.std(series.values)
         anomalies = np.abs(series.values - mean) > 3 * std
-        
+
         assert anomalies.sum() >= len(anomaly_indices)  # Should detect most
-        
+
         # Export with anomaly flags
         output = tmp_path / "flagged.csv"
         df_flagged = pd.DataFrame({
             "time": dataset.t_seconds,
             "value": series.values,
-            "is_anomaly": anomalies
+            "is_anomaly": anomalies,
         })
         df_flagged.to_csv(output, index=False)
-        
+
         assert output.exists()
         df_check = pd.read_csv(output)
         assert "is_anomaly" in df_check.columns
@@ -376,7 +377,7 @@ class TestInteractiveAnalysisWorkflow:
 
 class TestBatchProcessingWorkflow:
     """E2E tests for batch processing workflows."""
-    
+
     def test_batch_process_multiple_files_workflow(self, tmp_path):
         """Workflow: Load multiple files → Process all → Export results."""
         from platform_base.io.loader import load
@@ -387,7 +388,7 @@ class TestBatchProcessingWorkflow:
         input_dir.mkdir()
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        
+
         files = []
         for i in range(5):
             csv_file = input_dir / f"data_{i:03d}.csv"
@@ -396,24 +397,24 @@ class TestBatchProcessingWorkflow:
             df = pd.DataFrame({"time": t, "value": y})
             df.to_csv(csv_file, index=False)
             files.append(csv_file)
-        
+
         # Batch process
         for file in files:
             # Load
             dataset = load(file)
-            series = list(dataset.series.values())[0]
-            
+            series = next(iter(dataset.series.values()))
+
             # Process
             result = derivative(series.values, dataset.t_seconds, order=1)
-            
+
             # Export
             output_file = output_dir / file.name.replace(".csv", "_derivative.csv")
             df_out = pd.DataFrame({
                 "time": dataset.t_seconds,
-                "derivative": result.values
+                "derivative": result.values,
             })
             df_out.to_csv(output_file, index=False)
-        
+
         # Verify all outputs created
         output_files = list(output_dir.glob("*_derivative.csv"))
         assert len(output_files) == 5

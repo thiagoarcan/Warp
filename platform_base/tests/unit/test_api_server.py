@@ -27,7 +27,7 @@ class TestInterpolationRequest:
         """Test request with parameters"""
         request = InterpolationRequest(
             method="cubic",
-            params={"fill_value": "extrapolate"}
+            params={"fill_value": "extrapolate"},
         )
         assert request.method == "cubic"
         assert request.params["fill_value"] == "extrapolate"
@@ -52,7 +52,7 @@ class TestViewRequest:
         """Test basic view request creation"""
         request = ViewRequest(
             series_ids=["series1", "series2"],
-            window={"start": 0.0, "end": 10.0}
+            window={"start": 0.0, "end": 10.0},
         )
         assert len(request.series_ids) == 2
         assert "series1" in request.series_ids
@@ -61,7 +61,7 @@ class TestViewRequest:
         """Test view request with single series"""
         request = ViewRequest(
             series_ids=["only_series"],
-            window={"start": 0.0, "end": 100.0}
+            window={"start": 0.0, "end": 100.0},
         )
         assert len(request.series_ids) == 1
 
@@ -69,7 +69,7 @@ class TestViewRequest:
         """Test view request with empty series list"""
         request = ViewRequest(
             series_ids=[],
-            window={"start": 0.0, "end": 10.0}
+            window={"start": 0.0, "end": 10.0},
         )
         assert len(request.series_ids) == 0
 
@@ -102,7 +102,7 @@ class TestCreateApp:
         """Test that expected routes are defined"""
         app = create_app()
         routes = [r.path for r in app.routes]
-        
+
         assert "/datasets/upload" in routes
         assert "/datasets" in routes
 
@@ -120,7 +120,7 @@ class TestAPIEndpointsUnit:
     def test_store_operations(self):
         """Test dataset store operations"""
         store = DatasetStore()
-        
+
         # Initially empty
         assert len(store.list_datasets()) == 0
 
@@ -135,8 +135,8 @@ class TestInterpolationRequestValidation:
             params={
                 "order": 3,
                 "smooth": 0.5,
-                "extrapolate": True
-            }
+                "extrapolate": True,
+            },
         )
         assert request.params["order"] == 3
         assert request.params["smooth"] == 0.5
@@ -149,9 +149,9 @@ class TestInterpolationRequestValidation:
             params={
                 "options": {
                     "fill_value": 0,
-                    "bounds_error": False
-                }
-            }
+                    "bounds_error": False,
+                },
+            },
         )
         assert request.params["options"]["fill_value"] == 0
 
@@ -164,7 +164,7 @@ class TestViewRequestValidation:
         series_ids = [f"series_{i}" for i in range(10)]
         request = ViewRequest(
             series_ids=series_ids,
-            window={"start": 0.0, "end": 1000.0}
+            window={"start": 0.0, "end": 1000.0},
         )
         assert len(request.series_ids) == 10
 
@@ -172,7 +172,7 @@ class TestViewRequestValidation:
         """Test various window specifications"""
         request = ViewRequest(
             series_ids=["test"],
-            window={"start": 0, "end": 100}  # Int values
+            window={"start": 0, "end": 100},  # Int values
         )
         assert request.window["start"] == 0
         assert request.window["end"] == 100
@@ -182,11 +182,9 @@ class TestViewRequestValidation:
 @pytest.mark.skipif(True, reason="Integration test - requires full server setup")
 class TestAPIIntegration:
     """Integration tests for API - skipped without full setup"""
-    
+
     def test_upload_and_list(self):
         """Test upload dataset and list it"""
-        pass
 
     def test_interpolate_endpoint(self):
         """Test interpolation endpoint"""
-        pass

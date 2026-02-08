@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'selectionManagerWidget.ui'
@@ -8,35 +7,39 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
-    QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
-    QSpacerItem, QTabWidget, QVBoxLayout, QWidget)
+from PySide6.QtCore import QCoreApplication, QMetaObject
+from PySide6.QtWidgets import (
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
-class Ui_SelectionManagerWidget(object):
+
+class Ui_SelectionManagerWidget:
     def setupUi(self, SelectionManagerWidget):
         if not SelectionManagerWidget.objectName():
-            SelectionManagerWidget.setObjectName(u"SelectionManagerWidget")
+            SelectionManagerWidget.setObjectName("SelectionManagerWidget")
         SelectionManagerWidget.resize(400, 300)
         self.mainLayout = QVBoxLayout(SelectionManagerWidget)
         self.mainLayout.setSpacing(8)
-        self.mainLayout.setObjectName(u"mainLayout")
+        self.mainLayout.setObjectName("mainLayout")
         self.mainLayout.setContentsMargins(8, 8, 8, 8)
         self.datasetLayout = QHBoxLayout()
-        self.datasetLayout.setObjectName(u"datasetLayout")
+        self.datasetLayout.setObjectName("datasetLayout")
         self.datasetLabel = QLabel(SelectionManagerWidget)
-        self.datasetLabel.setObjectName(u"datasetLabel")
+        self.datasetLabel.setObjectName("datasetLabel")
 
         self.datasetLayout.addWidget(self.datasetLabel)
 
         self.datasetCombo = QComboBox(SelectionManagerWidget)
-        self.datasetCombo.setObjectName(u"datasetCombo")
+        self.datasetCombo.setObjectName("datasetCombo")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -49,23 +52,23 @@ class Ui_SelectionManagerWidget(object):
         self.mainLayout.addLayout(self.datasetLayout)
 
         self.selectionTabs = QTabWidget(SelectionManagerWidget)
-        self.selectionTabs.setObjectName(u"selectionTabs")
+        self.selectionTabs.setObjectName("selectionTabs")
         self.activeTab = QWidget()
-        self.activeTab.setObjectName(u"activeTab")
+        self.activeTab.setObjectName("activeTab")
         self.activeLayout = QVBoxLayout(self.activeTab)
-        self.activeLayout.setObjectName(u"activeLayout")
+        self.activeLayout.setObjectName("activeLayout")
         self.activeList = QListWidget(self.activeTab)
-        self.activeList.setObjectName(u"activeList")
+        self.activeList.setObjectName("activeList")
 
         self.activeLayout.addWidget(self.activeList)
 
         self.selectionTabs.addTab(self.activeTab, "")
         self.savedTab = QWidget()
-        self.savedTab.setObjectName(u"savedTab")
+        self.savedTab.setObjectName("savedTab")
         self.savedLayout = QVBoxLayout(self.savedTab)
-        self.savedLayout.setObjectName(u"savedLayout")
+        self.savedLayout.setObjectName("savedLayout")
         self.savedList = QListWidget(self.savedTab)
-        self.savedList.setObjectName(u"savedList")
+        self.savedList.setObjectName("savedList")
 
         self.savedLayout.addWidget(self.savedList)
 
@@ -74,19 +77,19 @@ class Ui_SelectionManagerWidget(object):
         self.mainLayout.addWidget(self.selectionTabs)
 
         self.actionLayout = QHBoxLayout()
-        self.actionLayout.setObjectName(u"actionLayout")
+        self.actionLayout.setObjectName("actionLayout")
         self.saveBtn = QPushButton(SelectionManagerWidget)
-        self.saveBtn.setObjectName(u"saveBtn")
+        self.saveBtn.setObjectName("saveBtn")
 
         self.actionLayout.addWidget(self.saveBtn)
 
         self.loadBtn = QPushButton(SelectionManagerWidget)
-        self.loadBtn.setObjectName(u"loadBtn")
+        self.loadBtn.setObjectName("loadBtn")
 
         self.actionLayout.addWidget(self.loadBtn)
 
         self.deleteBtn = QPushButton(SelectionManagerWidget)
-        self.deleteBtn.setObjectName(u"deleteBtn")
+        self.deleteBtn.setObjectName("deleteBtn")
 
         self.actionLayout.addWidget(self.deleteBtn)
 
@@ -104,12 +107,11 @@ class Ui_SelectionManagerWidget(object):
     # setupUi
 
     def retranslateUi(self, SelectionManagerWidget):
-        self.datasetLabel.setText(QCoreApplication.translate("SelectionManagerWidget", u"Dataset:", None))
-        self.selectionTabs.setTabText(self.selectionTabs.indexOf(self.activeTab), QCoreApplication.translate("SelectionManagerWidget", u"Active", None))
-        self.selectionTabs.setTabText(self.selectionTabs.indexOf(self.savedTab), QCoreApplication.translate("SelectionManagerWidget", u"Saved", None))
-        self.saveBtn.setText(QCoreApplication.translate("SelectionManagerWidget", u"Save", None))
-        self.loadBtn.setText(QCoreApplication.translate("SelectionManagerWidget", u"Load", None))
-        self.deleteBtn.setText(QCoreApplication.translate("SelectionManagerWidget", u"Delete", None))
-        pass
+        self.datasetLabel.setText(QCoreApplication.translate("SelectionManagerWidget", "Dataset:", None))
+        self.selectionTabs.setTabText(self.selectionTabs.indexOf(self.activeTab), QCoreApplication.translate("SelectionManagerWidget", "Active", None))
+        self.selectionTabs.setTabText(self.selectionTabs.indexOf(self.savedTab), QCoreApplication.translate("SelectionManagerWidget", "Saved", None))
+        self.saveBtn.setText(QCoreApplication.translate("SelectionManagerWidget", "Save", None))
+        self.loadBtn.setText(QCoreApplication.translate("SelectionManagerWidget", "Load", None))
+        self.deleteBtn.setText(QCoreApplication.translate("SelectionManagerWidget", "Delete", None))
     # retranslateUi
 

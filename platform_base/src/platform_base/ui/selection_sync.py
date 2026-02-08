@@ -24,6 +24,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 from platform_base.ui.selection import Selection, SelectionCriteria, SelectionMode
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.models import ViewID
     from platform_base.ui.multi_view_sync import MultiViewSynchronizer
@@ -348,20 +349,20 @@ class SelectionSyncView:
     def apply_synced_selection(self, selection: Selection):
         """
         Aplica seleção recebida via sincronização.
-        
+
         Este método é chamado pelo SelectionSynchronizer quando uma seleção
         de outra view precisa ser aplicada a esta view.
 
         Override este método para implementar como a view
         deve aplicar seleções recebidas de outras views.
-        
+
         Args:
             selection: Objeto Selection contendo os dados de seleção:
                       - t_seconds: Array de timestamps selecionados
                       - series: Dict de séries com dados selecionados
                       - criteria: Critérios usados para a seleção
                       - metadata: Metadados adicionais
-        
+
         Example (subclass implementation):
             def apply_synced_selection(self, selection: Selection):
                 # Highlight selected time range in plot
@@ -377,7 +378,7 @@ class SelectionSyncView:
         # Default implementation: store selection and log
         self.current_selection = selection
         logger.debug("synced_selection_applied",
-                    n_points=selection.n_points if hasattr(selection, 'n_points') else 0)
+                    n_points=selection.n_points if hasattr(selection, "n_points") else 0)
 
     def clear_synced_selection(self):
         """
@@ -516,7 +517,7 @@ def create_selection_sync_filter(view_types: list[str] | None = None,
 class SelectionSync(QObject):
     """
     Simple selection synchronization across multiple views.
-    
+
     This is a simplified interface for synchronizing selections between views.
     For more advanced use cases, use SelectionSynchronizer.
     """
@@ -537,7 +538,7 @@ class SelectionSync(QObject):
     def register_view(self, view: Any, view_id: str):
         """
         Register a view for synchronization.
-        
+
         Args:
             view: View object (must have set_selection method)
             view_id: Unique identifier for the view
@@ -549,7 +550,7 @@ class SelectionSync(QObject):
     def unregister_view(self, view_id: str):
         """
         Unregister a view from synchronization.
-        
+
         Args:
             view_id: Identifier of the view to unregister
         """
@@ -561,7 +562,7 @@ class SelectionSync(QObject):
     def propagate_selection(self, source: str, indices: set[int]):
         """
         Propagate a selection from source view to all other views.
-        
+
         Args:
             source: ID of the source view
             indices: Set of selected indices
@@ -573,7 +574,7 @@ class SelectionSync(QObject):
 
         for view_id, view in self._views.items():
             if view_id != source:
-                if hasattr(view, 'set_selection'):
+                if hasattr(view, "set_selection"):
                     try:
                         view.set_selection(indices)
                     except Exception as e:
@@ -589,7 +590,7 @@ class SelectionSync(QObject):
     def set_enabled(self, enabled: bool):
         """
         Enable or disable synchronization.
-        
+
         Args:
             enabled: True to enable, False to disable
         """
@@ -614,7 +615,7 @@ class SelectionSync(QObject):
         self._current_selection = None
 
         for view_id, view in self._views.items():
-            if hasattr(view, 'clear_selection'):
+            if hasattr(view, "clear_selection"):
                 try:
                     view.clear_selection()
                 except Exception as e:

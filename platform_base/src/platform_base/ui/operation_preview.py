@@ -22,6 +22,7 @@ from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTabWidget, QVBoxLayout, QWidget
 
+
 try:
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -31,6 +32,7 @@ except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 from platform_base.utils.logging import get_logger
+
 
 logger = get_logger(__name__)
 

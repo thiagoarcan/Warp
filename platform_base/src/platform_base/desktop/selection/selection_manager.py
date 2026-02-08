@@ -18,6 +18,8 @@ import numpy as np
 from PyQt6.QtCore import QObject, QPointF, QRectF, pyqtSignal
 
 from platform_base.utils.logging import get_logger
+from platform_base.utils.safe_eval import compile_safe_condition
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -53,15 +55,15 @@ class SelectionCriteria:
     def matches_point(self, t: float, value: float, **kwargs) -> bool:
         """
         Check if a point matches the selection criteria.
-        
+
         Args:
             t: Time value of the point
             value: Y value of the point
             **kwargs: Additional context (series_id, dataset_id, etc.)
-        
+
         Returns:
             bool: True if point matches selection criteria
-        
+
         Note:
             Subclasses (TemporalSelection, GraphicalSelection, ConditionalSelection)
             override this method with specific matching logic.
@@ -128,20 +130,11 @@ class ConditionalSelection(SelectionCriteria):
     def _compile_condition(self):
         """Compile the condition string into a callable"""
         try:
-            # Safe evaluation context
-            safe_dict = {
-                "__builtins__": {},
-                "abs": abs, "min": min, "max": max,
-                "sin": np.sin, "cos": np.cos, "tan": np.tan,
-                "sqrt": np.sqrt, "log": np.log, "exp": np.exp,
-                "pi": np.pi, "e": np.e,
-            }
-
-            # Create lambda function from condition
+            # Use safe expression evaluator (no eval())
             # Examples: "value > 10", "abs(value) < 5", "sin(t) > 0.5"
-            func_code = f"lambda t, value: {self.condition}"
-            self.compiled_condition = eval(func_code, safe_dict)
-
+            self.compiled_condition = compile_safe_condition(
+                self.condition, ["t", "value"],
+            )
         except Exception as e:
             logger.exception("conditional_selection_compile_error",
                         condition=self.condition, error=str(e))

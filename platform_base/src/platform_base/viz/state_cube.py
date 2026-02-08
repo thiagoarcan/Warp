@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import plotly.graph_objects as go
 
 from platform_base.viz.base import BaseFigure
 
+
 if TYPE_CHECKING:
+    from pathlib import Path
+
     import numpy as np
 
     from platform_base.ui.state import Selection
@@ -18,10 +20,10 @@ class StateCube3D(BaseFigure):
 
     def render(self, states: np.ndarray) -> go.Figure:
         """Render 3D scatter plot of states.
-        
+
         Args:
             states: Nx3 array of 3D coordinates
-            
+
         Returns:
             Plotly Figure with 3D scatter
         """
@@ -40,7 +42,7 @@ class StateCube3D(BaseFigure):
 
     def export(self, path: Path, format: str = "png") -> None:
         """Export the figure to file.
-        
+
         Args:
             path: Output file path
             format: Export format (png, html, svg, etc.)
@@ -56,9 +58,8 @@ class StateCube3D(BaseFigure):
 
     def update_selection(self, selection: Selection) -> None:
         """Update visualization based on selection.
-        
+
         Args:
             selection: Current selection state
         """
         # StateCube3D doesn't support selection updates in basic form
-        pass

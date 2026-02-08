@@ -15,15 +15,15 @@ Features:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
-import shutil
 import threading
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -42,24 +42,24 @@ class BackupInfo:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'path': str(self.path),
-            'timestamp': self.timestamp.isoformat(),
-            'version': self.version,
-            'size_bytes': self.size_bytes,
-            'checksum': self.checksum,
-            'description': self.description,
+            "path": str(self.path),
+            "timestamp": self.timestamp.isoformat(),
+            "version": self.version,
+            "size_bytes": self.size_bytes,
+            "checksum": self.checksum,
+            "description": self.description,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> BackupInfo:
         """Create from dictionary."""
         return cls(
-            path=Path(data['path']),
-            timestamp=datetime.fromisoformat(data['timestamp']),
-            version=data['version'],
-            size_bytes=data['size_bytes'],
-            checksum=data['checksum'],
-            description=data.get('description', ''),
+            path=Path(data["path"]),
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            version=data["version"],
+            size_bytes=data["size_bytes"],
+            checksum=data["checksum"],
+            description=data.get("description", ""),
         )
 
 
@@ -77,7 +77,7 @@ class AutoSaveStatus:
 class AutoSaveManager:
     """
     Manages automatic saving and backup of sessions.
-    
+
     Provides periodic auto-save, versioned backups, and
     recovery capabilities.
     """
@@ -85,7 +85,7 @@ class AutoSaveManager:
     _instance: AutoSaveManager | None = None
     _lock = threading.Lock()
 
-    def __new__(cls) -> AutoSaveManager:
+    def __new__(cls) -> Self:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -120,7 +120,7 @@ class AutoSaveManager:
     ) -> None:
         """
         Initialize the auto-save manager.
-        
+
         Args:
             backup_dir: Directory for backups
             interval_minutes: Auto-save interval (1-30 minutes)
@@ -145,9 +145,9 @@ class AutoSaveManager:
         metadata_path = self._backup_dir / "metadata.json"
         if metadata_path.exists():
             try:
-                with open(metadata_path, 'r', encoding='utf-8') as f:
+                with open(metadata_path, encoding="utf-8") as f:
                     data = json.load(f)
-                    self._current_version = data.get('current_version', 0)
+                    self._current_version = data.get("current_version", 0)
             except Exception:
                 pass
 
@@ -157,13 +157,13 @@ class AutoSaveManager:
             return
 
         metadata_path = self._backup_dir / "metadata.json"
-        with open(metadata_path, 'w', encoding='utf-8') as f:
-            json.dump({'current_version': self._current_version}, f)
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump({"current_version": self._current_version}, f)
 
     def set_save_callback(self, callback: Callable[[Path], bool]) -> None:
         """
         Set callback for saving session.
-        
+
         Args:
             callback: Function that saves to given path, returns True on success
         """
@@ -172,7 +172,7 @@ class AutoSaveManager:
     def set_load_callback(self, callback: Callable[[Path], bool]) -> None:
         """
         Set callback for loading session.
-        
+
         Args:
             callback: Function that loads from given path, returns True on success
         """
@@ -181,7 +181,7 @@ class AutoSaveManager:
     def set_status_callback(self, callback: Callable[[AutoSaveStatus], None]) -> None:
         """
         Set callback for status updates.
-        
+
         Args:
             callback: Function called when status changes
         """
@@ -190,7 +190,7 @@ class AutoSaveManager:
     def set_interval(self, minutes: int) -> None:
         """
         Change auto-save interval.
-        
+
         Args:
             minutes: Interval in minutes (1-30)
         """
@@ -254,10 +254,8 @@ class AutoSaveManager:
     def _notify_status(self) -> None:
         """Notify status callback."""
         if self._status_callback:
-            try:
+            with contextlib.suppress(Exception):
                 self._status_callback(self._status)
-            except Exception:
-                pass
 
     def save_backup(
         self,
@@ -266,11 +264,11 @@ class AutoSaveManager:
     ) -> BackupInfo | None:
         """
         Save a backup.
-        
+
         Args:
             description: Description of the backup
             force: Force save even if no changes
-        
+
         Returns:
             BackupInfo if saved, None otherwise
         """
@@ -312,8 +310,8 @@ class AutoSaveManager:
                 )
 
                 # Save info file
-                info_path = backup_path.with_suffix('.json')
-                with open(info_path, 'w', encoding='utf-8') as f:
+                info_path = backup_path.with_suffix(".json")
+                with open(info_path, "w", encoding="utf-8") as f:
                     json.dump(info.to_dict(), f, indent=2)
 
                 # Update status
@@ -339,9 +337,9 @@ class AutoSaveManager:
 
     def _calculate_checksum(self, path: Path) -> str:
         """Calculate MD5 checksum of file."""
-        hash_md5 = hashlib.md5()
-        with open(path, 'rb') as f:
-            for chunk in iter(lambda: f.read(4096), b''):
+        hash_md5 = hashlib.md5(usedforsecurity=False)
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
@@ -357,7 +355,7 @@ class AutoSaveManager:
         for old_backup in backups[self._max_versions:]:
             try:
                 old_backup.path.unlink()
-                info_path = old_backup.path.with_suffix('.json')
+                info_path = old_backup.path.with_suffix(".json")
                 if info_path.exists():
                     info_path.unlink()
             except Exception:
@@ -369,7 +367,7 @@ class AutoSaveManager:
             if backup.timestamp < cutoff:
                 try:
                     backup.path.unlink()
-                    info_path = backup.path.with_suffix('.json')
+                    info_path = backup.path.with_suffix(".json")
                     if info_path.exists():
                         info_path.unlink()
                 except Exception:
@@ -378,7 +376,7 @@ class AutoSaveManager:
     def get_backups(self) -> list[BackupInfo]:
         """
         Get list of available backups.
-        
+
         Returns:
             List of BackupInfo sorted by timestamp (newest first)
         """
@@ -388,9 +386,9 @@ class AutoSaveManager:
         backups = []
         for info_path in self._backup_dir.glob("backup_*.json"):
             try:
-                with open(info_path, 'r', encoding='utf-8') as f:
+                with open(info_path, encoding="utf-8") as f:
                     data = json.load(f)
-                    backup_path = Path(data['path'])
+                    backup_path = Path(data["path"])
                     if backup_path.exists():
                         backups.append(BackupInfo.from_dict(data))
             except Exception:
@@ -401,10 +399,10 @@ class AutoSaveManager:
     def restore_backup(self, backup: BackupInfo | Path) -> bool:
         """
         Restore from a backup.
-        
+
         Args:
             backup: BackupInfo or path to backup file
-        
+
         Returns:
             True if successful
         """
@@ -426,7 +424,7 @@ class AutoSaveManager:
     def emergency_save(self) -> bool:
         """
         Perform emergency save (for crash situations).
-        
+
         Returns:
             True if successful
         """
@@ -439,10 +437,10 @@ class AutoSaveManager:
     def save_before_operation(self, operation_name: str) -> BackupInfo | None:
         """
         Save backup before a destructive operation.
-        
+
         Args:
             operation_name: Name of the operation
-        
+
         Returns:
             BackupInfo if saved
         """

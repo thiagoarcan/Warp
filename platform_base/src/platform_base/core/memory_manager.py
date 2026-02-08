@@ -17,13 +17,15 @@ Features:
 
 from __future__ import annotations
 
+import contextlib
 import gc
 import threading
 import time
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -56,12 +58,12 @@ class MemoryStatus:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'process_mb': self.process_mb,
-            'total_mb': self.total_mb,
-            'available_mb': self.available_mb,
-            'percent': self.percent,
-            'level': self.level.name,
-            'suggestions': self.suggestions,
+            "process_mb": self.process_mb,
+            "total_mb": self.total_mb,
+            "available_mb": self.available_mb,
+            "percent": self.percent,
+            "level": self.level.name,
+            "suggestions": self.suggestions,
         }
 
 
@@ -80,7 +82,7 @@ class MemoryConfig:
 class MemoryManager:
     """
     Manages memory usage monitoring and warnings.
-    
+
     Provides continuous memory monitoring, threshold warnings,
     and automatic memory management features.
     """
@@ -88,7 +90,7 @@ class MemoryManager:
     _instance: MemoryManager | None = None
     _lock = threading.Lock()
 
-    def __new__(cls) -> MemoryManager:
+    def __new__(cls) -> Self:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -115,7 +117,7 @@ class MemoryManager:
     def configure(self, config: MemoryConfig) -> None:
         """
         Configure the memory manager.
-        
+
         Args:
             config: Memory configuration
         """
@@ -154,22 +156,20 @@ class MemoryManager:
                     self._last_level = status.level
 
                 # Auto-enable low memory mode if critical
-                if (self._config.enable_low_memory_mode and 
-                    status.level == MemoryLevel.CRITICAL and 
+                if (self._config.enable_low_memory_mode and
+                    status.level == MemoryLevel.CRITICAL and
                     not self._low_memory_mode):
                     self.enable_low_memory_mode()
 
                 # Auto garbage collection if high
-                if (self._config.enable_auto_gc and 
+                if (self._config.enable_auto_gc and
                     status.level in (MemoryLevel.HIGH, MemoryLevel.CRITICAL)):
                     self.force_gc()
 
                 # Notify status callbacks
                 for callback in self._status_callbacks:
-                    try:
+                    with contextlib.suppress(Exception):
                         callback(status)
-                    except Exception:
-                        pass
 
             except Exception:
                 pass
@@ -179,7 +179,7 @@ class MemoryManager:
     def get_status(self) -> MemoryStatus:
         """
         Get current memory status.
-        
+
         Returns:
             Current memory status with suggestions
         """
@@ -222,12 +222,11 @@ class MemoryManager:
         """Determine memory level from percentage."""
         if percent >= self._config.critical_threshold:
             return MemoryLevel.CRITICAL
-        elif percent >= self._config.high_threshold:
+        if percent >= self._config.high_threshold:
             return MemoryLevel.HIGH
-        elif percent >= self._config.warning_threshold:
+        if percent >= self._config.warning_threshold:
             return MemoryLevel.WARNING
-        else:
-            return MemoryLevel.NORMAL
+        return MemoryLevel.NORMAL
 
     def _generate_suggestions(
         self,
@@ -259,10 +258,10 @@ class MemoryManager:
     def estimate_file_memory(self, file_path: str | Path) -> float:
         """
         Estimate memory needed to load a file.
-        
+
         Args:
             file_path: Path to file
-        
+
         Returns:
             Estimated memory in MB
         """
@@ -275,17 +274,16 @@ class MemoryManager:
 
         # Estimate: file size + overhead for parsing + data structures
         # Conservative estimate: 3x file size
-        estimated_mb = file_size_mb * 3
+        return file_size_mb * 3
 
-        return estimated_mb
 
     def can_load_file(self, file_path: str | Path) -> tuple[bool, str | None]:
         """
         Check if file can be safely loaded.
-        
+
         Args:
             file_path: Path to file
-        
+
         Returns:
             Tuple of (can_load, warning_message)
         """
@@ -329,12 +327,11 @@ class MemoryManager:
     def force_gc(self) -> int:
         """
         Force garbage collection.
-        
+
         Returns:
             Number of objects collected
         """
-        collected = gc.collect()
-        return collected
+        return gc.collect()
 
     def enable_low_memory_mode(self) -> None:
         """Enable low memory mode."""
@@ -364,7 +361,7 @@ class MemoryManager:
     def add_status_callback(self, callback: Callable[[MemoryStatus], None]) -> None:
         """
         Add callback for status updates.
-        
+
         Args:
             callback: Function called with MemoryStatus
         """
@@ -382,7 +379,7 @@ class MemoryManager:
     ) -> None:
         """
         Add callback for specific level changes.
-        
+
         Args:
             level: Memory level to watch
             callback: Function called when level is reached
@@ -392,10 +389,8 @@ class MemoryManager:
     def _on_level_changed(self, new_level: MemoryLevel) -> None:
         """Handle level change."""
         for callback in self._level_change_callbacks[new_level]:
-            try:
+            with contextlib.suppress(Exception):
                 callback()
-            except Exception:
-                pass
 
     @property
     def current_status(self) -> MemoryStatus | None:

@@ -7,40 +7,33 @@ Provides utility functions for common accessibility tasks.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
-from PyQt6.QtCore import QObject, Qt
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QAbstractButton,
     QAbstractSlider,
-    QAbstractSpinBox,
     QCheckBox,
     QComboBox,
     QDialog,
     QDockWidget,
-    QDoubleSpinBox,
     QGroupBox,
     QLabel,
     QLineEdit,
     QListView,
-    QMenu,
-    QMessageBox,
-    QPlainTextEdit,
     QProgressBar,
-    QPushButton,
-    QRadioButton,
-    QSlider,
-    QSpinBox,
     QStatusBar,
     QTableView,
     QTabWidget,
-    QTextEdit,
     QToolBar,
-    QToolButton,
     QTreeView,
     QWidget,
 )
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +41,9 @@ logger = logging.getLogger(__name__)
 def set_accessible_name(widget: QWidget, name: str) -> None:
     """
     Set the accessible name for a widget.
-    
+
     The accessible name is the primary identifier read by screen readers.
-    
+
     Args:
         widget: Widget to configure
         name: Accessible name (should be concise and descriptive)
@@ -62,9 +55,9 @@ def set_accessible_name(widget: QWidget, name: str) -> None:
 def set_accessible_description(widget: QWidget, description: str) -> None:
     """
     Set the accessible description for a widget.
-    
+
     The description provides additional context beyond the name.
-    
+
     Args:
         widget: Widget to configure
         description: Detailed description
@@ -80,7 +73,7 @@ def set_accessible_properties(
 ) -> None:
     """
     Set all accessible properties for a widget.
-    
+
     Args:
         widget: Widget to configure
         name: Accessible name
@@ -97,7 +90,7 @@ def set_accessible_properties(
 def add_shortcut_to_tooltip(widget: QWidget, shortcut: str) -> None:
     """
     Add shortcut information to a widget's tooltip.
-    
+
     Args:
         widget: Widget to update
         shortcut: Shortcut key sequence (e.g., "Ctrl+S")
@@ -117,7 +110,7 @@ def make_button_accessible(
 ) -> None:
     """
     Configure accessibility for a button.
-    
+
     Args:
         button: Button widget
         name: Accessible name
@@ -145,7 +138,7 @@ def make_input_accessible(
 ) -> None:
     """
     Configure accessibility for an input widget.
-    
+
     Args:
         widget: Input widget (QLineEdit, QComboBox, etc.)
         label: Field label
@@ -165,9 +158,9 @@ def make_input_accessible(
 def associate_label_with_input(label: QLabel, input_widget: QWidget) -> None:
     """
     Associate a label with its input widget for accessibility.
-    
+
     This helps screen readers understand the relationship.
-    
+
     Args:
         label: Label widget
         input_widget: Associated input widget
@@ -182,7 +175,7 @@ def associate_label_with_input(label: QLabel, input_widget: QWidget) -> None:
 def setup_logical_tab_order(widgets: Sequence[QWidget]) -> None:
     """
     Setup logical tab order for a sequence of widgets.
-    
+
     Args:
         widgets: Widgets in the desired tab order
     """
@@ -198,7 +191,7 @@ def make_group_accessible(
 ) -> None:
     """
     Configure accessibility for a group of related widgets.
-    
+
     Args:
         group: Group box container
         widgets: Widgets in the group
@@ -212,7 +205,7 @@ def make_group_accessible(
 
 
 def make_table_accessible(
-    table: Union[QTableView, QTreeView, QListView],
+    table: QTableView | QTreeView | QListView,
     name: str,
     description: str = "",
     row_count: int = 0,
@@ -220,7 +213,7 @@ def make_table_accessible(
 ) -> None:
     """
     Configure accessibility for a table or list view.
-    
+
     Args:
         table: Table/tree/list view widget
         name: Accessible name
@@ -249,7 +242,7 @@ def make_slider_accessible(
 ) -> None:
     """
     Configure accessibility for a slider.
-    
+
     Args:
         slider: Slider widget
         name: Accessible name
@@ -280,7 +273,7 @@ def make_progress_accessible(
 ) -> None:
     """
     Configure accessibility for a progress bar.
-    
+
     Args:
         progress: Progress bar widget
         name: Accessible name
@@ -306,7 +299,7 @@ def make_tab_widget_accessible(
 ) -> None:
     """
     Configure accessibility for a tab widget.
-    
+
     Args:
         tab_widget: Tab widget
         name: Accessible name for the tab bar
@@ -318,7 +311,7 @@ def make_tab_widget_accessible(
         tab_name = tab_widget.tabText(index)
         count = tab_widget.count()
         tab_widget.setAccessibleDescription(
-            f"Aba {tab_name} selecionada. {index + 1} de {count} abas."
+            f"Aba {tab_name} selecionada. {index + 1} de {count} abas.",
         )
 
     tab_widget.currentChanged.connect(update_tab)
@@ -335,7 +328,7 @@ def make_dialog_accessible(
 ) -> None:
     """
     Configure accessibility for a dialog.
-    
+
     Args:
         dialog: Dialog widget
         title: Dialog title
@@ -349,7 +342,7 @@ def make_dialog_accessible(
 def make_status_bar_accessible(status_bar: QStatusBar) -> None:
     """
     Configure accessibility for a status bar.
-    
+
     Args:
         status_bar: Status bar widget
     """
@@ -363,7 +356,7 @@ def make_toolbar_accessible(
 ) -> None:
     """
     Configure accessibility for a toolbar.
-    
+
     Args:
         toolbar: Toolbar widget
         name: Toolbar name
@@ -381,7 +374,7 @@ def make_dock_accessible(
 ) -> None:
     """
     Configure accessibility for a dock widget.
-    
+
     Args:
         dock: Dock widget
         purpose: Purpose of the dock panel
@@ -395,9 +388,9 @@ def make_dock_accessible(
 def announce_to_screen_reader(message: str) -> None:
     """
     Announce a message to screen readers.
-    
+
     This is a placeholder - actual implementation depends on platform.
-    
+
     Args:
         message: Message to announce
     """
@@ -414,19 +407,16 @@ def format_number_for_speech(
 ) -> str:
     """
     Format a number for text-to-speech readability.
-    
+
     Args:
         value: Numeric value
         unit: Unit of measurement
         precision: Decimal places
-        
+
     Returns:
         Speech-friendly formatted string
     """
-    if value == int(value):
-        formatted = str(int(value))
-    else:
-        formatted = f"{value:.{precision}f}"
+    formatted = str(int(value)) if value == int(value) else f"{value:.{precision}f}"
 
     if unit:
         return f"{formatted} {unit}"
@@ -440,12 +430,12 @@ def format_range_for_speech(
 ) -> str:
     """
     Format a range for text-to-speech.
-    
+
     Args:
         start: Start value
         end: End value
         unit: Unit of measurement
-        
+
     Returns:
         Speech-friendly range description
     """
@@ -460,10 +450,10 @@ def format_range_for_speech(
 def format_percentage_for_speech(value: float) -> str:
     """
     Format a percentage for text-to-speech.
-    
+
     Args:
         value: Percentage value (0-100)
-        
+
     Returns:
         Speech-friendly percentage
     """
@@ -475,10 +465,10 @@ def format_percentage_for_speech(value: float) -> str:
 def get_widget_state_description(widget: QWidget) -> str:
     """
     Get a description of a widget's current state.
-    
+
     Args:
         widget: Widget to describe
-        
+
     Returns:
         State description
     """
@@ -508,15 +498,15 @@ def validate_contrast_ratio(
     foreground: str,
     background: str,
     min_ratio: float = 4.5,
-) -> Tuple[bool, float]:
+) -> tuple[bool, float]:
     """
     Validate contrast ratio between two colors.
-    
+
     Args:
         foreground: Foreground color (hex)
         background: Background color (hex)
         min_ratio: Minimum required ratio (WCAG AA = 4.5, AAA = 7.0)
-        
+
     Returns:
         (passes, actual_ratio)
     """
@@ -548,7 +538,7 @@ def validate_contrast_ratio(
 def setup_tab_order(widgets: Sequence[QWidget]) -> None:
     """
     Setup tab order for a sequence of widgets.
-    
+
     Args:
         widgets: Widgets in the desired tab order
     """
@@ -564,7 +554,7 @@ def setup_tab_order(widgets: Sequence[QWidget]) -> None:
 def make_focusable(widget: QWidget, policy: Qt.FocusPolicy = Qt.FocusPolicy.StrongFocus) -> None:
     """
     Make a widget focusable via keyboard.
-    
+
     Args:
         widget: Widget to make focusable
         policy: Focus policy to apply
@@ -572,16 +562,16 @@ def make_focusable(widget: QWidget, policy: Qt.FocusPolicy = Qt.FocusPolicy.Stro
     widget.setFocusPolicy(policy)
 
 
-def setup_skip_links(main_widget: QWidget, targets: Dict[str, QWidget]) -> None:
+def setup_skip_links(main_widget: QWidget, targets: dict[str, QWidget]) -> None:
     """
     Setup skip links for quick navigation.
-    
+
     Args:
         main_widget: Main container widget
         targets: Dictionary mapping link names to target widgets
     """
     # Store targets for later use
-    if not hasattr(main_widget, '_skip_link_targets'):
+    if not hasattr(main_widget, "_skip_link_targets"):
         main_widget._skip_link_targets = {}
     main_widget._skip_link_targets.update(targets)
     logger.debug(f"Set up skip links: {list(targets.keys())}")
@@ -590,7 +580,7 @@ def setup_skip_links(main_widget: QWidget, targets: Dict[str, QWidget]) -> None:
 def announce_message(message: str, priority: str = "polite") -> None:
     """
     Announce a message to screen readers.
-    
+
     Args:
         message: Message to announce
         priority: Priority level ("polite" or "assertive")
@@ -602,7 +592,7 @@ def announce_message(message: str, priority: str = "polite") -> None:
 def set_role(widget: QWidget, role: str) -> None:
     """
     Set the ARIA role for a widget.
-    
+
     Args:
         widget: Widget to configure
         role: ARIA role (e.g., "button", "checkbox", "region")
@@ -615,7 +605,7 @@ def set_role(widget: QWidget, role: str) -> None:
 def set_live_region(widget: QWidget, mode: str = "polite") -> None:
     """
     Configure a widget as a live region for screen readers.
-    
+
     Args:
         widget: Widget to configure
         mode: Live region mode ("polite", "assertive", "off")
@@ -627,7 +617,7 @@ def set_live_region(widget: QWidget, mode: str = "polite") -> None:
 def is_high_contrast_enabled() -> bool:
     """
     Check if high contrast mode is enabled.
-    
+
     Returns:
         True if high contrast is enabled
     """
@@ -640,7 +630,7 @@ def is_high_contrast_enabled() -> bool:
             _fields_ = [
                 ("cbSize", ctypes.c_uint),
                 ("dwFlags", ctypes.c_uint),
-                ("lpszDefaultScheme", ctypes.c_wchar_p)
+                ("lpszDefaultScheme", ctypes.c_wchar_p),
             ]
 
         hc = HIGHCONTRAST()
@@ -655,7 +645,7 @@ def is_high_contrast_enabled() -> bool:
 def apply_high_contrast(widget: QWidget) -> None:
     """
     Apply high contrast styling to a widget.
-    
+
     Args:
         widget: Widget to style
     """
@@ -692,11 +682,11 @@ def _luminance(hex_color: str) -> float:
 def calculate_contrast_ratio(foreground: str, background: str) -> float:
     """
     Calculate contrast ratio between two colors.
-    
+
     Args:
         foreground: Foreground color (hex)
         background: Background color (hex)
-        
+
     Returns:
         Contrast ratio (1 to 21)
     """
@@ -712,12 +702,12 @@ def calculate_contrast_ratio(foreground: str, background: str) -> float:
 def meets_wcag_aa(foreground: str, background: str, large_text: bool = False) -> bool:
     """
     Check if color combination meets WCAG AA standards.
-    
+
     Args:
         foreground: Foreground color (hex)
         background: Background color (hex)
         large_text: Whether text is large (14pt+ bold or 18pt+)
-        
+
     Returns:
         True if meets AA standards
     """
@@ -729,20 +719,20 @@ def meets_wcag_aa(foreground: str, background: str, large_text: bool = False) ->
 def suggest_accessible_color(
     background: str,
     min_ratio: float = 4.5,
-    prefer_dark: bool = True
+    prefer_dark: bool = True,
 ) -> str:
     """
     Suggest a foreground color that meets contrast requirements.
-    
+
     Args:
         background: Background color (hex)
         min_ratio: Minimum contrast ratio required
         prefer_dark: Prefer dark colors when possible
-        
+
     Returns:
         Suggested foreground color (hex)
     """
-    bg_luminance = _luminance(background)
+    _luminance(background)
 
     # Try black first if preferring dark, else white
     black_ratio = calculate_contrast_ratio("#000000", background)
@@ -751,13 +741,12 @@ def suggest_accessible_color(
     if prefer_dark:
         if black_ratio >= min_ratio:
             return "#000000"
-        elif white_ratio >= min_ratio:
-            return "#FFFFFF"
-    else:
         if white_ratio >= min_ratio:
             return "#FFFFFF"
-        elif black_ratio >= min_ratio:
-            return "#000000"
+    elif white_ratio >= min_ratio:
+        return "#FFFFFF"
+    elif black_ratio >= min_ratio:
+        return "#000000"
 
     # If neither works, return the one with better contrast
     return "#000000" if black_ratio > white_ratio else "#FFFFFF"
@@ -766,7 +755,7 @@ def suggest_accessible_color(
 def setup_focus_indicator(widget: QWidget, color: str = "#0066CC", width: int = 2) -> None:
     """
     Setup visible focus indicator for a widget.
-    
+
     Args:
         widget: Widget to configure
         color: Focus indicator color
@@ -789,7 +778,7 @@ def setup_focus_indicator(widget: QWidget, color: str = "#0066CC", width: int = 
 def set_focus_style(widget: QWidget, color: str = "#0066CC", width: int = 2) -> None:
     """
     Set custom focus style for a widget.
-    
+
     Args:
         widget: Widget to style
         color: Focus color
@@ -811,7 +800,7 @@ def set_focus_style(widget: QWidget, color: str = "#0066CC", width: int = 2) -> 
 def prefers_reduced_motion() -> bool:
     """
     Check if user prefers reduced motion.
-    
+
     Returns:
         True if reduced motion is preferred
     """
@@ -820,7 +809,7 @@ def prefers_reduced_motion() -> bool:
         import winreg
         key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
-            r"Control Panel\Desktop"
+            r"Control Panel\Desktop",
         )
         value, _ = winreg.QueryValueEx(key, "UserPreferencesMask")
         winreg.CloseKey(key)
@@ -833,7 +822,7 @@ def prefers_reduced_motion() -> bool:
 def disable_animations(widget: QWidget) -> None:
     """
     Disable animations for a widget.
-    
+
     Args:
         widget: Widget to configure
     """
@@ -857,7 +846,7 @@ def disable_animations(widget: QWidget) -> None:
 def get_text_scale_factor() -> float:
     """
     Get the system text scaling factor.
-    
+
     Returns:
         Scale factor (1.0 = 100%)
     """
@@ -876,7 +865,7 @@ def get_text_scale_factor() -> float:
 def apply_text_scaling(widget: QWidget, factor: float = 1.0) -> None:
     """
     Apply text scaling to a widget.
-    
+
     Args:
         widget: Widget to scale
         factor: Scale factor (1.0 = 100%)
@@ -884,7 +873,7 @@ def apply_text_scaling(widget: QWidget, factor: float = 1.0) -> None:
     try:
         font = widget.font()
         base_size = font.pointSize()
-        if isinstance(base_size, (int, float)) and base_size > 0:
+        if isinstance(base_size, int | float) and base_size > 0:
             new_size = int(base_size * factor)
             font.setPointSize(max(new_size, 8))  # Minimum 8pt
             widget.setFont(font)
@@ -900,7 +889,7 @@ _audio_feedback_enabled = False
 def enable_audio_feedback(enabled: bool = True) -> None:
     """
     Enable or disable audio feedback.
-    
+
     Args:
         enabled: Whether to enable audio feedback
     """
@@ -912,7 +901,7 @@ def enable_audio_feedback(enabled: bool = True) -> None:
 def play_feedback_sound(sound_type: str) -> None:
     """
     Play an audio feedback sound.
-    
+
     Args:
         sound_type: Type of sound ("click", "error", "success", "warning")
     """
@@ -941,14 +930,14 @@ def describe_chart(
 ) -> str:
     """
     Generate a textual description of a chart for screen readers.
-    
+
     Args:
         chart_type: Type of chart ("line", "scatter", "bar", etc.)
         x_data: X-axis data
         y_data: Y-axis data
         x_label: X-axis label
         y_label: Y-axis label
-        
+
     Returns:
         Textual description of the chart
     """
@@ -979,7 +968,7 @@ def describe_chart(
         else:
             trend = "dados insuficientes para tendência"
 
-        description = (
+        return (
             f"Gráfico de {chart_type} com {n_points} pontos. "
             f"{x_label} varia de {x_min:.2f} a {x_max:.2f}. "
             f"{y_label} varia de {y_min:.2f} a {y_max:.2f}, "
@@ -987,18 +976,17 @@ def describe_chart(
             f"O gráfico mostra {trend}."
         )
 
-        return description
-    except Exception as e:
+    except Exception:
         return f"Gráfico de {chart_type}. Descrição detalhada não disponível."
 
 
-def generate_alt_text(data: Dict[str, Any]) -> str:
+def generate_alt_text(data: dict[str, Any]) -> str:
     """
     Generate alternative text for a chart.
-    
+
     Args:
         data: Dictionary with chart metadata
-        
+
     Returns:
         Alternative text string
     """
@@ -1018,15 +1006,15 @@ def generate_chart_data_table(
     x_data: Any,
     y_data: Any,
     max_rows: int = 10,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Generate a data table representation of chart data.
-    
+
     Args:
         x_data: X-axis values
         y_data: Y-axis values
         max_rows: Maximum number of rows to include
-        
+
     Returns:
         List of dictionaries representing table rows
     """
@@ -1054,13 +1042,13 @@ def generate_chart_data_table(
     return table
 
 
-def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
+def audit_accessibility(widget: QWidget) -> list[dict[str, str]]:
     """
     Audit a widget for accessibility issues.
-    
+
     Args:
         widget: Widget to audit
-        
+
     Returns:
         List of accessibility issues found
     """
@@ -1087,7 +1075,7 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
         })
 
     # Check focusability for interactive widgets
-    if isinstance(widget, (QAbstractButton, QLineEdit, QComboBox)):
+    if isinstance(widget, QAbstractButton | QLineEdit | QComboBox):
         if widget.focusPolicy() == Qt.FocusPolicy.NoFocus:
             issues.append({
                 "type": "not_focusable",
@@ -1099,13 +1087,13 @@ def audit_accessibility(widget: QWidget) -> List[Dict[str, str]]:
     return issues
 
 
-def generate_a11y_report(widgets: Sequence[QWidget]) -> Dict[str, Any]:
+def generate_a11y_report(widgets: Sequence[QWidget]) -> dict[str, Any]:
     """
     Generate an accessibility report for multiple widgets.
-    
+
     Args:
         widgets: Sequence of widgets to audit
-        
+
     Returns:
         Accessibility report dictionary
     """

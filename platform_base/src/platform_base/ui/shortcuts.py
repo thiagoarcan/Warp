@@ -15,7 +15,7 @@ Category 3.4 - Keyboard Shortcuts
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any
 
@@ -24,8 +24,6 @@ from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QHBoxLayout,
-    QHeaderView,
     QKeySequenceEdit,
     QLabel,
     QLineEdit,
@@ -40,6 +38,7 @@ from PyQt6.QtWidgets import (
 from platform_base.desktop.widgets.base import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -313,7 +312,7 @@ DEFAULT_SHORTCUTS: dict[str, dict] = {
 class ShortcutManager(QObject):
     """
     Manages keyboard shortcuts with customization support.
-    
+
     Provides:
     - Registration of shortcuts
     - Conflict detection
@@ -342,7 +341,7 @@ class ShortcutManager(QObject):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        
+
         self._bindings: dict[str, ShortcutBinding] = {}
         self._shortcuts: dict[str, QShortcut] = {}
         self._parent_widget: QWidget | None = None
@@ -414,7 +413,7 @@ class ShortcutManager(QObject):
 
             # Connect generic signal
             shortcut.activated.connect(
-                lambda aid=action_id: self.shortcut_triggered.emit(aid)
+                lambda aid=action_id: self.shortcut_triggered.emit(aid),
             )
 
             self._shortcuts[action_id] = shortcut
@@ -422,7 +421,7 @@ class ShortcutManager(QObject):
     def register_callback(self, action_id: str, callback: Callable):
         """
         Register callback for a shortcut.
-        
+
         Args:
             action_id: Shortcut action ID
             callback: Function to call when triggered
@@ -440,7 +439,7 @@ class ShortcutManager(QObject):
     def bind_action(self, action_id: str, action: QAction):
         """
         Bind shortcut to a QAction.
-        
+
         Args:
             action_id: Shortcut action ID
             action: QAction to bind
@@ -456,11 +455,11 @@ class ShortcutManager(QObject):
     def set_shortcut(self, action_id: str, key: str) -> bool:
         """
         Set custom shortcut for an action.
-        
+
         Args:
             action_id: Action to modify
             key: New key sequence (e.g., "Ctrl+Shift+N")
-            
+
         Returns:
             True if successful, False if conflict
         """
@@ -519,11 +518,11 @@ class ShortcutManager(QObject):
     def check_conflict(self, key: str, exclude: str | None = None) -> str | None:
         """
         Check if key sequence conflicts with existing shortcuts.
-        
+
         Args:
             key: Key sequence to check
             exclude: Action ID to exclude from check
-            
+
         Returns:
             Conflicting action ID or None
         """
@@ -556,11 +555,11 @@ class ShortcutManager(QObject):
     ) -> str:
         """
         Format tooltip to include shortcut hint.
-        
+
         Args:
             tooltip: Base tooltip text
             action_id: Action ID to get shortcut for
-            
+
         Returns:
             Tooltip with shortcut hint
         """
@@ -573,7 +572,7 @@ class ShortcutManager(QObject):
 class ShortcutsDialog(QDialog, UiLoaderMixin):
     """
     Dialog for viewing and customizing keyboard shortcuts.
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -593,7 +592,7 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
         self._setup_ui_from_file()
-        
+
         self._load_shortcuts()
 
     def _setup_ui_from_file(self):
@@ -603,13 +602,13 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
         self._reset_btn = self.findChild(QPushButton, "resetBtn")
         self._reset_all_btn = self.findChild(QPushButton, "resetAllBtn")
         self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
-        
+
         # Valida widgets obrigatórios
         self._validate_widgets()
-        
+
         # Conecta sinais
         self._setup_connections()
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
@@ -619,13 +618,13 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
             "resetAllBtn": self._reset_all_btn,
             "buttonBox": self._button_box,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"ShortcutsDialog: Widgets não encontrados no arquivo .ui: {missing}"
+                f"ShortcutsDialog: Widgets não encontrados no arquivo .ui: {missing}",
             )
-    
+
     def _setup_connections(self):
         """Conecta sinais aos slots"""
         self._search_edit.textChanged.connect(self._filter_shortcuts)
@@ -634,7 +633,7 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
         self._reset_all_btn.clicked.connect(self._reset_all)
         self._button_box.accepted.connect(self._apply_and_close)
         self._button_box.rejected.connect(self.reject)
-        
+
         apply_btn = self._button_box.button(QDialogButtonBox.StandardButton.Apply)
         if apply_btn:
             apply_btn.clicked.connect(self._apply_changes)
@@ -697,7 +696,7 @@ class ShortcutsDialog(QDialog, UiLoaderMixin):
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok |
-            QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Cancel,
         )
         button_box.accepted.connect(dialog.accept)
         button_box.rejected.connect(dialog.reject)

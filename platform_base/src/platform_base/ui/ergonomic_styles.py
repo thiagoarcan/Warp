@@ -20,7 +20,7 @@ from dataclasses import dataclass
 @dataclass
 class ErgonomicSpacing:
     """Sistema de espaçamento baseado em grid de 8px"""
-    
+
     # Espaçamentos base
     xxs: int = 2   # micro gaps
     xs: int = 4    # tight
@@ -29,7 +29,7 @@ class ErgonomicSpacing:
     lg: int = 24   # large
     xl: int = 32   # extra large
     xxl: int = 48  # major sections
-    
+
     # Componentes
     button_h_padding: int = 16
     button_v_padding: int = 8
@@ -42,11 +42,11 @@ class ErgonomicSpacing:
 @dataclass
 class ErgonomicTypography:
     """Sistema tipográfico com hierarquia clara"""
-    
+
     # Font stack
     font_family: str = "'Segoe UI', 'SF Pro Display', -apple-system, system-ui, sans-serif"
     font_family_mono: str = "'Cascadia Code', 'Fira Code', 'Consolas', monospace"
-    
+
     # Escala tipográfica (Major Third - 1.25)
     size_xs: int = 11    # labels secundários
     size_sm: int = 12    # captions
@@ -56,14 +56,14 @@ class ErgonomicTypography:
     size_xl: int = 18    # títulos de seção
     size_xxl: int = 22   # títulos principais
     size_display: int = 28  # display
-    
+
     # Pesos
     weight_light: int = 300
     weight_regular: int = 400
     weight_medium: int = 500
     weight_semibold: int = 600
     weight_bold: int = 700
-    
+
     # Line heights
     line_height_tight: float = 1.2
     line_height_normal: float = 1.4
@@ -73,13 +73,13 @@ class ErgonomicTypography:
 @dataclass
 class ErgonomicShadows:
     """Elevação e sombras para hierarquia z"""
-    
+
     elevation_0: str = "none"
     elevation_1: str = "0 1px 2px rgba(0,0,0,0.1)"
     elevation_2: str = "0 2px 8px rgba(0,0,0,0.12)"
     elevation_3: str = "0 4px 16px rgba(0,0,0,0.14)"
     elevation_4: str = "0 8px 24px rgba(0,0,0,0.16)"
-    
+
     # Sombras para estados
     focus_ring: str = "0 0 0 3px {primary_alpha}"  # com cor primária 30% opacidade
 
@@ -87,29 +87,29 @@ class ErgonomicShadows:
 @dataclass
 class ErgonomicBorders:
     """Bordas e raios"""
-    
+
     radius_none: int = 0
     radius_sm: int = 4
     radius_md: int = 6
     radius_lg: int = 8
     radius_xl: int = 12
     radius_full: int = 9999  # pill shape
-    
+
     width_thin: int = 1
     width_medium: int = 2
     width_thick: int = 3
 
 
-@dataclass 
+@dataclass
 class ErgonomicAnimation:
     """Durações e curvas de animação"""
-    
+
     duration_instant: str = "0ms"
     duration_fast: str = "100ms"
     duration_normal: str = "200ms"
     duration_slow: str = "300ms"
     duration_slower: str = "500ms"
-    
+
     easing_default: str = "cubic-bezier(0.4, 0, 0.2, 1)"
     easing_decelerate: str = "cubic-bezier(0, 0, 0.2, 1)"
     easing_accelerate: str = "cubic-bezier(0.4, 0, 1, 1)"
@@ -126,21 +126,21 @@ ANIMATION = ErgonomicAnimation()
 def generate_ergonomic_stylesheet(colors) -> str:
     """
     Gera stylesheet CSS ergonômico baseado nas cores do tema.
-    
+
     Args:
         colors: ThemeColors object com as cores do tema atual
-        
+
     Returns:
         String CSS completa
     """
     sp = SPACING
     ty = TYPOGRAPHY
     bd = BORDERS
-    
+
     # Calcular cor primária com alpha para focus ring
     primary_rgb = _hex_to_rgb(colors.primary)
-    primary_alpha = f"rgba({primary_rgb[0]}, {primary_rgb[1]}, {primary_rgb[2]}, 0.3)"
-    
+    f"rgba({primary_rgb[0]}, {primary_rgb[1]}, {primary_rgb[2]}, 0.3)"
+
     return f"""
 /* ============================================================================
    ERGONOMIC STYLESHEET - Platform Base v2.0
@@ -221,8 +221,7 @@ QPushButton:hover {{
 
 QPushButton:focus {{
     outline: none;
-    border-color: {colors.primary};
-    box-shadow: 0 0 0 3px {primary_alpha};
+    border: 2px solid {colors.primary};
 }}
 
 QPushButton:pressed {{
@@ -1024,7 +1023,7 @@ QWidget[accent="info"] {{
 
 def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     """Converte cor hex para RGB."""
-    hex_color = hex_color.lstrip('#')
+    hex_color = hex_color.lstrip("#")
     r = int(hex_color[0:2], 16)
     g = int(hex_color[2:4], 16)
     b = int(hex_color[4:6], 16)
@@ -1063,15 +1062,15 @@ def _fade(hex_color: str, percent: int) -> str:
 
 
 __all__ = [
-    'ANIMATION',
-    'BORDERS', 
-    'ErgonomicAnimation',
-    'ErgonomicBorders',
-    'ErgonomicShadows',
-    'ErgonomicSpacing',
-    'ErgonomicTypography',
-    'SHADOWS',
-    'SPACING',
-    'TYPOGRAPHY',
-    'generate_ergonomic_stylesheet',
+    "ANIMATION",
+    "BORDERS",
+    "SHADOWS",
+    "SPACING",
+    "TYPOGRAPHY",
+    "ErgonomicAnimation",
+    "ErgonomicBorders",
+    "ErgonomicShadows",
+    "ErgonomicSpacing",
+    "ErgonomicTypography",
+    "generate_ergonomic_stylesheet",
 ]

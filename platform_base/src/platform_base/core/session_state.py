@@ -14,11 +14,12 @@ from platform_base.desktop.session_state import (
     ViewState,
 )
 
+
 __all__ = [
-    "SessionState",
-    "SelectionState",
-    "ViewState",
     "ProcessingState",
+    "SelectionState",
+    "SessionState",
     "StreamingState",
     "UIState",
+    "ViewState",
 ]

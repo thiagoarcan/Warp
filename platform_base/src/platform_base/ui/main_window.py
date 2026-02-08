@@ -15,6 +15,7 @@ A versão unificada combina todas as funcionalidades:
 - Persistência de layout com QSettings
 """
 
-from platform_base.ui.main_window_unified import ModernMainWindow, MainWindow
+from platform_base.ui.main_window_unified import MainWindow, ModernMainWindow
 
-__all__ = ["ModernMainWindow", "MainWindow"]
+
+__all__ = ["MainWindow", "ModernMainWindow"]

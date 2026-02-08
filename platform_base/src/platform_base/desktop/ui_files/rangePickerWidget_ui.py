@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'rangePickerWidget.ui'
@@ -8,35 +7,37 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QFrame, QHBoxLayout,
-    QLabel, QPushButton, QSizePolicy, QSpacerItem,
-    QVBoxLayout, QWidget)
+from PySide6.QtCore import QCoreApplication, QMetaObject
+from PySide6.QtWidgets import (
+    QDoubleSpinBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QVBoxLayout,
+)
 
-class Ui_RangePickerWidget(object):
+
+class Ui_RangePickerWidget:
     def setupUi(self, RangePickerWidget):
         if not RangePickerWidget.objectName():
-            RangePickerWidget.setObjectName(u"RangePickerWidget")
+            RangePickerWidget.setObjectName("RangePickerWidget")
         RangePickerWidget.resize(400, 200)
         self.mainLayout = QVBoxLayout(RangePickerWidget)
         self.mainLayout.setSpacing(8)
-        self.mainLayout.setObjectName(u"mainLayout")
+        self.mainLayout.setObjectName("mainLayout")
         self.mainLayout.setContentsMargins(8, 8, 8, 8)
         self.rangeLayout = QHBoxLayout()
-        self.rangeLayout.setObjectName(u"rangeLayout")
+        self.rangeLayout.setObjectName("rangeLayout")
         self.startLabel = QLabel(RangePickerWidget)
-        self.startLabel.setObjectName(u"startLabel")
+        self.startLabel.setObjectName("startLabel")
 
         self.rangeLayout.addWidget(self.startLabel)
 
         self.startSpinbox = QDoubleSpinBox(RangePickerWidget)
-        self.startSpinbox.setObjectName(u"startSpinbox")
+        self.startSpinbox.setObjectName("startSpinbox")
         self.startSpinbox.setDecimals(6)
         self.startSpinbox.setMinimum(-1000000.000000000000000)
         self.startSpinbox.setMaximum(1000000.000000000000000)
@@ -44,12 +45,12 @@ class Ui_RangePickerWidget(object):
         self.rangeLayout.addWidget(self.startSpinbox)
 
         self.endLabel = QLabel(RangePickerWidget)
-        self.endLabel.setObjectName(u"endLabel")
+        self.endLabel.setObjectName("endLabel")
 
         self.rangeLayout.addWidget(self.endLabel)
 
         self.endSpinbox = QDoubleSpinBox(RangePickerWidget)
-        self.endSpinbox.setObjectName(u"endSpinbox")
+        self.endSpinbox.setObjectName("endSpinbox")
         self.endSpinbox.setDecimals(6)
         self.endSpinbox.setMinimum(-1000000.000000000000000)
         self.endSpinbox.setMaximum(1000000.000000000000000)
@@ -60,18 +61,18 @@ class Ui_RangePickerWidget(object):
         self.mainLayout.addLayout(self.rangeLayout)
 
         self.buttonLayout = QHBoxLayout()
-        self.buttonLayout.setObjectName(u"buttonLayout")
+        self.buttonLayout.setObjectName("buttonLayout")
         self.leftSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.buttonLayout.addItem(self.leftSpacer)
 
         self.selectBtn = QPushButton(RangePickerWidget)
-        self.selectBtn.setObjectName(u"selectBtn")
+        self.selectBtn.setObjectName("selectBtn")
 
         self.buttonLayout.addWidget(self.selectBtn)
 
         self.resetBtn = QPushButton(RangePickerWidget)
-        self.resetBtn.setObjectName(u"resetBtn")
+        self.resetBtn.setObjectName("resetBtn")
 
         self.buttonLayout.addWidget(self.resetBtn)
 
@@ -79,7 +80,7 @@ class Ui_RangePickerWidget(object):
         self.mainLayout.addLayout(self.buttonLayout)
 
         self.plotWidget = QFrame(RangePickerWidget)
-        self.plotWidget.setObjectName(u"plotWidget")
+        self.plotWidget.setObjectName("plotWidget")
         self.plotWidget.setFrameShape(QFrame.StyledPanel)
         self.plotWidget.setMinimumHeight(100)
 
@@ -92,10 +93,9 @@ class Ui_RangePickerWidget(object):
     # setupUi
 
     def retranslateUi(self, RangePickerWidget):
-        self.startLabel.setText(QCoreApplication.translate("RangePickerWidget", u"Start:", None))
-        self.endLabel.setText(QCoreApplication.translate("RangePickerWidget", u"End:", None))
-        self.selectBtn.setText(QCoreApplication.translate("RangePickerWidget", u"Select Range", None))
-        self.resetBtn.setText(QCoreApplication.translate("RangePickerWidget", u"Reset", None))
-        pass
+        self.startLabel.setText(QCoreApplication.translate("RangePickerWidget", "Start:", None))
+        self.endLabel.setText(QCoreApplication.translate("RangePickerWidget", "End:", None))
+        self.selectBtn.setText(QCoreApplication.translate("RangePickerWidget", "Select Range", None))
+        self.resetBtn.setText(QCoreApplication.translate("RangePickerWidget", "Reset", None))
     # retranslateUi
 

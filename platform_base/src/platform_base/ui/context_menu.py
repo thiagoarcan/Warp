@@ -10,17 +10,12 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDoubleSpinBox,
     QFileDialog,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
     QInputDialog,
-    QLabel,
     QMenu,
     QMessageBox,
     QPushButton,
     QSpinBox,
     QTextEdit,
-    QVBoxLayout,
 )
 
 from platform_base.desktop.widgets.base import UiLoaderMixin
@@ -37,7 +32,7 @@ logger = get_logger(__name__)
 class CompareSeriesDialog(QDialog, UiLoaderMixin):
     """
     Diálogo para comparação de séries
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -66,19 +61,19 @@ class CompareSeriesDialog(QDialog, UiLoaderMixin):
         self.result_text = self.findChild(QTextEdit, "resultText")
         self.compare_btn = self.findChild(QPushButton, "compareBtn")
         self.close_btn = self.findChild(QPushButton, "closeBtn")
-        
+
         # Valida widgets obrigatórios
         self._validate_widgets()
-        
+
         # Popula combos com séries disponíveis
         self.series1_combo.addItems(self.available_series)
         self.series2_combo.addItems(self.available_series)
         if len(self.available_series) > 1:
             self.series2_combo.setCurrentIndex(1)
-        
+
         # Conecta sinais
         self._setup_connections()
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
@@ -92,13 +87,13 @@ class CompareSeriesDialog(QDialog, UiLoaderMixin):
             "compareBtn": self.compare_btn,
             "closeBtn": self.close_btn,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"CompareSeriesDialog: Widgets não encontrados no arquivo .ui: {missing}"
+                f"CompareSeriesDialog: Widgets não encontrados no arquivo .ui: {missing}",
             )
-    
+
     def _setup_connections(self):
         """Conecta sinais aos slots"""
         self.compare_btn.clicked.connect(self._compare)
@@ -127,7 +122,7 @@ class CompareSeriesDialog(QDialog, UiLoaderMixin):
 class SmoothingDialog(QDialog, UiLoaderMixin):
     """
     Diálogo para suavização visual
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -148,10 +143,10 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
         self.method_combo = self.findChild(QComboBox, "methodCombo")
         self.window_spin = self.findChild(QSpinBox, "windowSpin")
         self.sigma_spin = self.findChild(QDoubleSpinBox, "sigmaSpin")
-        
+
         apply_btn = self.findChild(QPushButton, "applyBtn")
         cancel_btn = self.findChild(QPushButton, "cancelBtn")
-        
+
         if apply_btn:
             apply_btn.clicked.connect(self.accept)
         if cancel_btn:
@@ -168,7 +163,7 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
 class AnnotationDialog(QDialog, UiLoaderMixin):
     """
     Diálogo para adicionar anotação
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -196,17 +191,17 @@ class AnnotationDialog(QDialog, UiLoaderMixin):
         self.color_combo = self.findChild(QComboBox, "colorCombo")
         self.add_btn = self.findChild(QPushButton, "addBtn")
         self.cancel_btn = self.findChild(QPushButton, "cancelBtn")
-        
+
         # Valida widgets obrigatórios
         self._validate_widgets()
-        
+
         # Configura valores iniciais
         self.x_spin.setValue(self.x_pos)
         self.y_spin.setValue(self.y_pos)
-        
+
         # Conecta sinais
         self._setup_connections()
-    
+
     def _validate_widgets(self):
         """Valida que todos os widgets obrigatórios foram carregados"""
         required_widgets = {
@@ -218,13 +213,13 @@ class AnnotationDialog(QDialog, UiLoaderMixin):
             "addBtn": self.add_btn,
             "cancelBtn": self.cancel_btn,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
         if missing:
             raise RuntimeError(
-                f"AnnotationDialog: Widgets não encontrados no arquivo .ui: {missing}"
+                f"AnnotationDialog: Widgets não encontrados no arquivo .ui: {missing}",
             )
-    
+
     def _setup_connections(self):
         """Conecta sinais aos slots"""
         self.add_btn.clicked.connect(self.accept)

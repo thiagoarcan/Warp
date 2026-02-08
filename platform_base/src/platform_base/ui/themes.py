@@ -16,17 +16,13 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
 
 from PyQt6.QtCore import QObject, QSettings, pyqtSignal
 from PyQt6.QtGui import QColor, QPalette
-from PyQt6.QtWidgets import QApplication, QStyleFactory
+from PyQt6.QtWidgets import QApplication
 
 from platform_base.utils.logging import get_logger
 
-if TYPE_CHECKING:
-    from PyQt6.QtWidgets import QWidget
 
 logger = get_logger(__name__)
 
@@ -140,7 +136,7 @@ DARK_THEME = ThemeColors(
         "#FF7B72",  # Rosa
         "#8B5CF6",  # Indigo
         "#79C0FF",  # Cyan
-    ]
+    ],
 )
 
 
@@ -183,7 +179,7 @@ OCEAN_THEME = ThemeColors(
         "#673ab7",  # Deep Purple
         "#e91e63",  # Pink
         "#03a9f4",  # Light Blue
-    ]
+    ],
 )
 
 
@@ -226,7 +222,7 @@ FOREST_THEME = ThemeColors(
         "#7c4dff",  # Deep Purple A200
         "#f50057",  # Pink Accent
         "#00b0ff",  # Light Blue Accent
-    ]
+    ],
 )
 
 
@@ -269,7 +265,7 @@ SUNSET_THEME = ThemeColors(
         "#7c4dff",  # Deep Purple A200
         "#ff4081",  # Pink Accent
         "#18ffff",  # Cyan Accent
-    ]
+    ],
 )
 
 
@@ -308,7 +304,7 @@ AVAILABLE_THEMES = {
 def get_system_theme() -> ThemeMode:
     """
     Detecta o tema atual do sistema operacional.
-    
+
     Returns:
         ThemeMode.LIGHT ou ThemeMode.DARK
     """
@@ -317,7 +313,7 @@ def get_system_theme() -> ThemeMode:
         import winreg
         key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
-            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
         )
         value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
         winreg.CloseKey(key)
@@ -330,8 +326,8 @@ def get_system_theme() -> ThemeMode:
         import subprocess
         result = subprocess.run(
             ["defaults", "read", "-g", "AppleInterfaceStyle"],
-            capture_output=True,
-            text=True
+            check=False, capture_output=True,
+            text=True,
         )
         if "Dark" in result.stdout:
             return ThemeMode.DARK
@@ -349,9 +345,9 @@ _theme_manager_instance: ThemeManager | None = None
 class ThemeManager(QObject):
     """
     Gerenciador centralizado de temas.
-    
+
     Use get_theme_manager() para obter a instância singleton.
-    
+
     Signals:
         theme_changed: Emitido quando o tema muda
         colors_changed: Emitido quando as cores mudam
@@ -399,7 +395,7 @@ class ThemeManager(QObject):
     def set_theme(self, mode: ThemeMode):
         """
         Define o tema da aplicação.
-        
+
         Args:
             mode: Modo de tema a aplicar
         """
@@ -438,7 +434,7 @@ class ThemeManager(QObject):
     def set_custom_color(self, key: str, color: str):
         """
         Define uma cor customizada.
-        
+
         Args:
             key: Nome da propriedade de cor (ex: 'primary')
             color: Valor da cor em hex (ex: '#FF0000')
@@ -457,10 +453,10 @@ class ThemeManager(QObject):
     def get_color(self, key: str) -> str:
         """
         Retorna cor do tema atual.
-        
+
         Args:
             key: Nome da propriedade de cor
-            
+
         Returns:
             Valor da cor em hex
         """
@@ -469,10 +465,10 @@ class ThemeManager(QObject):
     def get_qcolor(self, key: str) -> QColor:
         """
         Retorna QColor do tema atual.
-        
+
         Args:
             key: Nome da propriedade de cor
-            
+
         Returns:
             QColor object
         """

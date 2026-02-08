@@ -18,29 +18,23 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QFont
+from PyQt6.QtCore import pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
     QListWidget,
     QListWidgetItem,
     QMessageBox,
     QPushButton,
-    QSizePolicy,
     QSpinBox,
     QTabWidget,
-    QVBoxLayout,
     QWidget,
 )
 
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -86,7 +80,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self,
         session_state: SessionState,
         signal_hub: SignalHub | None = None,
-        parent: QWidget | None = None
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
@@ -107,24 +101,24 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         # Os widgets já existem como atributos (criados pelo uic.loadUi)
         # Apenas precisamos configurar conexões e comportamentos adicionais
-        
+
         # Buscar widgets do .ui
         self._tabs = self.findChild(QTabWidget, "operationTabs")
         self._series_combo = self.findChild(QComboBox, "seriesCombo")
         self._history_list = self.findChild(QListWidget, "historyList")
-        
+
         # Tab Interpolação
         self._interp_method_combo = self.findChild(QComboBox, "interpMethodCombo")
         self._interp_points_spin = self.findChild(QSpinBox, "interpPointsSpin")
         self._interp_preview_btn = self.findChild(QPushButton, "interpPreviewBtn")
         self._interp_apply_btn = self.findChild(QPushButton, "interpApplyBtn")
-        
+
         # Tab Cálculos
         self._deriv_order_spin = self.findChild(QSpinBox, "derivOrderSpin")
         self._deriv_apply_btn = self.findChild(QPushButton, "derivApplyBtn")
         self._integral_method_combo = self.findChild(QComboBox, "integralMethodCombo")
         self._integral_apply_btn = self.findChild(QPushButton, "integralApplyBtn")
-        
+
         # Tab Filtros
         self._smooth_method_combo = self.findChild(QComboBox, "smoothMethodCombo")
         self._smooth_window_spin = self.findChild(QSpinBox, "smoothWindowSpin")
@@ -133,27 +127,27 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         self._butter_cutoff_spin = self.findChild(QDoubleSpinBox, "butterCutoffSpin")
         self._filter_preview_btn = self.findChild(QPushButton, "filterPreviewBtn")
         self._filter_apply_btn = self.findChild(QPushButton, "filterApplyBtn")
-        
+
         # Tab Sincronização
         self._sync_method_combo = self.findChild(QComboBox, "syncMethodCombo")
         self._target_freq_spin = self.findChild(QDoubleSpinBox, "targetFreqSpin")
         self._sync_apply_btn = self.findChild(QPushButton, "syncApplyBtn")
-        
+
         # Tab Export
         self._export_format_combo = self.findChild(QComboBox, "exportFormatCombo")
         self._export_header_check = self.findChild(QCheckBox, "exportHeaderCheck")
         self._export_metadata_check = self.findChild(QCheckBox, "exportMetadataCheck")
         self._export_compress_check = self.findChild(QCheckBox, "exportCompressCheck")
         self._export_btn = self.findChild(QPushButton, "exportBtn")
-        
+
         # Histórico
         self._clear_history_btn = self.findChild(QPushButton, "clearHistoryBtn")
-        
+
         # Inicializar estado
         if self._series_combo:
             self._series_combo.addItem("(Nenhum dataset carregado)")
             self._series_combo.setEnabled(False)
-        
+
         logger.debug("operations_panel_ui_loaded_from_file")
 
     def _connect_signals(self):
@@ -163,31 +157,31 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             self._interp_preview_btn.clicked.connect(self._preview_interpolation)
         if self._interp_apply_btn:
             self._interp_apply_btn.clicked.connect(self._apply_interpolation)
-        
+
         # Cálculos
         if self._deriv_apply_btn:
             self._deriv_apply_btn.clicked.connect(self._apply_derivative)
         if self._integral_apply_btn:
             self._integral_apply_btn.clicked.connect(self._apply_integral)
-        
+
         # Filtros
         if self._filter_preview_btn:
             self._filter_preview_btn.clicked.connect(self._preview_filter)
         if self._filter_apply_btn:
             self._filter_apply_btn.clicked.connect(self._apply_filter)
-        
+
         # Sincronização
         if self._sync_apply_btn:
             self._sync_apply_btn.clicked.connect(self._apply_sync)
-        
+
         # Export
         if self._export_btn:
             self._export_btn.clicked.connect(self._export_data)
-        
+
         # Histórico
         if self._clear_history_btn:
             self._clear_history_btn.clicked.connect(self._clear_history)
-        
+
         # SignalHub
         if self.signal_hub:
             self.signal_hub.dataset_loaded.connect(self._on_dataset_loaded)
@@ -313,11 +307,11 @@ class OperationsPanel(QWidget, UiLoaderMixin):
         """Adiciona operação ao histórico"""
         item = OperationHistoryItem(operation_name=operation_name, params=params)
         self._history.insert(0, item)
-        
+
         # Limitar tamanho
         if len(self._history) > self._max_history:
             self._history = self._history[:self._max_history]
-        
+
         # Atualizar lista visual
         if self._history_list:
             list_item = QListWidgetItem(f"{item.timestamp.strftime('%H:%M:%S')} - {operation_name}")
@@ -332,7 +326,7 @@ class OperationsPanel(QWidget, UiLoaderMixin):
             self._series_combo.setEnabled(True)
             self._series_combo.clear()
             # Adicionar séries do dataset
-            if self.session_state and hasattr(self.session_state, 'dataset_store'):
+            if self.session_state and hasattr(self.session_state, "dataset_store"):
                 dataset = self.session_state.dataset_store.get(dataset_id)
                 if dataset:
                     for series_id in dataset.series_ids:

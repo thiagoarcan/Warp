@@ -27,6 +27,7 @@ from platform_base.core.models import (
 from platform_base.ui.selection import Selection
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.dataset_store import DatasetStore
 
@@ -35,14 +36,14 @@ logger = get_logger(__name__)
 
 # Export for easy access
 __all__ = [
-    'SelectionState',
-    'OperationState',
-    'ViewState',
-    'SessionState',
-    'Selection',
-    'SessionSelection',
-    'ProcessingState',
-    'SeriesSelection',
+    "OperationState",
+    "ProcessingState",
+    "Selection",
+    "SelectionState",
+    "SeriesSelection",
+    "SessionSelection",
+    "SessionState",
+    "ViewState",
 ]
 
 
@@ -182,7 +183,7 @@ class SessionState(QObject):
             return list(self._loaded_datasets.keys())
 
     @property
-    def selection(self) -> "SessionSelection":
+    def selection(self) -> SessionSelection:
         """Retorna objeto de seleção com dataset_id e series_ids."""
         with QMutexLocker(self._mutex):
             return SessionSelection(
@@ -191,7 +192,7 @@ class SessionState(QObject):
             )
 
     @property
-    def processing(self) -> "ProcessingState":
+    def processing(self) -> ProcessingState:
         """Retorna estado de processamento com operações ativas."""
         with QMutexLocker(self._mutex):
             return ProcessingState(

@@ -42,11 +42,11 @@ class FilterDialog(QDialog, UiLoaderMixin):
     - Butterworth: Filtro de frequência (passa-baixa, passa-alta, passa-banda)
     - Outliers: Remoção de valores atípicos
     - Rolling: Filtros baseados em janela móvel
-    
+
     Interface 100% carregada do arquivo .ui via UiLoaderMixin.
     Nenhum widget é criado programaticamente.
     """
-    
+
     # Arquivo .ui que define a interface completa
     UI_FILE = "filterDialog.ui"
 
@@ -60,15 +60,15 @@ class FilterDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(
                 f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
-                "Verifique se existe em desktop/ui_files/"
+                "Verifique se existe em desktop/ui_files/",
             )
-        
+
         # Busca referências aos widgets do .ui
         self._setup_ui_from_file()
-        
+
         # Configura conexões de sinais
         self._setup_connections()
-        
+
         # Inicializa estados dos widgets
         self._initialize_widget_states()
 
@@ -76,12 +76,12 @@ class FilterDialog(QDialog, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Busca referências a todos os widgets definidos no arquivo .ui"""
-        
+
         # === Widgets principais ===
         self._tabs = self.findChild(QTabWidget, "filterTabWidget")
         self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
         self._preview_button = self.findChild(QPushButton, "previewButton")
-        
+
         # === Widgets da aba Butterworth ===
         self._butter_type = self.findChild(QComboBox, "butterTypeCombo")
         self._butter_order = self.findChild(QSpinBox, "butterOrderSpin")
@@ -91,7 +91,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
         self._butter_auto_fs = self.findChild(QCheckBox, "butterAutoFsCheck")
         self._butter_padlen = self.findChild(QSpinBox, "butterPadlenSpin")
         self._butter_forward_backward = self.findChild(QCheckBox, "butterFiltfiltCheck")
-        
+
         # === Widgets da aba Outliers ===
         self._outlier_method = self.findChild(QComboBox, "outlierMethodCombo")
         self._outlier_threshold = self.findChild(QDoubleSpinBox, "outlierThresholdSpin")
@@ -99,7 +99,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
         self._outlier_upper = self.findChild(QDoubleSpinBox, "outlierUpperSpin")
         self._outlier_action = self.findChild(QComboBox, "outlierActionCombo")
         self._outlier_window = self.findChild(QSpinBox, "outlierWindowSpin")
-        
+
         # === Widgets da aba Rolling ===
         self._rolling_type = self.findChild(QComboBox, "rollingTypeCombo")
         self._rolling_window = self.findChild(QSpinBox, "rollingWindowSpin")
@@ -108,10 +108,10 @@ class FilterDialog(QDialog, UiLoaderMixin):
         self._rolling_quantile = self.findChild(QDoubleSpinBox, "rollingQuantileSpin")
         self._rolling_win_type = self.findChild(QComboBox, "rollingWinTypeCombo")
         self._rolling_std = self.findChild(QDoubleSpinBox, "rollingStdSpin")
-        
+
         # Validação: todos os widgets essenciais devem existir
         self._validate_widgets()
-        
+
         logger.debug("filter_dialog_ui_widgets_loaded")
 
     def _validate_widgets(self):
@@ -145,13 +145,13 @@ class FilterDialog(QDialog, UiLoaderMixin):
             "rollingWinTypeCombo": self._rolling_win_type,
             "rollingStdSpin": self._rolling_std,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
-        
+
         if missing:
             raise RuntimeError(
                 f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
-                f"Verifique se {self.UI_FILE} está completo."
+                f"Verifique se {self.UI_FILE} está completo.",
             )
 
     def _setup_connections(self):
@@ -159,20 +159,20 @@ class FilterDialog(QDialog, UiLoaderMixin):
         # === Conexões da aba Butterworth ===
         self._butter_type.currentTextChanged.connect(self._on_butter_type_changed)
         self._butter_auto_fs.toggled.connect(
-            lambda checked: self._butter_fs.setEnabled(not checked)
+            lambda checked: self._butter_fs.setEnabled(not checked),
         )
-        
+
         # === Conexões da aba Outliers ===
         self._outlier_method.currentTextChanged.connect(self._on_outlier_method_changed)
-        
+
         # === Conexões da aba Rolling ===
         self._rolling_type.currentTextChanged.connect(self._on_rolling_type_changed)
-        
+
         # === Conexões dos botões ===
         if self._button_box:
             self._button_box.accepted.connect(self._apply_filter)
             self._button_box.rejected.connect(self.reject)
-        
+
         if self._preview_button:
             self._preview_button.clicked.connect(self._preview_filter)
 
@@ -180,13 +180,13 @@ class FilterDialog(QDialog, UiLoaderMixin):
         """Inicializa estados dos widgets baseados nos valores atuais"""
         # Inicializar estado Butterworth
         self._on_butter_type_changed(self._butter_type.currentText())
-        
+
         # Inicializar estado Outliers
         self._on_outlier_method_changed(self._outlier_method.currentText())
-        
+
         # Inicializar estado Rolling
         self._on_rolling_type_changed(self._rolling_type.currentText())
-        
+
         # Inicializar estado de auto-detecção de taxa de amostragem
         if self._butter_auto_fs.isChecked():
             self._butter_fs.setEnabled(False)
@@ -212,7 +212,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
     def _on_outlier_method_changed(self, method: str):
         """Handler para mudança de método de detecção de outliers"""
         is_percentile = method == "percentile"
-        
+
         # Habilita/desabilita campos de percentil
         self._outlier_lower.setEnabled(is_percentile)
         self._outlier_upper.setEnabled(is_percentile)
@@ -223,19 +223,19 @@ class FilterDialog(QDialog, UiLoaderMixin):
             self._outlier_threshold.setValue(1.5)
             self._outlier_threshold.setToolTip(
                 "Multiplicador do IQR (padrão: 1.5)\n"
-                "Outliers: valores fora de [Q1-k*IQR, Q3+k*IQR]"
+                "Outliers: valores fora de [Q1-k*IQR, Q3+k*IQR]",
             )
         elif method == "zscore":
             self._outlier_threshold.setValue(3.0)
             self._outlier_threshold.setToolTip(
                 "Número de desvios padrão (padrão: 3.0)\n"
-                "Outliers: valores a mais de k desvios da média"
+                "Outliers: valores a mais de k desvios da média",
             )
         elif method == "mad":
             self._outlier_threshold.setValue(3.5)
             self._outlier_threshold.setToolTip(
                 "Multiplicador do MAD (padrão: 3.5)\n"
-                "MAD = Median Absolute Deviation"
+                "MAD = Median Absolute Deviation",
             )
         elif method == "percentile":
             self._outlier_threshold.setToolTip("Não usado para método percentile")
@@ -244,11 +244,11 @@ class FilterDialog(QDialog, UiLoaderMixin):
         """Handler para mudança de tipo de operação rolling"""
         is_quantile = rolling_type == "quantile"
         self._rolling_quantile.setEnabled(is_quantile)
-        
+
         if is_quantile:
             self._rolling_quantile.setToolTip(
                 "Valor do quantil a calcular (0.0 a 1.0)\n"
-                "0.5 = mediana, 0.25 = 1º quartil, 0.75 = 3º quartil"
+                "0.5 = mediana, 0.25 = 1º quartil, 0.75 = 3º quartil",
             )
 
     def _get_filter_config(self) -> dict[str, Any]:
@@ -309,23 +309,23 @@ class FilterDialog(QDialog, UiLoaderMixin):
     def get_config(self) -> dict[str, Any] | None:
         """
         Retorna configuração do filtro se diálogo foi aceito
-        
+
         Returns:
             dict com configuração do filtro ou None se cancelado
         """
         if self.result() == QDialog.DialogCode.Accepted:
             return self._get_filter_config()
         return None
-    
+
     def set_config(self, config: dict[str, Any]):
         """
         Define configuração do diálogo a partir de um dict
-        
+
         Args:
             config: Dicionário com configuração do filtro
         """
         filter_type = config.get("type", "butterworth")
-        
+
         if filter_type == "butterworth":
             self._tabs.setCurrentIndex(0)
             if "filter_type" in config:
@@ -344,7 +344,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
                 self._butter_padlen.setValue(config["padlen"])
             if "filtfilt" in config:
                 self._butter_forward_backward.setChecked(config["filtfilt"])
-                
+
         elif filter_type == "outliers":
             self._tabs.setCurrentIndex(1)
             if "method" in config:
@@ -359,7 +359,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
                 self._outlier_action.setCurrentText(config["action"])
             if "window" in config:
                 self._outlier_window.setValue(config["window"])
-                
+
         elif filter_type == "rolling":
             self._tabs.setCurrentIndex(2)
             if "operation" in config:
@@ -376,7 +376,7 @@ class FilterDialog(QDialog, UiLoaderMixin):
                 self._rolling_win_type.setCurrentText(config["win_type"])
             if "std" in config:
                 self._rolling_std.setValue(config["std"])
-        
+
         logger.debug("filter_config_loaded", filter_type=filter_type)
 
 
@@ -386,7 +386,7 @@ def show_filter_dialog(parent: QWidget | None = None) -> dict[str, Any] | None:
 
     Args:
         parent: Widget pai do diálogo
-        
+
     Returns:
         Dicionário com configuração do filtro ou None se cancelado
     """

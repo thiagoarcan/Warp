@@ -126,10 +126,10 @@ class SettingsDialog(QDialog, UiLoaderMixin):
     - Persistência via QSettings
     - Preview de alterações
     - Reset para padrões
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "settingsDialog.ui"
 
@@ -146,7 +146,7 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         # Carregar interface do arquivo .ui
         if not self._load_ui():
             raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
-        
+
         # Carregar configurações atuais ou padrões
         self._original_settings = current_settings or self._load_settings()
         self._current_settings = AppSettings(**self._original_settings.to_dict())
@@ -162,13 +162,13 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         """Configura widgets carregados do arquivo .ui"""
         # Tab Widget
         self._tabs = self.findChild(QWidget, "settingsTabs")
-        
+
         # === Aba Aparência ===
         self._theme_combo = self.findChild(QComboBox, "themeCombo")
         self._accent_btn = self.findChild(QPushButton, "accentColorBtn")
         self._font_combo = self.findChild(QFontComboBox, "fontCombo")
         self._font_size_spin = self.findChild(QSpinBox, "fontSizeSpin")
-        
+
         # === Aba Visualização ===
         self._grid_check = self.findChild(QCheckBox, "gridCheck")
         self._legend_check = self.findChild(QCheckBox, "legendCheck")
@@ -176,13 +176,13 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         self._autozoom_check = self.findChild(QCheckBox, "autozoomCheck")
         self._line_width_spin = self.findChild(QDoubleSpinBox, "lineWidthSpin")
         self._marker_size_spin = self.findChild(QSpinBox, "markerSizeSpin")
-        
+
         # === Aba Performance ===
         self._lttb_spin = self.findChild(QSpinBox, "lttbSpin")
         self._max_points_spin = self.findChild(QSpinBox, "maxPointsSpin")
         self._buffer_spin = self.findChild(QSpinBox, "bufferSpin")
         self._opengl_check = self.findChild(QCheckBox, "openglCheck")
-        
+
         # === Aba Caminhos ===
         self._data_dir_edit = self.findChild(QLineEdit, "dataDirEdit")
         self._data_dir_btn = self.findChild(QPushButton, "dataDirBtn")
@@ -190,7 +190,7 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         self._export_dir_btn = self.findChild(QPushButton, "exportDirBtn")
         self._recent_max_spin = self.findChild(QSpinBox, "recentMaxSpin")
         self._clear_recent_btn = self.findChild(QPushButton, "clearRecentBtn")
-        
+
         # === Aba Comportamento ===
         self._confirm_exit_check = self.findChild(QCheckBox, "confirmExitCheck")
         self._auto_save_layout_check = self.findChild(QCheckBox, "autoSaveLayoutCheck")
@@ -198,13 +198,13 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         self._check_updates_check = self.findChild(QCheckBox, "checkUpdatesCheck")
         self._fps_spin = self.findChild(QSpinBox, "fpsSpin")
         self._window_size_spin = self.findChild(QSpinBox, "windowSizeSpin")
-        
+
         # === Botões ===
         self._reset_btn = self.findChild(QPushButton, "resetBtn")
         self._cancel_btn = self.findChild(QPushButton, "cancelBtn")
         self._apply_btn = self.findChild(QPushButton, "applyBtn")
         self._ok_btn = self.findChild(QPushButton, "okBtn")
-        
+
         logger.debug("settings_dialog_ui_loaded_from_file")
 
     def _setup_connections(self):
@@ -212,21 +212,21 @@ class SettingsDialog(QDialog, UiLoaderMixin):
         # Botão de cor de destaque
         if self._accent_btn:
             self._accent_btn.clicked.connect(self._choose_accent_color)
-        
+
         # Notificar mudança de tema
         if self._theme_combo:
             self._theme_combo.currentIndexChanged.connect(self._on_theme_changed)
-        
+
         # Botões de diretório
         if self._data_dir_btn:
             self._data_dir_btn.clicked.connect(lambda: self._choose_directory(self._data_dir_edit))
         if self._export_dir_btn:
             self._export_dir_btn.clicked.connect(lambda: self._choose_directory(self._export_dir_edit))
-        
+
         # Limpar recentes
         if self._clear_recent_btn:
             self._clear_recent_btn.clicked.connect(self._clear_recent_files)
-        
+
         # Botões de ação
         if self._reset_btn:
             self._reset_btn.clicked.connect(self._reset_to_defaults)

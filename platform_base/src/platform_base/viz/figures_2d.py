@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
 try:
     import pyqtgraph as pg
     from PyQt6.QtCore import QObject, Qt, pyqtSignal
@@ -27,6 +28,7 @@ except ImportError:
 
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure, _downsample_lttb
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset, Series
@@ -360,7 +362,7 @@ class Plot2DWidget(QWidget):
 
     def _update_selection_from_sync(self, xmin: float, xmax: float) -> None:
         """Update selection region from external synchronization.
-        
+
         Args:
             xmin: Minimum X value for selection
             xmax: Maximum X value for selection
@@ -430,7 +432,7 @@ class TimeseriesPlot(BaseFigure):
 
     def update_selection(self, selection_indices: np.ndarray):
         """Atualiza seleção visual no gráfico.
-        
+
         Args:
             selection_indices: Array of indices to highlight in the plot.
         """
@@ -438,7 +440,7 @@ class TimeseriesPlot(BaseFigure):
             # Highlight the selected region in the plot
             try:
                 # Get data range from selection indices
-                if hasattr(self, '_current_x_data') and self._current_x_data is not None:
+                if hasattr(self, "_current_x_data") and self._current_x_data is not None:
                     x_data = self._current_x_data
                     x_min = x_data[selection_indices.min()]
                     x_max = x_data[selection_indices.max()]
@@ -447,11 +449,11 @@ class TimeseriesPlot(BaseFigure):
                     # Use indices directly if no x data available
                     self._widget.set_selection_region(
                         float(selection_indices.min()),
-                        float(selection_indices.max())
+                        float(selection_indices.max()),
                     )
             except (IndexError, AttributeError):
                 # Widget may not support selection region
-                logger.debug("selection_update_skipped", 
+                logger.debug("selection_update_skipped",
                            reason="widget_does_not_support_selection_region")
 
     def export(self, file_path: str, format: str, **kwargs):
@@ -521,47 +523,46 @@ class ScatterPlot(BaseFigure):
 
     def update_selection(self, selection_indices: np.ndarray):
         """Atualiza seleção visual no scatter plot.
-        
+
         Args:
             selection_indices: Array of indices to highlight in the scatter plot.
         """
         if self._widget is None or len(selection_indices) == 0:
             return
-            
+
         try:
             # Get scatter plot item
-            scatter_items = [item for item in self._widget.plot_widget.items() 
-                           if hasattr(item, 'setData') and hasattr(item, 'opts')]
-            
+            scatter_items = [item for item in self._widget.plot_widget.items()
+                           if hasattr(item, "setData") and hasattr(item, "opts")]
+
             if not scatter_items:
                 return
-                
+
             scatter_item = scatter_items[0]
-            
+
             # Get current point data
-            x_data = scatter_item.data['x'] if hasattr(scatter_item, 'data') else None
-            y_data = scatter_item.data['y'] if hasattr(scatter_item, 'data') else None
-            
+            x_data = scatter_item.data["x"] if hasattr(scatter_item, "data") else None
+            y_data = scatter_item.data["y"] if hasattr(scatter_item, "data") else None
+
             if x_data is None or y_data is None:
                 return
-            
+
             # Create brush array for highlighting
             import pyqtgraph as pg
-            from PyQt6.QtGui import QColor
-            
+
             n_points = len(x_data)
             brushes = [pg.mkBrush(100, 100, 255, 120)] * n_points  # Default: blue semi-transparent
-            
+
             # Highlight selected points in orange
             for idx in selection_indices:
                 if 0 <= idx < n_points:
                     brushes[idx] = pg.mkBrush(255, 165, 0, 200)  # Orange highlight
-            
+
             # Update scatter plot brushes
             scatter_item.setBrush(brushes)
-            
+
             logger.debug("scatter_selection_updated", n_selected=len(selection_indices))
-            
+
         except Exception as e:
             logger.debug("scatter_selection_update_failed", error=str(e))
 
@@ -576,14 +577,14 @@ class ScatterPlot(BaseFigure):
 class MultipanelPlot:
     """
     Multipanel plot layout for visualizing multiple datasets.
-    
+
     Provides a grid layout of Plot2DWidget instances with synchronized
     zooming and selection across panels.
     """
 
     def __init__(self, rows: int = 2, cols: int = 2, config: VizConfig | None = None):
         """Initialize multipanel plot.
-        
+
         Args:
             rows: Number of rows in the grid
             cols: Number of columns in the grid
@@ -596,11 +597,11 @@ class MultipanelPlot:
 
     def get_panel(self, row: int, col: int) -> Plot2DWidget | None:
         """Get panel at specified position.
-        
+
         Args:
             row: Row index (0-based)
             col: Column index (0-based)
-            
+
         Returns:
             Panel widget or None if not set
         """
@@ -611,7 +612,7 @@ class MultipanelPlot:
 
     def set_panel(self, row: int, col: int, panel: Plot2DWidget) -> None:
         """Set panel at specified position.
-        
+
         Args:
             row: Row index (0-based)
             col: Column index (0-based)
@@ -623,7 +624,7 @@ class MultipanelPlot:
 
     def sync_x_axes(self) -> None:
         """Synchronize X axes across all panels.
-        
+
         Links X-axis ranges so that zooming/panning in one panel
         affects all panels simultaneously.
         """
@@ -645,13 +646,13 @@ class MultipanelPlot:
                 target_view.setXLink(reference_view)
                 logger.debug("panel_x_linked", panel=panel)
             except Exception as e:
-                logger.error("failed_to_link_x_axis", error=str(e), panel=panel)
+                logger.exception("failed_to_link_x_axis", error=str(e), panel=panel)
 
         logger.info("x_axes_synchronized", panel_count=len(valid_panels))
 
     def sync_selections(self) -> None:
         """Synchronize selections across all panels.
-        
+
         When a selection is made in one panel, the same selection
         region is displayed in all other panels.
         """
@@ -664,24 +665,24 @@ class MultipanelPlot:
 
         # Connect selection changed signals between panels
         for source_panel in valid_panels:
-            if not hasattr(source_panel, '_brush_selection') or source_panel._brush_selection is None:
+            if not hasattr(source_panel, "_brush_selection") or source_panel._brush_selection is None:
                 continue
 
             for target_panel in valid_panels:
                 if source_panel is target_panel:
                     continue
 
-                if not hasattr(target_panel, '_brush_selection') or target_panel._brush_selection is None:
+                if not hasattr(target_panel, "_brush_selection") or target_panel._brush_selection is None:
                     continue
 
                 try:
                     # Connect source selection changes to update target
                     source_panel.selection_changed.connect(
-                        lambda xmin, xmax, panel=target_panel: 
-                        panel._update_selection_from_sync(xmin, xmax)
+                        lambda xmin, xmax, panel=target_panel:
+                        panel._update_selection_from_sync(xmin, xmax),
                     )
                 except Exception as e:
-                    logger.error("failed_to_sync_selections", error=str(e))
+                    logger.exception("failed_to_sync_selections", error=str(e))
 
         logger.info("selections_synchronized", panel_count=len(valid_panels))
 

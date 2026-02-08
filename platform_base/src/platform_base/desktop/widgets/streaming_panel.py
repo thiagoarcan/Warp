@@ -18,21 +18,19 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import (
     QComboBox,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QPushButton,
     QSlider,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -79,9 +77,9 @@ class StreamingPanel(QWidget, UiLoaderMixin):
 
     def __init__(
         self,
-        session_state: "SessionState | None" = None,
-        signal_hub: "SignalHub | None" = None,
-        parent: QWidget | None = None
+        session_state: SessionState | None = None,
+        signal_hub: SignalHub | None = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
@@ -116,7 +114,7 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         self._current_time_label = self.findChild(QLabel, "currentTimeLabel")
         self._total_time_label = self.findChild(QLabel, "totalTimeLabel")
         self._frame_info_label = self.findChild(QLabel, "frameInfoLabel")
-        
+
         # Botões de controle
         self._btn_start = self.findChild(QPushButton, "btnStart")
         self._btn_prev = self.findChild(QPushButton, "btnPrev")
@@ -124,29 +122,29 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         self._btn_stop = self.findChild(QPushButton, "btnStop")
         self._btn_next = self.findChild(QPushButton, "btnNext")
         self._btn_end = self.findChild(QPushButton, "btnEnd")
-        
+
         # Combos de configuração
         self._speed_combo = self.findChild(QComboBox, "speedCombo")
         self._mode_combo = self.findChild(QComboBox, "modeCombo")
         self._step_spin = self.findChild(QSpinBox, "stepSpin")
-        
+
         # Configurar timeline
         if self._timeline_slider:
             self._timeline_slider.setMinimum(0)
             self._timeline_slider.setMaximum(100)
-        
+
         # Configurar speed combo
         if self._speed_combo and self._speed_combo.count() == 0:
             self._speed_combo.addItems(["0.1x", "0.25x", "0.5x", "1x", "2x", "5x", "10x"])
             self._speed_combo.setCurrentText("1x")
-        
+
         # Configurar mode combo
         if self._mode_combo and self._mode_combo.count() == 0:
             self._mode_combo.addItem("Normal", PlaybackMode.NORMAL)
             self._mode_combo.addItem("Loop ♻️", PlaybackMode.LOOP)
             self._mode_combo.addItem("Ping-Pong ↔️", PlaybackMode.PING_PONG)
             self._mode_combo.addItem("Reverso ⏪", PlaybackMode.REVERSE)
-        
+
         logger.debug("streaming_panel_ui_loaded_from_file")
 
     def _connect_signals(self):
@@ -154,7 +152,7 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         # Timeline
         if self._timeline_slider:
             self._timeline_slider.valueChanged.connect(self._on_timeline_changed)
-        
+
         # Botões de navegação
         if self._btn_start:
             self._btn_start.clicked.connect(self._go_to_start)
@@ -168,7 +166,7 @@ class StreamingPanel(QWidget, UiLoaderMixin):
             self._btn_next.clicked.connect(self._step_forward)
         if self._btn_end:
             self._btn_end.clicked.connect(self._go_to_end)
-        
+
         # Configurações
         if self._speed_combo:
             self._speed_combo.currentTextChanged.connect(self._on_speed_changed)

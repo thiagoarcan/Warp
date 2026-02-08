@@ -8,40 +8,20 @@ and other accessibility features following WCAG 2.1 AA guidelines.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QAction, QColor, QFont, QKeySequence, QPalette, QShortcut
+from PyQt6.QtCore import QObject, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QKeySequence, QPalette, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
-    QCheckBox,
-    QComboBox,
-    QDialog,
     QDockWidget,
-    QDoubleSpinBox,
-    QGroupBox,
-    QLabel,
-    QLineEdit,
-    QListView,
     QMainWindow,
-    QMenuBar,
-    QMessageBox,
-    QPushButton,
-    QRadioButton,
-    QScrollArea,
-    QSlider,
-    QSpinBox,
-    QSplitter,
-    QStackedWidget,
-    QStatusBar,
-    QTableView,
-    QTabWidget,
     QToolBar,
-    QTreeView,
     QWidget,
 )
+
 
 # QAccessible is in QtGui on some versions, QtWidgets on others
 # Try to import from both locations
@@ -75,7 +55,7 @@ except ImportError:
                 self.event_type = event_type
 
 if TYPE_CHECKING:
-    from platform_base.desktop.main_window import MainWindow
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +114,7 @@ class ShortcutDefinition:
 class AccessibleWidget(QObject):
     """
     Wrapper to add accessibility features to any widget.
-    
+
     Provides accessible name, description, role, and state information
     for screen readers.
     """
@@ -144,7 +124,7 @@ class AccessibleWidget(QObject):
         widget: QWidget,
         accessible_name: str,
         accessible_description: str = "",
-        role: Optional[str] = None,
+        role: str | None = None,
     ):
         super().__init__(widget)
         self.widget = widget
@@ -169,7 +149,7 @@ class AccessibleWidget(QObject):
     def announce(self, message: str, priority: int = 0) -> None:
         """
         Announce a message to screen readers.
-        
+
         Args:
             message: Message to announce
             priority: 0=polite, 1=assertive
@@ -177,7 +157,7 @@ class AccessibleWidget(QObject):
         # Create accessible event
         event = QAccessibleEvent(
             self.widget,
-            QAccessible.Event.Alert if priority else QAccessible.Event.NameChanged
+            QAccessible.Event.Alert if priority else QAccessible.Event.NameChanged,
         )
         QAccessible.updateAccessibility(event)
         logger.debug(f"Accessibility announcement: {message}")
@@ -186,7 +166,7 @@ class AccessibleWidget(QObject):
 class KeyboardNavigationManager(QObject):
     """
     Manages keyboard navigation throughout the application.
-    
+
     Implements logical tab order, skip links, and focus management.
     """
 
@@ -200,15 +180,15 @@ class KeyboardNavigationManager(QObject):
         self.config = config
 
         # Navigation regions in logical order
-        self._regions: List[Tuple[str, QWidget]] = []
+        self._regions: list[tuple[str, QWidget]] = []
         self._current_region_index: int = 0
 
         # Focus history for back navigation
-        self._focus_history: List[QWidget] = []
+        self._focus_history: list[QWidget] = []
         self._max_history: int = 50
 
         # Skip link shortcuts
-        self._skip_shortcuts: List[QShortcut] = []
+        self._skip_shortcuts: list[QShortcut] = []
 
         # Setup
         self._setup_focus_tracking()
@@ -217,9 +197,9 @@ class KeyboardNavigationManager(QObject):
     def register_region(self, name: str, widget: QWidget) -> None:
         """
         Register a navigation region.
-        
+
         Regions are navigated in order using F6/Shift+F6.
-        
+
         Args:
             name: Human-readable region name
             widget: Widget representing the region
@@ -234,7 +214,7 @@ class KeyboardNavigationManager(QObject):
             app.focusChanged.connect(self._on_focus_changed)
 
     def _on_focus_changed(
-        self, old_widget: Optional[QWidget], new_widget: Optional[QWidget]
+        self, old_widget: QWidget | None, new_widget: QWidget | None,
     ) -> None:
         """Handle focus change events."""
         if new_widget is None:
@@ -334,7 +314,7 @@ class KeyboardNavigationManager(QObject):
             self.navigation_region_changed.emit(name)
             logger.debug(f"Navigated to region: {name}")
 
-    def _find_first_focusable(self, widget: QWidget) -> Optional[QWidget]:
+    def _find_first_focusable(self, widget: QWidget) -> QWidget | None:
         """Find the first focusable widget."""
         if widget.focusPolicy() not in (Qt.FocusPolicy.NoFocus,):
             return widget
@@ -359,7 +339,7 @@ class KeyboardNavigationManager(QObject):
 class ShortcutManager(QObject):
     """
     Manages all keyboard shortcuts in the application.
-    
+
     Provides registration, customization, and conflict detection.
     """
 
@@ -424,8 +404,8 @@ class ShortcutManager(QObject):
         self.main_window = main_window
 
         # Registered shortcuts
-        self._shortcuts: Dict[str, Tuple[ShortcutDefinition, QShortcut]] = {}
-        self._action_handlers: Dict[str, Callable[[], None]] = {}
+        self._shortcuts: dict[str, tuple[ShortcutDefinition, QShortcut]] = {}
+        self._action_handlers: dict[str, Callable[[], None]] = {}
 
         # Initialize default shortcuts
         self._register_defaults()
@@ -438,10 +418,10 @@ class ShortcutManager(QObject):
     def register_shortcut(self, definition: ShortcutDefinition) -> bool:
         """
         Register a keyboard shortcut.
-        
+
         Args:
             definition: Shortcut definition
-            
+
         Returns:
             True if registered successfully, False if conflict
         """
@@ -452,7 +432,7 @@ class ShortcutManager(QObject):
             existing = self._shortcuts[key][0]
             self.shortcut_conflict.emit(key, existing.action_name)
             logger.warning(
-                f"Shortcut conflict: {key} already assigned to {existing.action_name}"
+                f"Shortcut conflict: {key} already assigned to {existing.action_name}",
             )
             return False
 
@@ -460,7 +440,7 @@ class ShortcutManager(QObject):
         shortcut = QShortcut(QKeySequence(key), self.main_window)
         shortcut.setContext(definition.context)
         shortcut.activated.connect(
-            lambda name=definition.action_name: self._on_shortcut_activated(name)
+            lambda name=definition.action_name: self._on_shortcut_activated(name),
         )
         shortcut.setEnabled(definition.enabled)
 
@@ -471,7 +451,7 @@ class ShortcutManager(QObject):
     def register_handler(self, action_name: str, handler: Callable[[], None]) -> None:
         """
         Register a handler for an action.
-        
+
         Args:
             action_name: Name of the action
             handler: Callback function
@@ -487,22 +467,22 @@ class ShortcutManager(QObject):
             try:
                 self._action_handlers[action_name]()
             except Exception as e:
-                logger.error(f"Error executing action {action_name}: {e}")
+                logger.exception(f"Error executing action {action_name}: {e}")
         else:
             logger.debug(f"No handler for action: {action_name}")
 
-    def get_shortcut(self, action_name: str) -> Optional[str]:
+    def get_shortcut(self, action_name: str) -> str | None:
         """Get the key sequence for an action."""
         for key, (definition, _) in self._shortcuts.items():
             if definition.action_name == action_name:
                 return key
         return None
 
-    def get_shortcuts_by_category(self) -> Dict[str, List[ShortcutDefinition]]:
+    def get_shortcuts_by_category(self) -> dict[str, list[ShortcutDefinition]]:
         """Get all shortcuts organized by category."""
-        result: Dict[str, List[ShortcutDefinition]] = {}
+        result: dict[str, list[ShortcutDefinition]] = {}
 
-        for _, (definition, _) in self._shortcuts.items():
+        for (definition, _) in self._shortcuts.values():
             if definition.category not in result:
                 result[definition.category] = []
             result[definition.category].append(definition)
@@ -512,11 +492,11 @@ class ShortcutManager(QObject):
     def update_shortcut(self, action_name: str, new_key: str) -> bool:
         """
         Update the key sequence for an action.
-        
+
         Args:
             action_name: Name of the action
             new_key: New key sequence
-            
+
         Returns:
             True if updated successfully
         """
@@ -554,7 +534,7 @@ class ShortcutManager(QObject):
 class HighContrastMode:
     """
     Manages high contrast mode for visual accessibility.
-    
+
     Provides color palettes that meet WCAG 2.1 AA contrast requirements.
     """
 
@@ -596,7 +576,7 @@ class HighContrastMode:
     def apply(cls, app: QApplication, mode: ContrastMode) -> None:
         """
         Apply a contrast mode to the application.
-        
+
         Args:
             app: QApplication instance
             mode: Contrast mode to apply
@@ -628,17 +608,17 @@ class HighContrastMode:
         palette.setColor(
             QPalette.ColorGroup.Disabled,
             QPalette.ColorRole.Text,
-            QColor(palette_data["disabled_text"])
+            QColor(palette_data["disabled_text"]),
         )
         palette.setColor(
             QPalette.ColorGroup.Disabled,
             QPalette.ColorRole.WindowText,
-            QColor(palette_data["disabled_text"])
+            QColor(palette_data["disabled_text"]),
         )
         palette.setColor(
             QPalette.ColorGroup.Disabled,
             QPalette.ColorRole.ButtonText,
-            QColor(palette_data["disabled_text"])
+            QColor(palette_data["disabled_text"]),
         )
 
         app.setPalette(palette)
@@ -648,7 +628,7 @@ class HighContrastMode:
 class UIZoomManager(QObject):
     """
     Manages UI zoom functionality.
-    
+
     Allows scaling the entire interface from 100% to 200%.
     """
 
@@ -669,7 +649,7 @@ class UIZoomManager(QObject):
     def set_zoom(self, level: float) -> None:
         """
         Set the UI zoom level.
-        
+
         Args:
             level: Zoom level (1.0 = 100%, 2.0 = 200%)
         """
@@ -711,7 +691,7 @@ class UIZoomManager(QObject):
 class GraphDescriptionGenerator:
     """
     Generates text descriptions of graphs for screen readers.
-    
+
     Provides accessible alternatives for visual data representations.
     """
 
@@ -720,14 +700,14 @@ class GraphDescriptionGenerator:
         series_name: str,
         x_label: str,
         y_label: str,
-        x_range: Tuple[float, float],
-        y_range: Tuple[float, float],
+        x_range: tuple[float, float],
+        y_range: tuple[float, float],
         point_count: int,
-        trend: Optional[str] = None,
+        trend: str | None = None,
     ) -> str:
         """
         Generate description for a line plot.
-        
+
         Args:
             series_name: Name of the data series
             x_label: X-axis label
@@ -736,7 +716,7 @@ class GraphDescriptionGenerator:
             y_range: (min, max) Y values
             point_count: Number of data points
             trend: Optional trend description
-            
+
         Returns:
             Human-readable description
         """
@@ -762,14 +742,14 @@ class GraphDescriptionGenerator:
     ) -> str:
         """
         Generate description for a data selection.
-        
+
         Args:
             start: Selection start value
             end: Selection end value
             unit: Unit of measurement
             selected_count: Number of selected points
             total_count: Total number of points
-            
+
         Returns:
             Human-readable description
         """
@@ -783,7 +763,7 @@ class GraphDescriptionGenerator:
 class AccessibilityManager(QObject):
     """
     Main accessibility manager that coordinates all accessibility features.
-    
+
     Usage:
         manager = AccessibilityManager(main_window)
         manager.initialize()
@@ -795,19 +775,19 @@ class AccessibilityManager(QObject):
     def __init__(
         self,
         main_window: QMainWindow,
-        config: Optional[AccessibilityConfig] = None,
+        config: AccessibilityConfig | None = None,
     ):
         super().__init__(main_window)
         self.main_window = main_window
         self.config = config or AccessibilityConfig()
 
         # Sub-managers
-        self.navigation: Optional[KeyboardNavigationManager] = None
-        self.shortcuts: Optional[ShortcutManager] = None
-        self.zoom: Optional[UIZoomManager] = None
+        self.navigation: KeyboardNavigationManager | None = None
+        self.shortcuts: ShortcutManager | None = None
+        self.zoom: UIZoomManager | None = None
 
         # Accessible widgets registry
-        self._accessible_widgets: Dict[int, AccessibleWidget] = {}
+        self._accessible_widgets: dict[int, AccessibleWidget] = {}
 
     def initialize(self) -> None:
         """Initialize all accessibility features."""
@@ -907,12 +887,12 @@ class AccessibilityManager(QObject):
     ) -> AccessibleWidget:
         """
         Make a widget accessible with proper labels.
-        
+
         Args:
             widget: Widget to make accessible
             name: Accessible name
             description: Accessible description
-            
+
         Returns:
             AccessibleWidget wrapper
         """
@@ -923,7 +903,7 @@ class AccessibilityManager(QObject):
     def set_contrast_mode(self, mode: ContrastMode) -> None:
         """
         Set the contrast mode.
-        
+
         Args:
             mode: Contrast mode to apply
         """
@@ -936,7 +916,7 @@ class AccessibilityManager(QObject):
     def get_shortcuts_documentation(self) -> str:
         """
         Get formatted documentation of all shortcuts.
-        
+
         Returns:
             Markdown-formatted documentation
         """
@@ -960,10 +940,10 @@ class AccessibilityManager(QObject):
 def setup_accessibility(main_window: QMainWindow) -> AccessibilityManager:
     """
     Setup accessibility for a main window.
-    
+
     Args:
         main_window: Main application window
-        
+
     Returns:
         Configured AccessibilityManager
     """

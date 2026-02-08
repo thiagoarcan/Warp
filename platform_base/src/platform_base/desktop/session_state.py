@@ -18,6 +18,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 from platform_base.core.models import DatasetID, SeriesID, TimeWindow, ViewID
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.dataset_store import DatasetStore
 
@@ -95,7 +96,7 @@ class SessionState(QObject):
     processing_state_changed = pyqtSignal(object)  # ProcessingState
     streaming_state_changed = pyqtSignal(object)  # StreamingState
     ui_state_changed = pyqtSignal(object)  # UIState
-    
+
     # Dataset signals (used by OperationsPanel)
     dataset_changed = pyqtSignal(str)  # dataset_id
     operation_finished = pyqtSignal(str, bool)  # operation_name, success

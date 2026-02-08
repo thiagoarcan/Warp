@@ -19,7 +19,7 @@ def __getattr__(name):
     if name in ("ExportDialog", "show_export_dialog"):
         from platform_base.ui.export_dialog import ExportDialog, show_export_dialog
         return ExportDialog if name == "ExportDialog" else show_export_dialog
-    
+
     if name in ("CalculusDialog", "DerivativeDialog", "FilterDialog", "IntegralDialog",
                 "InterpolationDialog", "OperationDialogManager", "SmoothingDialog",
                 "SynchronizationDialog", "get_operation_dialog_manager",
@@ -28,28 +28,28 @@ def __getattr__(name):
                 "show_synchronization_dialog"):
         from platform_base.ui import operation_dialogs
         return getattr(operation_dialogs, name)
-    
+
     if name == "OperationsPanel":
         from platform_base.ui.panels.operations_panel import OperationsPanel
         return OperationsPanel
-    
+
     if name in ("PlotSyncManager", "get_sync_manager"):
         from platform_base.ui.plot_sync import PlotSyncManager, get_sync_manager
         return PlotSyncManager if name == "PlotSyncManager" else get_sync_manager
-    
+
     if name in ("OperationPreviewDialog", "PreviewCanvas", "show_preview_dialog"):
         from platform_base.ui import preview_dialog
         return getattr(preview_dialog, name)
-    
+
     if name == "SessionState":
         from platform_base.ui.state import SessionState
         return SessionState
-    
+
     if name in ("BaseCommand", "DataOperationCommand", "SelectionCommand",
                 "UndoRedoManager", "ViewConfigCommand", "get_undo_manager"):
         from platform_base.ui import undo_redo
         return getattr(undo_redo, name)
-    
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

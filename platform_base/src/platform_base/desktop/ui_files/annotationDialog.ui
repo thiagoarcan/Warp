@@ -171,7 +171,13 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-    </spacer>
+           <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
    </item>
    
    <!-- Button Box -->
@@ -181,6 +187,12 @@
       <spacer name="buttonSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+             <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
       </spacer>
      </item>

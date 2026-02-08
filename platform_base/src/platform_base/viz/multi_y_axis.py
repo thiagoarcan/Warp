@@ -15,20 +15,16 @@ Category 2.9 - Multi-Y Axis
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-import numpy as np
 import pyqtgraph as pg
-from PyQt6.QtCore import QObject, Qt, pyqtSignal
-from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QObject, pyqtSignal
 from pyqtgraph import AxisItem, PlotItem, ViewBox
 
 from platform_base.utils.logging import get_logger
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 logger = get_logger(__name__)
 
@@ -69,7 +65,7 @@ class SeriesAxisInfo:
 class YAxis:
     """
     Represents a single Y axis with its associated ViewBox.
-    
+
     Manages its own range, scale, and appearance independently
     while sharing X axis with the main plot.
     """
@@ -82,7 +78,7 @@ class YAxis:
     ):
         """
         Initialize Y axis.
-        
+
         Args:
             plot_item: Main PlotItem to attach to
             position: Position of this axis
@@ -145,13 +141,13 @@ class YAxis:
     def add_series(self, series_id: str, x_data, y_data, **kwargs) -> Any:
         """
         Add series to this axis.
-        
+
         Args:
             series_id: Unique series identifier
             x_data: X data
             y_data: Y data
             **kwargs: Plot options (pen, color, etc.)
-            
+
         Returns:
             PlotDataItem
         """
@@ -166,7 +162,7 @@ class YAxis:
             view_box = self.view_box
 
         # Track series
-        color = kwargs.get('pen', {}).opts.get('color') if hasattr(kwargs.get('pen', {}), 'opts') else None
+        color = kwargs.get("pen", {}).opts.get("color") if hasattr(kwargs.get("pen", {}), "opts") else None
         self._series[series_id] = SeriesAxisInfo(
             series_id=series_id,
             axis_position=self.position,
@@ -184,10 +180,10 @@ class YAxis:
     def remove_series(self, series_id: str) -> Any | None:
         """
         Remove series from this axis.
-        
+
         Args:
             series_id: Series to remove
-            
+
         Returns:
             Removed plot item or None
         """
@@ -248,7 +244,7 @@ class YAxis:
 class MultiYAxisManager(QObject):
     """
     Manages multiple Y axes for a plot.
-    
+
     Supports up to 4 Y axes (2 left, 2 right) with automatic
     synchronization and series management.
     """
@@ -261,7 +257,7 @@ class MultiYAxisManager(QObject):
     def __init__(self, plot_item: PlotItem, parent: QObject | None = None):
         """
         Initialize multi-axis manager.
-        
+
         Args:
             plot_item: PlotItem to manage axes for
             parent: Parent QObject
@@ -288,15 +284,15 @@ class MultiYAxisManager(QObject):
     ) -> YAxis:
         """
         Add a Y axis at the specified position.
-        
+
         Args:
             position: Where to place the axis
             label: Axis label
             color: Axis color
-            
+
         Returns:
             Created YAxis
-            
+
         Raises:
             ValueError: If axis already exists at position
         """
@@ -315,10 +311,10 @@ class MultiYAxisManager(QObject):
     def remove_axis(self, position: AxisPosition):
         """
         Remove Y axis at position.
-        
+
         Args:
             position: Axis position to remove
-            
+
         Raises:
             ValueError: If trying to remove primary axis or axis doesn't exist
         """
@@ -352,7 +348,7 @@ class MultiYAxisManager(QObject):
     ):
         """
         Move series from one axis to another.
-        
+
         Args:
             series_id: Series to move
             from_position: Current axis
@@ -372,7 +368,7 @@ class MultiYAxisManager(QObject):
             raise ValueError(f"Series {series_id} not on axis {from_position.name}")
 
         # Get data from plot item
-        if hasattr(info.plot_item, 'getData'):
+        if hasattr(info.plot_item, "getData"):
             x_data, y_data = info.plot_item.getData()
         else:
             raise ValueError("Cannot get data from plot item")
@@ -385,7 +381,7 @@ class MultiYAxisManager(QObject):
         to_axis.add_series(series_id, x_data, y_data, pen=pen)
 
         self.series_moved.emit(series_id, from_position.name, to_position.name)
-        logger.info("series_moved", 
+        logger.info("series_moved",
                    series_id=series_id,
                    from_axis=from_position.name,
                    to_axis=to_position.name)
@@ -400,14 +396,14 @@ class MultiYAxisManager(QObject):
     ) -> Any:
         """
         Add series to specified axis.
-        
+
         Args:
             series_id: Unique series identifier
             x_data: X data
             y_data: Y data
             axis_position: Which axis to add to
             **kwargs: Plot options
-            
+
         Returns:
             PlotDataItem
         """
@@ -420,10 +416,10 @@ class MultiYAxisManager(QObject):
     def remove_series(self, series_id: str) -> bool:
         """
         Remove series from any axis.
-        
+
         Args:
             series_id: Series to remove
-            
+
         Returns:
             True if found and removed
         """
@@ -473,10 +469,10 @@ class MultiYAxisManager(QObject):
 def create_multi_axis_plot(title: str = "") -> tuple[PlotItem, MultiYAxisManager]:
     """
     Create a plot with multi-axis support.
-    
+
     Args:
         title: Plot title
-        
+
     Returns:
         Tuple of (PlotItem, MultiYAxisManager)
     """

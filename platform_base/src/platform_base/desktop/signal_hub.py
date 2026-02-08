@@ -13,6 +13,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.core.models import DatasetID, SeriesID
 

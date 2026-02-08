@@ -13,7 +13,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 from PyQt6.QtCore import (
     QMutex,
@@ -21,14 +20,12 @@ from PyQt6.QtCore import (
     QPoint,
     Qt,
     QThread,
-    QTimer,
     pyqtSignal,
     pyqtSlot,
 )
 from PyQt6.QtGui import QAction, QColor, QFont
 from PyQt6.QtWidgets import (
     QAbstractItemView,
-    QComboBox,
     QFileDialog,
     QFormLayout,
     QFrame,
@@ -55,6 +52,7 @@ from platform_base.ui.workers.file_worker import FileLoadWorker
 from platform_base.utils.logging import get_logger
 from platform_base.utils.widgets import StableComboBox
 
+
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
     from platform_base.ui.state import SessionState
@@ -72,7 +70,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
     - Visualização de séries ativas
     - Tabela de dados com colunas de cálculos
     - Interface compacta em PT-BR
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
 
@@ -102,7 +100,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             self._setup_modern_ui_fallback()
         else:
             self._setup_ui_from_file()
-        
+
         self._setup_connections()
         logger.debug("compact_data_panel_initialized", ui_loaded=self._ui_loaded)
 
@@ -111,19 +109,19 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Configurações básicas
         self.setMinimumWidth(150)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        
+
         # Busca widgets do arquivo .ui
         self.arquivo_frame = self.findChild(QFrame, "arquivoFrame")
         self.carregar_btn = self.findChild(QPushButton, "carregarBtn")
         self.arquivo_label = self.findChild(QLabel, "arquivoLabel")
         self.info_label = self.findChild(QLabel, "infoLabel")
-        
+
         self.series_group = self.findChild(QGroupBox, "seriesGroup")
         self.series_tree = self.findChild(QTreeWidget, "seriesTree")
-        
+
         self.data_group = self.findChild(QGroupBox, "dataGroup")
         self.data_table = self.findChild(QTableWidget, "dataTable")
-        
+
         # Conecta sinais
         if self.carregar_btn:
             self.carregar_btn.clicked.connect(self._open_file_dialog)
@@ -414,26 +412,26 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self.session_state.dataset_changed.connect(self._on_dataset_changed)
         self.session_state.operation_started.connect(self._on_operation_started)
         self.session_state.operation_finished.connect(self._on_operation_finished)
-        
+
         # Flag para evitar chamadas recursivas
         self._updating_ui = False
-        
+
         logger.debug("data_panel_connections_setup_completed")
 
     def _on_series_selection(self):
         """Handler para seleção de série via itemSelectionChanged (sem parâmetros)"""
         # Obtém o primeiro item selecionado
-        tree = self.series_tree if hasattr(self, 'series_tree') and self.series_tree else getattr(self, '_series_tree', None)
+        tree = self.series_tree if hasattr(self, "series_tree") and self.series_tree else getattr(self, "_series_tree", None)
         if not tree:
             return
-        
+
         selected_items = tree.selectedItems()
         if not selected_items:
             return
-        
+
         item = selected_items[0]
         data = item.data(0, Qt.ItemDataRole.UserRole)
-        
+
         if data and len(data) == 2:
             dataset_id, series_id = data
             self.series_selected.emit(dataset_id, series_id)
@@ -445,7 +443,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Evitar chamadas duplicadas que causam travamento
         if self._updating_ui:
             return
-            
+
         if dataset_id:
             try:
                 self._updating_ui = True
@@ -630,7 +628,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
         # Start operation message (apenas no primeiro)
         if current_count == 1:
-            self.session_state.start_operation(f"Carregando arquivos...")
+            self.session_state.start_operation("Carregando arquivos...")
 
         # Start thread
         worker_thread.start()
@@ -659,7 +657,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         """Handler para carregamento concluído - THREAD-SAFE com mutex"""
         try:
             logger.debug("_on_load_finished_START")
-            
+
             # Get worker from sender
             worker = self.sender()
             filename = "Unknown"
@@ -680,7 +678,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
                 self._loading_count = max(0, self._loading_count - 1)
                 loaded = self._loaded_count
                 remaining = self._loading_count
-                
+
                 # Find and remove worker from active list
                 worker_to_cleanup = None
                 for wt, w in self._active_workers:
@@ -721,12 +719,12 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         try:
             # Get worker from sender
             worker = self.sender()
-            
+
             # Track error and cleanup worker (thread-safe)
             with QMutexLocker(self._load_mutex):
                 self._loading_count = max(0, self._loading_count - 1)
                 remaining = self._loading_count
-                
+
                 # Find and remove worker from active list
                 worker_to_cleanup = None
                 for wt, w in self._active_workers:
@@ -758,7 +756,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             )
 
             logger.error("dataset_load_failed", error=error_message)
-            
+
         except Exception as e:
             logger.exception("error_handler_failed", error=str(e))
 
@@ -784,16 +782,16 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             # Contar total de pontos
             total_points = sum(len(series.values) for series in dataset.series.values()) if dataset.series else 0
             item.setText(2, f"{total_points:,}")
-            
+
             # Período de datetime (primeiro e último ponto)
             try:
-                if hasattr(dataset, 't_datetime') and dataset.t_datetime is not None and len(dataset.t_datetime) > 0:
+                if hasattr(dataset, "t_datetime") and dataset.t_datetime is not None and len(dataset.t_datetime) > 0:
                     import numpy as np
                     first_dt = dataset.t_datetime[0]
                     last_dt = dataset.t_datetime[-1]
                     # Formatar como string legível
-                    first_str = str(np.datetime_as_string(first_dt, unit='m'))[:16].replace('T', ' ')
-                    last_str = str(np.datetime_as_string(last_dt, unit='m'))[:16].replace('T', ' ')
+                    first_str = str(np.datetime_as_string(first_dt, unit="m"))[:16].replace("T", " ")
+                    last_str = str(np.datetime_as_string(last_dt, unit="m"))[:16].replace("T", " ")
                     period_str = f"{first_str} → {last_str}"
                     item.setText(3, period_str)
                     item.setToolTip(3, f"Início: {first_str}\nFim: {last_str}")
@@ -865,7 +863,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Add series items (sem hierarquia, mais direto)
         for series in self._current_dataset.series.values():
             item = QTreeWidgetItem(self._series_tree)
-            
+
             # Usar nome do dataset + nome da série para melhor identificação
             # Ex: "BAR_DT-OP10 / valor" em vez de apenas "valor"
             display_name = f"📈 {dataset_name}"
@@ -895,7 +893,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
     def _update_data_table(self):
         """Atualiza tabela de dados - VERSÃO OTIMIZADA"""
         logger.debug("_update_data_table_START")
-        
+
         if not self._current_dataset:
             self._data_table.setRowCount(0)
             self._data_table.setColumnCount(0)
@@ -904,7 +902,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Get number of rows - LIMITADO para performance
         max_rows = int(self._preview_rows_combo.currentText())
         n_points = min(max_rows, len(self._current_dataset.t_seconds))
-        
+
         logger.debug("data_table_config", max_rows=max_rows, n_points=n_points)
 
         if n_points == 0:
@@ -915,9 +913,9 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Colunas simplificadas para melhor performance
         base_columns = ["⏱️ Tempo (s)", "📅 Data/Hora"]
         series_columns = [f"📊 {s.name}" for s in self._current_dataset.series.values()]
-        
+
         all_columns = base_columns + series_columns
-        
+
         logger.debug("setting_up_table", columns=len(all_columns), rows=n_points)
 
         # Setup table
@@ -931,7 +929,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         t_datetime = self._current_dataset.t_datetime
 
         logger.debug("filling_data_table")
-        
+
         # Fill data - OTIMIZADO
         for row in range(n_points):
             col = 0
@@ -962,7 +960,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         header = self._data_table.horizontalHeader()
         for i in range(len(all_columns)):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
-            
+
         logger.debug("_update_data_table_COMPLETE")
 
     @pyqtSlot(QTreeWidgetItem, int)

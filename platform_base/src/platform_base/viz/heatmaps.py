@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
 try:
     import pyqtgraph as pg
     import scipy.stats
@@ -29,6 +30,7 @@ except ImportError:
 from platform_base.utils.logging import get_logger
 from platform_base.viz.base import BaseFigure
 from platform_base.viz.config import ColorScale, VizConfig
+
 
 if TYPE_CHECKING:
     from platform_base.core.models import Dataset
@@ -530,7 +532,7 @@ class StatisticalHeatmap(BaseFigure):
 class Heatmap:
     """
     Simple Heatmap class for creating and manipulating heatmaps.
-    
+
     This is a high-level interface that doesn't require a VizConfig.
     """
 
@@ -538,16 +540,16 @@ class Heatmap:
         "viridis", "plasma", "inferno", "magma", "cividis",
         "hot", "cool", "coolwarm", "jet", "rainbow",
         "gray", "bone", "copper", "spring", "summer",
-        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn"
+        "autumn", "winter", "spectral", "RdYlBu", "RdYlGn",
     ]
 
-    def __init__(self, data: np.ndarray = None, x_labels: list = None, 
-                 y_labels: list = None, normalize: bool = False,
+    def __init__(self, data: np.ndarray = None, x_labels: list | None = None,
+                 y_labels: list | None = None, normalize: bool = False,
                  colormap: str = "viridis", title: str = "Heatmap",
                  mask_nan: bool = False):
         """
         Initialize a Heatmap.
-        
+
         Args:
             data: 2D array of values
             x_labels: Labels for x-axis (columns)
@@ -618,7 +620,7 @@ class Heatmap:
         """Get list of available colormaps."""
         return cls.AVAILABLE_COLORMAPS.copy()
 
-    def set_labels(self, x_labels: list = None, y_labels: list = None) -> None:
+    def set_labels(self, x_labels: list | None = None, y_labels: list | None = None) -> None:
         """Set axis labels."""
         if x_labels is not None:
             self._x_labels = x_labels
@@ -637,7 +639,7 @@ class Heatmap:
         """Get heatmap title."""
         return self._title
 
-    def set_value_range(self, vmin: float = None, vmax: float = None) -> None:
+    def set_value_range(self, vmin: float | None = None, vmax: float | None = None) -> None:
         """Set value range for colormap."""
         self._vmin = vmin
         self._vmax = vmax
@@ -702,9 +704,8 @@ class Heatmap:
 
             # Apply colormap
             rgba = cmap(normalized)
-            rgb = (rgba[:, :, :3] * 255).astype(np.uint8)
+            return (rgba[:, :, :3] * 255).astype(np.uint8)
 
-            return rgb
         except ImportError:
             # Fallback to grayscale
             normalized = self.get_normalized_data()
@@ -722,14 +723,14 @@ class Heatmap:
             fig, ax = plt.subplots(figsize=(10, 8))
 
             vmin, vmax = self.get_value_range()
-            im = ax.imshow(self._data, cmap=self._colormap, vmin=vmin, vmax=vmax, aspect='auto')
+            im = ax.imshow(self._data, cmap=self._colormap, vmin=vmin, vmax=vmax, aspect="auto")
 
             plt.colorbar(im, ax=ax)
             ax.set_title(self._title)
 
             if self._x_labels:
                 ax.set_xticks(range(len(self._x_labels)))
-                ax.set_xticklabels(self._x_labels, rotation=45, ha='right')
+                ax.set_xticklabels(self._x_labels, rotation=45, ha="right")
 
             if self._y_labels:
                 ax.set_yticks(range(len(self._y_labels)))
@@ -745,15 +746,15 @@ class Heatmap:
 
 
 def correlation_heatmap(data: np.ndarray, method: str = "pearson",
-                        labels: list = None) -> Heatmap:
+                        labels: list | None = None) -> Heatmap:
     """
     Create a correlation heatmap.
-    
+
     Args:
         data: 2D array where each column is a variable
         method: Correlation method ('pearson', 'spearman', 'kendall')
         labels: Variable names
-        
+
     Returns:
         Heatmap instance with correlation matrix
     """
@@ -781,23 +782,23 @@ def correlation_heatmap(data: np.ndarray, method: str = "pearson",
         x_labels=labels,
         y_labels=labels,
         colormap="coolwarm",
-        title=f"Correlation Matrix ({method.capitalize()})"
+        title=f"Correlation Matrix ({method.capitalize()})",
     )
 
 
-def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
+def spectrogram_heatmap(signal: np.ndarray, sample_rate: float | None = None,
                         window_size: int = 256, overlap: float = 0.5,
-                        fs: float = None) -> Heatmap:
+                        fs: float | None = None) -> Heatmap:
     """
     Create a spectrogram heatmap.
-    
+
     Args:
         signal: 1D signal array
         sample_rate: Sampling rate in Hz (or use fs as alias)
         window_size: FFT window size
         overlap: Window overlap fraction
         fs: Alias for sample_rate (for scipy compatibility)
-        
+
     Returns:
         Heatmap instance with spectrogram data
     """
@@ -813,7 +814,7 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
         nperseg = window_size
         noverlap = int(window_size * overlap)
 
-        f, t, Sxx = scipy_spectrogram(signal, fs=sample_rate, 
+        f, t, Sxx = scipy_spectrogram(signal, fs=sample_rate,
                                        nperseg=nperseg, noverlap=noverlap)
 
         # Convert to dB
@@ -828,7 +829,7 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
             x_labels=time_labels,
             y_labels=freq_labels,
             colormap="viridis",
-            title="Spectrogram"
+            title="Spectrogram",
         )
     except ImportError:
         logger.warning("scipy not available for spectrogram")
@@ -842,7 +843,7 @@ def spectrogram_heatmap(signal: np.ndarray, sample_rate: float = None,
 def get_available_colormaps() -> list:
     """
     Get list of available colormaps for heatmaps.
-    
+
     Returns:
         List of colormap names
     """

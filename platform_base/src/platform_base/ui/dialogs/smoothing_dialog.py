@@ -47,11 +47,11 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
     - Savitzky-Golay: Suavização polinomial local
     - Exponential: Suavização exponencial
     - Median: Filtro mediana
-    
+
     Interface 100% carregada do arquivo .ui via UiLoaderMixin.
     Nenhum widget é criado programaticamente.
     """
-    
+
     # Arquivo .ui que define a interface completa
     UI_FILE = "smoothingDialog.ui"
 
@@ -65,15 +65,15 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
         if not self._load_ui():
             raise RuntimeError(
                 f"Falha ao carregar arquivo UI: {self.UI_FILE}. "
-                "Verifique se existe em desktop/ui_files/"
+                "Verifique se existe em desktop/ui_files/",
             )
-        
+
         # Busca referências aos widgets do .ui
         self._setup_ui_from_file()
-        
+
         # Configura conexões de sinais
         self._setup_connections()
-        
+
         # Inicializa estados dos widgets
         self._initialize_widget_states()
 
@@ -81,10 +81,10 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Busca referências a todos os widgets definidos no arquivo .ui"""
-        
+
         # === Widgets de método ===
         self._method = self.findChild(QComboBox, "methodCombo")
-        
+
         # === Widgets de parâmetros gerais ===
         self._window = self.findChild(QSpinBox, "windowSpin")
         self._window_slider = self.findChild(QSlider, "windowSlider")
@@ -92,25 +92,25 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
         self._sigma_slider = self.findChild(QSlider, "sigmaSlider")
         self._boundary_mode = self.findChild(QComboBox, "boundaryModeCombo")
         self._preserve_nan = self.findChild(QCheckBox, "preserveNanCheck")
-        
+
         # === Widgets Savitzky-Golay ===
         self._savgol_group = self.findChild(QGroupBox, "savgolGroup")
         self._polyorder = self.findChild(QSpinBox, "polyorderSpin")
         self._deriv = self.findChild(QSpinBox, "derivSpin")
         self._delta = self.findChild(QDoubleSpinBox, "deltaSpin")
-        
+
         # === Widgets Exponencial ===
         self._exp_group = self.findChild(QGroupBox, "expGroup")
         self._alpha = self.findChild(QDoubleSpinBox, "alphaSpin")
         self._adjust = self.findChild(QCheckBox, "adjustCheck")
-        
+
         # === Botões ===
         self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
         self._preview_button = self.findChild(QPushButton, "previewButton")
-        
+
         # Validação: todos os widgets essenciais devem existir
         self._validate_widgets()
-        
+
         logger.debug("smoothing_dialog_ui_widgets_loaded")
 
     def _validate_widgets(self):
@@ -137,13 +137,13 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
             # Botões
             "buttonBox": self._button_box,
         }
-        
+
         missing = [name for name, widget in required_widgets.items() if widget is None]
-        
+
         if missing:
             raise RuntimeError(
                 f"Widgets ausentes no arquivo .ui: {', '.join(missing)}. "
-                f"Verifique se {self.UI_FILE} está completo."
+                f"Verifique se {self.UI_FILE} está completo.",
             )
 
     def _setup_connections(self):
@@ -154,18 +154,18 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
 
         self._sigma_slider.valueChanged.connect(self._on_sigma_slider_changed)
         self._sigma.valueChanged.connect(lambda v: self._sigma_slider.setValue(int(v * 10)))
-        
+
         # === Mudança de método ===
         self._method.currentTextChanged.connect(self._on_method_changed)
-        
+
         # === Validação Savitzky-Golay ===
         self._window.valueChanged.connect(self._validate_polyorder)
-        
+
         # === Botões ===
         if self._button_box:
             self._button_box.accepted.connect(self._apply_smoothing)
             self._button_box.rejected.connect(self.reject)
-        
+
         if self._preview_button:
             self._preview_button.clicked.connect(self._preview_smoothing)
 
@@ -173,7 +173,7 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
         """Inicializa estados dos widgets baseados nos valores atuais"""
         # Inicializar visibilidade de grupos
         self._on_method_changed(self._method.currentText())
-        
+
         # Sincronizar sliders com spinboxes
         self._window_slider.setValue(self._window.value())
         self._sigma_slider.setValue(int(self._sigma.value() * 10))
@@ -262,18 +262,18 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
     def get_config(self) -> dict[str, Any] | None:
         """
         Retorna configuração de suavização se diálogo foi aceito
-        
+
         Returns:
             dict com configuração ou None se cancelado
         """
         if self.result() == QDialog.DialogCode.Accepted:
             return self._get_smoothing_config()
         return None
-    
+
     def set_config(self, config: dict[str, Any]):
         """
         Define configuração do diálogo a partir de um dict
-        
+
         Args:
             config: Dicionário com configuração de suavização
         """
@@ -285,7 +285,7 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
             self._preserve_nan.setChecked(config["preserve_nan"])
         if "boundary_mode" in config:
             self._boundary_mode.setCurrentText(config["boundary_mode"])
-        
+
         # Parâmetros específicos
         if "sigma" in config:
             self._sigma.setValue(config["sigma"])
@@ -299,7 +299,7 @@ class SmoothingDialog(QDialog, UiLoaderMixin):
             self._alpha.setValue(config["alpha"])
         if "adjust" in config:
             self._adjust.setChecked(config["adjust"])
-        
+
         logger.debug("smoothing_config_loaded", method=config.get("method"))
 
 
@@ -309,7 +309,7 @@ def show_smoothing_dialog(parent: QWidget | None = None) -> dict[str, Any] | Non
 
     Args:
         parent: Widget pai do diálogo
-        
+
     Returns:
         Dicionário com configuração ou None se cancelado
     """

@@ -8,9 +8,7 @@ Tests for:
 - Signal emission
 """
 
-from unittest.mock import MagicMock, patch
 
-import pytest
 
 from platform_base.core.memory_manager import MemoryLevel, MemoryStatus
 
@@ -33,7 +31,7 @@ class TestMemoryIndicatorBasics:
             process_mb=1000.0,
             total_mb=16000.0,
             available_mb=8000.0,
-            suggestions=[]
+            suggestions=[],
         )
         assert status.level == MemoryLevel.NORMAL
         assert status.percent == 50.0
@@ -51,7 +49,7 @@ class TestMemoryIndicatorBasics:
             process_mb=3000.0,
             total_mb=4000.0,
             available_mb=500.0,
-            suggestions=suggestions
+            suggestions=suggestions,
         )
         assert len(status.suggestions) == 2
         assert "Close unused files" in status.suggestions
@@ -92,7 +90,7 @@ class TestMemoryLevelTransitions:
             process_mb=400.0,
             total_mb=1000.0,
             available_mb=600.0,
-            suggestions=[]
+            suggestions=[],
         )
         assert status.level == MemoryLevel.NORMAL
         assert status.percent < 60.0
@@ -105,7 +103,7 @@ class TestMemoryLevelTransitions:
             process_mb=700.0,
             total_mb=1000.0,
             available_mb=300.0,
-            suggestions=["Consider closing unused files"]
+            suggestions=["Consider closing unused files"],
         )
         assert status.level == MemoryLevel.WARNING
         assert 60.0 <= status.percent < 80.0
@@ -118,7 +116,7 @@ class TestMemoryLevelTransitions:
             process_mb=880.0,
             total_mb=1000.0,
             available_mb=120.0,
-            suggestions=["Close unused files", "Reduce data points"]
+            suggestions=["Close unused files", "Reduce data points"],
         )
         assert status.level == MemoryLevel.HIGH
         assert 80.0 <= status.percent < 95.0
@@ -131,7 +129,7 @@ class TestMemoryLevelTransitions:
             process_mb=970.0,
             total_mb=1000.0,
             available_mb=30.0,
-            suggestions=["Save work immediately", "Close application"]
+            suggestions=["Save work immediately", "Close application"],
         )
         assert status.level == MemoryLevel.CRITICAL
         assert status.percent >= 95.0
@@ -148,7 +146,7 @@ class TestTooltipBuilding:
             process_mb=2800.0,
             total_mb=4000.0,
             available_mb=1200.0,
-            suggestions=[]
+            suggestions=[],
         )
         # The tooltip text would include "WARNING"
         assert status.level.name == "WARNING"
@@ -161,7 +159,7 @@ class TestTooltipBuilding:
             process_mb=2000.0,
             total_mb=4000.0,
             available_mb=2000.0,
-            suggestions=[]
+            suggestions=[],
         )
         assert status.process_mb == 2000.0
         assert status.total_mb == 4000.0
@@ -176,7 +174,7 @@ class TestTooltipBuilding:
             process_mb=3400.0,
             total_mb=4000.0,
             available_mb=600.0,
-            suggestions=suggestions
+            suggestions=suggestions,
         )
         assert len(status.suggestions) == 2
         assert "Suggestion 1" in status.suggestions
@@ -193,7 +191,7 @@ class TestMemoryStatusComputations:
             process_mb=2000.0,
             total_mb=4000.0,
             available_mb=2000.0,
-            suggestions=[]
+            suggestions=[],
         )
         # process_mb / total_mb * 100 should equal percent
         calculated = (status.process_mb / status.total_mb) * 100
@@ -207,7 +205,7 @@ class TestMemoryStatusComputations:
             process_mb=2400.0,
             total_mb=4000.0,
             available_mb=1600.0,
-            suggestions=[]
+            suggestions=[],
         )
         # In reality there's other processes, so this won't be exact
         # but for our app's process the relationship should hold approximately
@@ -221,7 +219,7 @@ class TestMemoryStatusComputations:
             process_mb=3960.0,
             total_mb=4000.0,
             available_mb=40.0,
-            suggestions=["Emergency: Save and close!"]
+            suggestions=["Emergency: Save and close!"],
         )
         assert status.available_mb < 100
         assert status.level == MemoryLevel.CRITICAL
@@ -233,7 +231,7 @@ class TestMemoryIndicatorSignals:
     def test_memory_critical_signal_exists(self):
         """MemoryIndicator should have memory_critical signal"""
         from platform_base.desktop.widgets.memory_indicator import MemoryIndicator
-        assert hasattr(MemoryIndicator, 'memory_critical')
+        assert hasattr(MemoryIndicator, "memory_critical")
 
 
 class TestMemoryIndicatorWidget:

@@ -15,14 +15,9 @@ import pyqtgraph as pg
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QAction, QActionGroup
 from PyQt6.QtWidgets import (
-    QCheckBox,
     QComboBox,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
     QPushButton,
-    QSpinBox,
-    QSplitter,
     QTabWidget,
     QToolBar,
     QVBoxLayout,
@@ -35,6 +30,7 @@ from platform_base.desktop.menus.plot_context_menu import PlotContextMenu
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
@@ -315,10 +311,10 @@ class VizPanel(QWidget, UiLoaderMixin):
     - Multi-series plotting
     - Interactive selection
     - Export capabilities
-    
+
     Interface carregada do arquivo .ui via UiLoaderMixin.
     """
-    
+
     # Arquivo .ui que define a interface
     UI_FILE = "vizPanel.ui"
 
@@ -344,7 +340,7 @@ class VizPanel(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui
-        
+
         Conecta widgets definidos no arquivo .ui aos handlers Python.
         """
         # Widgets do .ui
@@ -353,33 +349,33 @@ class VizPanel(QWidget, UiLoaderMixin):
         self.plot_type_combo = self.findChild(QComboBox, "plotTypeCombo")
         self.toolbar = self.findChild(QToolBar, "toolbar")
         self.controls_widget = self.findChild(QWidget, "controlsWidget")
-        
+
         # Configurar tabs
         if self.plot_tabs:
             self.plot_tabs.tabCloseRequested.connect(self._close_plot_tab)
             self.plot_tabs.currentChanged.connect(self._on_tab_changed)
-        
+
         # Conectar botões
         if self.new_plot_btn:
             self.new_plot_btn.clicked.connect(self._create_new_plot)
-            
+
         if self.plot_type_combo:
             self.plot_type_combo.currentTextChanged.connect(self._on_plot_type_changed)
-        
+
         # Configurar toolbar com ações
         if self.toolbar:
             self._populate_toolbar()
-        
+
         # Add initial welcome tab
         self._add_welcome_tab()
-            
+
         logger.debug("viz_panel_ui_loaded_from_file")
 
     def _populate_toolbar(self):
         """Popula toolbar do .ui com ações"""
         if not self.toolbar:
             return
-            
+
         # Plot type actions
         plot_group = QActionGroup(self.toolbar)
 
@@ -462,7 +458,7 @@ class VizPanel(QWidget, UiLoaderMixin):
     def _create_new_plot(self):
         """Cria novo plot baseado no tipo selecionado no combo."""
         plot_type = "2d"  # Default
-        if hasattr(self, 'plot_type_combo') and self.plot_type_combo:
+        if hasattr(self, "plot_type_combo") and self.plot_type_combo:
             selected = self.plot_type_combo.currentText().lower()
             if "3d" in selected:
                 plot_type = "3d"
@@ -630,10 +626,10 @@ class VizPanel(QWidget, UiLoaderMixin):
         """Handle time selection from plot"""
         time_window = TimeWindow(start=start_time, end=end_time)
         self.session_state.set_time_window(time_window)
-        
+
         if self.signal_hub is not None:
             self.signal_hub.emit_time_selection(start_time, end_time)
-        
+
         logger.debug("time_selection_from_plot", start=start_time, end=end_time)
 
     @pyqtSlot(str)
@@ -719,7 +715,7 @@ class VizPanel(QWidget, UiLoaderMixin):
                     widget.plot_trajectory_3d(x_data, y_data, z_data, dataset.t_seconds)
                     logger.info("3d_plot_rendered", series_count=len(plot_info["series"]))
                 elif len(plot_info["series"]) < 3:
-                    logger.info("3d_plot_waiting", 
+                    logger.info("3d_plot_waiting",
                                current=len(plot_info["series"]),
                                needed=3,
                                message=f"Adicione mais {3 - len(plot_info['series'])} série(s) para renderizar plot 3D")

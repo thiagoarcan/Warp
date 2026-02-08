@@ -23,6 +23,7 @@ from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+
 try:
     from pydantic import BaseModel, Field, validator
     PYDANTIC_AVAILABLE = True
@@ -31,11 +32,11 @@ except ImportError:
 
 import builtins
 
-from platform_base.core.config import ConfigChange, ConfigFormat
+from platform_base.core.config import ConfigChange, ConfigFormat, get_config_manager
 from platform_base.core.config import ConfigManager as BaseConfigManager
-from platform_base.core.config import get_config_manager
 from platform_base.utils.errors import ConfigError
 from platform_base.utils.logging import get_logger
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable

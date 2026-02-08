@@ -4,17 +4,18 @@ Tooltip Manager - Sistema centralizado de tooltips
 Adiciona tooltips descritivos a todos os componentes da UI
 """
 
-from PyQt6.QtWidgets import QWidget, QPushButton, QAction, QDockWidget
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QDockWidget, QPushButton, QWidget
 
 
 class TooltipManager:
     """
     Gerenciador centralizado de tooltips.
-    
+
     Adiciona tooltips informativos a todos os componentes da interface,
     explicando a função de cada elemento.
     """
-    
+
     # Tooltips para ações do menu
     MENU_TOOLTIPS = {
         # Arquivo
@@ -24,28 +25,28 @@ class TooltipManager:
         "load_data": "Carrega dados de arquivo (CSV, Excel, HDF5, Parquet) (Ctrl+L)",
         "export_data": "Exporta dados selecionados para arquivo (Ctrl+E)",
         "exit": "Fecha a aplicação (Ctrl+Q)",
-        
+
         # Editar
         "undo": "Desfaz a última operação (Ctrl+Z)",
         "redo": "Refaz a última operação desfeita (Ctrl+Y)",
         "find_series": "Busca série pelo nome (Ctrl+F)",
         "delete": "Remove série ou seleção atual (Delete)",
-        
+
         # Visualizar
         "refresh": "Atualiza visualização com dados mais recentes (F5)",
         "fullscreen": "Alterna modo tela cheia (F11)",
         "redock": "Re-doca todos os painéis destacados (Ctrl+Shift+D)",
-        
+
         # Ferramentas
         "settings": "Abre configurações da aplicação",
         "xlsx_converter": "Converte arquivos Excel (.xlsx) para CSV",
-        
+
         # Ajuda
         "help_contextual": "Mostra ajuda contextual (F1)",
         "keyboard_shortcuts": "Lista todos os atalhos de teclado",
         "about": "Informações sobre a aplicação",
     }
-    
+
     # Tooltips para painéis
     PANEL_TOOLTIPS = {
         "data_panel": "Painel de Dados - Gerencia datasets, séries temporais e seleção de dados",
@@ -58,7 +59,7 @@ class TooltipManager:
         "activity_log_panel": "Log de Atividades - Registro detalhado de todas as operações executadas",
         "data_tables_panel": "Tabelas de Dados - Visualização tabular de dados brutos, interpolados, sincronizados",
     }
-    
+
     # Tooltips para botões comuns
     BUTTON_TOOLTIPS = {
         "load": "Carrega dados de arquivo",
@@ -90,12 +91,12 @@ class TooltipManager:
         "zoom_reset": "Restaura zoom original",
         "fit": "Ajusta visualização ao conteúdo",
     }
-    
+
     @staticmethod
     def add_menu_tooltips(main_window):
         """
         Adiciona tooltips a todas as ações de menu.
-        
+
         Args:
             main_window: Instância de ModernMainWindow
         """
@@ -107,25 +108,25 @@ class TooltipManager:
             "actionLoadData": "load_data",
             "actionExportData": "export_data",
             "actionExit": "exit",
-            
+
             # Editar
             "actionUndo": "undo",
             "actionRedo": "redo",
             "actionFindSeries": "find_series",
-            
+
             # Visualizar
             "actionRefreshData": "refresh",
             "actionFullscreen": "fullscreen",
-            
+
             # Ferramentas
             "actionSettings": "settings",
-            
+
             # Ajuda
             "actionContextualHelp": "help_contextual",
             "actionKeyboardShortcuts": "keyboard_shortcuts",
             "actionAbout": "about",
         }
-        
+
         for attr_name, tooltip_key in tooltip_map.items():
             if hasattr(main_window, attr_name):
                 action = getattr(main_window, attr_name)
@@ -134,12 +135,12 @@ class TooltipManager:
                     if tooltip:
                         action.setToolTip(tooltip)
                         action.setStatusTip(tooltip)
-    
+
     @staticmethod
     def add_panel_tooltips(main_window):
         """
         Adiciona tooltips a todos os painéis (docks).
-        
+
         Args:
             main_window: Instância de ModernMainWindow
         """
@@ -154,20 +155,20 @@ class TooltipManager:
             "activity_log_dock": "activity_log_panel",
             "data_tables_dock": "data_tables_panel",
         }
-        
+
         for attr_name, tooltip_key in panel_map.items():
             if hasattr(main_window, attr_name):
                 dock = getattr(main_window, attr_name)
-                if isinstance(dock, (QDockWidget, QWidget)):
+                if isinstance(dock, QDockWidget | QWidget):
                     tooltip = TooltipManager.PANEL_TOOLTIPS.get(tooltip_key)
                     if tooltip:
                         dock.setToolTip(tooltip)
-    
+
     @staticmethod
     def add_button_tooltip(button: QPushButton, button_type: str):
         """
         Adiciona tooltip a um botão específico.
-        
+
         Args:
             button: Instância de QPushButton
             button_type: Tipo do botão (chave em BUTTON_TOOLTIPS)
@@ -175,23 +176,23 @@ class TooltipManager:
         tooltip = TooltipManager.BUTTON_TOOLTIPS.get(button_type)
         if tooltip:
             button.setToolTip(tooltip)
-    
+
     @staticmethod
     def add_custom_tooltip(widget: QWidget, tooltip: str):
         """
         Adiciona tooltip customizado a um widget.
-        
+
         Args:
             widget: Widget qualquer
             tooltip: Texto do tooltip
         """
         widget.setToolTip(tooltip)
-    
+
     @staticmethod
     def add_all_tooltips(main_window):
         """
         Adiciona todos os tooltips à janela principal.
-        
+
         Args:
             main_window: Instância de ModernMainWindow
         """

@@ -39,6 +39,7 @@ from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
 from platform_base.utils.logging import get_logger
 
+
 if TYPE_CHECKING:
     from platform_base.desktop.session_state import SessionState
     from platform_base.desktop.signal_hub import SignalHub
@@ -58,10 +59,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
     - Status bar with progress indication
     - Auto-save session state
     - Keyboard shortcuts
-    
+
     Interface carregada do arquivo mainWindow.ui.
     """
-    
+
     # Arquivo .ui que define a interface base
     UI_FILE = "mainWindow.ui"
 
@@ -80,7 +81,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             ProcessingWorkerManager,
         )
         self.processing_manager = ProcessingWorkerManager(
-            session_state.dataset_store, signal_hub
+            session_state.dataset_store, signal_hub,
         )
 
         # Carregar interface do arquivo .ui
@@ -95,7 +96,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self._create_menu_bar()
             self._create_tool_bar()
             self._create_status_bar()
-        
+
         self._setup_keyboard_shortcuts()
         self._connect_signals()
 
@@ -110,21 +111,21 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         """Configura a UI carregada do arquivo .ui"""
         # Inserir painéis reais nos placeholders do .ui
         self._insert_panels_into_placeholders()
-        
+
         # Conectar actions do .ui aos métodos
         self._connect_ui_actions()
-        
+
         # Configurar status bar
         self._setup_status_bar_widgets()
-        
+
         logger.debug("main_window_ui_from_file_configured")
-    
+
     def _insert_panels_into_placeholders(self):
         """Insere os painéis reais nos placeholders definidos no .ui"""
-        
+
         # Data Panel - placeholder: dataPanelPlaceholder no dataDock
         self.data_panel = DataPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'dataDock') and hasattr(self, 'dataPanelPlaceholder'):
+        if hasattr(self, "dataDock") and hasattr(self, "dataPanelPlaceholder"):
             layout = QVBoxLayout(self.dataPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.data_panel)
@@ -135,10 +136,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self.data_dock.setWidget(self.data_panel)
             self.data_dock.setObjectName("DataPanel")
             self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.data_dock)
-        
+
         # Visualization Panel - placeholder: vizPanelPlaceholder no centralWidget
         self.viz_panel = VizPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'vizPanelPlaceholder'):
+        if hasattr(self, "vizPanelPlaceholder"):
             layout = QVBoxLayout(self.vizPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.viz_panel)
@@ -147,10 +148,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             central_layout = QHBoxLayout()
             central_layout.addWidget(self.viz_panel)
             self.centralWidget().setLayout(central_layout)
-        
+
         # Config Panel - placeholder: configPanelPlaceholder no configDock
         self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'configDock') and hasattr(self, 'configPanelPlaceholder'):
+        if hasattr(self, "configDock") and hasattr(self, "configPanelPlaceholder"):
             layout = QVBoxLayout(self.configPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.config_panel)
@@ -160,11 +161,11 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self.config_dock.setWidget(self.config_panel)
             self.config_dock.setObjectName("ConfigPanel")
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
-        
+
         # Operations Panel - placeholder: operationsPanelPlaceholder no operationsDock
         from platform_base.ui.panels.operations_panel import OperationsPanel
         self.operations_panel = OperationsPanel(self.session_state)
-        if hasattr(self, 'operationsDock') and hasattr(self, 'operationsPanelPlaceholder'):
+        if hasattr(self, "operationsDock") and hasattr(self, "operationsPanelPlaceholder"):
             layout = QVBoxLayout(self.operationsPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.operations_panel)
@@ -174,17 +175,17 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self.operations_dock.setWidget(self.operations_panel)
             self.operations_dock.setObjectName("OperationsPanel")
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
-        
+
         # Tabify config e operations
         self.tabifyDockWidget(self.config_dock, self.operations_dock)
         self.config_dock.raise_()
-        
+
         # Streaming Panel - placeholder: streamingPanelPlaceholder no streamingDock
         from platform_base.ui.panels.streaming_panel import StreamingPanel
         self.streaming_panel = StreamingPanel()
         self.streaming_panel.position_changed.connect(self._on_streaming_position_changed)
         self.streaming_panel.state_changed.connect(self._on_streaming_state_changed)
-        if hasattr(self, 'streamingDock') and hasattr(self, 'streamingPanelPlaceholder'):
+        if hasattr(self, "streamingDock") and hasattr(self, "streamingPanelPlaceholder"):
             layout = QVBoxLayout(self.streamingPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.streaming_panel)
@@ -194,10 +195,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self.streaming_dock.setWidget(self.streaming_panel)
             self.streaming_dock.setObjectName("StreamingPanel")
             self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.streaming_dock)
-        
+
         # Results Panel - placeholder: resultsPanelPlaceholder no resultsDock
         self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
-        if hasattr(self, 'resultsDock') and hasattr(self, 'resultsPanelPlaceholder'):
+        if hasattr(self, "resultsDock") and hasattr(self, "resultsPanelPlaceholder"):
             layout = QVBoxLayout(self.resultsPanelPlaceholder)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(self.results_panel)
@@ -207,104 +208,104 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self.results_dock.setWidget(self.results_panel)
             self.results_dock.setObjectName("ResultsPanel")
             self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
-        
+
         # Tabify bottom panels
         self.tabifyDockWidget(self.streaming_dock, self.results_dock)
         self.streaming_dock.raise_()
-        
+
         logger.debug("panels_inserted_into_placeholders")
-    
+
     def _connect_ui_actions(self):
         """Conecta as QActions do .ui aos métodos da classe"""
-        
+
         # File menu actions
-        if hasattr(self, 'actionNewSession'):
+        if hasattr(self, "actionNewSession"):
             self.actionNewSession.triggered.connect(self._new_session)
-        if hasattr(self, 'actionOpenSession'):
+        if hasattr(self, "actionOpenSession"):
             self.actionOpenSession.triggered.connect(self._open_session)
-        if hasattr(self, 'actionSaveSession'):
+        if hasattr(self, "actionSaveSession"):
             self.actionSaveSession.triggered.connect(self._save_session)
-        if hasattr(self, 'actionLoadData'):
+        if hasattr(self, "actionLoadData"):
             self.actionLoadData.triggered.connect(self._load_data)
-        if hasattr(self, 'actionExportData'):
+        if hasattr(self, "actionExportData"):
             self.actionExportData.triggered.connect(self._export_data)
-        if hasattr(self, 'actionExit'):
+        if hasattr(self, "actionExit"):
             self.actionExit.triggered.connect(self.close)
-        
+
         # Edit menu actions
-        if hasattr(self, 'actionUndo'):
+        if hasattr(self, "actionUndo"):
             self.undo_action = self.actionUndo
             self.actionUndo.triggered.connect(self._undo_operation)
         else:
             self.undo_action = QAction(tr("&Undo"), self)
             self.undo_action.setEnabled(False)
-        
-        if hasattr(self, 'actionRedo'):
+
+        if hasattr(self, "actionRedo"):
             self.redo_action = self.actionRedo
             self.actionRedo.triggered.connect(self._redo_operation)
         else:
             self.redo_action = QAction(tr("&Redo"), self)
             self.redo_action.setEnabled(False)
-        
-        if hasattr(self, 'actionFindSeries'):
+
+        if hasattr(self, "actionFindSeries"):
             self.actionFindSeries.triggered.connect(self._find_series)
-        
+
         # View menu actions
-        if hasattr(self, 'actionRefreshData'):
+        if hasattr(self, "actionRefreshData"):
             self.actionRefreshData.triggered.connect(self._refresh_data)
-        if hasattr(self, 'actionFullscreen'):
+        if hasattr(self, "actionFullscreen"):
             self.actionFullscreen.triggered.connect(self._toggle_fullscreen)
-        if hasattr(self, 'actionThemeLight'):
+        if hasattr(self, "actionThemeLight"):
             self.actionThemeLight.triggered.connect(lambda: self._set_theme("light"))
-        if hasattr(self, 'actionThemeDark'):
+        if hasattr(self, "actionThemeDark"):
             self.actionThemeDark.triggered.connect(lambda: self._set_theme("dark"))
-        if hasattr(self, 'actionThemeAuto'):
+        if hasattr(self, "actionThemeAuto"):
             self.actionThemeAuto.triggered.connect(lambda: self._set_theme("auto"))
-        
+
         # Tools menu actions
-        if hasattr(self, 'actionSettings'):
+        if hasattr(self, "actionSettings"):
             self.actionSettings.triggered.connect(self._show_settings)
-        
+
         # Help menu actions
-        if hasattr(self, 'actionContextualHelp'):
+        if hasattr(self, "actionContextualHelp"):
             self.actionContextualHelp.triggered.connect(self._show_contextual_help)
-        if hasattr(self, 'actionKeyboardShortcuts'):
+        if hasattr(self, "actionKeyboardShortcuts"):
             self.actionKeyboardShortcuts.triggered.connect(self._show_keyboard_shortcuts)
-        if hasattr(self, 'actionAbout'):
+        if hasattr(self, "actionAbout"):
             self.actionAbout.triggered.connect(self._show_about)
-        
+
         # Adicionar toggle actions dos painéis ao menu View/Panels
-        if hasattr(self, 'menuPanels'):
+        if hasattr(self, "menuPanels"):
             self.menuPanels.addAction(self.data_dock.toggleViewAction())
             self.menuPanels.addAction(self.config_dock.toggleViewAction())
             self.menuPanels.addAction(self.operations_dock.toggleViewAction())
             self.menuPanels.addAction(self.streaming_dock.toggleViewAction())
             self.menuPanels.addAction(self.results_dock.toggleViewAction())
-        
+
         logger.debug("ui_actions_connected")
-    
+
     def _setup_status_bar_widgets(self):
         """Configura widgets adicionais na status bar"""
         # statusBar pode ser um atributo (do .ui) ou um método (fallback)
-        if hasattr(self, 'statusBar') and isinstance(self.statusBar, QWidget):
+        if hasattr(self, "statusBar") and isinstance(self.statusBar, QWidget):
             status_bar = self.statusBar
         else:
             status_bar = super().statusBar()
-        
+
         # Status label
         self.status_label = QLabel("Ready")
         status_bar.addWidget(self.status_label)
-        
+
         # Progress bar (initially hidden)
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         self.progress_bar.setMaximumWidth(200)
         status_bar.addPermanentWidget(self.progress_bar)
-        
+
         # Memory usage label
         self.memory_label = QLabel()
         status_bar.addPermanentWidget(self.memory_label)
-        
+
         # Update memory usage periodically
         self.memory_timer = QTimer()
         self.memory_timer.timeout.connect(self._update_memory_usage)
@@ -663,7 +664,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         # Operations panel signals (BUG-004 FIX)
         self.operations_panel.operation_requested.connect(self._handle_operation_request)
         self.operations_panel.export_requested.connect(self._handle_export_request)
-        
+
         # Streaming signal - conecta streaming do OperationsPanel ao VizPanel
         self.operations_panel.streaming_data_updated.connect(self._on_streaming_data_updated)
 
@@ -671,10 +672,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
         self.undo_manager.can_redo_changed.connect(self.redo_action.setEnabled)
         self.undo_manager.undo_text_changed.connect(
-            lambda text: self.undo_action.setText(f"&Undo {text}" if text else "&Undo")
+            lambda text: self.undo_action.setText(f"&Undo {text}" if text else "&Undo"),
         )
         self.undo_manager.redo_text_changed.connect(
-            lambda text: self.redo_action.setText(f"&Redo {text}" if text else "&Redo")
+            lambda text: self.redo_action.setText(f"&Redo {text}" if text else "&Redo"),
         )
 
         logger.debug("signals_connected")
@@ -819,36 +820,36 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             if operation_type == "interpolation":
                 method = params.get("method", "linear")
                 self.processing_manager.start_interpolation(
-                    operation_id, dataset_id, series_id, method, params
+                    operation_id, dataset_id, series_id, method, params,
                 )
             elif operation_type == "calculus":
                 operation = params.get("operation", "derivative_1st")
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation, params
+                    operation_id, dataset_id, series_id, operation, params,
                 )
             elif operation_type == "synchronization":
                 series_ids = list(selection.series_ids)
                 method = params.get("method", "dtw")
                 self.processing_manager.start_synchronization(
-                    operation_id, dataset_id, series_ids, method, params
+                    operation_id, dataset_id, series_ids, method, params,
                 )
             elif operation_type in ("derivative", "derivative_1st", "derivative_2nd", "derivative_3rd"):
                 # Handle derivative operations directly
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation_type, params
+                    operation_id, dataset_id, series_id, operation_type, params,
                 )
             elif operation_type == "integral":
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, "integral", params
+                    operation_id, dataset_id, series_id, "integral", params,
                 )
             elif operation_type == "area":
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, "area", params
+                    operation_id, dataset_id, series_id, "area", params,
                 )
             elif operation_type in ("smoothing", "remove_outliers"):
                 # Handle filtering operations via calculus worker
                 self.processing_manager.start_calculus(
-                    operation_id, dataset_id, series_id, operation_type, params
+                    operation_id, dataset_id, series_id, operation_type, params,
                 )
             else:
                 logger.warning("unknown_operation_type", operation_type=operation_type)
@@ -882,7 +883,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         if isinstance(result, dict):
             operation_type = result.get("operation", "unknown")
             series_id = result.get("series_id")
-            series_name = result.get("series_name", series_id)
+            result.get("series_name", series_id)
 
             # Add result to results panel
             if hasattr(self.results_panel, "add_result"):
@@ -908,7 +909,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                                 selection.dataset_id,
                                 series_id,
                                 new_series,
-                                dataset.timestamps if hasattr(dataset, 'timestamps') else dataset.t_seconds
+                                dataset.timestamps if hasattr(dataset, "timestamps") else dataset.t_seconds,
                             )
                             logger.info("new_series_plotted", series_id=series_id)
                     except Exception as e:
@@ -943,7 +944,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
     def _handle_operation_request(self, operation_name: str, params: dict):
         """
         Handle operation request from OperationsPanel.
-        
+
         This connects the UI to the processing backend.
         """
         logger.info("operation_requested", operation=operation_name, params=params)
@@ -954,26 +955,26 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.warning(
                 self,
                 "No Data Selected",
-                "Please select a data series before performing this operation."
+                "Please select a data series before performing this operation.",
             )
             return
 
         try:
             # Get the selected dataset and series
-            dataset_id = selection[0].dataset_id if hasattr(selection[0], 'dataset_id') else None
-            series_id = selection[0].series_id if hasattr(selection[0], 'series_id') else None
+            dataset_id = selection[0].dataset_id if hasattr(selection[0], "dataset_id") else None
+            series_id = selection[0].series_id if hasattr(selection[0], "series_id") else None
 
             if not dataset_id or not series_id:
                 # Try alternate selection format
                 if isinstance(selection, dict):
-                    dataset_id = selection.get('dataset_id')
-                    series_id = selection.get('series_id')
+                    dataset_id = selection.get("dataset_id")
+                    series_id = selection.get("series_id")
 
             if not dataset_id or not series_id:
                 QMessageBox.warning(
                     self,
                     "Invalid Selection",
-                    "Could not determine selected series. Please select a series from the data panel."
+                    "Could not determine selected series. Please select a series from the data panel.",
                 )
                 return
 
@@ -982,7 +983,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                 operation_type=operation_name,
                 dataset_id=dataset_id,
                 series_id=series_id,
-                params=params
+                params=params,
             )
 
             # Show feedback
@@ -997,7 +998,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.critical(
                 self,
                 "Operation Failed",
-                f"Failed to start operation '{operation_name}':\\n{str(e)}"
+                f"Failed to start operation '{operation_name}':\\n{e!s}",
             )
 
     @pyqtSlot(str, dict)
@@ -1009,11 +1010,11 @@ class MainWindow(QMainWindow, UiLoaderMixin):
 
         # Get output path from user
         file_filters = {
-            'csv': "CSV Files (*.csv)",
-            'excel': "Excel Files (*.xlsx)",
-            'parquet': "Parquet Files (*.parquet)",
-            'hdf5': "HDF5 Files (*.h5 *.hdf5)",
-            'json': "JSON Files (*.json)",
+            "csv": "CSV Files (*.csv)",
+            "excel": "Excel Files (*.xlsx)",
+            "parquet": "Parquet Files (*.parquet)",
+            "hdf5": "HDF5 Files (*.h5 *.hdf5)",
+            "json": "JSON Files (*.json)",
         }
 
         file_filter = file_filters.get(format_type, "All Files (*.*)")
@@ -1022,7 +1023,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             self,
             f"Export as {format_type.upper()}",
             "",
-            file_filter
+            file_filter,
         )
 
         if file_path:
@@ -1030,18 +1031,18 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             logger.info("export_started", path=file_path, format=format_type)
 
             # Get current dataset and series selection
-            current_selection = self.session_state.get_active_selection() if hasattr(self.session_state, 'get_active_selection') else None
-            dataset_id = current_selection.get('dataset_id') if current_selection else None
-            series_ids = current_selection.get('series_ids') if current_selection else None
+            current_selection = self.session_state.get_active_selection() if hasattr(self.session_state, "get_active_selection") else None
+            dataset_id = current_selection.get("dataset_id") if current_selection else None
+            series_ids = current_selection.get("series_ids") if current_selection else None
 
-            if not dataset_id and hasattr(self.data_panel, 'get_selected_dataset_id'):
+            if not dataset_id and hasattr(self.data_panel, "get_selected_dataset_id"):
                 dataset_id = self.data_panel.get_selected_dataset_id()
 
             if not dataset_id:
                 QMessageBox.warning(
                     self,
                     "No Data Selected",
-                    "Please select a dataset or series to export."
+                    "Please select a dataset or series to export.",
                 )
                 self.status_label.setText("Export cancelled - no data selected")
                 return
@@ -1050,18 +1051,18 @@ class MainWindow(QMainWindow, UiLoaderMixin):
             from platform_base.desktop.workers.export_worker import DataExportWorker
 
             export_config = {
-                'delimiter': options.get('delimiter', ','),
-                'encoding': options.get('encoding', 'utf-8'),
-                'include_metadata': options.get('include_metadata', True),
+                "delimiter": options.get("delimiter", ","),
+                "encoding": options.get("encoding", "utf-8"),
+                "include_metadata": options.get("include_metadata", True),
             }
 
             self.export_worker = DataExportWorker(
-                dataset_store=self.signal_hub.dataset_store if hasattr(self.signal_hub, 'dataset_store') else None,
+                dataset_store=self.signal_hub.dataset_store if hasattr(self.signal_hub, "dataset_store") else None,
                 dataset_id=dataset_id,
                 series_ids=series_ids,
                 output_path=file_path,
                 format_type=format_type,
-                export_config=export_config
+                export_config=export_config,
             )
 
             # Connect worker signals
@@ -1084,7 +1085,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         QMessageBox.information(
             self,
             "Export Complete",
-            "Data exported successfully."
+            "Data exported successfully.",
         )
 
     @pyqtSlot(str, object, object)
@@ -1095,9 +1096,9 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         """
         try:
             # Atualizar o gráfico 2D atual no VizPanel
-            if hasattr(self.viz_panel, 'plot_tabs'):
+            if hasattr(self.viz_panel, "plot_tabs"):
                 current_tab = self.viz_panel.plot_tabs.currentWidget()
-                
+
                 # Se for um Plot2DWidget, atualizar diretamente
                 from platform_base.desktop.widgets.viz_panel import Plot2DWidget
 
@@ -1110,7 +1111,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                     for child in current_tab.findChildren(Plot2DWidget) if current_tab else []:
                         plot_widget = child
                         break
-                
+
                 # Se não encontrar, criar um novo plot tab
                 if plot_widget is None:
                     # Criar novo tab de streaming
@@ -1122,9 +1123,9 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                     self.viz_panel.active_plots["streaming"] = {
                         "widget": plot_widget,
                         "type": "2d",
-                        "series": {}
+                        "series": {},
                     }
-                
+
                 # Atualizar dados da série
                 if series_id in plot_widget._series_data:
                     # Série já existe - atualizar dados
@@ -1134,10 +1135,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                     # Nova série - adicionar ao gráfico
                     series_index = len(plot_widget._series_data)
                     plot_widget.add_series(series_id, x_data, y_data, series_index, series_id)
-                
+
                 # Auto-range para ajustar visualização
                 plot_widget.enableAutoRange()
-                
+
         except Exception as e:
             logger.exception("streaming_update_failed", error=str(e))
 
@@ -1158,88 +1159,88 @@ class MainWindow(QMainWindow, UiLoaderMixin):
     def _export_data(self):
         """Export data to file"""
         logger.info("export_data_requested")
-        
+
         # Get current dataset selection
         dataset_id = None
         series_ids = None
-        
-        if hasattr(self.data_panel, 'get_selected_dataset_id'):
+
+        if hasattr(self.data_panel, "get_selected_dataset_id"):
             dataset_id = self.data_panel.get_selected_dataset_id()
-        
-        if hasattr(self.data_panel, 'get_selected_series_ids'):
+
+        if hasattr(self.data_panel, "get_selected_series_ids"):
             series_ids = self.data_panel.get_selected_series_ids()
-        
+
         if not dataset_id:
             QMessageBox.warning(
                 self, "No Data Selected",
-                "Please select a dataset to export."
+                "Please select a dataset to export.",
             )
             return
-        
+
         # Show file dialog for export
         file_filters = (
             "CSV Files (*.csv);;Excel Files (*.xlsx);;Parquet Files (*.parquet);;"
             "HDF5 Files (*.h5 *.hdf5);;All Files (*.*)"
         )
-        
+
         file_path, selected_filter = QFileDialog.getSaveFileName(
-            self, "Export Data", "", file_filters
+            self, "Export Data", "", file_filters,
         )
-        
+
         if not file_path:
             return
-        
+
         # Determine format from filter or extension
-        if "CSV" in selected_filter or file_path.endswith('.csv'):
+        if "CSV" in selected_filter or file_path.endswith(".csv"):
             format_type = "csv"
-        elif "Excel" in selected_filter or file_path.endswith('.xlsx'):
+        elif "Excel" in selected_filter or file_path.endswith(".xlsx"):
             format_type = "xlsx"
-        elif "Parquet" in selected_filter or file_path.endswith('.parquet'):
+        elif "Parquet" in selected_filter or file_path.endswith(".parquet"):
             format_type = "parquet"
-        elif "HDF5" in selected_filter or file_path.endswith(('.h5', '.hdf5')):
+        elif "HDF5" in selected_filter or file_path.endswith((".h5", ".hdf5")):
             format_type = "hdf5"
         else:
             format_type = "csv"
-            if not file_path.endswith('.csv'):
-                file_path += '.csv'
-        
+            if not file_path.endswith(".csv"):
+                file_path += ".csv"
+
         # Start export worker
         self.status_label.setText(f"Exporting to {format_type}...")
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        
+
         from platform_base.desktop.workers.export_worker import DataExportWorker
-        
+
         export_config = {
-            'delimiter': ',',
-            'encoding': 'utf-8',
-            'include_metadata': True,
+            "delimiter": ",",
+            "encoding": "utf-8",
+            "include_metadata": True,
         }
-        
+
         self._export_worker = DataExportWorker(
             dataset_store=self.session_state.dataset_store,
             dataset_id=dataset_id,
             series_ids=series_ids,
             output_path=file_path,
             format_type=format_type,
-            export_config=export_config
+            export_config=export_config,
         )
-        
+
         # Connect worker signals
         self._export_worker.progress.connect(lambda p, m: (
             self.progress_bar.setValue(p),
-            self.status_label.setText(m)
+            self.status_label.setText(m),
         ))
         self._export_worker.error.connect(lambda e: (
             QMessageBox.critical(self, "Export Error", str(e)),
-            self.progress_bar.setVisible(False)
+            self.progress_bar.setVisible(False),
         ))
         self._export_worker.finished.connect(lambda: (
             self.progress_bar.setVisible(False),
             self.status_label.setText("Export completed"),
-            QMessageBox.information(self, "Export Complete", f"Data exported to:\n{file_path}")
+            QMessageBox.information(self, "Export Complete", f"Data exported to:\n{file_path}"),
         ))
-        
+
         self._export_worker.start()
         logger.info("export_started", path=file_path, format=format_type)
 
@@ -1272,37 +1273,37 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         """Find/filter series in data panel"""
         self.status_label.setText("Find series")
         logger.info("find_series_requested")
-        
+
         # Focus data panel search if it exists
         if hasattr(self.data_panel, "show_search"):
             self.data_panel.show_search()
             return
-            
+
         # Try to find search field in data panel
         if hasattr(self.data_panel, "_search_edit"):
             self.data_panel._search_edit.setFocus()
             self.data_panel._search_edit.selectAll()
             return
-        
+
         # Try to find filter edit
         if hasattr(self.data_panel, "_filter_edit"):
             self.data_panel._filter_edit.setFocus()
             self.data_panel._filter_edit.selectAll()
             return
-        
+
         # Ensure data panel is visible and try generic focus
-        if hasattr(self, 'data_dock'):
+        if hasattr(self, "data_dock"):
             self.data_dock.raise_()
             self.data_dock.setFocus()
-            
+
         # Show search dialog as fallback
         from PyQt6.QtWidgets import QInputDialog
-        
+
         search_text, ok = QInputDialog.getText(
             self, "Find Series",
-            "Enter series name to search:"
+            "Enter series name to search:",
         )
-        
+
         if ok and search_text:
             # Try to apply filter to data panel
             if hasattr(self.data_panel, "filter_series"):
@@ -1316,39 +1317,39 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         """Refresh/reload current data from source file"""
         self.status_label.setText("Refreshing data...")
         logger.info("refresh_data_requested")
-        
+
         # Get current dataset
         dataset_id = None
-        if hasattr(self.data_panel, 'get_selected_dataset_id'):
+        if hasattr(self.data_panel, "get_selected_dataset_id"):
             dataset_id = self.data_panel.get_selected_dataset_id()
-        
+
         if not dataset_id:
             self.status_label.setText("No dataset selected")
             QMessageBox.warning(
                 self, "No Dataset",
-                "Please select a dataset to refresh."
+                "Please select a dataset to refresh.",
             )
             return
-        
+
         try:
             # Get dataset info
             dataset = self.session_state.dataset_store.get_dataset(dataset_id)
-            source_path = dataset.source.filepath if hasattr(dataset.source, 'filepath') else None
-            
+            source_path = dataset.source.filepath if hasattr(dataset.source, "filepath") else None
+
             if source_path and Path(source_path).exists():
                 # Reload from source
                 self.progress_bar.setVisible(True)
                 self.progress_bar.setValue(0)
-                
+
                 # Emit signal to reload - data panel handles actual reload
-                if hasattr(self.signal_hub, 'dataset_reload_requested'):
+                if hasattr(self.signal_hub, "dataset_reload_requested"):
                     self.signal_hub.dataset_reload_requested.emit(dataset_id)
-                elif hasattr(self.data_panel, 'reload_dataset'):
+                elif hasattr(self.data_panel, "reload_dataset"):
                     self.data_panel.reload_dataset(dataset_id)
                 else:
                     # Manual reload via data panel
                     self.signal_hub.status_updated.emit(f"Reloading {dataset_id}...")
-                    
+
                 self.progress_bar.setValue(100)
                 self.progress_bar.setVisible(False)
                 self.status_label.setText(f"Refreshed: {dataset_id}")
@@ -1358,20 +1359,20 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                 self.signal_hub.status_updated.emit("Views refreshed")
                 self.status_label.setText("Views refreshed (no source file)")
                 logger.info("views_refreshed", dataset_id=dataset_id)
-                
+
             # Update all connected views
-            if hasattr(self.signal_hub, 'data_changed'):
+            if hasattr(self.signal_hub, "data_changed"):
                 self.signal_hub.data_changed.emit()
-            if hasattr(self.viz_panel, 'refresh'):
+            if hasattr(self.viz_panel, "refresh"):
                 self.viz_panel.refresh()
-                
+
         except Exception as e:
             logger.exception("refresh_failed", error=str(e))
             self.status_label.setText("Refresh failed")
             self.progress_bar.setVisible(False)
             QMessageBox.warning(
                 self, "Refresh Failed",
-                f"Could not refresh data:\n{e!s}"
+                f"Could not refresh data:\n{e!s}",
             )
 
     @pyqtSlot()
@@ -1389,14 +1390,14 @@ class MainWindow(QMainWindow, UiLoaderMixin):
     @pyqtSlot()
     def _show_contextual_help(self):
         """Show contextual help for current widget
-        
+
         Identifies the focused widget and displays relevant help content.
         """
         from PyQt6.QtWidgets import QApplication
 
         # Get currently focused widget
         focused = QApplication.focusWidget()
-        
+
         # Help content mapping based on widget type and object name
         help_content = {
             # Panel types
@@ -1416,7 +1417,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
 <li><b>Ctrl+F:</b> Focus search field</li>
 <li><b>Ctrl+A:</b> Select all series</li>
 <li><b>Delete:</b> Remove selected series</li>
-</ul>"""
+</ul>""",
             },
             "VizPanel": {
                 "title": "Visualization Panel Help",
@@ -1434,7 +1435,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
 <li><b>Pan:</b> Click and drag</li>
 <li><b>Zoom:</b> Scroll wheel or select region</li>
 <li><b>Right-click:</b> Plot context menu</li>
-</ul>"""
+</ul>""",
             },
             "ResultsPanel": {
                 "title": "Results Panel Help",
@@ -1445,7 +1446,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
 <li><b>Statistics:</b> Min, max, mean, std, etc.</li>
 <li><b>Distribution:</b> Histogram and distribution stats</li>
 <li><b>Correlation:</b> Cross-series correlation</li>
-</ul>"""
+</ul>""",
             },
             "StreamingControls": {
                 "title": "Streaming Controls Help",
@@ -1457,10 +1458,10 @@ class MainWindow(QMainWindow, UiLoaderMixin):
 <li><b>Speed:</b> Adjust playback speed</li>
 <li><b>Window:</b> Set visible time window</li>
 <li><b>Loop:</b> Enable continuous playback</li>
-</ul>"""
+</ul>""",
             },
         }
-        
+
         # Default help content
         default_help = {
             "title": "Platform Base Help",
@@ -1479,19 +1480,19 @@ class MainWindow(QMainWindow, UiLoaderMixin):
 <li><b>F5:</b> Refresh data</li>
 <li><b>F11:</b> Fullscreen</li>
 <li><b>Ctrl+Z/Y:</b> Undo/Redo</li>
-</ul>"""
+</ul>""",
         }
-        
+
         # Find help content for focused widget
         help_info = default_help
-        
+
         if focused is not None:
             # Check widget and its parents for matching help
             widget = focused
             while widget is not None:
                 widget_class = widget.__class__.__name__
                 widget_name = widget.objectName()
-                
+
                 # Check by class name
                 if widget_class in help_content:
                     help_info = help_content[widget_class]
@@ -1500,9 +1501,9 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                 if widget_name in help_content:
                     help_info = help_content[widget_name]
                     break
-                    
+
                 widget = widget.parent()
-        
+
         # Show help dialog
         msg = QMessageBox(self)
         msg.setWindowTitle(help_info["title"])
@@ -1510,7 +1511,7 @@ class MainWindow(QMainWindow, UiLoaderMixin):
         msg.setText(help_info["content"])
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg.exec()
-        
+
         self.status_label.setText(f"Help: {help_info['title']}")
         logger.info("contextual_help_shown", title=help_info["title"])
 
@@ -1659,14 +1660,14 @@ class MainWindow(QMainWindow, UiLoaderMixin):
                     time_position = dataset.t_seconds[min(position, total_points - 1)]
 
                     # Get window size from streaming panel
-                    window_frames = self.streaming_panel._window_spin.value() if hasattr(self.streaming_panel, '_window_spin') else 100
+                    window_frames = self.streaming_panel._window_spin.value() if hasattr(self.streaming_panel, "_window_spin") else 100
                     window_size = (dataset.t_seconds[-1] - dataset.t_seconds[0]) * window_frames / total_points
 
                     # Update visualization with sliding window
                     from platform_base.core.models import TimeWindow
                     window = TimeWindow(
                         start=max(0, time_position - window_size / 2),
-                        end=min(dataset.t_seconds[-1], time_position + window_size / 2)
+                        end=min(dataset.t_seconds[-1], time_position + window_size / 2),
                     )
                     self.session_state.set_time_window(window)
 

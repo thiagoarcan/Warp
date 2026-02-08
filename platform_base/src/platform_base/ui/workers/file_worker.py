@@ -15,6 +15,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 from platform_base.io.loader import LoadConfig, load
 from platform_base.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 
