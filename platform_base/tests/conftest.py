@@ -11,17 +11,14 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generator
 from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
 
-
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
     from PyQt6.QtWidgets import QApplication
 
 # Add src to path for imports
@@ -323,13 +320,13 @@ def create_test_csv(path: Path, rows: int = 1000) -> Path:
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with custom markers."""
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
     config.addinivalue_line(
-        "markers", "smoke: smoke tests (critical path tests)",
+        "markers", "smoke: smoke tests (critical path tests)"
     )
     config.addinivalue_line(
-        "markers", "gui: GUI tests requiring Qt",
+        "markers", "gui: GUI tests requiring Qt"
     )
 
 

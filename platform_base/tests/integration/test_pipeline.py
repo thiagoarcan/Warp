@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-
 pytest.importorskip("pandas")
 
 from platform_base.io.loader import load

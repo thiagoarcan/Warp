@@ -1,10 +1,8 @@
 import numpy as np
 import pytest
 
-
 hypothesis = pytest.importorskip("hypothesis")
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 
 from platform_base.processing.calculus import derivative, integral
 

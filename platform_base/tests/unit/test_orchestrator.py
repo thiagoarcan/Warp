@@ -28,7 +28,7 @@ class TestTask:
         task = Task(
             name="test",
             func=lambda x: x + 1,
-            deps=("dep1", "dep2"),
+            deps=("dep1", "dep2")
         )
         assert task.name == "test"
         assert len(task.deps) == 2
@@ -113,7 +113,7 @@ class TestOrchestratorExecution:
         orch.register(Task(
             name="derived",
             func=lambda base: base * 2,
-            deps=("base",),
+            deps=("base",)
         ))
 
         results = orch.run()
@@ -142,7 +142,7 @@ class TestOrchestratorExecution:
         orch.register(Task(
             name="sum",
             func=lambda x, y: x + y,
-            deps=("x", "y"),
+            deps=("x", "y")
         ))
 
         results = orch.run()
@@ -158,7 +158,7 @@ class TestOrchestratorInputs:
         orch.register(Task(
             name="double",
             func=lambda value: value * 2,
-            deps=("value",),
+            deps=("value",)
         ))
 
         results = orch.run(inputs={"value": 5})
@@ -171,7 +171,7 @@ class TestOrchestratorInputs:
         orch.register(Task(
             name="combined",
             func=lambda computed, external: computed + external,
-            deps=("computed", "external"),
+            deps=("computed", "external")
         ))
 
         results = orch.run(inputs={"external": 50})
@@ -218,7 +218,7 @@ class TestOrchestratorComplexGraphs:
         orch.register(Task(
             name="d",
             func=lambda b, c: b + c,
-            deps=("b", "c"),
+            deps=("b", "c")
         ))
 
         results = orch.run()
@@ -253,7 +253,7 @@ class TestOrchestratorComplexGraphs:
             orch.register(Task(
                 name=f"task_{i}",
                 func=lambda prev_val, i=i: prev_val + 1,
-                deps=(prev,),
+                deps=(prev,)
             ))
 
         results = orch.run()

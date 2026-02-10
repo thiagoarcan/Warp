@@ -7,7 +7,7 @@ Cobertura:
 - Interpolação smoothing spline
 - Resampling de grid
 - Moving Least Squares (MLS)
-- Gaussian Process Regression (GPR)
+- Gaussian Process Regression (GPR) 
 - Lomb-Scargle spectral
 - Casos de borda e erros
 """
@@ -17,7 +17,6 @@ import pytest
 
 from platform_base.processing.interpolation import SUPPORTED_METHODS, interpolate
 from platform_base.utils.errors import InterpolationError
-
 
 # =============================================================================
 # Fixtures específicas para interpolação
@@ -64,7 +63,7 @@ class TestLinearInterpolation:
         """Interpolação linear preenche gap corretamente."""
         t, y = linear_data_with_gap
         result = interpolate(y, t, method="linear", params={})
-
+        
         # Verificar que os valores interpolados seguem a linha
         expected = 2 * t + 1
         np.testing.assert_array_almost_equal(result.values, expected, decimal=5)
@@ -74,7 +73,7 @@ class TestLinearInterpolation:
         t, y = data_with_gaps
         original_mask = ~np.isnan(y)
         result = interpolate(y, t, method="linear", params={})
-
+        
         np.testing.assert_array_almost_equal(
             result.values[original_mask],
             np.sin(t)[original_mask],
@@ -85,7 +84,7 @@ class TestLinearInterpolation:
         """Interpolação linear preenche múltiplos gaps."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="linear", params={})
-
+        
         # Não deve haver NaN no resultado
         assert not np.any(np.isnan(result.values))
 
@@ -94,7 +93,7 @@ class TestLinearInterpolation:
         t, y = data_with_gaps
         original_nan_mask = np.isnan(y)
         result = interpolate(y, t, method="linear", params={})
-
+        
         # A máscara de interpolação deve coincidir com os NaNs originais
         np.testing.assert_array_equal(
             result.interpolation_info.is_interpolated_mask,
@@ -105,11 +104,11 @@ class TestLinearInterpolation:
         """Interpolação linear registra método usado por ponto."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="linear", params={})
-
+        
         # Pontos interpolados devem ter "linear", originais devem ter "original"
         original_mask = ~np.isnan(y)
         assert all(m == "original" for m in result.interpolation_info.method_used[original_mask])
-
+        
         interp_mask = np.isnan(y)
         assert all(m == "linear" for m in result.interpolation_info.method_used[interp_mask])
 
@@ -125,14 +124,14 @@ class TestSplineCubicInterpolation:
         """Spline cúbica preenche gaps."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="spline_cubic", params={})
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_spline_cubic_smooth_transition(self, data_with_gaps):
         """Spline cúbica produz transição suave."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="spline_cubic", params={})
-
+        
         # A derivada deve ser contínua (mudanças suaves)
         diff = np.diff(result.values)
         # Não deve haver saltos abruptos
@@ -142,7 +141,7 @@ class TestSplineCubicInterpolation:
         """Spline cúbica aproxima bem uma senóide."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="spline_cubic", params={})
-
+        
         # Comparar com a função original
         expected = np.sin(t)
         # Tolerância maior porque spline não é perfeita
@@ -160,20 +159,20 @@ class TestSmoothingSplineInterpolation:
         """Smoothing spline preenche gaps."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="smoothing_spline", params={"s": 0.5})
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_smoothing_spline_reduces_noise(self, irregular_data):
         """Smoothing spline reduz ruído dos dados."""
         t, y = irregular_data
         result = interpolate(y, t, method="smoothing_spline", params={"s": 1.0})
-
+        
         # O resultado deve ser mais suave que os dados originais
         # (menor ou igual variância nas diferenças)
         # Nota: com s muito pequeno, pode não suavizar
         original_diff_var = np.var(np.diff(y))
         result_diff_var = np.var(np.diff(result.values))
-
+        
         # Permitir que seja igual ou menor (não deve aumentar a variância)
         assert result_diff_var <= original_diff_var + 1e-10
 
@@ -190,9 +189,9 @@ class TestResampleGrid:
         t, y = irregular_data
         dt = 0.5
         result = interpolate(y, t, method="resample_grid", params={"dt": dt})
-
+        
         # Verificar espaçamento uniforme
-        np.diff(result.values)
+        output_dt = np.diff(result.values)
         # Como resample muda o tamanho, verificamos que o output existe
         assert len(result.values) > 0
         assert result.interpolation_info is not None
@@ -202,16 +201,16 @@ class TestResampleGrid:
         t, y = irregular_data
         n_points = 100
         result = interpolate(y, t, method="resample_grid", params={"n_points": n_points})
-
+        
         assert len(result.values) == n_points
 
     def test_resample_grid_requires_params(self, irregular_data):
         """Resample requer dt ou n_points."""
         t, y = irregular_data
-
+        
         with pytest.raises(InterpolationError) as exc_info:
             interpolate(y, t, method="resample_grid", params={})
-
+        
         assert "dt or n_points" in str(exc_info.value)
 
 
@@ -226,13 +225,13 @@ class TestMLSInterpolation:
         """MLS preenche gaps."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="mls", params={"degree": 2})
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_mls_with_different_degrees(self, data_with_gaps):
         """MLS funciona com diferentes graus de polinômio."""
         t, y = data_with_gaps
-
+        
         for degree in [1, 2, 3]:
             result = interpolate(y, t, method="mls", params={"degree": degree})
             assert not np.any(np.isnan(result.values))
@@ -242,9 +241,9 @@ class TestMLSInterpolation:
         t = np.linspace(0, 10, 101)
         y = t ** 2
         y[40:50] = np.nan  # Gap
-
+        
         result = interpolate(y, t, method="mls", params={"degree": 2})
-
+        
         expected = t ** 2
         # MLS deve aproximar bem uma quadrática com degree=2
         np.testing.assert_array_almost_equal(result.values, expected, decimal=0)
@@ -270,7 +269,7 @@ class TestGPRInterpolation:
         pytest.importorskip("sklearn")
         t, y = small_data_with_gap
         result = interpolate(y, t, method="gpr", params={"n_restarts": 1})
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_gpr_with_rbf_kernel(self, small_data_with_gap):
@@ -278,10 +277,10 @@ class TestGPRInterpolation:
         pytest.importorskip("sklearn")
         t, y = small_data_with_gap
         result = interpolate(
-            y, t, method="gpr",
+            y, t, method="gpr", 
             params={"kernel_type": "rbf", "n_restarts": 1},
         )
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_gpr_with_matern_kernel(self, small_data_with_gap):
@@ -289,10 +288,10 @@ class TestGPRInterpolation:
         pytest.importorskip("sklearn")
         t, y = small_data_with_gap
         result = interpolate(
-            y, t, method="gpr",
+            y, t, method="gpr", 
             params={"kernel_type": "matern", "n_restarts": 1},
         )
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_gpr_raises_without_sklearn(self, small_data_with_gap, monkeypatch):
@@ -301,11 +300,11 @@ class TestGPRInterpolation:
 
         # Simular sklearn não disponível
         monkeypatch.setattr(interp_module, "GPR_AVAILABLE", False)
-
+        
         t, y = small_data_with_gap
         with pytest.raises(InterpolationError) as exc_info:
             interpolate(y, t, method="gpr", params={})
-
+        
         assert "scikit-learn" in str(exc_info.value)
 
 
@@ -331,7 +330,7 @@ class TestLombScargleInterpolation:
             y, t, method="lomb_scargle_spectral",
             params={"n_frequencies": 50, "n_components": 5},
         )
-
+        
         assert not np.any(np.isnan(result.values))
 
     def test_lomb_scargle_captures_periodicity(self, periodic_data_with_gap):
@@ -341,11 +340,11 @@ class TestLombScargleInterpolation:
             y, t, method="lomb_scargle_spectral",
             params={"n_frequencies": 100, "n_components": 10},
         )
-
+        
         # O resultado deve ter amplitude similar à original
         original_amplitude = np.nanmax(y) - np.nanmin(y)
         result_amplitude = np.max(result.values) - np.min(result.values)
-
+        
         # Tolerância de 50% na amplitude
         assert abs(result_amplitude - original_amplitude) < 0.5 * original_amplitude
 
@@ -361,17 +360,17 @@ class TestInterpolationEdgeCases:
         """Interpolação com menos de 2 pontos válidos levanta erro."""
         t = np.array([0, 1, 2, 3, 4])
         y = np.array([np.nan, np.nan, 1.0, np.nan, np.nan])  # Apenas 1 ponto válido
-
+        
         with pytest.raises(InterpolationError) as exc_info:
             interpolate(y, t, method="linear", params={})
-
+        
         assert "Not enough points" in str(exc_info.value)
 
     def test_interpolation_all_nan_raises(self):
         """Interpolação com todos NaN levanta erro."""
         t = np.array([0, 1, 2, 3, 4])
         y = np.full(5, np.nan)
-
+        
         with pytest.raises(InterpolationError):
             interpolate(y, t, method="linear", params={})
 
@@ -379,10 +378,10 @@ class TestInterpolationEdgeCases:
         """Método inválido levanta erro."""
         t = np.linspace(0, 10, 101)
         y = np.sin(t)
-
+        
         with pytest.raises(InterpolationError) as exc_info:
             interpolate(y, t, method="invalid_method", params={})
-
+        
         assert "not available" in str(exc_info.value).lower() or "not implemented" in str(exc_info.value).lower()
 
     def test_interpolation_unsorted_time_handled(self):
@@ -391,7 +390,7 @@ class TestInterpolationEdgeCases:
         t = np.random.permutation(np.linspace(0, 10, 101))
         y = np.sin(t)
         y[40:50] = np.nan
-
+        
         # Não deve levantar erro
         result = interpolate(y, t, method="linear", params={})
         assert not np.any(np.isnan(result.values))
@@ -400,7 +399,7 @@ class TestInterpolationEdgeCases:
         """Tempos duplicados são tratados corretamente."""
         t = np.array([0, 1, 1, 2, 3, 4, 5])  # Duplicado em t=1
         y = np.array([0, 1, 1, np.nan, 3, 4, 5])
-
+        
         # Não deve levantar erro
         result = interpolate(y, t, method="linear", params={})
         assert not np.any(np.isnan(result.values))
@@ -417,7 +416,7 @@ class TestInterpolationMetadata:
         """Interpolação gera metadata correta."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="linear", params={})
-
+        
         assert result.metadata is not None
         assert result.metadata.operation == "linear"
 
@@ -425,7 +424,7 @@ class TestInterpolationMetadata:
         """InterpolationInfo tem todos os campos."""
         t, y = data_with_gaps
         result = interpolate(y, t, method="linear", params={})
-
+        
         info = result.interpolation_info
         assert info.is_interpolated_mask is not None
         assert info.method_used is not None
@@ -444,7 +443,7 @@ class TestInterpolationPerformance:
     def test_linear_interpolation_large_dataset(self):
         """Interpolação linear em dataset grande completa em tempo razoável."""
         import time
-
+        
         n = 100_000
         t = np.linspace(0, 1000, n)
         y = np.sin(t)
@@ -452,11 +451,11 @@ class TestInterpolationPerformance:
         np.random.seed(42)
         gap_mask = np.random.random(n) < 0.1  # 10% gaps
         y[gap_mask] = np.nan
-
+        
         start = time.time()
         result = interpolate(y, t, method="linear", params={})
         elapsed = time.time() - start
-
+        
         # Tempo maior para primeira execução (numba compilation overhead)
         assert elapsed < 10.0  # Deve completar em menos de 10 segundos
         assert not np.any(np.isnan(result.values))
@@ -482,9 +481,9 @@ class TestInterpolationSmoke:
         """Interpolação linear básica funciona."""
         t = np.array([0, 1, 2, 3, 4], dtype=float)
         y = np.array([0, np.nan, 2, np.nan, 4], dtype=float)
-
+        
         result = interpolate(y, t, method="linear", params={})
-
+        
         assert not np.any(np.isnan(result.values))
         np.testing.assert_array_almost_equal(result.values, [0, 1, 2, 3, 4])
 
@@ -493,9 +492,9 @@ class TestInterpolationSmoke:
         t = np.linspace(0, 10, 101)
         y = np.sin(t)
         y[50] = np.nan
-
+        
         result = interpolate(y, t, method="spline_cubic", params={})
-
+        
         assert not np.any(np.isnan(result.values))
 
 
