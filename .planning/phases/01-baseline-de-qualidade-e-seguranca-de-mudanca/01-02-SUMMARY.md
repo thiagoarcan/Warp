@@ -1,4 +1,4 @@
----
+﻿---
 phase: 01-baseline-de-qualidade-e-seguranca-de-mudanca
 plan: 02
 subsystem: testing
@@ -51,8 +51,8 @@ completed: 2026-03-31
 
 Execution changes are committed in one plan-level commit due inline Copilot execution mode.
 
-1. **Task 1: Add a runtime baseline harness for startup time and RSS memory** - `pending-in-plan-commit`
-2. **Task 2: Replace the stale validation orchestrator with a real critical-path regression gate** - `pending-in-plan-commit`
+1. **Task 1: Add a runtime baseline harness for startup time and RSS memory** - `268d770`
+2. **Task 2: Replace the stale validation orchestrator with a real critical-path regression gate** - `268d770`
 
 ## Files Created/Modified
 - `platform_base/scripts/capture_runtime_baseline.py` - subprocess harness for launcher startup and RSS metrics.

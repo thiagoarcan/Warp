@@ -1,4 +1,4 @@
----
+﻿---
 phase: 01-baseline-de-qualidade-e-seguranca-de-mudanca
 plan: 01
 subsystem: testing
@@ -50,8 +50,8 @@ completed: 2026-03-31
 
 Execution changes are committed in one plan-level commit due inline Copilot execution mode.
 
-1. **Task 1: Make the short automated-suite runner portable and summary-safe** - `pending-in-plan-commit`
-2. **Task 2: Align the report-oriented runner and persist baseline evidence** - `pending-in-plan-commit`
+1. **Task 1: Make the short automated-suite runner portable and summary-safe** - `268d770`
+2. **Task 2: Align the report-oriented runner and persist baseline evidence** - `268d770`
 
 ## Files Created/Modified
 - `platform_base/run_test_suite.py` - portable runner with deterministic env setup and concise diagnostics.
