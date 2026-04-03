@@ -1,4 +1,4 @@
-# Roadmap: Warp
+﻿# Roadmap: Warp
 
 **Created:** 2026-03-31
 **Granularity:** Standard
@@ -24,20 +24,28 @@
 
 ## Phase 1: Baseline de Qualidade e Seguranca de Mudanca
 
+**Status:** gaps_found (2026-04-03) â€” 2/2 planos completos, 3/4 critÃ©rios verificados
+**Status:** passed (2026-04-03) â€” 2/2 planos completos, 4/4 critÃ©rios verificados
+
 Goal: Criar base confiavel de validacao funcional e performance para reduzir risco de refatoracao.
 
 Requirements:
-- RELY-01
-- RELY-02
-- PERF-03
+- RELY-01 (partial)
+- RELY-01 âœ“
+- RELY-02 âœ“
+- PERF-03 âœ“
 
 Success criteria:
-1. Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
-2. Existe gate minimo de regressao para impedir remocoes sem cobertura dos fluxos criticos.
-3. Baseline inicial de startup e memoria foi capturado para comparacao de ondas.
-4. O time consegue repetir a validacao local com resultados consistentes.
+1. âœ“ Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
+1. âœ“ Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
+2. âœ“ Existe gate minimo de regressao para impedir remocoes sem cobertura dos fluxos criticos.
+3. âœ“ Baseline inicial de startup e memoria foi capturado para comparacao de ondas. (startup_detected=true, 11.56s)
+4. âœ“ O time consegue repetir a validacao local com resultados consistentes.
 
 ## Phase 2: Consolidacao do Runtime de UI
+
+**Status:** planned (2026-04-03)
+**Plans:** 3 plans in 2 waves
 
 Goal: Tornar `ui/` o caminho operacional canonico com launcher unico.
 
@@ -51,7 +59,15 @@ Success criteria:
 3. Smoke tests de startup e fluxo basico validam o caminho canonico.
 4. Plano de deprecacao do caminho antigo esta declarado sem interromper operacao.
 
+Plans:
+- [ ] 02-01-PLAN.md — Consolidar launcher canonico (`launch_app.py`) e wrapper de compatibilidade (`run_app.py`) [Wave 1]
+- [ ] 02-02-PLAN.md — Migrar imports criticos de paineis para `ui.panels` com aliases de compatibilidade [Wave 1]
+- [ ] 02-03-PLAN.md — Alinhar testes/docs/debug com runtime UI canonico e validar gates [Wave 2]
+
 ## Phase 3: Consolidacao de Modulos Canonicos
+
+**Status:** planned (2026-04-03)
+**Plans:** 3 plans in 2 waves
 
 Goal: Remover duplicacoes estruturais em janela principal e ownership de estado/sinal.
 
@@ -65,6 +81,11 @@ Success criteria:
 2. Ownership de signal/session esta centralizado no local definido como fonte da verdade.
 3. Fluxos funcionais acordados mantem comportamento esperado apos consolidacao.
 4. Mudancas foram validadas por testes/smokes definidos no baseline.
+
+Plans:
+- [ ] 03-01-PLAN.md — Canonicalizar ownership de SessionState/SignalHub em core com wrappers desktop [Wave 1]
+- [ ] 03-02-PLAN.md — Consolidar main window unificada e transformar modulos legados em wrappers [Wave 1]
+- [ ] 03-03-PLAN.md — Migrar imports criticos para modulos canonicos e validar gates completos [Wave 2]
 
 ## Phase 4: Limpeza de Divida Tecnica de Entrada
 
@@ -111,3 +132,4 @@ Success criteria:
 | PERF-03 | Phase 1 |
 
 All v1 requirements mapped exactly once: yes.
+
