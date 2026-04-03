@@ -15,7 +15,8 @@ from PyQt6.QtGui import QFont, QIcon, QPixmap
 from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
 
 from platform_base.core.dataset_store import DatasetStore
-from platform_base.ui.main_window import MainWindow
+from platform_base.core.signal_hub import SignalHub
+from platform_base.ui.main_window_unified import MainWindow
 from platform_base.ui.state import SessionState
 from platform_base.utils.errors import PlatformError
 from platform_base.utils.logging import get_logger, setup_logging
@@ -54,6 +55,7 @@ class PlatformApplication(QApplication):
         # State management
         self._dataset_store: DatasetStore | None = None
         self._session_state: SessionState | None = None
+        self._signal_hub: SignalHub | None = None
         self._main_window: MainWindow | None = None
         self._splash: QSplashScreen | None = None
 
@@ -96,6 +98,7 @@ class PlatformApplication(QApplication):
 
             # Initialize session state
             self._session_state = SessionState(self._dataset_store)
+            self._signal_hub = SignalHub()
             self._update_splash("Configurando estado da sessão...")
 
             # Connect shutdown signal
@@ -152,13 +155,13 @@ class PlatformApplication(QApplication):
             True se criação bem-sucedida
         """
         try:
-            if not self._session_state:
-                raise PlatformError("Session state not initialized")
+            if not self._session_state or not self._signal_hub:
+                raise PlatformError("Components not initialized")
 
             self._update_splash("Criando janela principal...")
 
             # Create main window
-            self._main_window = MainWindow(self._session_state)
+            self._main_window = MainWindow(self._session_state, self._signal_hub)
 
             # Setup window
             self._main_window.setWindowIcon(self._get_app_icon())

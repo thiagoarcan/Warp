@@ -7,6 +7,8 @@ Replaces Dash web interface with native PyQt6 desktop application.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import signal
 import sys
 from pathlib import Path
@@ -16,7 +18,6 @@ from PyQt6.QtGui import QFont, QIcon, QPalette, QPixmap
 from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
 
 from platform_base.core.dataset_store import DatasetStore
-from platform_base.desktop.main_window import MainWindow
 from platform_base.desktop.session_state import SessionState
 from platform_base.desktop.signal_hub import SignalHub
 from platform_base.utils.errors import PlatformError
@@ -24,6 +25,10 @@ from platform_base.utils.logging import get_logger, setup_logging
 
 
 logger = get_logger(__name__)
+
+
+if TYPE_CHECKING:
+    from platform_base.ui.main_window_unified import MainWindow
 
 
 class PlatformApplication(QApplication):
@@ -68,7 +73,7 @@ class PlatformApplication(QApplication):
         self._dataset_store: DatasetStore | None = None
         self._session_state: SessionState | None = None
         self._signal_hub: SignalHub | None = None
-        self._main_window: MainWindow | None = None
+        self._main_window: "MainWindow | None" = None
         self._splash: QSplashScreen | None = None
 
         # Setup signal handlers
@@ -299,7 +304,8 @@ class PlatformApplication(QApplication):
 
             self._update_splash("Criando janela principal...")
 
-            # Create main window
+            # Create main window (lazy import avoids circular initialization)
+            from platform_base.ui.main_window_unified import MainWindow
             self._main_window = MainWindow(
                 session_state=self._session_state,
                 signal_hub=self._signal_hub,

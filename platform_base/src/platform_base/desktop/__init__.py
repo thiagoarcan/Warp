@@ -5,7 +5,6 @@ PyQt6 Desktop interface implementation.
 """
 
 from .app import create_application, main
-from .main_window import MainWindow
 from .session_state import SessionState
 from .signal_hub import SignalHub
 
@@ -17,3 +16,10 @@ __all__ = [
     "create_application",
     "main",
 ]
+
+
+def __getattr__(name: str):
+    if name == "MainWindow":
+        from .main_window import MainWindow
+        return MainWindow
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
