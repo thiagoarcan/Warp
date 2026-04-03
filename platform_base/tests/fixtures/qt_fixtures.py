@@ -247,7 +247,7 @@ def real_signal_hub(qtbot: QtBot) -> Generator[Any, None, None]:
     Create a real SignalHub instance for integration tests.
     """
     try:
-        from platform_base.desktop.signal_hub import SignalHub
+        from platform_base.core.signal_hub import SignalHub
         hub = SignalHub()
         yield hub
     except ImportError:
@@ -260,7 +260,7 @@ def real_session_state() -> Generator[Any, None, None]:
     Create a real SessionState instance for integration tests.
     """
     try:
-        from platform_base.desktop.session_state import SessionState
+        from platform_base.core.session_state import SessionState
         state = SessionState()
         yield state
     except ImportError:

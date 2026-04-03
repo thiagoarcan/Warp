@@ -20,8 +20,8 @@ try:
 
     # Import main window - usa versão unificada com todas as funcionalidades
     from platform_base.core.dataset_store import DatasetStore
-    from platform_base.desktop.session_state import SessionState
-    from platform_base.desktop.signal_hub import SignalHub
+    from platform_base.core.session_state import SessionState
+    from platform_base.core.signal_hub import SignalHub
     from platform_base.ui.main_window_unified import ModernMainWindow
     from platform_base.utils.logging import get_logger
 
@@ -52,9 +52,9 @@ try:
 
             # Start event loop
             logger.info("application_started", version="2.0.0")
-            print("Platform Base v2.0 iniciado com sucesso!")
-            print("Interface moderna carregada")
-            print("Todas as correcoes implementadas")
+            print("Platform Base v2.0 iniciado com sucesso!", flush=True)
+            print("Interface moderna carregada", flush=True)
+            print("Todas as correcoes implementadas", flush=True)
 
             # Run application
             exit_code = app.exec()
