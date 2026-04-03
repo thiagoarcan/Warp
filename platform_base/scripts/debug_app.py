@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-"""Debug profundo da aplicação Platform Base v2.0"""
+﻿#!/usr/bin/env python
+"""Debug profundo da aplicaÃ§Ã£o Platform Base v2.0"""
 
 import os
 import sys
@@ -18,7 +18,7 @@ def section(title):
 
 
 def create_app_components():
-    """Cria componentes da aplicação corretamente"""
+    """Cria componentes da aplicaÃ§Ã£o corretamente"""
     from platform_base.core.dataset_store import DatasetStore
     from platform_base.desktop.session_state import SessionState
 
@@ -43,44 +43,44 @@ def test_ui_loader():
         ("panels/viz_panel", False),
     ]
 
-    print("\nValidação de arquivos .ui:")
+    print("\nValidaÃ§Ã£o de arquivos .ui:")
     for ui_name, expected in tests:
         result = validate_ui_file(ui_name)
-        status = "✅" if result == expected else "❌"
-        exists = "existe" if result else "não existe"
+        status = "âœ…" if result == expected else "âŒ"
+        exists = "existe" if result else "nÃ£o existe"
         print(f"  {status} {ui_name}: {exists}")
 
 
 def test_app_initialization():
-    """Testar inicialização da aplicação"""
-    section("5. TESTANDO INICIALIZAÇÃO DA APLICAÇÃO")
+    """Testar inicializaÃ§Ã£o da aplicaÃ§Ã£o"""
+    section("5. TESTANDO INICIALIZAÃ‡ÃƒO DA APLICAÃ‡ÃƒO")
 
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
     try:
         from PyQt6.QtWidgets import QApplication
         QApplication.instance() or QApplication(sys.argv)
-        print("✅ QApplication criado com sucesso")
+        print("âœ… QApplication criado com sucesso")
 
         # Criar componentes corretamente
         dataset_store, session_state = create_app_components()
-        print("✅ DatasetStore criado com sucesso")
-        print("✅ SessionState criado com sucesso")
+        print("âœ… DatasetStore criado com sucesso")
+        print("âœ… SessionState criado com sucesso")
 
         # Testar MainWindow do desktop
         from platform_base.desktop.main_window import MainWindow
         from platform_base.desktop.signal_hub import SignalHub
 
         signal_hub = SignalHub()
-        print("✅ SignalHub criado com sucesso")
+        print("âœ… SignalHub criado com sucesso")
 
         window = MainWindow(session_state, signal_hub)
-        print("✅ MainWindow criado com sucesso")
+        print("âœ… MainWindow criado com sucesso")
         print(f"   Tamanho: {window.size().width()}x{window.size().height()}")
 
         return True
     except Exception as e:
-        print(f"❌ Erro na inicialização: {type(e).__name__}: {e}")
+        print(f"âŒ Erro na inicializaÃ§Ã£o: {type(e).__name__}: {e}")
         traceback.print_exc()
         return False
 
@@ -91,13 +91,13 @@ def test_data_loading():
 
     from platform_base.io.loader import FileFormat
 
-    print("✅ load() importado")
-    print("✅ FileFormat importado")
+    print("âœ… load() importado")
+    print("âœ… FileFormat importado")
 
     # Verificar formatos suportados
     print(f"\nFormatos suportados: {[f.value for f in FileFormat]}")
 
-    # Verificar se há arquivos de teste
+    # Verificar se hÃ¡ arquivos de teste
     test_files = list(Path("tests/fixtures").rglob("*.csv"))
     test_files += list(Path("tests/fixtures").rglob("*.xlsx"))
 
@@ -107,15 +107,15 @@ def test_data_loading():
 
 
 def test_processing():
-    """Testar módulos de processamento"""
-    section("7. TESTANDO MÓDULOS DE PROCESSAMENTO")
+    """Testar mÃ³dulos de processamento"""
+    section("7. TESTANDO MÃ“DULOS DE PROCESSAMENTO")
 
     import numpy as np
 
-    # Interpolação
+    # InterpolaÃ§Ã£o
     from platform_base.processing.interpolation import SUPPORTED_METHODS, interpolate
-    print("✅ interpolate() importado")
-    print(f"   Métodos suportados: {SUPPORTED_METHODS}")
+    print("âœ… interpolate() importado")
+    print(f"   MÃ©todos suportados: {SUPPORTED_METHODS}")
 
     # Dados de teste
     t = np.array([0, 1, 2, 3, 4], dtype=np.float64)
@@ -123,41 +123,41 @@ def test_processing():
 
     # Assinatura: interpolate(values, t_seconds, method, params)
     result = interpolate(y, t, "linear", {"target_points": 10})
-    print(f"✅ Interpolação linear funcionando: {len(result.values)} pontos")
+    print(f"âœ… InterpolaÃ§Ã£o linear funcionando: {len(result.values)} pontos")
 
-    # Cálculo
+    # CÃ¡lculo
     from platform_base.processing.calculus import derivative
-    print("✅ derivative() importado")
-    print("✅ integral() importado")
+    print("âœ… derivative() importado")
+    print("âœ… integral() importado")
 
-    # Derivada com Numba (método padrão)
+    # Derivada com Numba (mÃ©todo padrÃ£o)
     deriv = derivative(t, y, order=1)
-    print(f"✅ Derivada calculada: {len(deriv.values)} pontos")
+    print(f"âœ… Derivada calculada: {len(deriv.values)} pontos")
 
-    # Suavização
-    print("✅ smooth() importado")
+    # SuavizaÃ§Ã£o
+    print("âœ… smooth() importado")
 
 
 def test_visualization():
-    """Testar módulos de visualização"""
-    section("8. TESTANDO MÓDULOS DE VISUALIZAÇÃO")
+    """Testar mÃ³dulos de visualizaÃ§Ã£o"""
+    section("8. TESTANDO MÃ“DULOS DE VISUALIZAÃ‡ÃƒO")
 
     # 2D
     from platform_base.viz import figures_2d
-    print("✅ figures_2d importado")
+    print("âœ… figures_2d importado")
     funcs_2d = [x for x in dir(figures_2d) if not x.startswith("_") and callable(getattr(figures_2d, x, None))]
-    print(f"   Funções: {funcs_2d[:5]}...")
+    print(f"   FunÃ§Ãµes: {funcs_2d[:5]}...")
 
     # 3D
     from platform_base.viz import figures_3d
-    print("✅ figures_3d importado")
+    print("âœ… figures_3d importado")
     funcs_3d = [x for x in dir(figures_3d) if not x.startswith("_") and callable(getattr(figures_3d, x, None))]
-    print(f"   Funções: {funcs_3d[:5]}...")
+    print(f"   FunÃ§Ãµes: {funcs_3d[:5]}...")
 
 
 def test_ui_panels():
-    """Testar painéis da UI"""
-    section("9. TESTANDO PAINÉIS DA UI")
+    """Testar painÃ©is da UI"""
+    section("9. TESTANDO PAINÃ‰IS DA UI")
 
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
@@ -179,14 +179,14 @@ def test_ui_panels():
             module = __import__(module_name, fromlist=[class_name])
             cls = getattr(module, class_name)
             cls(session_state)
-            print(f"✅ {class_name}: OK")
+            print(f"âœ… {class_name}: OK")
         except Exception as e:
-            print(f"❌ {class_name}: {type(e).__name__}: {str(e)[:50]}")
+            print(f"âŒ {class_name}: {type(e).__name__}: {str(e)[:50]}")
 
 
 def test_dialogs():
-    """Testar diálogos"""
-    section("10. TESTANDO DIÁLOGOS")
+    """Testar diÃ¡logos"""
+    section("10. TESTANDO DIÃLOGOS")
 
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
@@ -205,9 +205,9 @@ def test_dialogs():
             module = __import__(module_name, fromlist=[class_name])
             cls = getattr(module, class_name)
             cls(*args)
-            print(f"✅ {class_name}: OK")
+            print(f"âœ… {class_name}: OK")
         except Exception as e:
-            print(f"❌ {class_name}: {type(e).__name__}: {str(e)[:50]}")
+            print(f"âŒ {class_name}: {type(e).__name__}: {str(e)[:50]}")
 
 
 def check_potential_issues():
@@ -222,26 +222,26 @@ def check_potential_issues():
     if egg_info.exists():
         warnings.append("Pasta .egg-info ainda existe (pode ser deletada)")
     else:
-        print("✅ Pasta .egg-info removida corretamente")
+        print("âœ… Pasta .egg-info removida corretamente")
 
     # Verificar __pycache__
     pycache_dirs = list(Path().rglob("__pycache__"))
     if pycache_dirs:
-        print(f"⚠️  {len(pycache_dirs)} pastas __pycache__ encontradas (normal)")
+        print(f"âš ï¸  {len(pycache_dirs)} pastas __pycache__ encontradas (normal)")
 
     # Verificar .gitignore
     gitignore = Path("../.gitignore")
     if gitignore.exists():
-        print("✅ .gitignore existe")
+        print("âœ… .gitignore existe")
     else:
-        warnings.append(".gitignore não encontrado na raiz")
+        warnings.append(".gitignore nÃ£o encontrado na raiz")
 
-    # Verificar configuração
+    # Verificar configuraÃ§Ã£o
     config = Path("configs/platform.yaml")
     if config.exists():
-        print(f"✅ Configuração encontrada: {config}")
+        print(f"âœ… ConfiguraÃ§Ã£o encontrada: {config}")
     else:
-        warnings.append(f"Configuração não encontrada: {config}")
+        warnings.append(f"ConfiguraÃ§Ã£o nÃ£o encontrada: {config}")
 
     # Verificar subpastas UI Designer
     designer_path = Path("src/platform_base/ui/designer")
@@ -250,61 +250,61 @@ def check_potential_issues():
         subdir_path = designer_path / subdir
         if subdir_path.exists():
             ui_count = len(list(subdir_path.glob("*.ui")))
-            print(f"✅ {subdir}/: {ui_count} arquivos .ui")
+            print(f"âœ… {subdir}/: {ui_count} arquivos .ui")
         else:
-            print(f"⚠️  {subdir}/: pasta não existe ainda")
+            print(f"âš ï¸  {subdir}/: pasta nÃ£o existe ainda")
 
     if warnings:
         print("\nAvisos:")
         for w in warnings:
-            print(f"  ⚠️  {w}")
+            print(f"  âš ï¸  {w}")
 
     return len(issues) == 0
 
 
 def test_full_launch():
-    """Testar launch completo da aplicação"""
+    """Testar launch completo da aplicaÃ§Ã£o"""
     section("12. TESTANDO LAUNCH COMPLETO")
 
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
     try:
-        from platform_base.desktop.app import PlatformApplication
+        from platform_base.ui.app import PlatformApplication
 
         app = PlatformApplication(sys.argv)
-        print("✅ PlatformApplication criado")
+        print("âœ… PlatformApplication criado")
 
         success = app.initialize_components()
-        print(f"{'✅' if success else '❌'} initialize_components(): {success}")
+        print(f"{'âœ…' if success else 'âŒ'} initialize_components(): {success}")
 
         if success:
             success = app.create_main_window()
-            print(f"{'✅' if success else '❌'} create_main_window(): {success}")
+            print(f"{'âœ…' if success else 'âŒ'} create_main_window(): {success}")
 
         return success
     except Exception as e:
-        print(f"❌ Erro: {type(e).__name__}: {e}")
+        print(f"âŒ Erro: {type(e).__name__}: {e}")
         traceback.print_exc()
         return False
 
 
 def main():
-    print("\n" + "🔍" * 35)
+    print("\n" + "ðŸ”" * 35)
     print("  DEBUG PROFUNDO - PLATFORM BASE v2.0")
-    print("🔍" * 35)
+    print("ðŸ”" * 35)
 
     results = {}
 
-    # Teste 1-3: Imports (já verificados)
-    section("1-3. IMPORTS JÁ VERIFICADOS ✅")
-    print("Todos os imports principais estão OK")
+    # Teste 1-3: Imports (jÃ¡ verificados)
+    section("1-3. IMPORTS JÃ VERIFICADOS âœ…")
+    print("Todos os imports principais estÃ£o OK")
 
     # Teste 4: UI Loader
     try:
         test_ui_loader()
         results["ui_loader"] = True
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["ui_loader"] = False
 
@@ -312,7 +312,7 @@ def main():
     try:
         results["app_init"] = test_app_initialization()
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["app_init"] = False
 
@@ -321,7 +321,7 @@ def main():
         test_data_loading()
         results["data_loading"] = True
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["data_loading"] = False
 
@@ -330,7 +330,7 @@ def main():
         test_processing()
         results["processing"] = True
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["processing"] = False
 
@@ -339,7 +339,7 @@ def main():
         test_visualization()
         results["visualization"] = True
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["visualization"] = False
 
@@ -348,7 +348,7 @@ def main():
         test_ui_panels()
         results["ui_panels"] = True
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["ui_panels"] = False
 
@@ -357,7 +357,7 @@ def main():
         test_dialogs()
         results["dialogs"] = True
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["dialogs"] = False
 
@@ -365,7 +365,7 @@ def main():
     try:
         results["issues_check"] = check_potential_issues()
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["issues_check"] = False
 
@@ -373,27 +373,27 @@ def main():
     try:
         results["full_launch"] = test_full_launch()
     except Exception as e:
-        print(f"❌ ERRO: {e}")
+        print(f"âŒ ERRO: {e}")
         traceback.print_exc()
         results["full_launch"] = False
 
     # Resumo
-    section("📊 RESUMO DO DEBUG")
+    section("ðŸ“Š RESUMO DO DEBUG")
 
-    print("\nResultados por módulo:")
+    print("\nResultados por mÃ³dulo:")
     for name, passed in results.items():
-        status = "✅" if passed else "❌"
+        status = "âœ…" if passed else "âŒ"
         print(f"  {status} {name}")
 
     total_passed = sum(results.values())
     total_tests = len(results)
 
     print(f"\n{'='*70}")
-    print(f"  RESULTADO FINAL: {total_passed}/{total_tests} módulos OK")
+    print(f"  RESULTADO FINAL: {total_passed}/{total_tests} mÃ³dulos OK")
     if total_passed == total_tests:
-        print("  🎉 TODOS OS TESTES PASSARAM!")
+        print("  ðŸŽ‰ TODOS OS TESTES PASSARAM!")
     else:
-        print("  ⚠️  Alguns módulos precisam de atenção")
+        print("  âš ï¸  Alguns mÃ³dulos precisam de atenÃ§Ã£o")
     print(f"{'='*70}")
 
     return total_passed == total_tests
@@ -402,3 +402,4 @@ def main():
 if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)
+

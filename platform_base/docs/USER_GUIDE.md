@@ -1,99 +1,101 @@
-# Platform Base v2.0 - Guia Completo do Usuário
+﻿# Platform Base v2.0 - Guia Completo do UsuÃ¡rio
 
-**Guia abrangente para usuários finais**
+**Guia abrangente para usuÃ¡rios finais**
 
 ---
 
-## Índice
+## Ãndice
 
-1. [Introdução](#introdução)
-2. [Começando](#começando)
-3. [Instalação](#instalação)
-4. [Visão Geral da Interface](#visão-geral-da-interface)
+1. [IntroduÃ§Ã£o](#introduÃ§Ã£o)
+2. [ComeÃ§ando](#comeÃ§ando)
+3. [InstalaÃ§Ã£o](#instalaÃ§Ã£o)
+4. [VisÃ£o Geral da Interface](#visÃ£o-geral-da-interface)
 5. [Carregando Dados](#carregando-dados)
-6. [Visualização](#visualização)
-7. [Análise de Dados](#análise-de-dados)
-8. [Streaming e Reprodução](#streaming-e-reprodução)
-9. [Exportação e Relatórios](#exportação-e-relatórios)
+6. [VisualizaÃ§Ã£o](#visualizaÃ§Ã£o)
+7. [AnÃ¡lise de Dados](#anÃ¡lise-de-dados)
+8. [Streaming e ReproduÃ§Ã£o](#streaming-e-reproduÃ§Ã£o)
+9. [ExportaÃ§Ã£o e RelatÃ³rios](#exportaÃ§Ã£o-e-relatÃ³rios)
 10. [Atalhos de Teclado](#atalhos-de-teclado)
-11. [Configurações](#configurações)
-12. [Dicas e Boas Práticas](#dicas-e-boas-práticas)
+11. [ConfiguraÃ§Ãµes](#configuraÃ§Ãµes)
+12. [Dicas e Boas PrÃ¡ticas](#dicas-e-boas-prÃ¡ticas)
 13. [Perguntas Frequentes](#perguntas-frequentes)
 14. [Suporte](#suporte)
 
 ---
 
-## Introdução
+## IntroduÃ§Ã£o
 
-O Platform Base é uma aplicação desktop para explorar e analisar dados de séries temporais de sensores, sistemas de navegação e equipamentos SCADA. Fornece visualização interativa, cálculos avançados e capacidades de exportação.
+O Platform Base Ã© uma aplicaÃ§Ã£o desktop para explorar e analisar dados de sÃ©ries temporais de sensores, sistemas de navegaÃ§Ã£o e equipamentos SCADA. Fornece visualizaÃ§Ã£o interativa, cÃ¡lculos avanÃ§ados e capacidades de exportaÃ§Ã£o.
 
 ### Recursos Principais
 
-- 📊 **Visualização 2D/3D Interativa** - Gráficos em tempo real com zoom, pan e seleção
-- 📁 **Suporte Multi-formato** - Arquivos CSV, Excel, Parquet, HDF5, MAT
-- 🧮 **Cálculos Avançados** - Derivadas, integrais, interpolação, filtragem
-- 🎬 **Streaming Temporal** - Reprodução animada de dados temporais
-- 🔄 **Sincronização** - Alinhamento automático de múltiplas séries temporais
-- 🌙 **Temas** - Modos claro e escuro
-- 🌍 **Multilíngue** - Inglês e Português
+- ðŸ“Š **VisualizaÃ§Ã£o 2D/3D Interativa** - GrÃ¡ficos em tempo real com zoom, pan e seleÃ§Ã£o
+- ðŸ“ **Suporte Multi-formato** - Arquivos CSV, Excel, Parquet, HDF5, MAT
+- ðŸ§® **CÃ¡lculos AvanÃ§ados** - Derivadas, integrais, interpolaÃ§Ã£o, filtragem
+- ðŸŽ¬ **Streaming Temporal** - ReproduÃ§Ã£o animada de dados temporais
+- ðŸ”„ **SincronizaÃ§Ã£o** - Alinhamento automÃ¡tico de mÃºltiplas sÃ©ries temporais
+- ðŸŒ™ **Temas** - Modos claro e escuro
+- ðŸŒ **MultilÃ­ngue** - InglÃªs e PortuguÃªs
 
 ### Requisitos do Sistema
 
 - **SO**: Windows 10/11, Linux (Ubuntu 20.04+), macOS 11+
 - **Python**: 3.12 ou superior
-- **RAM**: 4GB mínimo, 8GB+ recomendado
-- **Armazenamento**: 500MB para instalação
+- **RAM**: 4GB mÃ­nimo, 8GB+ recomendado
+- **Armazenamento**: 500MB para instalaÃ§Ã£o
 - **Monitor**: 1920x1080 ou superior recomendado
 
 ---
 
-## Começando
+## ComeÃ§ando
 
-### Início Rápido (5 minutos)
+### InÃ­cio RÃ¡pido (5 minutos)
 
 1. **Instale o Platform Base**
    ```bash
    pip install -e .
    ```
 
-2. **Inicie a aplicação**
+2. **Inicie a aplicaÃ§Ã£o**
    ```bash
-   python -m platform_base.desktop.main_window
+   python launch_app.py
    ```
 
+   `run_app.py` permanece disponível apenas como wrapper de compatibilidade.
+
 3. **Carregue dados de exemplo**
-   - Clique em "Arquivo → Abrir" ou pressione `Ctrl+O`
+   - Clique em "Arquivo â†’ Abrir" ou pressione `Ctrl+O`
    - Selecione um arquivo CSV ou Excel
    - Os dados aparecem no painel esquerdo
 
 4. **Visualize**
-   - Dê um duplo clique em uma série na árvore de dados
-   - A série aparece no painel de visualização
+   - DÃª um duplo clique em uma sÃ©rie na Ã¡rvore de dados
+   - A sÃ©rie aparece no painel de visualizaÃ§Ã£o
    - Use o mouse para zoom/pan
 
 5. **Calcule**
-   - Selecione uma série
-   - Clique em "Operações → Derivada"
-   - O resultado aparece como nova série
+   - Selecione uma sÃ©rie
+   - Clique em "OperaÃ§Ãµes â†’ Derivada"
+   - O resultado aparece como nova sÃ©rie
 
 ---
 
-## Instalação
+## InstalaÃ§Ã£o
 
-### Instalação Padrão
+### InstalaÃ§Ã£o PadrÃ£o
 
 ```bash
-# Clone o repositório
+# Clone o repositÃ³rio
 git clone https://github.com/thiagoarcan/Warp.git
 cd Warp/platform_base
 
-# Instale as dependências
+# Instale as dependÃªncias
 pip install -e .
 
 # Instale ferramentas de desenvolvimento (opcional)
 pip install -e ".[dev]"
 
-# Instale extras de visualização (opcional)
+# Instale extras de visualizaÃ§Ã£o (opcional)
 pip install -e ".[viz]"
 ```
 
@@ -113,7 +115,7 @@ source venv/bin/activate
 pip install -e .
 ```
 
-### Verificar Instalação
+### Verificar InstalaÃ§Ã£o
 
 ```bash
 python -c "import platform_base; print(platform_base.__version__)"
@@ -122,47 +124,47 @@ python -c "import platform_base; print(platform_base.__version__)"
 
 ---
 
-## Visão Geral da Interface
+## VisÃ£o Geral da Interface
 
 ### Layout da Janela Principal
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ Barra de Menu: Arquivo | Editar | Ver | Operações | Ajuda  │
-├─────────────────────────────────────────────────────────────┤
-│ Barra de Ferramentas: [Abrir] [Salvar] [Zoom] [Config]    │
-├──────────────┬──────────────────────────────┬───────────────┤
-│              │                              │               │
-│  Painel de   │   Painel de Visualização     │  Painel de    │
-│  Dados       │                              │  Operações    │
-│              │   [Gráficos 2D/3D]          │               │
-│  📁 Arquivos │                              │  [Calcular]   │
-│  📊 Séries   │   [Controles]               │  [Filtrar]    │
-│  ℹ️  Info     │                              │  [Exportar]   │
-│              │                              │               │
-├──────────────┴──────────────────────────────┴───────────────┤
-│ Barra de Status: Pronto | Memória: 120MB | Séries: 3       │
-└─────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Barra de Menu: Arquivo | Editar | Ver | OperaÃ§Ãµes | Ajuda  â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Barra de Ferramentas: [Abrir] [Salvar] [Zoom] [Config]    â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚              â”‚                              â”‚               â”‚
+â”‚  Painel de   â”‚   Painel de VisualizaÃ§Ã£o     â”‚  Painel de    â”‚
+â”‚  Dados       â”‚                              â”‚  OperaÃ§Ãµes    â”‚
+â”‚              â”‚   [GrÃ¡ficos 2D/3D]          â”‚               â”‚
+â”‚  ðŸ“ Arquivos â”‚                              â”‚  [Calcular]   â”‚
+â”‚  ðŸ“Š SÃ©ries   â”‚   [Controles]               â”‚  [Filtrar]    â”‚
+â”‚  â„¹ï¸  Info     â”‚                              â”‚  [Exportar]   â”‚
+â”‚              â”‚                              â”‚               â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Barra de Status: Pronto | MemÃ³ria: 120MB | SÃ©ries: 3       â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-### Painéis
+### PainÃ©is
 
 #### Painel de Dados (Esquerda)
-- **Visualização em Árvore**: Visão hierárquica de datasets e séries
-- **Abas de Informação**: Resumo, Metadados, Qualidade
-- **Botões**: Carregar, Remover, Atualizar
+- **VisualizaÃ§Ã£o em Ãrvore**: VisÃ£o hierÃ¡rquica de datasets e sÃ©ries
+- **Abas de InformaÃ§Ã£o**: Resumo, Metadados, Qualidade
+- **BotÃµes**: Carregar, Remover, Atualizar
 
-#### Painel de Visualização (Centro)
-- **Área de Gráfico**: Gráficos 2D ou 3D interativos
-- **Abas**: Múltiplos gráficos em abas
+#### Painel de VisualizaÃ§Ã£o (Centro)
+- **Ãrea de GrÃ¡fico**: GrÃ¡ficos 2D ou 3D interativos
+- **Abas**: MÃºltiplos grÃ¡ficos em abas
 - **Barra de Ferramentas**: Zoom, Pan, Reset, Screenshot
-- **Controles**: Espessura de linha, grade, configurações de legenda
+- **Controles**: Espessura de linha, grade, configuraÃ§Ãµes de legenda
 
-#### Painel de Operações (Direita)
-- **Cálculos**: Derivada, Integral, Área
+#### Painel de OperaÃ§Ãµes (Direita)
+- **CÃ¡lculos**: Derivada, Integral, Ãrea
 - **Filtros**: Passa-baixas, Passa-altas, Passa-faixa
-- **Interpolação**: Preencher lacunas nos dados
-- **Estatísticas**: Min, Max, Média, Desvio Padrão
+- **InterpolaÃ§Ã£o**: Preencher lacunas nos dados
+- **EstatÃ­sticas**: Min, Max, MÃ©dia, Desvio PadrÃ£o
 
 ---
 
@@ -170,344 +172,344 @@ python -c "import platform_base; print(platform_base.__version__)"
 
 ### Formatos Suportados
 
-| Formato | Extensão | Leitura | Escrita | Notas |
+| Formato | ExtensÃ£o | Leitura | Escrita | Notas |
 |---------|----------|---------|---------|-------|
-| CSV | .csv | ✅ | ✅ | Mais rápido |
-| Excel | .xlsx | ✅ | ✅ | Múltiplas planilhas suportadas |
-| Parquet | .parquet | ✅ | ✅ | Melhor para arquivos grandes |
-| HDF5 | .h5, .hdf5 | ✅ | ✅ | Dados científicos |
-| MAT | .mat | ✅ | ❌ | Arquivos MATLAB |
+| CSV | .csv | âœ… | âœ… | Mais rÃ¡pido |
+| Excel | .xlsx | âœ… | âœ… | MÃºltiplas planilhas suportadas |
+| Parquet | .parquet | âœ… | âœ… | Melhor para arquivos grandes |
+| HDF5 | .h5, .hdf5 | âœ… | âœ… | Dados cientÃ­ficos |
+| MAT | .mat | âœ… | âŒ | Arquivos MATLAB |
 
 ### Carregando Arquivos
 
-**Método 1: Menu**
-1. Arquivo → Abrir (ou `Ctrl+O`)
+**MÃ©todo 1: Menu**
+1. Arquivo â†’ Abrir (ou `Ctrl+O`)
 2. Selecione o arquivo
-3. Configure as opções de importação (se solicitado)
+3. Configure as opÃ§Ãµes de importaÃ§Ã£o (se solicitado)
 4. Clique em OK
 
-**Método 2: Arrastar e Soltar**
+**MÃ©todo 2: Arrastar e Soltar**
 1. Arraste o arquivo do explorador de arquivos
 2. Solte na janela principal
 3. Os dados carregam automaticamente
 
-**Método 3: Linha de Comando**
+**MÃ©todo 3: Linha de Comando**
 ```bash
 python launch_app.py --file dados.csv
 ```
 
-### Configurações de Importação
+### ConfiguraÃ§Ãµes de ImportaÃ§Ã£o
 
-#### Opções CSV
-- **Delimitador**: Vírgula, Tab, Ponto-e-vírgula, Espaço
-- **Codificação**: UTF-8, Latin-1, ASCII
-- **Linha de Cabeçalho**: Número da linha para nomes de colunas
-- **Pular Linhas**: Número de linhas para pular no início
+#### OpÃ§Ãµes CSV
+- **Delimitador**: VÃ­rgula, Tab, Ponto-e-vÃ­rgula, EspaÃ§o
+- **CodificaÃ§Ã£o**: UTF-8, Latin-1, ASCII
+- **Linha de CabeÃ§alho**: NÃºmero da linha para nomes de colunas
+- **Pular Linhas**: NÃºmero de linhas para pular no inÃ­cio
 
-#### Opções Excel
+#### OpÃ§Ãµes Excel
 - **Planilha**: Selecione qual planilha carregar
-- **Intervalo**: Intervalo específico de células (ex: A1:D1000)
-- **Colunas de Data**: Detecção automática ou seleção manual
+- **Intervalo**: Intervalo especÃ­fico de cÃ©lulas (ex: A1:D1000)
+- **Colunas de Data**: DetecÃ§Ã£o automÃ¡tica ou seleÃ§Ã£o manual
 
 ### Lidando com Arquivos Grandes
 
 Para arquivos > 100MB:
 
-1. **Use formato Parquet** - Mais rápido que CSV/Excel
-2. **Habilite decimação** - Configurações → Desempenho → Auto-decimação
-3. **Aumente limite de memória** - Configurações → Desempenho → Limite de Memória
-4. **Carregue apenas colunas específicas** - Diálogo de importação → Selecionar Colunas
+1. **Use formato Parquet** - Mais rÃ¡pido que CSV/Excel
+2. **Habilite decimaÃ§Ã£o** - ConfiguraÃ§Ãµes â†’ Desempenho â†’ Auto-decimaÃ§Ã£o
+3. **Aumente limite de memÃ³ria** - ConfiguraÃ§Ãµes â†’ Desempenho â†’ Limite de MemÃ³ria
+4. **Carregue apenas colunas especÃ­ficas** - DiÃ¡logo de importaÃ§Ã£o â†’ Selecionar Colunas
 
 ---
 
-## Visualização
+## VisualizaÃ§Ã£o
 
-### Gráficos 2D
+### GrÃ¡ficos 2D
 
-#### Criando um Gráfico
+#### Criando um GrÃ¡fico
 
-1. **Duplo clique** em uma série na árvore de dados
-2. Ou **clique direito** → "Adicionar ao Gráfico"
-3. Ou **arraste** a série para a área do gráfico
+1. **Duplo clique** em uma sÃ©rie na Ã¡rvore de dados
+2. Ou **clique direito** â†’ "Adicionar ao GrÃ¡fico"
+3. Ou **arraste** a sÃ©rie para a Ã¡rea do grÃ¡fico
 
-#### Controles do Gráfico
+#### Controles do GrÃ¡fico
 
 - **Zoom**: Roda do mouse ou `Ctrl + Arrastar`
 - **Pan**: Clicar e arrastar ou teclas de seta
-- **Resetar**: Clique direito → Resetar Vista ou pressione `R`
-- **Selecionar**: `Ctrl + Arrastar` retângulo
+- **Resetar**: Clique direito â†’ Resetar Vista ou pressione `R`
+- **Selecionar**: `Ctrl + Arrastar` retÃ¢ngulo
 
-#### Múltiplas Séries
+#### MÃºltiplas SÃ©ries
 
-Adicione múltiplas séries ao mesmo gráfico:
-1. Clique na primeira série
-2. Segure `Ctrl` e clique em séries adicionais
-3. Clique direito → "Plotar Selecionadas"
+Adicione mÃºltiplas sÃ©ries ao mesmo grÃ¡fico:
+1. Clique na primeira sÃ©rie
+2. Segure `Ctrl` e clique em sÃ©ries adicionais
+3. Clique direito â†’ "Plotar Selecionadas"
 
-Todas as séries aparecem com cores diferentes.
+Todas as sÃ©ries aparecem com cores diferentes.
 
-#### Múltiplos Eixos Y
+#### MÃºltiplos Eixos Y
 
-Para séries com escalas diferentes:
-1. Clique direito na série na legenda
+Para sÃ©ries com escalas diferentes:
+1. Clique direito na sÃ©rie na legenda
 2. Selecione "Mover para eixo Y2"
-3. O segundo eixo Y aparece à direita
+3. O segundo eixo Y aparece Ã  direita
 
-#### Personalização
+#### PersonalizaÃ§Ã£o
 
 **Estilo de Linha**
-- Espessura: Barra de ferramentas → Spinbox de Espessura de Linha
-- Cor: Clique direito na série → Mudar Cor
-- Estilo: Sólida, Tracejada, Pontilhada
+- Espessura: Barra de ferramentas â†’ Spinbox de Espessura de Linha
+- Cor: Clique direito na sÃ©rie â†’ Mudar Cor
+- Estilo: SÃ³lida, Tracejada, Pontilhada
 
 **Grade**
-- Alternar: Barra de ferramentas → Checkbox Mostrar Grade
+- Alternar: Barra de ferramentas â†’ Checkbox Mostrar Grade
 - Ou pressione `G`
 
 **Legenda**
-- Alternar: Barra de ferramentas → Checkbox Mostrar Legenda
+- Alternar: Barra de ferramentas â†’ Checkbox Mostrar Legenda
 - Ou pressione `L`
-- Posição: Arraste a legenda para a posição desejada
+- PosiÃ§Ã£o: Arraste a legenda para a posiÃ§Ã£o desejada
 
-### Gráficos 3D
+### GrÃ¡ficos 3D
 
-#### Criando Gráfico 3D
+#### Criando GrÃ¡fico 3D
 
-1. Selecione exatamente 3 séries (eixos X, Y, Z)
-2. Operações → Visualização → Trajetória 3D
-3. O gráfico 3D abre em nova janela
+1. Selecione exatamente 3 sÃ©ries (eixos X, Y, Z)
+2. OperaÃ§Ãµes â†’ VisualizaÃ§Ã£o â†’ TrajetÃ³ria 3D
+3. O grÃ¡fico 3D abre em nova janela
 
 #### Controles 3D
 
 - **Rotacionar**: Clicar e arrastar
 - **Zoom**: Roda do mouse
 - **Pan**: `Shift + Arrastar`
-- **Resetar Câmera**: Pressione `R`
+- **Resetar CÃ¢mera**: Pressione `R`
 
-#### Configurações 3D
+#### ConfiguraÃ§Ãµes 3D
 
-- **Mapa de Cores**: Configurações → Dropdown de Mapa de Cores
-- **Tamanho do Ponto**: Configurações → Slider de Tamanho do Ponto
-- **Mostrar Superfície**: Configurações → Checkbox Mostrar Superfície
+- **Mapa de Cores**: ConfiguraÃ§Ãµes â†’ Dropdown de Mapa de Cores
+- **Tamanho do Ponto**: ConfiguraÃ§Ãµes â†’ Slider de Tamanho do Ponto
+- **Mostrar SuperfÃ­cie**: ConfiguraÃ§Ãµes â†’ Checkbox Mostrar SuperfÃ­cie
 
-### Exportar Gráficos
+### Exportar GrÃ¡ficos
 
 **Como Imagem**
-1. Clique direito no gráfico → Exportar
+1. Clique direito no grÃ¡fico â†’ Exportar
 2. Escolha o formato: PNG, SVG, PDF
-3. Selecione a resolução (72-600 DPI)
+3. Selecione a resoluÃ§Ã£o (72-600 DPI)
 4. Salvar
 
-**Como Animação**
+**Como AnimaÃ§Ã£o**
 1. Habilite o modo streaming
-2. Ferramentas → Exportar → Vídeo
+2. Ferramentas â†’ Exportar â†’ VÃ­deo
 3. Escolha o formato: MP4, GIF
 4. Configure FPS e qualidade
 5. Exportar
 
 ---
 
-## Análise de Dados
+## AnÃ¡lise de Dados
 
-### Interpolação
+### InterpolaÃ§Ã£o
 
-Preencha lacunas em dados de séries temporais:
+Preencha lacunas em dados de sÃ©ries temporais:
 
-1. Selecione a série com lacunas
-2. Operações → Interpolação
-3. Escolha o método:
-   - **Linear**: Rápido, simples
-   - **Spline Cúbico**: Curvas suaves
+1. Selecione a sÃ©rie com lacunas
+2. OperaÃ§Ãµes â†’ InterpolaÃ§Ã£o
+3. Escolha o mÃ©todo:
+   - **Linear**: RÃ¡pido, simples
+   - **Spline CÃºbico**: Curvas suaves
    - **PCHIP**: Preserva monotonicidade
    - **Akima**: Minimiza overshoot
 4. Clique em "Aplicar"
-5. Nova série interpolada criada
+5. Nova sÃ©rie interpolada criada
 
 ### Derivadas
 
-Calcule a taxa de variação:
+Calcule a taxa de variaÃ§Ã£o:
 
-1. Selecione a série (ex: posição)
-2. Operações → Cálculo → Derivada
+1. Selecione a sÃ©rie (ex: posiÃ§Ã£o)
+2. OperaÃ§Ãµes â†’ CÃ¡lculo â†’ Derivada
 3. Selecione a ordem:
-   - **1ª**: Velocidade
-   - **2ª**: Aceleração
-   - **3ª**: Jerk
-4. Resultado: Nova série com derivada
+   - **1Âª**: Velocidade
+   - **2Âª**: AceleraÃ§Ã£o
+   - **3Âª**: Jerk
+4. Resultado: Nova sÃ©rie com derivada
 
-**Exemplo**: Posição → Velocidade
-- Entrada: Posição GPS (metros)
-- Saída: Velocidade (m/s)
+**Exemplo**: PosiÃ§Ã£o â†’ Velocidade
+- Entrada: PosiÃ§Ã£o GPS (metros)
+- SaÃ­da: Velocidade (m/s)
 
 ### Integrais
 
-Calcule a área sob a curva:
+Calcule a Ã¡rea sob a curva:
 
-1. Selecione a série (ex: velocidade)
-2. Operações → Cálculo → Integral
-3. Escolha o método:
-   - **Trapezoidal**: Padrão
+1. Selecione a sÃ©rie (ex: velocidade)
+2. OperaÃ§Ãµes â†’ CÃ¡lculo â†’ Integral
+3. Escolha o mÃ©todo:
+   - **Trapezoidal**: PadrÃ£o
    - **Simpson**: Mais preciso
-4. Resultado: Série integrada
+4. Resultado: SÃ©rie integrada
 
-**Exemplo**: Velocidade → Posição
+**Exemplo**: Velocidade â†’ PosiÃ§Ã£o
 - Entrada: Velocidade (m/s)
-- Saída: Deslocamento (metros)
+- SaÃ­da: Deslocamento (metros)
 
 ### Filtros
 
-Remova ruído dos sinais:
+Remova ruÃ­do dos sinais:
 
 #### Filtro Passa-Baixas
-Remove ruído de alta frequência:
-1. Operações → Filtros → Passa-Baixas
-2. Defina a frequência de corte (Hz)
+Remove ruÃ­do de alta frequÃªncia:
+1. OperaÃ§Ãµes â†’ Filtros â†’ Passa-Baixas
+2. Defina a frequÃªncia de corte (Hz)
 3. Visualize o resultado
 4. Aplicar
 
 #### Filtro Passa-Altas
-Remove deriva de baixa frequência:
-1. Operações → Filtros → Passa-Altas
-2. Defina a frequência de corte
+Remove deriva de baixa frequÃªncia:
+1. OperaÃ§Ãµes â†’ Filtros â†’ Passa-Altas
+2. Defina a frequÃªncia de corte
 3. Aplicar
 
 #### Filtro Passa-Faixa
-Mantém apenas faixa específica de frequência:
-1. Operações → Filtros → Passa-Faixa
+MantÃ©m apenas faixa especÃ­fica de frequÃªncia:
+1. OperaÃ§Ãµes â†’ Filtros â†’ Passa-Faixa
 2. Defina cortes baixo e alto
 3. Aplicar
 
-#### Média Móvel
-Suavização simples:
-1. Operações → Filtros → Média Móvel
+#### MÃ©dia MÃ³vel
+SuavizaÃ§Ã£o simples:
+1. OperaÃ§Ãµes â†’ Filtros â†’ MÃ©dia MÃ³vel
 2. Defina o tamanho da janela
 3. Aplicar
 
-### Estatísticas
+### EstatÃ­sticas
 
-Obtenha estatísticas resumidas:
+Obtenha estatÃ­sticas resumidas:
 
-1. Selecione a série
-2. Operações → Estatísticas → Resumo
+1. Selecione a sÃ©rie
+2. OperaÃ§Ãµes â†’ EstatÃ­sticas â†’ Resumo
 3. Visualize os resultados:
    - Contagem, Min, Max
-   - Média, Mediana, Moda
-   - Desvio Padrão, Variância
+   - MÃ©dia, Mediana, Moda
+   - Desvio PadrÃ£o, VariÃ¢ncia
    - Percentis (25%, 50%, 75%)
 
-### Sincronização
+### SincronizaÃ§Ã£o
 
-Alinhe múltiplas séries com grades temporais diferentes:
+Alinhe mÃºltiplas sÃ©ries com grades temporais diferentes:
 
-1. Selecione 2+ séries
-2. Operações → Sincronização
-3. Escolha o método:
-   - **Interpolação de Grade Comum**: Reamostra todas para a mesma grade temporal
-   - **Vizinho Mais Próximo**: Rápido, menos preciso
+1. Selecione 2+ sÃ©ries
+2. OperaÃ§Ãµes â†’ SincronizaÃ§Ã£o
+3. Escolha o mÃ©todo:
+   - **InterpolaÃ§Ã£o de Grade Comum**: Reamostra todas para a mesma grade temporal
+   - **Vizinho Mais PrÃ³ximo**: RÃ¡pido, menos preciso
 4. Aplicar
-5. Todas as séries agora têm os mesmos pontos temporais
+5. Todas as sÃ©ries agora tÃªm os mesmos pontos temporais
 
 ---
 
-## Streaming e Reprodução
+## Streaming e ReproduÃ§Ã£o
 
-### Visão Geral
+### VisÃ£o Geral
 
-O modo streaming permite reprodução animada de dados de séries temporais, útil para:
+O modo streaming permite reproduÃ§Ã£o animada de dados de sÃ©ries temporais, Ãºtil para:
 - Revisar dados de sensores ao longo do tempo
-- Criar apresentações
-- Encontrar padrões em dados temporais
+- Criar apresentaÃ§Ãµes
+- Encontrar padrÃµes em dados temporais
 
 ### Habilitar Streaming
 
-1. Carregue dados de séries temporais
-2. Ver → Controles de Streaming
+1. Carregue dados de sÃ©ries temporais
+2. Ver â†’ Controles de Streaming
 3. Painel de streaming aparece na parte inferior
 
 ### Controles
 
 ```
-[◀◀] [◀] [▶] [▶▶] [■] [Loop]
-├─────────────────────────────┤ Linha do Tempo
-│         Posição              │
-└─────────────────────────────┘
+[â—€â—€] [â—€] [â–¶] [â–¶â–¶] [â– ] [Loop]
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤ Linha do Tempo
+â”‚         PosiÃ§Ã£o              â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
 Velocidade: [0.5x] [1x] [2x] [4x]
 Janela: [5 seg] [10 seg] [30 seg]
 ```
 
-- **Play/Pause**: Barra de espaço ou botão ▶
-- **Stop**: Botão ■ ou Escape
+- **Play/Pause**: Barra de espaÃ§o ou botÃ£o â–¶
+- **Stop**: BotÃ£o â–  ou Escape
 - **Buscar**: Clique na linha do tempo ou use setas Esquerda/Direita
-- **Velocidade**: Ajuste a velocidade de reprodução
+- **Velocidade**: Ajuste a velocidade de reproduÃ§Ã£o
 - **Janela**: Quantos segundos mostrados de uma vez
 
 ### Streaming com Filtros
 
-Aplique filtros em tempo real durante a reprodução:
+Aplique filtros em tempo real durante a reproduÃ§Ã£o:
 
 1. Habilite streaming
-2. Operações → Filtros → Tempo Real
+2. OperaÃ§Ãµes â†’ Filtros â†’ Tempo Real
 3. Selecione o filtro (ex: Passa-Baixas)
-4. Configure os parâmetros
-5. Play - o filtro se aplica conforme os dados são transmitidos
+4. Configure os parÃ¢metros
+5. Play - o filtro se aplica conforme os dados sÃ£o transmitidos
 
-### Exportar Vídeo de Streaming
+### Exportar VÃ­deo de Streaming
 
 1. Configure a janela de streaming
-2. Ferramentas → Exportar → Vídeo
+2. Ferramentas â†’ Exportar â†’ VÃ­deo
 3. Escolha:
    - Formato: MP4, GIF
-   - Resolução: 720p, 1080p, 4K
+   - ResoluÃ§Ã£o: 720p, 1080p, 4K
    - FPS: 15, 24, 30, 60
 4. Clique em "Exportar"
-5. Vídeo gerado
+5. VÃ­deo gerado
 
 ---
 
-## Exportação e Relatórios
+## ExportaÃ§Ã£o e RelatÃ³rios
 
 ### Exportar Dados
 
-#### Série Única
-1. Clique direito na série → Exportar
+#### SÃ©rie Ãšnica
+1. Clique direito na sÃ©rie â†’ Exportar
 2. Escolha o formato: CSV, Excel, Parquet
 3. Salvar
 
-#### Múltiplas Séries
-1. Selecione séries (Ctrl+Clique)
-2. Arquivo → Exportar Selecionadas
-3. Opções:
-   - **Arquivo único, múltiplas colunas**
+#### MÃºltiplas SÃ©ries
+1. Selecione sÃ©ries (Ctrl+Clique)
+2. Arquivo â†’ Exportar Selecionadas
+3. OpÃ§Ãµes:
+   - **Arquivo Ãºnico, mÃºltiplas colunas**
    - **Arquivos separados**
 4. Salvar
 
-### Configuração de Exportação
+### ConfiguraÃ§Ã£o de ExportaÃ§Ã£o
 
-**Opções CSV**
-- Delimitador: Vírgula, Tab, Ponto-e-vírgula
-- Codificação: UTF-8, Latin-1
-- Incluir cabeçalho: Sim/Não
-- Precisão: Número de casas decimais
+**OpÃ§Ãµes CSV**
+- Delimitador: VÃ­rgula, Tab, Ponto-e-vÃ­rgula
+- CodificaÃ§Ã£o: UTF-8, Latin-1
+- Incluir cabeÃ§alho: Sim/NÃ£o
+- PrecisÃ£o: NÃºmero de casas decimais
 
-**Opções Excel**
-- Planilha única: Todas as séries em uma planilha
-- Múltiplas planilhas: Uma série por planilha
-- Incluir metadados: Adicionar planilha de informações
+**OpÃ§Ãµes Excel**
+- Planilha Ãºnica: Todas as sÃ©ries em uma planilha
+- MÃºltiplas planilhas: Uma sÃ©rie por planilha
+- Incluir metadados: Adicionar planilha de informaÃ§Ãµes
 
-### Gerar Relatório
+### Gerar RelatÃ³rio
 
-Crie relatório em PDF/HTML:
+Crie relatÃ³rio em PDF/HTML:
 
-1. Ferramentas → Gerar Relatório
-2. Selecione o conteúdo:
-   - [ ] Estatísticas resumidas
-   - [ ] Gráficos
-   - [ ] Resultados de cálculos
+1. Ferramentas â†’ Gerar RelatÃ³rio
+2. Selecione o conteÃºdo:
+   - [ ] EstatÃ­sticas resumidas
+   - [ ] GrÃ¡ficos
+   - [ ] Resultados de cÃ¡lculos
    - [ ] Metadados
-3. Escolha o modelo: Padrão, Técnico, Executivo
+3. Escolha o modelo: PadrÃ£o, TÃ©cnico, Executivo
 4. Gerar
-5. Relatório salvo
+5. RelatÃ³rio salvo
 
 ---
 
@@ -515,12 +517,12 @@ Crie relatório em PDF/HTML:
 
 ### Gerais
 
-| Atalho | Ação |
+| Atalho | AÃ§Ã£o |
 |--------|------|
 | `Ctrl+O` | Abrir arquivo |
-| `Ctrl+S` | Salvar sessão |
+| `Ctrl+S` | Salvar sessÃ£o |
 | `Ctrl+W` | Fechar aba atual |
-| `Ctrl+Q` | Sair da aplicação |
+| `Ctrl+Q` | Sair da aplicaÃ§Ã£o |
 | `Ctrl+Z` | Desfazer |
 | `Ctrl+Y` | Refazer |
 | `Ctrl+A` | Selecionar tudo |
@@ -529,32 +531,32 @@ Crie relatório em PDF/HTML:
 | `F5` | Atualizar dados |
 | `F11` | Alternar tela cheia |
 
-### Visualização
+### VisualizaÃ§Ã£o
 
-| Atalho | Ação |
+| Atalho | AÃ§Ã£o |
 |--------|------|
-| `Espaço` | Play/Pause streaming |
+| `EspaÃ§o` | Play/Pause streaming |
 | `R` | Resetar vista |
 | `G` | Alternar grade |
 | `L` | Alternar legenda |
 | `+` / `-` | Aumentar/diminuir zoom |
-| `←` `→` | Pan esquerda/direita |
-| `↑` `↓` | Pan cima/baixo |
+| `â†` `â†’` | Pan esquerda/direita |
+| `â†‘` `â†“` | Pan cima/baixo |
 | `Ctrl+Arrastar` | Zoom em caixa |
-| `Shift+Arrastar` | Pan no gráfico |
+| `Shift+Arrastar` | Pan no grÃ¡fico |
 
 ### Dados
 
-| Atalho | Ação |
+| Atalho | AÃ§Ã£o |
 |--------|------|
-| `Ctrl+D` | Duplicar série |
-| `Delete` | Remover série selecionada |
-| `Ctrl+F` | Encontrar série |
+| `Ctrl+D` | Duplicar sÃ©rie |
+| `Delete` | Remover sÃ©rie selecionada |
+| `Ctrl+F` | Encontrar sÃ©rie |
 | `Ctrl+E` | Exportar selecionadas |
 
-### Operações
+### OperaÃ§Ãµes
 
-| Atalho | Ação |
+| Atalho | AÃ§Ã£o |
 |--------|------|
 | `Ctrl+1` | Calcular derivada |
 | `Ctrl+2` | Calcular integral |
@@ -563,78 +565,78 @@ Crie relatório em PDF/HTML:
 
 ---
 
-## Configurações
+## ConfiguraÃ§Ãµes
 
-### Configurações Gerais
+### ConfiguraÃ§Ãµes Gerais
 
-**Arquivo → Preferências** ou `Ctrl+,`
+**Arquivo â†’ PreferÃªncias** ou `Ctrl+,`
 
-#### Aparência
+#### AparÃªncia
 - **Tema**: Claro, Escuro, Sistema
 - **Tamanho da Fonte**: 8-16pt
-- **Idioma**: English, Português
+- **Idioma**: English, PortuguÃªs
 
 #### Desempenho
-- **Auto-decimação**: Habilitar para arquivos > 100K pontos
-- **Limite de decimação**: Número de pontos
-- **Limite de memória**: Uso máximo de RAM (MB)
+- **Auto-decimaÃ§Ã£o**: Habilitar para arquivos > 100K pontos
+- **Limite de decimaÃ§Ã£o**: NÃºmero de pontos
+- **Limite de memÃ³ria**: Uso mÃ¡ximo de RAM (MB)
 - **Tamanho do cache**: Tamanho do cache em disco (MB)
 
 #### Dados
-- **Delimitador padrão**: Delimitador CSV
+- **Delimitador padrÃ£o**: Delimitador CSV
 - **Formato de data**: ISO, US, EU
-- **Fuso horário**: UTC, Local
-- **Precisão**: Casas decimais para exibição
+- **Fuso horÃ¡rio**: UTC, Local
+- **PrecisÃ£o**: Casas decimais para exibiÃ§Ã£o
 
-#### Visualização
-- **Cores padrão**: Esquema de cores para gráficos
-- **Espessura de linha**: Espessura padrão da linha
-- **Grade**: Mostrar por padrão
-- **Legenda**: Mostrar por padrão
-- **Anti-aliasing**: Habilitar para gráficos mais suaves
+#### VisualizaÃ§Ã£o
+- **Cores padrÃ£o**: Esquema de cores para grÃ¡ficos
+- **Espessura de linha**: Espessura padrÃ£o da linha
+- **Grade**: Mostrar por padrÃ£o
+- **Legenda**: Mostrar por padrÃ£o
+- **Anti-aliasing**: Habilitar para grÃ¡ficos mais suaves
 
-### Configurações Avançadas
+### ConfiguraÃ§Ãµes AvanÃ§adas
 
-#### Interpolação
-- **Método padrão**: Linear, Spline, PCHIP
+#### InterpolaÃ§Ã£o
+- **MÃ©todo padrÃ£o**: Linear, Spline, PCHIP
 - **Preencher lacunas**: Auto-preencher lacunas > X segundos
-- **Tamanho máximo da lacuna**: Não interpolar lacunas maiores que
+- **Tamanho mÃ¡ximo da lacuna**: NÃ£o interpolar lacunas maiores que
 
 #### Filtros
-- **Corte padrão**: Frequência de corte passa-baixas
+- **Corte padrÃ£o**: FrequÃªncia de corte passa-baixas
 - **Ordem do filtro**: Ordem do filtro Butterworth
 
 #### Auto-salvamento
-- **Habilitar**: Auto-salvar sessão
+- **Habilitar**: Auto-salvar sessÃ£o
 - **Intervalo**: Salvar a cada X minutos
-- **Manter versões**: Número de versões de backup
+- **Manter versÃµes**: NÃºmero de versÃµes de backup
 
 ---
 
-## Dicas e Boas Práticas
+## Dicas e Boas PrÃ¡ticas
 
 ### Dicas de Desempenho
 
-1. **Use Parquet para arquivos grandes** - 5-10x mais rápido que CSV
-2. **Habilite auto-decimação** - Para arquivos > 100K pontos
-3. **Feche abas não utilizadas** - Reduz uso de memória
+1. **Use Parquet para arquivos grandes** - 5-10x mais rÃ¡pido que CSV
+2. **Habilite auto-decimaÃ§Ã£o** - Para arquivos > 100K pontos
+3. **Feche abas nÃ£o utilizadas** - Reduz uso de memÃ³ria
 4. **Exporte dados filtrados** - Trabalhe com datasets menores
-5. **Use atalhos de teclado** - Mais rápido que o mouse
+5. **Use atalhos de teclado** - Mais rÃ¡pido que o mouse
 
 ### Qualidade dos Dados
 
-1. **Verifique lacunas** - Ver → Relatório de Qualidade
-2. **Interpole dados faltantes** - Operações → Interpolação
-3. **Remova outliers** - Operações → Filtros → Detecção de Outliers
+1. **Verifique lacunas** - Ver â†’ RelatÃ³rio de Qualidade
+2. **Interpole dados faltantes** - OperaÃ§Ãµes â†’ InterpolaÃ§Ã£o
+3. **Remova outliers** - OperaÃ§Ãµes â†’ Filtros â†’ DetecÃ§Ã£o de Outliers
 4. **Valide timestamps** - Garanta que sejam monotonicamente crescentes
-5. **Verifique unidades** - Verifique se as unidades físicas fazem sentido
+5. **Verifique unidades** - Verifique se as unidades fÃ­sicas fazem sentido
 
 ### Dicas de Fluxo de Trabalho
 
-1. **Salve a sessão regularmente** - `Ctrl+S` após mudanças importantes
-2. **Use nomes descritivos** - Renomeie séries para clareza
-3. **Adicione metadados** - Clique direito → Editar Metadados
-4. **Exporte resultados intermediários** - Salve séries calculadas
+1. **Salve a sessÃ£o regularmente** - `Ctrl+S` apÃ³s mudanÃ§as importantes
+2. **Use nomes descritivos** - Renomeie sÃ©ries para clareza
+3. **Adicione metadados** - Clique direito â†’ Editar Metadados
+4. **Exporte resultados intermediÃ¡rios** - Salve sÃ©ries calculadas
 5. **Documente seu trabalho** - Use o painel de Notas
 
 ---
@@ -643,93 +645,93 @@ Crie relatório em PDF/HTML:
 
 ### Perguntas Gerais
 
-**P: Quais formatos de arquivo são suportados?**
+**P: Quais formatos de arquivo sÃ£o suportados?**
 R: CSV, Excel (.xlsx), Parquet, HDF5, arquivos MAT. Veja [Carregando Dados](#carregando-dados).
 
-**P: Quão grandes podem ser os arquivos?**
-R: Testado até 10M linhas (1GB). O desempenho depende da RAM disponível.
+**P: QuÃ£o grandes podem ser os arquivos?**
+R: Testado atÃ© 10M linhas (1GB). O desempenho depende da RAM disponÃ­vel.
 
 **P: Posso usar para dados em tempo real?**
-R: Sim, o modo streaming suporta reprodução e filtragem em tempo real.
+R: Sim, o modo streaming suporta reproduÃ§Ã£o e filtragem em tempo real.
 
 **P: Existe uma API Python?**
-R: Sim, veja [Referência da API](API_REFERENCE.md).
+R: Sim, veja [ReferÃªncia da API](API_REFERENCE.md).
 
 ### Perguntas sobre Dados
 
 **P: Como lidar com dados faltantes?**
-R: Use interpolação: Operações → Interpolação. Escolha o método baseado nas características dos dados.
+R: Use interpolaÃ§Ã£o: OperaÃ§Ãµes â†’ InterpolaÃ§Ã£o. Escolha o mÃ©todo baseado nas caracterÃ­sticas dos dados.
 
-**P: Posso carregar múltiplos arquivos?**
-R: Sim, Arquivo → Abrir Múltiplos ou arraste e solte múltiplos arquivos.
+**P: Posso carregar mÃºltiplos arquivos?**
+R: Sim, Arquivo â†’ Abrir MÃºltiplos ou arraste e solte mÃºltiplos arquivos.
 
 **P: Como mesclar datasets?**
-R: Selecione séries → Operações → Sincronização → Grade Comum.
+R: Selecione sÃ©ries â†’ OperaÃ§Ãµes â†’ SincronizaÃ§Ã£o â†’ Grade Comum.
 
-### Perguntas sobre Visualização
+### Perguntas sobre VisualizaÃ§Ã£o
 
-**P: Como comparar duas séries?**
-R: Adicione ambas ao mesmo gráfico. Para escalas diferentes, use múltiplos eixos Y.
+**P: Como comparar duas sÃ©ries?**
+R: Adicione ambas ao mesmo grÃ¡fico. Para escalas diferentes, use mÃºltiplos eixos Y.
 
-**P: Posso exportar gráficos?**
-R: Sim, clique direito no gráfico → Exportar. PNG, SVG, PDF suportados.
+**P: Posso exportar grÃ¡ficos?**
+R: Sim, clique direito no grÃ¡fico â†’ Exportar. PNG, SVG, PDF suportados.
 
-**P: Como criar animações?**
-R: Habilite streaming, depois Ferramentas → Exportar → Vídeo.
+**P: Como criar animaÃ§Ãµes?**
+R: Habilite streaming, depois Ferramentas â†’ Exportar â†’ VÃ­deo.
 
-### Perguntas sobre Cálculos
+### Perguntas sobre CÃ¡lculos
 
-**P: Qual método de interpolação devo usar?**
+**P: Qual mÃ©todo de interpolaÃ§Ã£o devo usar?**
 R: 
-- **Linear**: Rápido, bom para a maioria dos casos
+- **Linear**: RÃ¡pido, bom para a maioria dos casos
 - **Spline**: Curvas suaves
 - **PCHIP**: Preserva monotonicidade
 
-**P: Quão precisas são as derivadas?**
-R: Usa diferenciação numérica (diferenças finitas). A precisão depende da taxa de amostragem e nível de ruído.
+**P: QuÃ£o precisas sÃ£o as derivadas?**
+R: Usa diferenciaÃ§Ã£o numÃ©rica (diferenÃ§as finitas). A precisÃ£o depende da taxa de amostragem e nÃ­vel de ruÃ­do.
 
-**P: Posso escrever operações customizadas?**
+**P: Posso escrever operaÃ§Ãµes customizadas?**
 R: Sim, use o sistema de plugins. Veja [Desenvolvimento de Plugins](PLUGIN_DEVELOPMENT.md).
 
 ---
 
 ## Suporte
 
-### Documentação
+### DocumentaÃ§Ã£o
 
-- **Guia do Usuário**: Este documento
-- **Referência da API**: [API_REFERENCE.md](API_REFERENCE.md)
+- **Guia do UsuÃ¡rio**: Este documento
+- **ReferÃªncia da API**: [API_REFERENCE.md](API_REFERENCE.md)
 - **Guia de Plugins**: [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md)
-- **Solução de Problemas**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- **SoluÃ§Ã£o de Problemas**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ### Comunidade
 
 - **Issues no GitHub**: Reporte bugs
-- **Discussões**: Faça perguntas, compartilhe dicas
-- **Wiki**: Guias contribuídos pela comunidade
+- **DiscussÃµes**: FaÃ§a perguntas, compartilhe dicas
+- **Wiki**: Guias contribuÃ­dos pela comunidade
 
 ### Obtendo Ajuda
 
 1. Verifique as [Perguntas Frequentes](#perguntas-frequentes) acima
-2. Leia o [Guia de Solução de Problemas](TROUBLESHOOTING.md)
+2. Leia o [Guia de SoluÃ§Ã£o de Problemas](TROUBLESHOOTING.md)
 3. Pesquise [Issues existentes no GitHub](https://github.com/thiagoarcan/Warp/issues)
 4. Crie nova issue com:
-   - Versão do Platform Base
+   - VersÃ£o do Platform Base
    - Sistema operacional
    - Passos para reproduzir
    - Mensagens de erro/screenshots
 
 ---
 
-## Apêndice
+## ApÃªndice
 
-### Glossário
+### GlossÃ¡rio
 
-- **Série**: Uma sequência de valores ao longo do tempo
-- **Dataset**: Coleção de séries relacionadas
-- **Decimação**: Redução do número de pontos para visualização
-- **Interpolação**: Estimativa de valores entre pontos conhecidos
-- **Sincronização**: Alinhamento de múltiplas séries temporais
+- **SÃ©rie**: Uma sequÃªncia de valores ao longo do tempo
+- **Dataset**: ColeÃ§Ã£o de sÃ©ries relacionadas
+- **DecimaÃ§Ã£o**: ReduÃ§Ã£o do nÃºmero de pontos para visualizaÃ§Ã£o
+- **InterpolaÃ§Ã£o**: Estimativa de valores entre pontos conhecidos
+- **SincronizaÃ§Ã£o**: Alinhamento de mÃºltiplas sÃ©ries temporais
 
 ### Detalhes dos Formatos de Arquivo
 
@@ -745,25 +747,27 @@ time,sensor_1,sensor_2
 - Planilha 1: Dados (colunas tempo + valor)
 - Planilha 2: Metadados (opcional)
 
-### Métodos de Cálculo
+### MÃ©todos de CÃ¡lculo
 
-**Métodos de Derivada**
-- Diferença progressiva
-- Diferença regressiva
-- Diferença central (padrão)
+**MÃ©todos de Derivada**
+- DiferenÃ§a progressiva
+- DiferenÃ§a regressiva
+- DiferenÃ§a central (padrÃ£o)
 
-**Métodos de Integral**
-- Regra trapezoidal (padrão)
+**MÃ©todos de Integral**
+- Regra trapezoidal (padrÃ£o)
 - Regra de Simpson
-- Integração de Romberg
+- IntegraÃ§Ã£o de Romberg
 
 **Tipos de Filtro**
-- Butterworth (resposta de frequência suave)
+- Butterworth (resposta de frequÃªncia suave)
 - Chebyshev (roll-off mais acentuado)
 - Bessel (fase linear)
 
 ---
 
-*Platform Base v2.0 - Guia do Usuário*  
-*Última Atualização: 2026-02-02*  
-*Copyright © 2026 Equipe Platform Base*
+*Platform Base v2.0 - Guia do UsuÃ¡rio*  
+*Ãšltima AtualizaÃ§Ã£o: 2026-02-02*  
+*Copyright Â© 2026 Equipe Platform Base*
+
+

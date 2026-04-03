@@ -1,27 +1,27 @@
-# Platform Base v2.0 - Guia de Solução de Problemas
+﻿# Platform Base v2.0 - Guia de SoluÃ§Ã£o de Problemas
 
-**Soluções para problemas e questões comuns**
+**SoluÃ§Ãµes para problemas e questÃµes comuns**
 
 ---
 
-## Índice
+## Ãndice
 
-1. [Problemas de Instalação](#problemas-de-instalação)
-2. [Problemas de Inicialização](#problemas-de-inicialização)
+1. [Problemas de InstalaÃ§Ã£o](#problemas-de-instalaÃ§Ã£o)
+2. [Problemas de InicializaÃ§Ã£o](#problemas-de-inicializaÃ§Ã£o)
 3. [Problemas de Carregamento de Dados](#problemas-de-carregamento-de-dados)
 4. [Problemas de Desempenho](#problemas-de-desempenho)
-5. [Problemas de Visualização](#problemas-de-visualização)
-6. [Erros de Cálculo](#erros-de-cálculo)
-7. [Problemas de Memória](#problemas-de-memória)
+5. [Problemas de VisualizaÃ§Ã£o](#problemas-de-visualizaÃ§Ã£o)
+6. [Erros de CÃ¡lculo](#erros-de-cÃ¡lculo)
+7. [Problemas de MemÃ³ria](#problemas-de-memÃ³ria)
 8. [Problemas de UI/Display](#problemas-de-uidisplay)
-9. [Problemas de Exportação](#problemas-de-exportação)
+9. [Problemas de ExportaÃ§Ã£o](#problemas-de-exportaÃ§Ã£o)
 10. [Problemas de Plugins](#problemas-de-plugins)
-11. [Problemas Específicos do Sistema](#problemas-específicos-do-sistema)
+11. [Problemas EspecÃ­ficos do Sistema](#problemas-especÃ­ficos-do-sistema)
 12. [Obtendo Mais Ajuda](#obtendo-mais-ajuda)
 
 ---
 
-## Problemas de Instalação
+## Problemas de InstalaÃ§Ã£o
 
 ### Problema: pip install falha com "No module named 'platform_base'"
 
@@ -30,31 +30,31 @@
 ModuleNotFoundError: No module named 'platform_base'
 ```
 
-**Soluções**:
-1. Certifique-se de estar no diretório correto:
+**SoluÃ§Ãµes**:
+1. Certifique-se de estar no diretÃ³rio correto:
    ```bash
    cd /caminho/para/Warp/platform_base
-   pwd  # Deve mostrar diretório platform_base
+   pwd  # Deve mostrar diretÃ³rio platform_base
    ```
 
-2. Instale em modo editável:
+2. Instale em modo editÃ¡vel:
    ```bash
    pip install -e .
    ```
 
-3. Verifique versão do Python:
+3. Verifique versÃ£o do Python:
    ```bash
    python --version  # Deve ser 3.12+
    ```
 
-### Problema: Conflitos de dependências durante instalação
+### Problema: Conflitos de dependÃªncias durante instalaÃ§Ã£o
 
 **Sintomas**:
 ```
-ERROR: pacote X requer Y<2.0, mas você tem Y 2.1
+ERROR: pacote X requer Y<2.0, mas vocÃª tem Y 2.1
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 1. Crie ambiente virtual limpo:
    ```bash
    python -m venv venv_limpo
@@ -67,20 +67,20 @@ ERROR: pacote X requer Y<2.0, mas você tem Y 2.1
    pip install --upgrade pip setuptools wheel
    ```
 
-3. Instale com versões específicas:
+3. Instale com versÃµes especÃ­ficas:
    ```bash
    pip install -e . --no-deps
    pip install -r requirements.txt
    ```
 
-### Problema: PyQt6 não instala
+### Problema: PyQt6 nÃ£o instala
 
 **Sintomas**:
 ```
 ERROR: Could not build wheels for PyQt6
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 **Linux**:
 ```bash
@@ -96,25 +96,25 @@ pip install PyQt6
 ```
 
 **Windows**:
-- Certifique-se que Visual C++ Redistributable está instalado
+- Certifique-se que Visual C++ Redistributable estÃ¡ instalado
 - Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
 
 ---
 
-## Problemas de Inicialização
+## Problemas de InicializaÃ§Ã£o
 
-### Problema: Aplicação não inicia
+### Problema: AplicaÃ§Ã£o nÃ£o inicia
 
 **Sintomas**:
-- Janela não aparece
+- Janela nÃ£o aparece
 - Comando trava
-- Saída imediata
+- SaÃ­da imediata
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Verifique mensagens de erro**:
    ```bash
-   python -m platform_base.desktop.main_window --debug
+   python launch_app.py --debug
    ```
 
 2. **Verifique logs**:
@@ -122,7 +122,7 @@ pip install PyQt6
    cat ~/.platform_base/logs/app.log
    ```
 
-3. **Teste instalação do Qt**:
+3. **Teste instalaÃ§Ã£o do Qt**:
    ```python
    from PyQt6.QtWidgets import QApplication
    import sys
@@ -136,20 +136,24 @@ pip install PyQt6
    # Deve mostrar :0 ou similar
    ```
 
-### Problema: Aplicação trava na inicialização
+### Problema: AplicaÃ§Ã£o trava na inicializaÃ§Ã£o
 
 **Sintomas**:
 ```
 Segmentation fault (core dumped)
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Atualize drivers gráficos** (causa mais comum)
+1. **Atualize drivers grÃ¡ficos** (causa mais comum)
 
-2. **Tente renderização por software**:
+2. **Tente renderizaÃ§Ã£o por software**:
    ```bash
    export QT_QPA_PLATFORM=offscreen
+   python launch_app.py
+
+   No Windows (PowerShell):
+   $env:QT_QPA_PLATFORM = 'offscreen'
    python launch_app.py
    ```
 
@@ -168,16 +172,16 @@ Segmentation fault (core dumped)
 
 ## Problemas de Carregamento de Dados
 
-### Problema: Arquivo CSV não carrega
+### Problema: Arquivo CSV nÃ£o carrega
 
 **Sintomas**:
 - Erro "Unable to parse file"
 - Dataset vazio
 - Colunas erradas
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Verifique codificação do arquivo**:
+1. **Verifique codificaÃ§Ã£o do arquivo**:
    ```bash
    file -i seu_arquivo.csv
    # ou
@@ -185,7 +189,7 @@ Segmentation fault (core dumped)
    ```
 
 2. **Tente delimitador diferente**:
-   - Diálogo de carregamento → Delimitador → Tente Tab, Ponto-e-vírgula, Espaço
+   - DiÃ¡logo de carregamento â†’ Delimitador â†’ Tente Tab, Ponto-e-vÃ­rgula, EspaÃ§o
 
 3. **Verifique BOM (Byte Order Mark)**:
    ```python
@@ -194,56 +198,56 @@ Segmentation fault (core dumped)
        if primeiros_bytes == b'\xef\xbb\xbf':
            print("UTF-8 BOM detectado")
    ```
-   Solução: Re-salve arquivo sem BOM
+   SoluÃ§Ã£o: Re-salve arquivo sem BOM
 
 4. **Valide estrutura CSV**:
    ```bash
    head -5 seu_arquivo.csv
    # Verifique:
-   # - Número consistente de colunas
-   # - Sem linhas vazias no início
-   # - Linha de cabeçalho presente
+   # - NÃºmero consistente de colunas
+   # - Sem linhas vazias no inÃ­cio
+   # - Linha de cabeÃ§alho presente
    ```
 
-### Problema: Arquivo Excel carrega mas dados estão errados
+### Problema: Arquivo Excel carrega mas dados estÃ£o errados
 
 **Sintomas**:
 - Colunas faltando
 - Planilha errada carregada
-- Datas aparecendo como números
+- Datas aparecendo como nÃºmeros
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Especifique planilha correta**:
-   - Diálogo de carregamento → Dropdown de Planilha → Selecione planilha correta
+   - DiÃ¡logo de carregamento â†’ Dropdown de Planilha â†’ Selecione planilha correta
 
 2. **Verifique formato de data**:
-   - Diálogo de carregamento → Colunas de data → Seleção manual
+   - DiÃ¡logo de carregamento â†’ Colunas de data â†’ SeleÃ§Ã£o manual
    - Ou: Formate datas como ISO no Excel (AAAA-MM-DD)
 
-3. **Trate células mescladas**:
-   - Células mescladas do Excel não são suportadas
+3. **Trate cÃ©lulas mescladas**:
+   - CÃ©lulas mescladas do Excel nÃ£o sÃ£o suportadas
    - Desmescle no Excel antes de carregar
 
-4. **Verifique células com fórmulas**:
-   - Fórmulas não são avaliadas
+4. **Verifique cÃ©lulas com fÃ³rmulas**:
+   - FÃ³rmulas nÃ£o sÃ£o avaliadas
    - Copie-cole como valores no Excel primeiro
 
 ### Problema: Arquivo grande demora muito para carregar
 
 **Sintomas**:
 - Progresso de carregamento travado
-- Aplicação não responde
-- Memória cresce continuamente
+- AplicaÃ§Ã£o nÃ£o responde
+- MemÃ³ria cresce continuamente
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Habilite decimação**:
+1. **Habilite decimaÃ§Ã£o**:
    ```python
    load(file, config={"max_rows": 100000})
    ```
 
-2. **Use Parquet ao invés de CSV**:
+2. **Use Parquet ao invÃ©s de CSV**:
    ```python
    # Converta primeiro
    import pandas as pd
@@ -251,8 +255,8 @@ Segmentation fault (core dumped)
    df.to_parquet("grande.parquet")
    ```
 
-3. **Carregue apenas colunas específicas**:
-   - Diálogo de carregamento → Selecionar Colunas → Escolha apenas colunas necessárias
+3. **Carregue apenas colunas especÃ­ficas**:
+   - DiÃ¡logo de carregamento â†’ Selecionar Colunas â†’ Escolha apenas colunas necessÃ¡rias
 
 4. **Divida arquivo em chunks**:
    ```bash
@@ -263,25 +267,25 @@ Segmentation fault (core dumped)
 
 ## Problemas de Desempenho
 
-### Problema: Aplicação está lenta/travando
+### Problema: AplicaÃ§Ã£o estÃ¡ lenta/travando
 
 **Sintomas**:
 - UI congela
-- Atualizações de gráfico lentas
-- Operações demoram muito
+- AtualizaÃ§Ãµes de grÃ¡fico lentas
+- OperaÃ§Ãµes demoram muito
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Habilite auto-decimação**:
-   - Configurações → Desempenho → Auto-decimação: ON
-   - Limite de decimação: 10000 pontos
+1. **Habilite auto-decimaÃ§Ã£o**:
+   - ConfiguraÃ§Ãµes â†’ Desempenho â†’ Auto-decimaÃ§Ã£o: ON
+   - Limite de decimaÃ§Ã£o: 10000 pontos
 
-2. **Feche abas não utilizadas**:
-   - Cada gráfico usa memória
-   - Fechar: Clique direito na aba → Fechar
+2. **Feche abas nÃ£o utilizadas**:
+   - Cada grÃ¡fico usa memÃ³ria
+   - Fechar: Clique direito na aba â†’ Fechar
 
 3. **Reduza tamanho dos dados**:
-   - Exporte versão decimada
+   - Exporte versÃ£o decimada
    - Trabalhe com subconjunto filtrado
 
 4. **Verifique uso de CPU**:
@@ -290,18 +294,18 @@ Segmentation fault (core dumped)
    ```
 
 5. **Desabilite anti-aliasing**:
-   - Configurações → Visualização → Anti-aliasing: OFF
+   - ConfiguraÃ§Ãµes â†’ VisualizaÃ§Ã£o â†’ Anti-aliasing: OFF
 
-### Problema: Renderização de gráfico está lenta
+### Problema: RenderizaÃ§Ã£o de grÃ¡fico estÃ¡ lenta
 
 **Sintomas**:
 - Zoom/pan com lag
-- Gráfico demora segundos para atualizar
+- GrÃ¡fico demora segundos para atualizar
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Habilite aceleração de GPU**:
-   - Configurações → Desempenho → GPU: ON
+1. **Habilite aceleraÃ§Ã£o de GPU**:
+   - ConfiguraÃ§Ãµes â†’ Desempenho â†’ GPU: ON
 
 2. **Use downsampling LTTB**:
    ```python
@@ -309,35 +313,35 @@ Segmentation fault (core dumped)
    downsampled = downsample_lttb(data, time, n_out=2000)
    ```
 
-3. **Reduza número de séries**:
-   - Muitas séries (>10) desaceleram renderização
+3. **Reduza nÃºmero de sÃ©ries**:
+   - Muitas sÃ©ries (>10) desaceleram renderizaÃ§Ã£o
    - Plote subconjuntos separadamente
 
-4. **Verifique driver gráfico**:
+4. **Verifique driver grÃ¡fico**:
    ```bash
    glxinfo | grep "renderer"
    ```
 
 ---
 
-## Problemas de Visualização
+## Problemas de VisualizaÃ§Ã£o
 
-### Problema: Gráfico está em branco/vazio
+### Problema: GrÃ¡fico estÃ¡ em branco/vazio
 
 **Sintomas**:
 - Canvas branco
-- Sem dados visíveis
+- Sem dados visÃ­veis
 - Eixos presentes mas sem linhas
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Verifique range de dados**:
    - Dados podem estar fora da vista
-   - Clique direito → Resetar Vista (ou pressione `R`)
+   - Clique direito â†’ Resetar Vista (ou pressione `R`)
 
-2. **Verifique se série foi adicionada**:
-   - Procure por série na legenda
-   - Se faltando, dê duplo clique na série na árvore de dados
+2. **Verifique se sÃ©rie foi adicionada**:
+   - Procure por sÃ©rie na legenda
+   - Se faltando, dÃª duplo clique na sÃ©rie na Ã¡rvore de dados
 
 3. **Verifique valores NaN**:
    ```python
@@ -347,39 +351,39 @@ Segmentation fault (core dumped)
 
 4. **Verifique escalas de eixos**:
    - Incompatibilidade de escala Linear vs Log
-   - Clique direito no eixo → Escala Linear
+   - Clique direito no eixo â†’ Escala Linear
 
-### Problema: Cores não estão sendo exibidas corretamente
+### Problema: Cores nÃ£o estÃ£o sendo exibidas corretamente
 
 **Sintomas**:
-- Todas séries mesma cor
+- Todas sÃ©ries mesma cor
 - Cores muito similares
-- Não consegue distinguir séries
+- NÃ£o consegue distinguir sÃ©ries
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Resete esquema de cores**:
-   - Configurações → Visualização → Cores → Resetar para Padrão
+   - ConfiguraÃ§Ãµes â†’ VisualizaÃ§Ã£o â†’ Cores â†’ Resetar para PadrÃ£o
 
 2. **Configure cores manualmente**:
-   - Clique direito na série na legenda
-   - Mudar Cor → Escolha cor distinta
+   - Clique direito na sÃ©rie na legenda
+   - Mudar Cor â†’ Escolha cor distinta
 
-3. **Use paleta amigável para daltônicos**:
-   - Configurações → Visualização → Paleta de Cores → Daltônicos
+3. **Use paleta amigÃ¡vel para daltÃ´nicos**:
+   - ConfiguraÃ§Ãµes â†’ VisualizaÃ§Ã£o â†’ Paleta de Cores â†’ DaltÃ´nicos
 
 4. **Verifique tema**:
    - Tema escuro pode afetar visibilidade
-   - Tente: Configurações → Aparência → Tema → Claro
+   - Tente: ConfiguraÃ§Ãµes â†’ AparÃªncia â†’ Tema â†’ Claro
 
-### Problema: Gráfico 3D não renderiza
+### Problema: GrÃ¡fico 3D nÃ£o renderiza
 
 **Sintomas**:
 - Erro: "VTK not available"
 - Janela 3D em branco
 - Trava ao abrir 3D
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Instale VTK**:
    ```bash
@@ -392,49 +396,49 @@ Segmentation fault (core dumped)
    # Deve mostrar OpenGL 3.0+
    ```
 
-3. **Use renderização por software**:
+3. **Use renderizaÃ§Ã£o por software**:
    ```bash
    export PYVISTA_OFF_SCREEN=true
    ```
 
-4. **Atualize drivers gráficos**
+4. **Atualize drivers grÃ¡ficos**
 
 ---
 
-## Erros de Cálculo
+## Erros de CÃ¡lculo
 
 ### Problema: Derivada retorna NaN
 
 **Sintomas**:
 ```
 RuntimeWarning: invalid value encountered
-Resultado contém NaN
+Resultado contÃ©m NaN
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Verifique entrada para NaN**:
-   - Operações → Interpolação → Preencha lacunas primeiro
+   - OperaÃ§Ãµes â†’ InterpolaÃ§Ã£o â†’ Preencha lacunas primeiro
 
 2. **Verifique array de tempo**:
    - Deve ser monotonicamente crescente
    - Sem timestamps duplicados
 
-3. **Use método diferente**:
-   - Tente: Diferença progressiva ao invés de central
+3. **Use mÃ©todo diferente**:
+   - Tente: DiferenÃ§a progressiva ao invÃ©s de central
 
-4. **Filtre ruído primeiro**:
-   - Operações → Filtros → Passa-Baixas
+4. **Filtre ruÃ­do primeiro**:
+   - OperaÃ§Ãµes â†’ Filtros â†’ Passa-Baixas
    - Depois calcule derivada
 
-### Problema: Interpolação falha
+### Problema: InterpolaÃ§Ã£o falha
 
 **Sintomas**:
 ```
 ValueError: x must be strictly increasing
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Ordene array de tempo**:
    ```python
@@ -451,8 +455,8 @@ ValueError: x must be strictly increasing
    ```
 
 3. **Verifique lacunas**:
-   - Lacunas grandes (>10x espaçamento mediano) podem causar problemas
-   - Considere: Operações → Interpolação → Método → Linear (mais robusto)
+   - Lacunas grandes (>10x espaÃ§amento mediano) podem causar problemas
+   - Considere: OperaÃ§Ãµes â†’ InterpolaÃ§Ã£o â†’ MÃ©todo â†’ Linear (mais robusto)
 
 ### Problema: Erro "Out of bounds"
 
@@ -461,7 +465,7 @@ ValueError: x must be strictly increasing
 IndexError: index out of bounds
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Verifique comprimentos de arrays correspondem**:
    ```python
@@ -474,15 +478,15 @@ IndexError: index out of bounds
        # Trate caso vazio
    ```
 
-3. **Valide índices**:
-   - Não acesse data[len(data)]
-   - Use data[-1] para último elemento
+3. **Valide Ã­ndices**:
+   - NÃ£o acesse data[len(data)]
+   - Use data[-1] para Ãºltimo elemento
 
 ---
 
-## Problemas de Memória
+## Problemas de MemÃ³ria
 
-### Problema: Erro de falta de memória
+### Problema: Erro de falta de memÃ³ria
 
 **Sintomas**:
 ```
@@ -490,17 +494,17 @@ MemoryError
 killed
 ```
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Aumente limite de memória**:
-   - Configurações → Desempenho → Limite de Memória → 80% da RAM
+1. **Aumente limite de memÃ³ria**:
+   - ConfiguraÃ§Ãµes â†’ Desempenho â†’ Limite de MemÃ³ria â†’ 80% da RAM
 
 2. **Use carregamento em chunks**:
    ```python
    load(file, config={"max_rows": 50000, "chunked": True})
    ```
 
-3. **Feche outras aplicações**
+3. **Feche outras aplicaÃ§Ãµes**
 
 4. **Use Python 64-bit**:
    ```bash
@@ -509,32 +513,32 @@ killed
    ```
 
 5. **Habilite cache em disco**:
-   - Configurações → Desempenho → Cache em Disco: ON
+   - ConfiguraÃ§Ãµes â†’ Desempenho â†’ Cache em Disco: ON
 
-### Problema: Uso de memória continua crescendo
+### Problema: Uso de memÃ³ria continua crescendo
 
 **Sintomas**:
 - Uso de RAM aumenta ao longo do tempo
-- Aplicação desacelera
+- AplicaÃ§Ã£o desacelera
 - Eventualmente trava
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Limpe histórico de desfazer**:
-   - Editar → Limpar Histórico de Desfazer
+1. **Limpe histÃ³rico de desfazer**:
+   - Editar â†’ Limpar HistÃ³rico de Desfazer
 
-2. **Feche abas não utilizadas**:
-   - Cada aba mantém dados na memória
+2. **Feche abas nÃ£o utilizadas**:
+   - Cada aba mantÃ©m dados na memÃ³ria
 
-3. **Reinicie aplicação periodicamente**
+3. **Reinicie aplicaÃ§Ã£o periodicamente**
 
-4. **Verifique vazamentos de memória**:
+4. **Verifique vazamentos de memÃ³ria**:
    ```bash
    python -m memory_profiler launch_app.py
    ```
 
 5. **Desabilite auto-salvamento**:
-   - Configurações → Auto-salvamento → Desabilitado
+   - ConfiguraÃ§Ãµes â†’ Auto-salvamento â†’ Desabilitado
 
 ---
 
@@ -543,87 +547,87 @@ killed
 ### Problema: Elementos de UI muito pequenos/grandes
 
 **Sintomas**:
-- Texto ilegível
-- Botões minúsculos
-- Widgets sobrepõem
+- Texto ilegÃ­vel
+- BotÃµes minÃºsculos
+- Widgets sobrepÃµem
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
 1. **Ajuste escala DPI** (Windows):
-   - Clique direito no app → Propriedades → Compatibilidade
-   - Substituir escala de alto DPI: Aplicação
+   - Clique direito no app â†’ Propriedades â†’ Compatibilidade
+   - Substituir escala de alto DPI: AplicaÃ§Ã£o
 
 2. **Mude tamanho da fonte**:
-   - Configurações → Aparência → Tamanho da Fonte → Ajustar
+   - ConfiguraÃ§Ãµes â†’ AparÃªncia â†’ Tamanho da Fonte â†’ Ajustar
 
 3. **Use zoom de UI**:
-   - Configurações → Acessibilidade → Zoom de UI → 125% ou 150%
+   - ConfiguraÃ§Ãµes â†’ Acessibilidade â†’ Zoom de UI â†’ 125% ou 150%
 
-### Problema: Tema não está sendo aplicado
+### Problema: Tema nÃ£o estÃ¡ sendo aplicado
 
 **Sintomas**:
 - Tema mudou mas sem efeito
 - Elementos mistos claro/escuro
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Reinicie aplicação** (necessário para mudança de tema)
+1. **Reinicie aplicaÃ§Ã£o** (necessÃ¡rio para mudanÃ§a de tema)
 
 2. **Verifique arquivos de tema**:
    ```bash
    ls ~/.platform_base/themes/
    ```
 
-3. **Resete para padrão**:
-   - Configurações → Aparência → Tema → Resetar para Padrão
+3. **Resete para padrÃ£o**:
+   - ConfiguraÃ§Ãµes â†’ AparÃªncia â†’ Tema â†’ Resetar para PadrÃ£o
 
-### Problema: Menus/diálogos aparecem fora da tela
+### Problema: Menus/diÃ¡logos aparecem fora da tela
 
 **Sintomas**:
-- Não consegue ver diálogo
+- NÃ£o consegue ver diÃ¡logo
 - Menu cortado
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Resete posições de janela**:
-   - Configurações → Geral → Resetar Posições de Janela
+1. **Resete posiÃ§Ãµes de janela**:
+   - ConfiguraÃ§Ãµes â†’ Geral â†’ Resetar PosiÃ§Ãµes de Janela
 
-2. **Mude monitor** (configuração multi-monitor):
+2. **Mude monitor** (configuraÃ§Ã£o multi-monitor):
    ```bash
    # Mova janela para monitor principal
    xrandr --output HDMI-1 --primary
    ```
 
-3. **Use navegação por teclado**:
+3. **Use navegaÃ§Ã£o por teclado**:
    - `Tab` para percorrer elementos
    - `Enter` para ativar
 
 ---
 
-## Problemas de Exportação
+## Problemas de ExportaÃ§Ã£o
 
-### Problema: Exportação falha silenciosamente
+### Problema: ExportaÃ§Ã£o falha silenciosamente
 
 **Sintomas**:
-- Botão de exportação clicado
+- BotÃ£o de exportaÃ§Ã£o clicado
 - Nenhum arquivo criado
 - Sem mensagem de erro
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Verifique permissões de arquivo**:
+1. **Verifique permissÃµes de arquivo**:
    ```bash
    ls -l /diretorio/exportacao/
-   # Deve ter permissão de escrita
+   # Deve ter permissÃ£o de escrita
    ```
 
-2. **Verifique espaço em disco**:
+2. **Verifique espaÃ§o em disco**:
    ```bash
    df -h
    ```
 
 3. **Tente local diferente**:
-   - Exporte para diretório home primeiro
+   - Exporte para diretÃ³rio home primeiro
    - Depois mova arquivo
 
 4. **Verifique logs**:
@@ -631,20 +635,20 @@ killed
    tail ~/.platform_base/logs/export.log
    ```
 
-### Problema: CSV exportado está corrompido
+### Problema: CSV exportado estÃ¡ corrompido
 
 **Sintomas**:
-- Arquivo não abre
+- Arquivo nÃ£o abre
 - Colunas desalinhadas
 - Caracteres extras
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Especifique codificação explicitamente**:
-   - Diálogo de exportação → Codificação → UTF-8 (BOM)
+1. **Especifique codificaÃ§Ã£o explicitamente**:
+   - DiÃ¡logo de exportaÃ§Ã£o â†’ CodificaÃ§Ã£o â†’ UTF-8 (BOM)
 
 2. **Verifique delimitador**:
-   - Diálogo de exportação → Delimitador → Corresponda ferramenta de importação
+   - DiÃ¡logo de exportaÃ§Ã£o â†’ Delimitador â†’ Corresponda ferramenta de importaÃ§Ã£o
 
 3. **Valide arquivo exportado**:
    ```bash
@@ -656,16 +660,16 @@ killed
 
 ## Problemas de Plugins
 
-### Problema: Plugin não carrega
+### Problema: Plugin nÃ£o carrega
 
 **Sintomas**:
-- Plugin não está no menu
-- Erro de importação
+- Plugin nÃ£o estÃ¡ no menu
+- Erro de importaÃ§Ã£o
 - "Plugin failed to load"
 
-**Soluções**:
+**SoluÃ§Ãµes**:
 
-1. **Verifique diretório de plugins**:
+1. **Verifique diretÃ³rio de plugins**:
    ```bash
    ls ~/.platform_base/plugins/
    ```
@@ -676,13 +680,13 @@ killed
    # Valide sintaxe YAML
    ```
 
-3. **Verifique dependências**:
+3. **Verifique dependÃªncias**:
    ```bash
    pip list | grep nome-plugin
    ```
 
 4. **Habilite logging de plugin**:
-   - Configurações → Avançado → Debug de Plugin: ON
+   - ConfiguraÃ§Ãµes â†’ AvanÃ§ado â†’ Debug de Plugin: ON
 
 5. **Reinstale plugin**:
    ```bash
@@ -692,7 +696,7 @@ killed
 
 ---
 
-## Problemas Específicos do Sistema
+## Problemas EspecÃ­ficos do Sistema
 
 ### Linux
 
@@ -701,17 +705,17 @@ killed
 ImportError: libEGL.so.1: cannot open shared object file
 ```
 
-**Solução**:
+**SoluÃ§Ã£o**:
 ```bash
 sudo apt-get install libegl1-mesa libgl1-mesa-glx
 ```
 
-**Problema**: Erro de conexão X11
+**Problema**: Erro de conexÃ£o X11
 ```
 qt.qpa.xcb: could not connect to display
 ```
 
-**Solução**:
+**SoluÃ§Ã£o**:
 ```bash
 export DISPLAY=:0
 xhost +local:
@@ -719,19 +723,19 @@ xhost +local:
 
 ### macOS
 
-**Problema**: App não autorizado
+**Problema**: App nÃ£o autorizado
 ```
 "Platform Base" cannot be opened because the developer cannot be verified
 ```
 
-**Solução**:
+**SoluÃ§Ã£o**:
 ```bash
 xattr -cr /caminho/para/platform_base.app
 ```
 
 **Problema**: Problemas de display Retina
-**Solução**:
-- Configurações → Display → Usar Resolução Nativa: ON
+**SoluÃ§Ã£o**:
+- ConfiguraÃ§Ãµes â†’ Display â†’ Usar ResoluÃ§Ã£o Nativa: ON
 
 ### Windows
 
@@ -740,14 +744,14 @@ xattr -cr /caminho/para/platform_base.app
 ImportError: DLL load failed while importing QtCore
 ```
 
-**Solução**:
+**SoluÃ§Ã£o**:
 - Instale Visual C++ Redistributable 2015-2022
 - https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-**Problema**: Antivírus bloqueando
-**Solução**:
-- Adicione exceção para platform_base.exe
-- Ou desabilite antivírus temporariamente
+**Problema**: AntivÃ­rus bloqueando
+**SoluÃ§Ã£o**:
+- Adicione exceÃ§Ã£o para platform_base.exe
+- Ou desabilite antivÃ­rus temporariamente
 
 ---
 
@@ -757,7 +761,7 @@ ImportError: DLL load failed while importing QtCore
 
 1. **Verifique logs**:
    ```bash
-   # Log da aplicação
+   # Log da aplicaÃ§Ã£o
    cat ~/.platform_base/logs/app.log
    
    # Log de erros
@@ -769,7 +773,7 @@ ImportError: DLL load failed while importing QtCore
    python launch_app.py --verbose --debug
    ```
 
-3. **Verifique informações do sistema**:
+3. **Verifique informaÃ§Ãµes do sistema**:
    ```bash
    python -c "import platform; print(platform.platform())"
    python -c "import platform_base; print(platform_base.__version__)"
@@ -779,9 +783,9 @@ ImportError: DLL load failed while importing QtCore
 
 Ao criar issue no GitHub, inclua:
 
-1. **Versão do Platform Base**
-2. **Sistema operacional** (nome + versão)
-3. **Versão do Python**
+1. **VersÃ£o do Platform Base**
+2. **Sistema operacional** (nome + versÃ£o)
+3. **VersÃ£o do Python**
 4. **Passos para reproduzir**
 5. **Comportamento esperado vs real**
 6. **Mensagens de erro** (traceback completo)
@@ -791,8 +795,8 @@ Ao criar issue no GitHub, inclua:
 ### Recursos da Comunidade
 
 - **Issues no GitHub**: https://github.com/thiagoarcan/Warp/issues
-- **Discussões**: https://github.com/thiagoarcan/Warp/discussions
-- **Documentação**: Todos os docs no diretório `/docs`
+- **DiscussÃµes**: https://github.com/thiagoarcan/Warp/discussions
+- **DocumentaÃ§Ã£o**: Todos os docs no diretÃ³rio `/docs`
 
 ### Suporte Profissional
 
@@ -800,19 +804,19 @@ Para suporte empresarial, contate: support@platform-base.com
 
 ---
 
-## Ferramentas de Diagnóstico
+## Ferramentas de DiagnÃ³stico
 
-### Script de Informações do Sistema
+### Script de InformaÃ§Ãµes do Sistema
 
 ```python
 #!/usr/bin/env python3
-"""Imprime informações de diagnóstico."""
+"""Imprime informaÃ§Ãµes de diagnÃ³stico."""
 
 import sys
 import platform
 import platform_base
 
-print("Informações do Sistema")
+print("InformaÃ§Ãµes do Sistema")
 print("=" * 50)
 print(f"SO: {platform.system()} {platform.release()}")
 print(f"Python: {sys.version}")
@@ -822,48 +826,49 @@ try:
     from PyQt6 import QtCore
     print(f"PyQt6: {QtCore.PYQT_VERSION_STR}")
 except ImportError:
-    print("PyQt6: NÃO INSTALADO")
+    print("PyQt6: NÃƒO INSTALADO")
 
 try:
     import numpy as np
     print(f"NumPy: {np.__version__}")
 except ImportError:
-    print("NumPy: NÃO INSTALADO")
+    print("NumPy: NÃƒO INSTALADO")
 
-print("\nDiretório de instalação:")
+print("\nDiretÃ³rio de instalaÃ§Ã£o:")
 print(platform_base.__file__)
 ```
 
-### Verificação Rápida de Saúde
+### VerificaÃ§Ã£o RÃ¡pida de SaÃºde
 
 ```bash
 #!/bin/bash
-echo "Verificação de Saúde do Platform Base"
+echo "VerificaÃ§Ã£o de SaÃºde do Platform Base"
 echo "============================"
 
 # Verifique Python
-python --version || echo "ERRO: Python não encontrado"
+python --version || echo "ERRO: Python nÃ£o encontrado"
 
-# Verifique instalação
-python -c "import platform_base" && echo "✓ Pacote instalado" || echo "✗ Pacote não instalado"
+# Verifique instalaÃ§Ã£o
+python -c "import platform_base" && echo "âœ“ Pacote instalado" || echo "âœ— Pacote nÃ£o instalado"
 
 # Verifique Qt
-python -c "from PyQt6.QtWidgets import QApplication" && echo "✓ Qt disponível" || echo "✗ Qt não disponível"
+python -c "from PyQt6.QtWidgets import QApplication" && echo "âœ“ Qt disponÃ­vel" || echo "âœ— Qt nÃ£o disponÃ­vel"
 
-# Verifique dependências
-pip check && echo "✓ Sem conflitos de dependências" || echo "✗ Problemas de dependências"
+# Verifique dependÃªncias
+pip check && echo "âœ“ Sem conflitos de dependÃªncias" || echo "âœ— Problemas de dependÃªncias"
 
 # Verifique logs
 if [ -f ~/.platform_base/logs/app.log ]; then
-    echo "✓ Diretório de logs existe"
-    echo "Última entrada de log:"
+    echo "âœ“ DiretÃ³rio de logs existe"
+    echo "Ãšltima entrada de log:"
     tail -1 ~/.platform_base/logs/app.log
 else
-    echo "✗ Sem logs encontrados"
+    echo "âœ— Sem logs encontrados"
 fi
 ```
 
 ---
 
-*Platform Base v2.0 - Guia de Solução de Problemas*  
-*Última Atualização: 2026-02-02*
+*Platform Base v2.0 - Guia de SoluÃ§Ã£o de Problemas*  
+*Ãšltima AtualizaÃ§Ã£o: 2026-02-02*
+
