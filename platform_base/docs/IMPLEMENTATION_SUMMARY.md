@@ -3,6 +3,19 @@
 ## 🎯 Objective
 Migrate the Platform Base GUI from programmatic Python code to Qt Designer `.ui` files, enabling visual editing and reducing maintenance complexity.
 
+
+## Canonical Module Ownership (Phase 3)
+
+- Main window canonical source: `platform_base/src/platform_base/ui/main_window_unified.py`
+- Session state canonical source: `platform_base/src/platform_base/core/session_state.py`
+- Signal hub canonical source: `platform_base/src/platform_base/core/signal_hub.py`
+
+Compatibility wrappers retained for legacy imports:
+- `platform_base/src/platform_base/desktop/main_window.py`
+- `platform_base/src/platform_base/ui/main_window_old.py`
+- `platform_base/src/platform_base/desktop/session_state.py`
+- `platform_base/src/platform_base/desktop/signal_hub.py`
+
 ## ✅ What We've Built
 
 ### 1. Complete Infrastructure (Phase 1)
