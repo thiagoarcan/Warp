@@ -152,32 +152,35 @@ class TestXlsxToCsvConverter:
     
     def test_signals_emitted(self, temp_xlsx_file, tmp_path, qtbot):
         """Test that signals are emitted during conversion"""
-        from PyQt6.QtCore import QSignalSpy
-        
         converter = XlsxToCsvConverter()
         csv_path = tmp_path / "output.csv"
         
-        progress_spy = QSignalSpy(converter.progress_updated)
-        completed_spy = QSignalSpy(converter.conversion_completed)
+        # Track signal emissions
+        progress_received = []
+        completed_received = []
+        
+        converter.progress_updated.connect(lambda v: progress_received.append(v))
+        converter.conversion_completed.connect(lambda p: completed_received.append(p))
         
         result = converter.convert(temp_xlsx_file, csv_path)
         
         assert result is True
-        assert len(progress_spy) > 0  # At least one progress update
-        assert len(completed_spy) == 1  # Completion signal
+        assert len(progress_received) > 0  # At least one progress update
+        assert len(completed_received) == 1  # Completion signal
     
     def test_failed_signal(self, tmp_path, qtbot):
         """Test that failed signal is emitted on error"""
-        from PyQt6.QtCore import QSignalSpy
-        
         converter = XlsxToCsvConverter()
-        failed_spy = QSignalSpy(converter.conversion_failed)
+        
+        # Track signal emissions
+        failed_received = []
+        converter.conversion_failed.connect(lambda e: failed_received.append(e))
         
         fake_path = tmp_path / "nonexistent.xlsx"
         result = converter.convert(fake_path)
         
         assert result is False
-        assert len(failed_spy) == 1
+        assert len(failed_received) == 1
 
 
 @pytest.mark.integration
