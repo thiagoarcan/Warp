@@ -78,36 +78,36 @@ class FilterDialog(QDialog, UiLoaderMixin):
         """Busca referências a todos os widgets definidos no arquivo .ui"""
 
         # === Widgets principais ===
-        self._tabs = self.findChild(QTabWidget, "filterTabWidget")
+        self._tabs = self.findChild(QTabWidget, "filterTabs")
         self._button_box = self.findChild(QDialogButtonBox, "buttonBox")
         self._preview_button = self.findChild(QPushButton, "previewButton")
 
         # === Widgets da aba Butterworth ===
-        self._butter_type = self.findChild(QComboBox, "butterTypeCombo")
-        self._butter_order = self.findChild(QSpinBox, "butterOrderSpin")
-        self._butter_cutoff_low = self.findChild(QDoubleSpinBox, "butterCutoffLowSpin")
-        self._butter_cutoff_high = self.findChild(QDoubleSpinBox, "butterCutoffHighSpin")
-        self._butter_fs = self.findChild(QDoubleSpinBox, "butterFsSpin")
-        self._butter_auto_fs = self.findChild(QCheckBox, "butterAutoFsCheck")
-        self._butter_padlen = self.findChild(QSpinBox, "butterPadlenSpin")
-        self._butter_forward_backward = self.findChild(QCheckBox, "butterFiltfiltCheck")
+        self._butter_type = self.findChild(QComboBox, "butterType")
+        self._butter_order = self.findChild(QSpinBox, "butterOrder")
+        self._butter_cutoff_low = self.findChild(QDoubleSpinBox, "butterCutoffLow")
+        self._butter_cutoff_high = self.findChild(QDoubleSpinBox, "butterCutoffHigh")
+        self._butter_fs = self.findChild(QDoubleSpinBox, "butterFs")
+        self._butter_auto_fs = self.findChild(QCheckBox, "butterAutoFs")
+        self._butter_padlen = self.findChild(QSpinBox, "butterPadlen")
+        self._butter_forward_backward = self.findChild(QCheckBox, "butterForwardBackward")
 
         # === Widgets da aba Outliers ===
-        self._outlier_method = self.findChild(QComboBox, "outlierMethodCombo")
-        self._outlier_threshold = self.findChild(QDoubleSpinBox, "outlierThresholdSpin")
-        self._outlier_lower = self.findChild(QDoubleSpinBox, "outlierLowerSpin")
-        self._outlier_upper = self.findChild(QDoubleSpinBox, "outlierUpperSpin")
-        self._outlier_action = self.findChild(QComboBox, "outlierActionCombo")
-        self._outlier_window = self.findChild(QSpinBox, "outlierWindowSpin")
+        self._outlier_method = self.findChild(QComboBox, "outlierMethod")
+        self._outlier_threshold = self.findChild(QDoubleSpinBox, "outlierThreshold")
+        self._outlier_lower = self.findChild(QDoubleSpinBox, "outlierLower")
+        self._outlier_upper = self.findChild(QDoubleSpinBox, "outlierUpper")
+        self._outlier_action = self.findChild(QComboBox, "outlierAction")
+        self._outlier_window = self.findChild(QSpinBox, "outlierWindow")
 
         # === Widgets da aba Rolling ===
-        self._rolling_type = self.findChild(QComboBox, "rollingTypeCombo")
-        self._rolling_window = self.findChild(QSpinBox, "rollingWindowSpin")
-        self._rolling_min_periods = self.findChild(QSpinBox, "rollingMinPeriodsSpin")
-        self._rolling_center = self.findChild(QCheckBox, "rollingCenterCheck")
-        self._rolling_quantile = self.findChild(QDoubleSpinBox, "rollingQuantileSpin")
-        self._rolling_win_type = self.findChild(QComboBox, "rollingWinTypeCombo")
-        self._rolling_std = self.findChild(QDoubleSpinBox, "rollingStdSpin")
+        self._rolling_type = self.findChild(QComboBox, "rollingType")
+        self._rolling_window = self.findChild(QSpinBox, "rollingWindow")
+        self._rolling_min_periods = self.findChild(QSpinBox, "rollingMinPeriods")
+        self._rolling_center = self.findChild(QCheckBox, "rollingCenter")
+        self._rolling_quantile = self.findChild(QDoubleSpinBox, "rollingQuantile")
+        self._rolling_win_type = self.findChild(QComboBox, "rollingWinType")
+        self._rolling_std = None  # Widget não existe no .ui
 
         # Validação: todos os widgets essenciais devem existir
         self._validate_widgets()
@@ -118,32 +118,31 @@ class FilterDialog(QDialog, UiLoaderMixin):
         """Valida que todos os widgets essenciais foram encontrados no .ui"""
         required_widgets = {
             # Principais
-            "filterTabWidget": self._tabs,
+            "filterTabs": self._tabs,
             "buttonBox": self._button_box,
             # Butterworth
-            "butterTypeCombo": self._butter_type,
-            "butterOrderSpin": self._butter_order,
-            "butterCutoffLowSpin": self._butter_cutoff_low,
-            "butterCutoffHighSpin": self._butter_cutoff_high,
-            "butterFsSpin": self._butter_fs,
-            "butterAutoFsCheck": self._butter_auto_fs,
-            "butterPadlenSpin": self._butter_padlen,
-            "butterFiltfiltCheck": self._butter_forward_backward,
+            "butterType": self._butter_type,
+            "butterOrder": self._butter_order,
+            "butterCutoffLow": self._butter_cutoff_low,
+            "butterCutoffHigh": self._butter_cutoff_high,
+            "butterFs": self._butter_fs,
+            "butterAutoFs": self._butter_auto_fs,
+            "butterPadlen": self._butter_padlen,
+            "butterForwardBackward": self._butter_forward_backward,
             # Outliers
-            "outlierMethodCombo": self._outlier_method,
-            "outlierThresholdSpin": self._outlier_threshold,
-            "outlierLowerSpin": self._outlier_lower,
-            "outlierUpperSpin": self._outlier_upper,
-            "outlierActionCombo": self._outlier_action,
-            "outlierWindowSpin": self._outlier_window,
+            "outlierMethod": self._outlier_method,
+            "outlierThreshold": self._outlier_threshold,
+            "outlierLower": self._outlier_lower,
+            "outlierUpper": self._outlier_upper,
+            "outlierAction": self._outlier_action,
+            "outlierWindow": self._outlier_window,
             # Rolling
-            "rollingTypeCombo": self._rolling_type,
-            "rollingWindowSpin": self._rolling_window,
-            "rollingMinPeriodsSpin": self._rolling_min_periods,
-            "rollingCenterCheck": self._rolling_center,
-            "rollingQuantileSpin": self._rolling_quantile,
-            "rollingWinTypeCombo": self._rolling_win_type,
-            "rollingStdSpin": self._rolling_std,
+            "rollingType": self._rolling_type,
+            "rollingWindow": self._rolling_window,
+            "rollingMinPeriods": self._rolling_min_periods,
+            "rollingCenter": self._rolling_center,
+            "rollingQuantile": self._rolling_quantile,
+            "rollingWinType": self._rolling_win_type,
         }
 
         missing = [name for name, widget in required_widgets.items() if widget is None]

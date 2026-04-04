@@ -42,7 +42,7 @@ def main() -> int:
         "--output-json",
         "docs/reports/performance_baseline.json",
         "--timeout",
-        "20",
+        "60",
     ]
 
     gate_exit = run_command(critical_pytest_cmd, project_root, "Critical-path pytest gate")

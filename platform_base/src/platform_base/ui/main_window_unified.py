@@ -1,16 +1,16 @@
-"""
+﻿"""
 ModernMainWindow Unificada - Interface moderna PyQt6 com todas as funcionalidades
 
-Combina as melhores características de:
+Combina as melhores caracterÃ­sticas de:
 - desktop/main_window.py: QDockWidget, SessionState+SignalHub, Undo/Redo, Workers
 - ui/main_window.py: 5 temas visuais, drag-and-drop, interface moderna
 
 Layout:
 - Dockable panels (Data, Config, Operations, Streaming, Results)
 - 5 temas visuais profissionais (Light, Dark, Ocean, Forest, Sunset)
-- Sistema drag-and-drop para gráficos
+- Sistema drag-and-drop para grÃ¡ficos
 - Undo/Redo completo
-- ProcessingWorkerManager para operações assíncronas
+- ProcessingWorkerManager para operaÃ§Ãµes assÃ­ncronas
 """
 
 from __future__ import annotations
@@ -38,9 +38,9 @@ from platform_base.desktop.dialogs.about_dialog import AboutDialog
 from platform_base.desktop.dialogs.settings_dialog import SettingsDialog
 from platform_base.desktop.dialogs.upload_dialog import UploadDialog
 from platform_base.desktop.widgets.config_panel import ConfigPanel
-from platform_base.desktop.widgets.data_panel import DataPanel
+from platform_base.ui.panels.data_panel import DataPanel
 from platform_base.desktop.widgets.results_panel import ResultsPanel
-from platform_base.desktop.widgets.viz_panel import VizPanel
+from platform_base.ui.panels.viz_panel import VizPanel
 from platform_base.ui.themes import AVAILABLE_THEMES, ThemeMode, get_theme_manager
 from platform_base.ui.ui_loader_mixin import UiLoaderMixin
 from platform_base.utils.i18n import tr
@@ -59,18 +59,18 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     """
     Interface principal moderna unificada com todas as funcionalidades.
 
-    Características:
-    - Layout QDockWidget com painéis acopláveis (Data, Config, Operations, Streaming, Results)
+    CaracterÃ­sticas:
+    - Layout QDockWidget com painÃ©is acoplÃ¡veis (Data, Config, Operations, Streaming, Results)
     - 5 temas visuais: Light, Dark, Ocean, Forest, Sunset
-    - SessionState + SignalHub para comunicação entre componentes
+    - SessionState + SignalHub para comunicaÃ§Ã£o entre componentes
     - Undo/Redo Manager completo
-    - ProcessingWorkerManager para operações assíncronas
-    - Toolbar horizontal com ícones intuitivos
-    - Sistema drag-and-drop para visualizações
-    - Tradução completa PT-BR
-    - Persistência de layout com QSettings
+    - ProcessingWorkerManager para operaÃ§Ãµes assÃ­ncronas
+    - Toolbar horizontal com Ã­cones intuitivos
+    - Sistema drag-and-drop para visualizaÃ§Ãµes
+    - TraduÃ§Ã£o completa PT-BR
+    - PersistÃªncia de layout com QSettings
 
-    Interface carregada do arquivo .ui via UiLoaderMixin quando disponível.
+    Interface carregada do arquivo .ui via UiLoaderMixin quando disponÃ­vel.
     """
 
     # Arquivo .ui que define a interface
@@ -173,115 +173,222 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _setup_ui_from_file(self):
         """Configura a UI carregada do arquivo .ui"""
         self._insert_panels_into_placeholders()
+        # O modernMainWindow.ui nÃ£o tem menus, criar programaticamente
+        if not self.menuBar().actions():
+            self._create_menu_bar()
+            self._create_tool_bar()
         self._connect_ui_actions()
         self._setup_status_bar_widgets()
         logger.debug("main_window_ui_from_file_configured")
 
     def _insert_panels_into_placeholders(self):
-        """Insere os painéis reais nos placeholders definidos no .ui"""
+        """Insere os painÃ©is reais nos placeholders definidos no .ui com layout organizado"""
 
-        # Data Panel
+        # Data Panel (Left area with size constraints)
         self.data_panel = DataPanel(self.session_state, self.signal_hub)
         if hasattr(self, "dataDock") and hasattr(self, "dataPanelPlaceholder"):
             layout = QVBoxLayout(self.dataPanelPlaceholder)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(3)
             layout.addWidget(self.data_panel)
             self.data_dock = self.dataDock
+            self.data_dock.setMinimumWidth(250)
+            self.data_dock.setMaximumWidth(400)
         else:
-            self.data_dock = QDockWidget(tr("📊 Painel de Dados"), self)
+            self.data_dock = QDockWidget(tr("ðŸ“Š Painel de Dados"), self)
             self.data_dock.setWidget(self.data_panel)
             self.data_dock.setObjectName("DataPanel")
+            self.data_dock.setMinimumWidth(250)
+            self.data_dock.setMaximumWidth(400)
             self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.data_dock)
 
-        # Visualization Panel (central widget)
+        # Visualization Panel (central widget with proper margins)
         self.viz_panel = VizPanel(self.session_state, self.signal_hub)
         if hasattr(self, "vizPanelPlaceholder"):
             layout = QVBoxLayout(self.vizPanelPlaceholder)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(3)
             layout.addWidget(self.viz_panel)
         else:
             central_widget = self.centralWidget()
             if central_widget is not None:
                 existing_layout = central_widget.layout()
                 if existing_layout is not None:
+                    # Clear existing layout items to avoid overlap
+                    while existing_layout.count():
+                        child = existing_layout.takeAt(0)
+                        if child.widget():
+                            child.widget().setParent(None)
+                    existing_layout.setContentsMargins(5, 5, 5, 5)
                     existing_layout.addWidget(self.viz_panel)
                 else:
                     central_layout = QHBoxLayout(central_widget)
+                    central_layout.setContentsMargins(5, 5, 5, 5)
                     central_layout.addWidget(self.viz_panel)
             else:
                 central_widget = QWidget()
                 self.setCentralWidget(central_widget)
                 central_layout = QHBoxLayout(central_widget)
+                central_layout.setContentsMargins(5, 5, 5, 5)
                 central_layout.addWidget(self.viz_panel)
 
-        # Config Panel
+        # Config Panel (Right area with size constraints)
         self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
         if hasattr(self, "configDock") and hasattr(self, "configPanelPlaceholder"):
             layout = QVBoxLayout(self.configPanelPlaceholder)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(3)
             layout.addWidget(self.config_panel)
             self.config_dock = self.configDock
+            self.config_dock.setMinimumWidth(280)
+            self.config_dock.setMaximumWidth(450)
         else:
-            self.config_dock = QDockWidget(tr("⚙️ Configurações"), self)
+            self.config_dock = QDockWidget(tr("âš™ï¸ ConfiguraÃ§Ãµes"), self)
             self.config_dock.setWidget(self.config_panel)
             self.config_dock.setObjectName("ConfigPanel")
+            self.config_dock.setMinimumWidth(280)
+            self.config_dock.setMaximumWidth(450)
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
 
-        # Operations Panel
+        # Operations Panel (Right area with size constraints)
         from platform_base.ui.panels.operations_panel import OperationsPanel
         self.operations_panel = OperationsPanel(self.session_state)
         if hasattr(self, "operationsDock") and hasattr(self, "operationsPanelPlaceholder"):
             layout = QVBoxLayout(self.operationsPanelPlaceholder)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(3)
             layout.addWidget(self.operations_panel)
             self.operations_dock = self.operationsDock
+            self.operations_dock.setMinimumWidth(280)
+            self.operations_dock.setMaximumWidth(450)
         else:
-            self.operations_dock = QDockWidget(tr("⚡ Operações"), self)
+            self.operations_dock = QDockWidget(tr("âš¡ OperaÃ§Ãµes"), self)
             self.operations_dock.setWidget(self.operations_panel)
             self.operations_dock.setObjectName("OperationsPanel")
+            self.operations_dock.setMinimumWidth(280)
+            self.operations_dock.setMaximumWidth(450)
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
 
-        # Tabify config e operations
+        # Group config and operations panels in right area
         self.tabifyDockWidget(self.config_dock, self.operations_dock)
         self.config_dock.raise_()
+        
+        # Ensure proper sizing for docked widgets
+        if hasattr(self.config_dock, 'setMinimumWidth'):
+            self.config_dock.setMinimumWidth(280)
+            self.config_dock.setMaximumWidth(450)
+        if hasattr(self.operations_dock, 'setMinimumWidth'):
+            self.operations_dock.setMinimumWidth(280)
+            self.operations_dock.setMaximumWidth(450)
 
-        # Streaming Panel
+        # Streaming Panel (Bottom area with size constraints)
         from platform_base.ui.panels.streaming_panel import StreamingPanel
         self.streaming_panel = StreamingPanel()
         self.streaming_panel.position_changed.connect(self._on_streaming_position_changed)
         self.streaming_panel.state_changed.connect(self._on_streaming_state_changed)
         if hasattr(self, "streamingDock") and hasattr(self, "streamingPanelPlaceholder"):
             layout = QVBoxLayout(self.streamingPanelPlaceholder)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(3)
             layout.addWidget(self.streaming_panel)
             self.streaming_dock = self.streamingDock
+            self.streaming_dock.setMinimumHeight(180)
+            self.streaming_dock.setMaximumHeight(300)
         else:
-            self.streaming_dock = QDockWidget(tr("📡 Streaming"), self)
+            self.streaming_dock = QDockWidget(tr("ðŸ“¡ Streaming"), self)
             self.streaming_dock.setWidget(self.streaming_panel)
             self.streaming_dock.setObjectName("StreamingPanel")
+            self.streaming_dock.setMinimumHeight(180)
+            self.streaming_dock.setMaximumHeight(300)
             self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.streaming_dock)
 
-        # Results Panel
+        # Results Panel (Bottom area with size constraints)
         self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
         if hasattr(self, "resultsDock") and hasattr(self, "resultsPanelPlaceholder"):
             layout = QVBoxLayout(self.resultsPanelPlaceholder)
-            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(3)
             layout.addWidget(self.results_panel)
             self.results_dock = self.resultsDock
+            self.results_dock.setMinimumHeight(180)
+            self.results_dock.setMaximumHeight(300)
         else:
-            self.results_dock = QDockWidget(tr("📈 Resultados"), self)
+            self.results_dock = QDockWidget(tr("ðŸ“ˆ Resultados"), self)
             self.results_dock.setWidget(self.results_panel)
             self.results_dock.setObjectName("ResultsPanel")
+            self.results_dock.setMinimumHeight(180)
+            self.results_dock.setMaximumHeight(300)
             self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
 
-        # Tabify bottom panels
-        self.tabifyDockWidget(self.streaming_dock, self.results_dock)
-        self.streaming_dock.raise_()
+        # Add additional panels if not in UI file and group them properly
+        # Resource Monitor Panel (Right area)
+        if not hasattr(self, "resourceMonitorDock"):
+            from platform_base.ui.panels.resource_monitor_panel import ResourceMonitorPanel
+            self.resource_monitor_panel = ResourceMonitorPanel()
+            self.resource_monitor_dock = QDockWidget(tr("ðŸ’» Recursos"), self)
+            self.resource_monitor_dock.setWidget(self.resource_monitor_panel)
+            self.resource_monitor_dock.setObjectName("ResourceMonitorPanel")
+            self.resource_monitor_dock.setMinimumWidth(280)
+            self.resource_monitor_dock.setMaximumWidth(450)
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.resource_monitor_dock)
+            self.tabifyDockWidget(self.operations_dock, self.resource_monitor_dock)
 
+        # Activity Log Panel (Bottom area)
+        if not hasattr(self, "activityLogDock"):
+            from platform_base.ui.panels.activity_log_panel import ActivityLogPanel
+            self.activity_log_panel = ActivityLogPanel()
+            self.activity_log_dock = QDockWidget(tr("ðŸ“ Log de Atividades"), self)
+            self.activity_log_dock.setWidget(self.activity_log_panel)
+            self.activity_log_dock.setObjectName("ActivityLogPanel")
+            self.activity_log_dock.setMinimumHeight(180)
+            self.activity_log_dock.setMaximumHeight(300)
+            self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.activity_log_dock)
+
+        # Data Tables Panel (Bottom area)
+        if not hasattr(self, "dataTablesDock"):
+            from platform_base.ui.panels.data_tables_panel import DataTablesPanel
+            self.data_tables_panel = DataTablesPanel()
+            self.data_tables_dock = QDockWidget(tr("ðŸ“Š Tabelas de Dados"), self)
+            self.data_tables_dock.setWidget(self.data_tables_panel)
+            self.data_tables_dock.setObjectName("DataTablesPanel")
+            self.data_tables_dock.setMinimumHeight(180)
+            self.data_tables_dock.setMaximumHeight(300)
+            self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.data_tables_dock)
+
+        # Group bottom panels in organized tabs
+        self.tabifyDockWidget(self.streaming_dock, self.results_dock)
+        if hasattr(self, "activity_log_dock"):
+            self.tabifyDockWidget(self.results_dock, self.activity_log_dock)
+        if hasattr(self, "data_tables_dock"):
+            self.tabifyDockWidget(self.activity_log_dock if hasattr(self, "activity_log_dock") else self.results_dock, self.data_tables_dock)
+        
+        # Set Results as default active tab in bottom area
+        self.results_dock.raise_()
+        
+        # Set Config as default active tab in right area
+        self.config_dock.raise_()
+        
+        # Ensure proper sizing for all bottom widgets
+        for dock in [self.streaming_dock, self.results_dock]:
+            if hasattr(dock, 'setMinimumHeight'):
+                dock.setMinimumHeight(180)
+                dock.setMaximumHeight(300)
+        
+        # Ensure proper sizing for additional bottom panels
+        for dock_name in ['activity_log_dock', 'data_tables_dock']:
+            if hasattr(self, dock_name):
+                dock = getattr(self, dock_name)
+                if hasattr(dock, 'setMinimumHeight'):
+                    dock.setMinimumHeight(180)
+                    dock.setMaximumHeight(300)
+
+        # Organize dock layout after inserting panels
+        self._organize_dock_layout()
+        
         logger.debug("panels_inserted_into_placeholders")
 
     def _connect_ui_actions(self):
-        """Conecta as QActions do .ui aos métodos da classe"""
+        """Conecta as QActions do .ui aos mÃ©todos da classe"""
 
         # File menu actions
         if hasattr(self, "actionNewSession"):
@@ -321,13 +428,15 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if hasattr(self, "actionFullscreen"):
             self.actionFullscreen.triggered.connect(self._toggle_fullscreen)
 
-        # Panel toggles
-        if hasattr(self, "menuPanels"):
-            self.menuPanels.addAction(self.data_dock.toggleViewAction())
-            self.menuPanels.addAction(self.config_dock.toggleViewAction())
-            self.menuPanels.addAction(self.operations_dock.toggleViewAction())
-            self.menuPanels.addAction(self.streaming_dock.toggleViewAction())
-            self.menuPanels.addAction(self.results_dock.toggleViewAction())
+        # Panel toggles - sÃ³ adiciona se nÃ£o foi criado por _create_menu_bar
+        if hasattr(self, "menuPanels") and self.data_dock is not None:
+            # Verificar se jÃ¡ tem actions para evitar duplicaÃ§Ã£o
+            if not self.menuPanels.actions():
+                self.menuPanels.addAction(self.data_dock.toggleViewAction())
+                self.menuPanels.addAction(self.config_dock.toggleViewAction())
+                self.menuPanels.addAction(self.operations_dock.toggleViewAction())
+                self.menuPanels.addAction(self.streaming_dock.toggleViewAction())
+                self.menuPanels.addAction(self.results_dock.toggleViewAction())
 
         # Tools menu actions
         if hasattr(self, "actionSettings"):
@@ -347,7 +456,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Configura widgets adicionais na status bar"""
         status_bar = self.statusBar()
 
-        self.status_label = QLabel("🟢 Pronto")
+        self.status_label = QLabel("ðŸŸ¢ Pronto")
         status_bar.addWidget(self.status_label)
 
         self.progress_bar = QProgressBar()
@@ -359,19 +468,25 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         status_bar.addPermanentWidget(self.memory_label)
 
     # =========================================================================
-    # UI SETUP - PROGRAMÁTICO (FALLBACK)
+    # UI SETUP - PROGRAMÃTICO (FALLBACK)
     # =========================================================================
 
     def _setup_window(self):
         """Configure main window properties"""
-        self.setWindowTitle("Platform Base v2.0 - Análise de Séries Temporais")
+        self.setWindowTitle("Platform Base v2.0 - AnÃ¡lise de SÃ©ries Temporais")
         self.setMinimumSize(1280, 720)
-        # Set default size to Full HD (1920x1080) for Full HD displays
-        self.resize(1920, 1080)
+        # Set optimized default size with better proportions
+        self.resize(1400, 900)
 
         self.setDockNestingEnabled(True)
         self.setTabPosition(Qt.DockWidgetArea.AllDockWidgetAreas,
                            QTabWidget.TabPosition.North)
+        
+        # Set corner widget policy to prevent overlap
+        self.setCorner(Qt.Corner.TopLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.setCorner(Qt.Corner.TopRightCorner, Qt.DockWidgetArea.RightDockWidgetArea)
+        self.setCorner(Qt.Corner.BottomLeftCorner, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.setCorner(Qt.Corner.BottomRightCorner, Qt.DockWidgetArea.BottomDockWidgetArea)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -379,97 +494,112 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         logger.debug("main_window_configured")
 
     def _create_dockable_panels(self):
-        """Create dockable panels for different functionalities"""
+        """Create dockable panels with improved layout organization"""
 
-        # Data Panel (Left)
+        # Data Panel (Left) - with proper sizing
         self.data_panel = DataPanel(self.session_state, self.signal_hub)
-        self.data_dock = QDockWidget(tr("📊 Painel de Dados"), self)
+        self.data_dock = QDockWidget(tr("ðŸ“Š Painel de Dados"), self)
         self.data_dock.setWidget(self.data_panel)
         self.data_dock.setObjectName("DataPanel")
+        self.data_dock.setMinimumWidth(250)
+        self.data_dock.setMaximumWidth(400)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.data_dock)
 
-        # Visualization Panel (Center)
+        # Visualization Panel (Center) - with margins
         self.viz_panel = VizPanel(self.session_state, self.signal_hub)
-        central_layout = QHBoxLayout(self.centralWidget())
+        central_widget = self.centralWidget()
+        if central_widget is None:
+            central_widget = QWidget()
+            self.setCentralWidget(central_widget)
+        central_layout = QHBoxLayout(central_widget)
+        central_layout.setContentsMargins(5, 5, 5, 5)
         central_layout.addWidget(self.viz_panel)
 
-        # Config Panel (Right)
+        # Config Panel (Right) - first tab
         self.config_panel = ConfigPanel(self.session_state, self.signal_hub)
-        self.config_dock = QDockWidget(tr("⚙️ Configurações"), self)
+        self.config_dock = QDockWidget(tr("âš™ï¸ ConfiguraÃ§Ãµes"), self)
         self.config_dock.setWidget(self.config_panel)
         self.config_dock.setObjectName("ConfigPanel")
+        self.config_dock.setMinimumWidth(280)
+        self.config_dock.setMaximumWidth(450)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.config_dock)
 
-        # Operations Panel (Right - tabbed with Config)
+        # Operations Panel (Right) - second tab
         from platform_base.ui.panels.operations_panel import OperationsPanel
         self.operations_panel = OperationsPanel(self.session_state)
-        self.operations_dock = QDockWidget(tr("⚡ Operações"), self)
+        self.operations_dock = QDockWidget(tr("âš¡ OperaÃ§Ãµes"), self)
         self.operations_dock.setWidget(self.operations_panel)
         self.operations_dock.setObjectName("OperationsPanel")
+        self.operations_dock.setMinimumWidth(280)
+        self.operations_dock.setMaximumWidth(450)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.operations_dock)
 
+        # Resource Monitor Panel (Right) - third tab
+        from platform_base.ui.panels.resource_monitor_panel import ResourceMonitorPanel
+        self.resource_monitor_panel = ResourceMonitorPanel()
+        self.resource_monitor_dock = QDockWidget(tr("ðŸ’» Recursos"), self)
+        self.resource_monitor_dock.setWidget(self.resource_monitor_panel)
+        self.resource_monitor_dock.setObjectName("ResourceMonitorPanel")
+        self.resource_monitor_dock.setMinimumWidth(280)
+        self.resource_monitor_dock.setMaximumWidth(450)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.resource_monitor_dock)
+
+        # Group right panels in tabs (Config active by default)
         self.tabifyDockWidget(self.config_dock, self.operations_dock)
+        self.tabifyDockWidget(self.operations_dock, self.resource_monitor_dock)
         self.config_dock.raise_()
 
-        # Streaming Panel (Bottom)
+        # Results Panel (Bottom) - first tab
+        self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
+        self.results_dock = QDockWidget(tr("ðŸ“ˆ Resultados"), self)
+        self.results_dock.setWidget(self.results_panel)
+        self.results_dock.setObjectName("ResultsPanel")
+        self.results_dock.setMinimumHeight(180)
+        self.results_dock.setMaximumHeight(300)
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
+
+        # Streaming Panel (Bottom) - second tab
         from platform_base.ui.panels.streaming_panel import StreamingPanel
         self.streaming_panel = StreamingPanel()
         self.streaming_panel.position_changed.connect(self._on_streaming_position_changed)
         self.streaming_panel.state_changed.connect(self._on_streaming_state_changed)
-        self.streaming_dock = QDockWidget(tr("📡 Streaming"), self)
+        self.streaming_dock = QDockWidget(tr("ðŸ“¡ Streaming"), self)
         self.streaming_dock.setWidget(self.streaming_panel)
         self.streaming_dock.setObjectName("StreamingPanel")
+        self.streaming_dock.setMinimumHeight(180)
+        self.streaming_dock.setMaximumHeight(300)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.streaming_dock)
 
-        # Results Panel (Bottom)
-        self.results_panel = ResultsPanel(self.session_state, self.signal_hub)
-        self.results_dock = QDockWidget(tr("📈 Resultados"), self)
-        self.results_dock.setWidget(self.results_panel)
-        self.results_dock.setObjectName("ResultsPanel")
-        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.results_dock)
-
-        self.tabifyDockWidget(self.streaming_dock, self.results_dock)
-        self.streaming_dock.raise_()
-
-        # === NEW PANELS ===
-
-        # Resource Monitor Panel (Bottom Right)
-        from platform_base.ui.panels.resource_monitor_panel import ResourceMonitorPanel
-        self.resource_monitor_panel = ResourceMonitorPanel()
-        self.resource_monitor_dock = QDockWidget(tr("💻 Recursos"), self)
-        self.resource_monitor_dock.setWidget(self.resource_monitor_panel)
-        self.resource_monitor_dock.setObjectName("ResourceMonitorPanel")
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.resource_monitor_dock)
-        self.detached_manager.register_dock(self.resource_monitor_dock)
-
-        # Activity Log Panel (Bottom)
+        # Activity Log Panel (Bottom) - third tab
         from platform_base.ui.panels.activity_log_panel import ActivityLogPanel
         self.activity_log_panel = ActivityLogPanel()
-        self.activity_log_dock = QDockWidget(tr("📝 Log de Atividades"), self)
+        self.activity_log_dock = QDockWidget(tr("ðŸ“ Log de Atividades"), self)
         self.activity_log_dock.setWidget(self.activity_log_panel)
         self.activity_log_dock.setObjectName("ActivityLogPanel")
+        self.activity_log_dock.setMinimumHeight(180)
+        self.activity_log_dock.setMaximumHeight(300)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.activity_log_dock)
-        self.detached_manager.register_dock(self.activity_log_dock)
 
-        # Data Tables Panel (Bottom)
+        # Data Tables Panel (Bottom) - fourth tab
         from platform_base.ui.panels.data_tables_panel import DataTablesPanel
         self.data_tables_panel = DataTablesPanel()
-        self.data_tables_dock = QDockWidget(tr("📊 Tabelas de Dados"), self)
+        self.data_tables_dock = QDockWidget(tr("ðŸ“Š Tabelas de Dados"), self)
         self.data_tables_dock.setWidget(self.data_tables_panel)
         self.data_tables_dock.setObjectName("DataTablesPanel")
+        self.data_tables_dock.setMinimumHeight(180)
+        self.data_tables_dock.setMaximumHeight(300)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.data_tables_dock)
-        self.detached_manager.register_dock(self.data_tables_dock)
 
-        # Tabify bottom panels
-        self.tabifyDockWidget(self.results_dock, self.activity_log_dock)
+        # Group bottom panels in tabs (Results active by default)
+        self.tabifyDockWidget(self.results_dock, self.streaming_dock)
+        self.tabifyDockWidget(self.streaming_dock, self.activity_log_dock)
         self.tabifyDockWidget(self.activity_log_dock, self.data_tables_dock)
-
-        # Tabify resource monitor with config
-        self.tabifyDockWidget(self.config_dock, self.resource_monitor_dock)
+        self.results_dock.raise_()
 
         # Register all docks with detached manager
         for dock in [self.data_dock, self.config_dock, self.operations_dock,
-                     self.streaming_dock, self.results_dock]:
+                     self.streaming_dock, self.results_dock, self.resource_monitor_dock,
+                     self.activity_log_dock, self.data_tables_dock]:
             self.detached_manager.register_dock(dock)
 
         logger.debug("dockable_panels_created")
@@ -479,52 +609,52 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         menubar = self.menuBar()
 
         # File Menu
-        file_menu = menubar.addMenu(tr("📁 &Arquivo"))
+        file_menu = menubar.addMenu(tr("ðŸ“ &Arquivo"))
 
-        new_action = QAction(tr("📄 &Nova Sessão"), self)
+        new_action = QAction(tr("ðŸ“„ &Nova SessÃ£o"), self)
         new_action.setShortcut(QKeySequence.StandardKey.New)
         new_action.triggered.connect(self._new_session)
         file_menu.addAction(new_action)
 
-        open_action = QAction(tr("📂 &Abrir Sessão..."), self)
+        open_action = QAction(tr("ðŸ“‚ &Abrir SessÃ£o..."), self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self._open_session)
         file_menu.addAction(open_action)
 
-        save_action = QAction(tr("💾 &Salvar Sessão..."), self)
+        save_action = QAction(tr("ðŸ’¾ &Salvar SessÃ£o..."), self)
         save_action.setShortcut(QKeySequence.StandardKey.Save)
         save_action.triggered.connect(self._save_session)
         file_menu.addAction(save_action)
 
         file_menu.addSeparator()
 
-        load_data_action = QAction(tr("📊 &Carregar Dados..."), self)
+        load_data_action = QAction(tr("ðŸ“Š &Carregar Dados..."), self)
         load_data_action.setShortcut(QKeySequence("Ctrl+L"))
         load_data_action.triggered.connect(self._load_data)
         file_menu.addAction(load_data_action)
 
-        export_data_action = QAction(tr("📤 &Exportar Dados..."), self)
+        export_data_action = QAction(tr("ðŸ“¤ &Exportar Dados..."), self)
         export_data_action.setShortcut(QKeySequence("Ctrl+E"))
         export_data_action.triggered.connect(self._export_data)
         file_menu.addAction(export_data_action)
 
         file_menu.addSeparator()
 
-        exit_action = QAction(tr("🚪 &Sair"), self)
+        exit_action = QAction(tr("ðŸšª &Sair"), self)
         exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
         # Edit Menu
-        edit_menu = menubar.addMenu(tr("✏️ &Editar"))
+        edit_menu = menubar.addMenu(tr("âœï¸ &Editar"))
 
-        self.undo_action = QAction(tr("⏪ &Desfazer"), self)
+        self.undo_action = QAction(tr("âª &Desfazer"), self)
         self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
         self.undo_action.setEnabled(False)
         self.undo_action.triggered.connect(self._undo_operation)
         edit_menu.addAction(self.undo_action)
 
-        self.redo_action = QAction(tr("⏩ &Refazer"), self)
+        self.redo_action = QAction(tr("â© &Refazer"), self)
         self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
         self.redo_action.setEnabled(False)
         self.redo_action.triggered.connect(self._redo_operation)
@@ -532,49 +662,53 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         edit_menu.addSeparator()
 
-        find_action = QAction(tr("🔍 &Buscar Série..."), self)
+        find_action = QAction(tr("ðŸ” &Buscar SÃ©rie..."), self)
         find_action.setShortcut(QKeySequence.StandardKey.Find)
         find_action.triggered.connect(self._find_series)
         edit_menu.addAction(find_action)
 
         # View Menu
-        view_menu = menubar.addMenu(tr("👁️ &Visualizar"))
+        view_menu = menubar.addMenu(tr("ðŸ‘ï¸ &Visualizar"))
 
         # Panel visibility toggles
-        panels_menu = view_menu.addMenu(tr("📋 Painéis"))
+        panels_menu = view_menu.addMenu(tr("ðŸ“‹ PainÃ©is"))
         panels_menu.addAction(self.data_dock.toggleViewAction())
         panels_menu.addAction(self.config_dock.toggleViewAction())
         panels_menu.addAction(self.operations_dock.toggleViewAction())
         panels_menu.addAction(self.streaming_dock.toggleViewAction())
         panels_menu.addAction(self.results_dock.toggleViewAction())
-        panels_menu.addSeparator()
-        panels_menu.addAction(self.resource_monitor_dock.toggleViewAction())  # NEW
-        panels_menu.addAction(self.activity_log_dock.toggleViewAction())  # NEW
-        panels_menu.addAction(self.data_tables_dock.toggleViewAction())  # NEW
+        # Docks opcionais (podem nÃ£o existir)
+        if self.resource_monitor_dock is not None:
+            panels_menu.addSeparator()
+            panels_menu.addAction(self.resource_monitor_dock.toggleViewAction())
+        if self.activity_log_dock is not None:
+            panels_menu.addAction(self.activity_log_dock.toggleViewAction())
+        if self.data_tables_dock is not None:
+            panels_menu.addAction(self.data_tables_dock.toggleViewAction())
 
         view_menu.addSeparator()
 
         # NEW: Re-dock all detached panels
-        redock_action = QAction(tr("🔗 Desgarrados (Re-dock)"), self)
-        redock_action.setToolTip(tr("Re-doca todos os painéis destacados"))
+        redock_action = QAction(tr("ðŸ”— Desgarrados (Re-dock)"), self)
+        redock_action.setToolTip(tr("Re-doca todos os painÃ©is destacados"))
         redock_action.setShortcut(QKeySequence("Ctrl+Shift+D"))
         redock_action.triggered.connect(self._redock_all_panels)
         view_menu.addAction(redock_action)
 
         view_menu.addSeparator()
 
-        refresh_action = QAction(tr("🔄 &Atualizar Dados"), self)
+        refresh_action = QAction(tr("ðŸ”„ &Atualizar Dados"), self)
         refresh_action.setShortcut(QKeySequence("F5"))
         refresh_action.triggered.connect(self._refresh_data)
         view_menu.addAction(refresh_action)
 
-        fullscreen_action = QAction(tr("📺 &Tela Cheia"), self)
+        fullscreen_action = QAction(tr("ðŸ“º &Tela Cheia"), self)
         fullscreen_action.setShortcut(QKeySequence("F11"))
         fullscreen_action.triggered.connect(self._toggle_fullscreen)
         view_menu.addAction(fullscreen_action)
 
         # Themes Menu
-        themes_menu = menubar.addMenu(tr("🎨 &Temas"))
+        themes_menu = menubar.addMenu(tr("ðŸŽ¨ &Temas"))
 
         theme_group = QActionGroup(self)
         theme_group.setExclusive(True)
@@ -602,7 +736,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         themes_menu.addSeparator()
 
-        system_theme_action = QAction(tr("🖥️ Seguir Sistema"), self)
+        system_theme_action = QAction(tr("ðŸ–¥ï¸ Seguir Sistema"), self)
         system_theme_action.setCheckable(True)
         system_theme_action.setData(ThemeMode.SYSTEM)
         system_theme_action.triggered.connect(self._on_theme_action_triggered)
@@ -614,36 +748,36 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             system_theme_action.setChecked(True)
 
         # Tools Menu
-        tools_menu = menubar.addMenu(tr("🔧 &Ferramentas"))
+        tools_menu = menubar.addMenu(tr("ðŸ”§ &Ferramentas"))
 
-        settings_action = QAction(tr("⚙️ &Configurações..."), self)
+        settings_action = QAction(tr("âš™ï¸ &ConfiguraÃ§Ãµes..."), self)
         settings_action.triggered.connect(self._show_settings)
         tools_menu.addAction(settings_action)
 
         tools_menu.addSeparator()
 
         # NEW: XLSX to CSV converter
-        xlsx_converter_action = QAction(tr("📊 Converter XLSX para CSV..."), self)
+        xlsx_converter_action = QAction(tr("ðŸ“Š Converter XLSX para CSV..."), self)
         xlsx_converter_action.setToolTip(tr("Converte arquivos Excel para CSV"))
         xlsx_converter_action.triggered.connect(self._show_xlsx_converter)
         tools_menu.addAction(xlsx_converter_action)
 
         # Help Menu
-        help_menu = menubar.addMenu(tr("❓ &Ajuda"))
+        help_menu = menubar.addMenu(tr("â“ &Ajuda"))
 
-        help_contextual = QAction(tr("📖 Ajuda &Contextual"), self)
+        help_contextual = QAction(tr("ðŸ“– Ajuda &Contextual"), self)
         help_contextual.setShortcut(QKeySequence("F1"))
         help_contextual.triggered.connect(self._show_contextual_help)
         help_menu.addAction(help_contextual)
 
-        shortcuts_action = QAction(tr("⌨️ &Atalhos de Teclado"), self)
+        shortcuts_action = QAction(tr("âŒ¨ï¸ &Atalhos de Teclado"), self)
         shortcuts_action.setShortcut(QKeySequence("Ctrl+?"))
         shortcuts_action.triggered.connect(self._show_keyboard_shortcuts)
         help_menu.addAction(shortcuts_action)
 
         help_menu.addSeparator()
 
-        about_action = QAction(tr("ℹ️ &Sobre..."), self)
+        about_action = QAction(tr("â„¹ï¸ &Sobre..."), self)
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
 
@@ -656,7 +790,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.addToolBar(toolbar)
 
-        load_action = QAction("📊", self)
+        load_action = QAction("ðŸ“Š", self)
         load_action.setText(tr("Carregar"))
         load_action.setToolTip(tr("Carregar dados (Ctrl+L)"))
         load_action.triggered.connect(self._load_data)
@@ -664,21 +798,21 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         toolbar.addSeparator()
 
-        new_action = QAction("📄", self)
+        new_action = QAction("ðŸ“„", self)
         new_action.setText(tr("Novo"))
-        new_action.setToolTip(tr("Nova sessão (Ctrl+N)"))
+        new_action.setToolTip(tr("Nova sessÃ£o (Ctrl+N)"))
         new_action.triggered.connect(self._new_session)
         toolbar.addAction(new_action)
 
-        save_action = QAction("💾", self)
+        save_action = QAction("ðŸ’¾", self)
         save_action.setText(tr("Salvar"))
-        save_action.setToolTip(tr("Salvar sessão (Ctrl+S)"))
+        save_action.setToolTip(tr("Salvar sessÃ£o (Ctrl+S)"))
         save_action.triggered.connect(self._save_session)
         toolbar.addAction(save_action)
 
         toolbar.addSeparator()
 
-        export_action = QAction("📤", self)
+        export_action = QAction("ðŸ“¤", self)
         export_action.setText(tr("Exportar"))
         export_action.setToolTip(tr("Exportar dados (Ctrl+E)"))
         export_action.triggered.connect(self._export_data)
@@ -686,9 +820,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         toolbar.addSeparator()
 
-        settings_action = QAction("⚙️", self)
+        settings_action = QAction("âš™ï¸", self)
         settings_action.setText(tr("Config"))
-        settings_action.setToolTip(tr("Configurações"))
+        settings_action.setToolTip(tr("ConfiguraÃ§Ãµes"))
         settings_action.triggered.connect(self._show_settings)
         toolbar.addAction(settings_action)
 
@@ -698,7 +832,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Create status bar"""
         status_bar = self.statusBar()
 
-        self.status_label = QLabel("🟢 Pronto")
+        self.status_label = QLabel("ðŸŸ¢ Pronto")
         status_bar.addWidget(self.status_label)
 
         self.progress_bar = QProgressBar()
@@ -774,10 +908,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
         self.undo_manager.can_redo_changed.connect(self.redo_action.setEnabled)
         self.undo_manager.undo_text_changed.connect(
-            lambda text: self.undo_action.setText(f"⏪ Desfazer {text}" if text else "⏪ Desfazer"),
+            lambda text: self.undo_action.setText(f"âª Desfazer {text}" if text else "âª Desfazer"),
         )
         self.undo_manager.redo_text_changed.connect(
-            lambda text: self.redo_action.setText(f"⏩ Refazer {text}" if text else "⏩ Refazer"),
+            lambda text: self.redo_action.setText(f"â© Refazer {text}" if text else "â© Refazer"),
         )
 
         logger.debug("signals_connected")
@@ -790,46 +924,46 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _new_session(self):
         """Create new session"""
         reply = QMessageBox.question(
-            self, tr("📄 Nova Sessão"),
-            tr("Criar nova sessão? A sessão atual será perdida se não salva."),
+            self, tr("ðŸ“„ Nova SessÃ£o"),
+            tr("Criar nova sessÃ£o? A sessÃ£o atual serÃ¡ perdida se nÃ£o salva."),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
 
         if reply == QMessageBox.StandardButton.Yes:
             self.session_state.clear_session()
-            self.status_label.setText("📄 Nova sessão criada")
+            self.status_label.setText("ðŸ“„ Nova sessÃ£o criada")
             logger.info("new_session_created")
 
     @pyqtSlot()
     def _open_session(self):
         """Open session from file"""
         filepath, _ = QFileDialog.getOpenFileName(
-            self, tr("📂 Abrir Sessão"), "",
-            tr("Arquivos de Sessão (*.json);;Todos os Arquivos (*)"),
+            self, tr("ðŸ“‚ Abrir SessÃ£o"), "",
+            tr("Arquivos de SessÃ£o (*.json);;Todos os Arquivos (*)"),
         )
 
         if filepath:
             if self.session_state.load_session(filepath):
-                self.status_label.setText(f"✅ Sessão carregada: {Path(filepath).name}")
+                self.status_label.setText(f"âœ… SessÃ£o carregada: {Path(filepath).name}")
                 logger.info("session_opened", filepath=filepath)
             else:
-                QMessageBox.warning(self, tr("Erro"), tr("Falha ao carregar arquivo de sessão."))
+                QMessageBox.warning(self, tr("Erro"), tr("Falha ao carregar arquivo de sessÃ£o."))
 
     @pyqtSlot()
     def _save_session(self):
         """Save session to file"""
         filepath, _ = QFileDialog.getSaveFileName(
-            self, tr("💾 Salvar Sessão"), "",
-            tr("Arquivos de Sessão (*.json);;Todos os Arquivos (*)"),
+            self, tr("ðŸ’¾ Salvar SessÃ£o"), "",
+            tr("Arquivos de SessÃ£o (*.json);;Todos os Arquivos (*)"),
         )
 
         if filepath:
             if self.session_state.save_session(filepath):
-                self.status_label.setText(f"✅ Sessão salva: {Path(filepath).name}")
+                self.status_label.setText(f"âœ… SessÃ£o salva: {Path(filepath).name}")
                 logger.info("session_saved", filepath=filepath)
             else:
-                QMessageBox.warning(self, tr("Erro"), tr("Falha ao salvar arquivo de sessão."))
+                QMessageBox.warning(self, tr("Erro"), tr("Falha ao salvar arquivo de sessÃ£o."))
 
     @pyqtSlot()
     def _load_data(self):
@@ -839,7 +973,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             dialog.exec()
         except Exception as e:
             logger.exception("load_data_dialog_failed", error=str(e))
-            QMessageBox.critical(self, tr("Erro"), f"Falha ao abrir diálogo:\n{e}")
+            QMessageBox.critical(self, tr("Erro"), f"Falha ao abrir diÃ¡logo:\n{e}")
 
     @pyqtSlot()
     def _export_data(self):
@@ -861,7 +995,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         )
 
         file_path, selected_filter = QFileDialog.getSaveFileName(
-            self, tr("📤 Exportar Dados"), "", file_filters,
+            self, tr("ðŸ“¤ Exportar Dados"), "", file_filters,
         )
 
         if not file_path:
@@ -879,7 +1013,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         else:
             format_type = "csv"
 
-        self.status_label.setText(f"📤 Exportando para {format_type}...")
+        self.status_label.setText(f"ðŸ“¤ Exportando para {format_type}...")
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
 
@@ -911,7 +1045,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             ))
             self._export_worker.finished.connect(lambda: (
                 self.progress_bar.setVisible(False),
-                self.status_label.setText("✅ Exportação concluída"),
+                self.status_label.setText("âœ… ExportaÃ§Ã£o concluÃ­da"),
                 QMessageBox.information(self, tr("Sucesso"), f"Dados exportados para:\n{file_path}"),
             ))
 
@@ -921,7 +1055,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         except Exception as e:
             logger.exception("export_failed", error=str(e))
             self.progress_bar.setVisible(False)
-            QMessageBox.critical(self, tr("Erro"), f"Falha na exportação:\n{e}")
+            QMessageBox.critical(self, tr("Erro"), f"Falha na exportaÃ§Ã£o:\n{e}")
 
     # =========================================================================
     # SLOT IMPLEMENTATIONS - EDIT OPERATIONS
@@ -933,10 +1067,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if self.undo_manager.can_undo():
             undo_text = self.undo_manager.undo_text()
             self.undo_manager.undo()
-            self.status_label.setText(f"⏪ Desfeito: {undo_text}")
+            self.status_label.setText(f"âª Desfeito: {undo_text}")
             logger.info("undo_executed", operation=undo_text)
         else:
-            self.status_label.setText("⚠️ Nada para desfazer")
+            self.status_label.setText("âš ï¸ Nada para desfazer")
 
     @pyqtSlot()
     def _redo_operation(self):
@@ -944,10 +1078,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if self.undo_manager.can_redo():
             redo_text = self.undo_manager.redo_text()
             self.undo_manager.redo()
-            self.status_label.setText(f"⏩ Refeito: {redo_text}")
+            self.status_label.setText(f"â© Refeito: {redo_text}")
             logger.info("redo_executed", operation=redo_text)
         else:
-            self.status_label.setText("⚠️ Nada para refazer")
+            self.status_label.setText("âš ï¸ Nada para refazer")
 
     @pyqtSlot()
     def _find_series(self):
@@ -963,14 +1097,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         from PyQt6.QtWidgets import QInputDialog
         search_text, ok = QInputDialog.getText(
-            self, tr("🔍 Buscar Série"),
-            tr("Nome da série:"),
+            self, tr("ðŸ” Buscar SÃ©rie"),
+            tr("Nome da sÃ©rie:"),
         )
 
         if ok and search_text:
             if hasattr(self.data_panel, "filter_series"):
                 self.data_panel.filter_series(search_text)
-            self.status_label.setText(f"🔍 Buscando: '{search_text}'")
+            self.status_label.setText(f"ðŸ” Buscando: '{search_text}'")
 
     # =========================================================================
     # SLOT IMPLEMENTATIONS - VIEW OPERATIONS
@@ -979,12 +1113,12 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     @pyqtSlot()
     def _refresh_data(self):
         """Refresh data"""
-        self.status_label.setText("🔄 Atualizando...")
+        self.status_label.setText("ðŸ”„ Atualizando...")
         if hasattr(self.viz_panel, "refresh"):
             self.viz_panel.refresh()
         if hasattr(self.signal_hub, "data_changed"):
             self.signal_hub.data_changed.emit()
-        self.status_label.setText("✅ Dados atualizados")
+        self.status_label.setText("âœ… Dados atualizados")
         logger.info("data_refreshed")
 
     @pyqtSlot()
@@ -992,10 +1126,10 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Toggle fullscreen"""
         if self.isFullScreen():
             self.showNormal()
-            self.status_label.setText("📐 Modo normal")
+            self.status_label.setText("ðŸ“ Modo normal")
         else:
             self.showFullScreen()
-            self.status_label.setText("📺 Tela cheia (F11 para sair)")
+            self.status_label.setText("ðŸ“º Tela cheia (F11 para sair)")
 
     @pyqtSlot()
     def _delete_selected_series(self):
@@ -1004,14 +1138,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self.data_panel.delete_selected()
         else:
             QMessageBox.information(
-                self, tr("Remover Série"),
-                tr("Selecione uma série no Painel de Dados e pressione Delete."),
+                self, tr("Remover SÃ©rie"),
+                tr("Selecione uma sÃ©rie no Painel de Dados e pressione Delete."),
             )
 
     @pyqtSlot()
     def _cancel_operation(self):
         """Cancel current operation"""
-        self.status_label.setText("⛔ Operação cancelada")
+        self.status_label.setText("â›” OperaÃ§Ã£o cancelada")
         self.progress_bar.setVisible(False)
         if hasattr(self.signal_hub, "operation_cancelled"):
             self.signal_hub.operation_cancelled.emit()
@@ -1046,7 +1180,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             dialog.exec()
         except Exception as e:
             logger.exception("settings_dialog_failed", error=str(e))
-            QMessageBox.information(self, tr("Configurações"), tr("Painel em desenvolvimento"))
+            QMessageBox.information(self, tr("ConfiguraÃ§Ãµes"), tr("Painel em desenvolvimento"))
 
     @pyqtSlot()
     def _show_about(self):
@@ -1059,8 +1193,8 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.about(
                 self, tr("Sobre"),
                 """
-                <h3>🚀 Platform Base v2.0</h3>
-                <p><b>Análise de Séries Temporais</b></p>
+                <h3>ðŸš€ Platform Base v2.0</h3>
+                <p><b>AnÃ¡lise de SÃ©ries Temporais</b></p>
                 <p>TRANSPETRO</p>
                 """,
             )
@@ -1076,7 +1210,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             <h4>Atalhos principais:</h4>
             <ul>
             <li><b>Ctrl+L:</b> Carregar dados</li>
-            <li><b>Ctrl+S:</b> Salvar sessão</li>
+            <li><b>Ctrl+S:</b> Salvar sessÃ£o</li>
             <li><b>Ctrl+Z/Y:</b> Desfazer/Refazer</li>
             <li><b>F5:</b> Atualizar</li>
             <li><b>F11:</b> Tela cheia</li>
@@ -1088,13 +1222,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _show_keyboard_shortcuts(self):
         """Show keyboard shortcuts"""
         shortcuts_text = """
-        <h2>⌨️ Atalhos de Teclado</h2>
+        <h2>âŒ¨ï¸ Atalhos de Teclado</h2>
 
         <h3>Arquivo</h3>
         <table>
-        <tr><td><b>Ctrl+N</b></td><td>Nova Sessão</td></tr>
-        <tr><td><b>Ctrl+O</b></td><td>Abrir Sessão</td></tr>
-        <tr><td><b>Ctrl+S</b></td><td>Salvar Sessão</td></tr>
+        <tr><td><b>Ctrl+N</b></td><td>Nova SessÃ£o</td></tr>
+        <tr><td><b>Ctrl+O</b></td><td>Abrir SessÃ£o</td></tr>
+        <tr><td><b>Ctrl+S</b></td><td>Salvar SessÃ£o</td></tr>
         <tr><td><b>Ctrl+L</b></td><td>Carregar Dados</td></tr>
         <tr><td><b>Ctrl+E</b></td><td>Exportar Dados</td></tr>
         <tr><td><b>Ctrl+Q</b></td><td>Sair</td></tr>
@@ -1104,26 +1238,26 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         <table>
         <tr><td><b>Ctrl+Z</b></td><td>Desfazer</td></tr>
         <tr><td><b>Ctrl+Y</b></td><td>Refazer</td></tr>
-        <tr><td><b>Ctrl+F</b></td><td>Buscar Série</td></tr>
-        <tr><td><b>Delete</b></td><td>Remover Seleção</td></tr>
+        <tr><td><b>Ctrl+F</b></td><td>Buscar SÃ©rie</td></tr>
+        <tr><td><b>Delete</b></td><td>Remover SeleÃ§Ã£o</td></tr>
         </table>
 
         <h3>Visualizar</h3>
         <table>
         <tr><td><b>F5</b></td><td>Atualizar</td></tr>
         <tr><td><b>F11</b></td><td>Tela Cheia</td></tr>
-        <tr><td><b>Ctrl+Tab</b></td><td>Próxima Aba</td></tr>
+        <tr><td><b>Ctrl+Tab</b></td><td>PrÃ³xima Aba</td></tr>
         <tr><td><b>Ctrl+Shift+Tab</b></td><td>Aba Anterior</td></tr>
         </table>
 
         <h3>Ajuda</h3>
         <table>
         <tr><td><b>F1</b></td><td>Ajuda Contextual</td></tr>
-        <tr><td><b>Esc</b></td><td>Cancelar Operação</td></tr>
+        <tr><td><b>Esc</b></td><td>Cancelar OperaÃ§Ã£o</td></tr>
         </table>
         """
         msg = QMessageBox(self)
-        msg.setWindowTitle(tr("⌨️ Atalhos de Teclado"))
+        msg.setWindowTitle(tr("âŒ¨ï¸ Atalhos de Teclado"))
         msg.setTextFormat(Qt.TextFormat.RichText)
         msg.setText(shortcuts_text)
         msg.exec()
@@ -1137,12 +1271,12 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         """Handle operation started"""
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        self.status_label.setText(f"⚡ Executando {operation_type}...")
+        self.status_label.setText(f"âš¡ Executando {operation_type}...")
 
         # Start appropriate worker
         selection = self.session_state.selection
         if not selection.dataset_id or not selection.series_ids:
-            self.status_label.setText("⚠️ Nenhum dado selecionado")
+            self.status_label.setText("âš ï¸ Nenhum dado selecionado")
             self.progress_bar.setVisible(False)
             return
 
@@ -1184,12 +1318,12 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 )
             else:
                 logger.warning("unknown_operation_type", operation_type=operation_type)
-                self.status_label.setText(f"⚠️ Operação desconhecida: {operation_type}")
+                self.status_label.setText(f"âš ï¸ OperaÃ§Ã£o desconhecida: {operation_type}")
                 self.progress_bar.setVisible(False)
 
         except Exception as e:
             logger.exception("operation_start_failed", error=str(e))
-            self.status_label.setText(f"❌ Falha: {e}")
+            self.status_label.setText(f"âŒ Falha: {e}")
             self.progress_bar.setVisible(False)
             self.signal_hub.operation_failed.emit(operation_id, str(e))
 
@@ -1202,7 +1336,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _on_operation_completed(self, operation_id: str, result):
         """Handle operation completed"""
         self.progress_bar.setVisible(False)
-        self.status_label.setText("✅ Operação concluída")
+        self.status_label.setText("âœ… OperaÃ§Ã£o concluÃ­da")
 
         self.results_dock.show()
         self.results_dock.raise_()
@@ -1218,8 +1352,8 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
     def _on_operation_failed(self, operation_id: str, error_message: str):
         """Handle operation failed"""
         self.progress_bar.setVisible(False)
-        self.status_label.setText("❌ Operação falhou")
-        QMessageBox.warning(self, tr("Erro"), f"Operação {operation_id} falhou:\n{error_message}")
+        self.status_label.setText("âŒ OperaÃ§Ã£o falhou")
+        QMessageBox.warning(self, tr("Erro"), f"OperaÃ§Ã£o {operation_id} falhou:\n{error_message}")
 
     @pyqtSlot(str, str)
     def _on_error_occurred(self, error_type: str, error_message: str):
@@ -1239,9 +1373,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         n_series = len(selection_state.series_ids)
 
         if dataset_id:
-            self.status_label.setText(f"📊 Dataset: {dataset_id} | Séries: {n_series}")
+            self.status_label.setText(f"ðŸ“Š Dataset: {dataset_id} | SÃ©ries: {n_series}")
         else:
-            self.status_label.setText("📊 Nenhum dado selecionado")
+            self.status_label.setText("ðŸ“Š Nenhum dado selecionado")
 
     @pyqtSlot(object)
     def _on_ui_state_changed(self, ui_state):
@@ -1261,7 +1395,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if not selection:
             QMessageBox.warning(
                 self, tr("Aviso"),
-                tr("Selecione uma série antes de realizar esta operação."),
+                tr("Selecione uma sÃ©rie antes de realizar esta operaÃ§Ã£o."),
             )
             return
 
@@ -1270,7 +1404,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             series_id = selection[0].series_id if hasattr(selection[0], "series_id") else None
 
             if not dataset_id or not series_id:
-                QMessageBox.warning(self, tr("Aviso"), tr("Seleção inválida."))
+                QMessageBox.warning(self, tr("Aviso"), tr("SeleÃ§Ã£o invÃ¡lida."))
                 return
 
             self.processing_manager.start_operation(
@@ -1280,7 +1414,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                 params=params,
             )
 
-            self.status_label.setText(f"⚡ Processando: {operation_name}...")
+            self.status_label.setText(f"âš¡ Processando: {operation_name}...")
             self.progress_bar.setVisible(True)
             self.results_dock.raise_()
 
@@ -1308,7 +1442,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         )
 
         if file_path:
-            self.status_label.setText(f"📤 Exportando para {format_type}...")
+            self.status_label.setText(f"ðŸ“¤ Exportando para {format_type}...")
 
     @pyqtSlot(str, object, object)
     def _on_streaming_data_updated(self, series_id: str, x_data, y_data):
@@ -1337,7 +1471,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
                     if hasattr(self.signal_hub, "streaming_time_changed"):
                         self.signal_hub.streaming_time_changed.emit(time_position)
 
-            self.status_label.setText(f"📡 Posição: {position}")
+            self.status_label.setText(f"ðŸ“¡ PosiÃ§Ã£o: {position}")
         except Exception as e:
             logger.exception("streaming_position_failed", error=str(e))
 
@@ -1349,15 +1483,15 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         if state == PlaybackState.PLAYING:
             if hasattr(self.signal_hub, "streaming_started"):
                 self.signal_hub.streaming_started.emit()
-            self.status_label.setText("▶️ Streaming: Reproduzindo")
+            self.status_label.setText("â–¶ï¸ Streaming: Reproduzindo")
         elif state == PlaybackState.PAUSED:
             if hasattr(self.signal_hub, "streaming_paused"):
                 self.signal_hub.streaming_paused.emit()
-            self.status_label.setText("⏸️ Streaming: Pausado")
+            self.status_label.setText("â¸ï¸ Streaming: Pausado")
         elif state == PlaybackState.STOPPED:
             if hasattr(self.signal_hub, "streaming_stopped"):
                 self.signal_hub.streaming_stopped.emit()
-            self.status_label.setText("⏹️ Streaming: Parado")
+            self.status_label.setText("â¹ï¸ Streaming: Parado")
 
     # =========================================================================
     # THEME MANAGEMENT
@@ -1371,14 +1505,14 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self._theme_manager.set_theme(theme_mode)
 
             theme_names = {
-                ThemeMode.LIGHT: "☀️ Clássico",
-                ThemeMode.DARK: "🌙 Noturno",
-                ThemeMode.OCEAN: "🌊 Oceano",
-                ThemeMode.FOREST: "🌲 Floresta",
-                ThemeMode.SUNSET: "🌅 Pôr do Sol",
-                ThemeMode.SYSTEM: "🖥️ Sistema",
+                ThemeMode.LIGHT: "â˜€ï¸ ClÃ¡ssico",
+                ThemeMode.DARK: "ðŸŒ™ Noturno",
+                ThemeMode.OCEAN: "ðŸŒŠ Oceano",
+                ThemeMode.FOREST: "ðŸŒ² Floresta",
+                ThemeMode.SUNSET: "ðŸŒ… PÃ´r do Sol",
+                ThemeMode.SYSTEM: "ðŸ–¥ï¸ Sistema",
             }
-            self.status_label.setText(f"🎨 Tema: {theme_names.get(theme_mode, 'Desconhecido')}")
+            self.status_label.setText(f"ðŸŽ¨ Tema: {theme_names.get(theme_mode, 'Desconhecido')}")
             logger.info("theme_changed", theme=theme_mode.name)
 
     def _on_theme_changed(self, mode: ThemeMode):
@@ -1411,7 +1545,16 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         logger.debug("layout_saved")
 
     def _restore_layout(self):
-        """Restore layout from QSettings"""
+        """Restore layout from QSettings with proper panel organization"""
+        import os
+        if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+            # Skip layout restore in headless/test mode â€” restoreState with
+            # a real-session geometry causes a C++ access violation when
+            # _organize_dock_layout subsequently calls addDockWidget on
+            # already-positioned docks.
+            logger.debug("layout_restore_skipped_offscreen")
+            return
+
         settings = QSettings(self.SETTINGS_ORG, self.SETTINGS_APP)
 
         geometry = settings.value("mainwindow/geometry")
@@ -1419,8 +1562,16 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self.restoreGeometry(geometry)
 
         state = settings.value("mainwindow/state")
+        state_restored = False
         if state:
             self.restoreState(state)
+            state_restored = True
+
+        # Only organize docks when no saved state was applied â€” restoreState
+        # already positions all dock widgets correctly, and calling
+        # addDockWidget afterwards triggers a C++ access violation.
+        if not state_restored:
+            self._organize_dock_layout()
 
         was_maximized = settings.value("mainwindow/maximized", False, type=bool)
         was_fullscreen = settings.value("mainwindow/fullscreen", False, type=bool)
@@ -1431,6 +1582,73 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             self.showMaximized()
 
         logger.debug("layout_restored")
+        
+    def _organize_dock_layout(self):
+        """Organize dock widget layout to prevent overlaps and ensure proper visibility"""
+        try:
+            # Ensure left area has only data panel
+            if hasattr(self, 'data_dock') and self.data_dock:
+                self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.data_dock)
+                self.data_dock.setMinimumWidth(250)
+                self.data_dock.setMaximumWidth(400)
+                
+            # Organize right area panels in tabs
+            right_docks = []
+            if hasattr(self, 'config_dock') and self.config_dock:
+                right_docks.append(self.config_dock)
+            if hasattr(self, 'operations_dock') and self.operations_dock:
+                right_docks.append(self.operations_dock)
+            if hasattr(self, 'resource_monitor_dock') and self.resource_monitor_dock:
+                right_docks.append(self.resource_monitor_dock)
+                
+            # Set proper constraints and tabify right docks
+            for dock in right_docks:
+                self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+                dock.setMinimumWidth(280)
+                dock.setMaximumWidth(450)
+                
+            # Tabify right docks
+            if len(right_docks) > 1:
+                for i in range(len(right_docks) - 1):
+                    self.tabifyDockWidget(right_docks[i], right_docks[i + 1])
+                # Ensure Config is the active tab
+                if hasattr(self, 'config_dock') and self.config_dock:
+                    self.config_dock.raise_()
+                    
+            # Organize bottom area panels in tabs
+            bottom_docks = []
+            if hasattr(self, 'results_dock') and self.results_dock:
+                bottom_docks.append(self.results_dock)
+            if hasattr(self, 'streaming_dock') and self.streaming_dock:
+                bottom_docks.append(self.streaming_dock)
+            if hasattr(self, 'activity_log_dock') and self.activity_log_dock:
+                bottom_docks.append(self.activity_log_dock)
+            if hasattr(self, 'data_tables_dock') and self.data_tables_dock:
+                bottom_docks.append(self.data_tables_dock)
+                
+            # Set proper constraints and tabify bottom docks
+            for dock in bottom_docks:
+                self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
+                dock.setMinimumHeight(180)
+                dock.setMaximumHeight(300)
+                
+            # Tabify bottom docks
+            if len(bottom_docks) > 1:
+                for i in range(len(bottom_docks) - 1):
+                    self.tabifyDockWidget(bottom_docks[i], bottom_docks[i + 1])
+                # Ensure Results is the active tab
+                if hasattr(self, 'results_dock') and self.results_dock:
+                    self.results_dock.raise_()
+                    
+            # Ensure all docks are visible by default
+            for dock_name in ['data_dock', 'config_dock', 'operations_dock', 'results_dock', 'streaming_dock']:
+                if hasattr(self, dock_name):
+                    dock = getattr(self, dock_name)
+                    if dock:
+                        dock.setVisible(True)
+                        
+        except Exception as e:
+            logger.warning("dock_layout_organization_failed", error=str(e))
 
     # =========================================================================
     # UTILITIES
@@ -1442,7 +1660,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             import psutil
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
-            self.memory_label.setText(f"💾 {memory_mb:.1f} MB")
+            self.memory_label.setText(f"ðŸ’¾ {memory_mb:.1f} MB")
         except ImportError:
             self.memory_label.setText("")
 
@@ -1479,9 +1697,21 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
     def closeEvent(self, event):
         """Handle window close event"""
+        # Em modo de teste (headless/offscreen), pula confirmaÃ§Ã£o
+        import os
+        if os.environ.get("QT_QPA_PLATFORM") == "offscreen" or getattr(self, "_skip_close_confirmation", False):
+            self._save_layout()
+            if hasattr(self, '_auto_save_timer'):
+                self._auto_save_timer.stop()
+            if hasattr(self, '_memory_timer'):
+                self._memory_timer.stop()
+            logger.info("application_closing")
+            event.accept()
+            return
+
         reply = QMessageBox.question(
-            self, tr("🚪 Fechar Aplicação"),
-            tr("Salvar sessão antes de sair?"),
+            self, tr("ðŸšª Fechar AplicaÃ§Ã£o"),
+            tr("Salvar sessÃ£o antes de sair?"),
             QMessageBox.StandardButton.Save |
             QMessageBox.StandardButton.Discard |
             QMessageBox.StandardButton.Cancel,
@@ -1522,9 +1752,9 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self.detached_manager.redock_all()
 
         # Update status
-        self.status_label.setText(f"✅ {count} painéis re-docados")
+        self.status_label.setText(f"âœ… {count} painÃ©is re-docados")
         if self.activity_log_panel:
-            self.activity_log_panel.log_success(f"{count} painéis re-docados")
+            self.activity_log_panel.log_success(f"{count} painÃ©is re-docados")
 
         logger.info("panels_redocked", count=count)
 
@@ -1541,7 +1771,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         # Info label
         info_label = QLabel(tr(
-            "<h3>Conversor XLSX → CSV</h3>"
+            "<h3>Conversor XLSX â†’ CSV</h3>"
             "<p>Selecione um arquivo Excel (.xlsx) para converter em CSV.</p>",
         ))
         info_label.setTextFormat(Qt.TextFormat.RichText)
@@ -1553,13 +1783,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         self._xlsx_file_edit.setPlaceholderText(tr("Selecione arquivo XLSX..."))
         file_layout.addWidget(self._xlsx_file_edit)
 
-        browse_btn = QPushButton(tr("📂 Procurar"))
+        browse_btn = QPushButton(tr("ðŸ“‚ Procurar"))
         browse_btn.clicked.connect(lambda: self._browse_xlsx_file(dialog))
         file_layout.addWidget(browse_btn)
         layout.addLayout(file_layout)
 
         # Convert button
-        convert_btn = QPushButton(tr("🔄 Converter"))
+        convert_btn = QPushButton(tr("ðŸ”„ Converter"))
         convert_btn.clicked.connect(lambda: self._convert_xlsx_file(dialog))
         layout.addWidget(convert_btn)
 
@@ -1589,7 +1819,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             QMessageBox.warning(
                 dialog,
                 tr("Erro"),
-                tr("Por favor selecione um arquivo XLSX válido."),
+                tr("Por favor selecione um arquivo XLSX vÃ¡lido."),
             )
             return
 
@@ -1608,7 +1838,7 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         def on_completed(csv_path):
             self.progress_bar.setVisible(False)
-            self.status_label.setText("✅ Conversão concluída")
+            self.status_label.setText("âœ… ConversÃ£o concluÃ­da")
             if self.activity_log_panel:
                 self.activity_log_panel.log_success(f"Arquivo convertido: {csv_path}")
             QMessageBox.information(
@@ -1620,13 +1850,13 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
         def on_failed(error):
             self.progress_bar.setVisible(False)
-            self.status_label.setText("❌ Conversão falhou")
+            self.status_label.setText("âŒ ConversÃ£o falhou")
             if self.activity_log_panel:
-                self.activity_log_panel.log_error(f"Conversão falhou: {error}")
+                self.activity_log_panel.log_error(f"ConversÃ£o falhou: {error}")
             QMessageBox.critical(
                 dialog,
                 tr("Erro"),
-                f"Erro na conversão:\n{error}",
+                f"Erro na conversÃ£o:\n{error}",
             )
 
         converter.progress_updated.connect(on_progress)
@@ -1639,3 +1869,5 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
 
 # Alias para compatibilidade
 MainWindow = ModernMainWindow
+
+

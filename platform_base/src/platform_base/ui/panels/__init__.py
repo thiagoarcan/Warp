@@ -1,16 +1,17 @@
-"""UI Panels package
+﻿"""UI Panels package.
 
 Exports:
-- VizPanel: Painel de visualização com suporte a drag-and-drop
-- OperationsPanel: Painel de operações em séries temporais
-- FileUploadDialog: Diálogo de upload de arquivos
-- Performance: Otimização para grandes volumes de dados
-- ResultsPanel: Painel de estatísticas e resultados
-- StreamingPanel: Controle de playback/streaming
-- ConfigPanel: Configurações da aplicação
+- VizPanel: visualization panel with drag-and-drop support
+- OperationsPanel: time-series operations panel
+- Performance: optimization for large data volumes
+- ResultsPanel: statistics/results panel
+- StreamingPanel: playback/streaming controls
+- ConfigPanel: application settings panel
 """
 
 from platform_base.ui.panels.config_panel import ColorButton, ConfigPanel
+from platform_base.ui.panels.data_panel import DataPanel
+from platform_base.ui.panels.viz_panel import VizPanel
 from platform_base.ui.panels.performance import (
     DataDecimator,
     DecimationMethod,
@@ -38,10 +39,9 @@ from platform_base.ui.panels.streaming_panel import (
 
 __all__ = [
     "ColorButton",
-    # Config panel
     "ConfigPanel",
+    "DataPanel",
     "DataDecimator",
-    # Performance module
     "DecimationMethod",
     "LODManager",
     "MinimapWidget",
@@ -49,15 +49,14 @@ __all__ = [
     "PerformanceRenderer",
     "PlaybackMode",
     "PlaybackState",
-    # Results panel
     "ResultsPanel",
     "StatCard",
     "StatisticsResult",
     "StatisticsTable",
     "StreamingDataManager",
-    # Streaming panel
     "StreamingPanel",
     "TimelineSlider",
+    "VizPanel",
     "decimate_for_plot",
     "get_performance_renderer",
 ]

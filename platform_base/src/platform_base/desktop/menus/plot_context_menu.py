@@ -85,6 +85,13 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
         self.window_size = self.findChild(QSpinBox, "windowSize")
         self.polyorder = self.findChild(QSpinBox, "polyorder")
 
+        # Widgets de interpolation
+        self.interp_method = self.findChild(QComboBox, "interp_method")
+
+        # Widgets de resample
+        self.resample_method = self.findChild(QComboBox, "resample_method")
+        self.target_points = self.findChild(QSpinBox, "target_points")
+
         # Valida widgets obrigatórios
         self._validate_widgets()
 
@@ -104,6 +111,9 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
             "smoothMethod": self.smooth_method,
             "windowSize": self.window_size,
             "polyorder": self.polyorder,
+            "interp_method": self.interp_method,
+            "resample_method": self.resample_method,
+            "target_points": self.target_points,
         }
 
         missing = [name for name, widget in required_widgets.items() if widget is None]
@@ -147,19 +157,14 @@ class MathAnalysisDialog(QDialog, UiLoaderMixin):
             }
 
         elif self.operation == "interpolate":
-            # Use reasonable defaults if widgets not available
-            interp_method = getattr(self, 'interp_method', None)
             params = {
-                "method": interp_method.currentText() if interp_method else "linear",
+                "method": self.interp_method.currentText(),
             }
 
         elif self.operation == "resample":
-            # Use reasonable defaults if widgets not available
-            resample_method = getattr(self, 'resample_method', None)
-            target_points = getattr(self, 'target_points', None)
             params = {
-                "method": resample_method.currentText() if resample_method else "lttb",
-                "n_points": target_points.value() if target_points else 1000,
+                "method": self.resample_method.currentText(),
+                "n_points": self.target_points.value(),
             }
 
         self.operation_requested.emit(self.operation, params)

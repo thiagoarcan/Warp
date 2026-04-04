@@ -1,14 +1,14 @@
-"""
-ResultsPanel - Painel para exibição de estatísticas e resultados
+﻿"""
+ResultsPanel - Painel para exibiÃ§Ã£o de estatÃ­sticas e resultados
 
-Características:
-- Estatísticas descritivas completas
-- Visualização de métricas em cards
-- Exportação de resultados
-- Atualização em tempo real
+CaracterÃ­sticas:
+- EstatÃ­sticas descritivas completas
+- VisualizaÃ§Ã£o de mÃ©tricas em cards
+- ExportaÃ§Ã£o de resultados
+- AtualizaÃ§Ã£o em tempo real
 
 Autor: Platform Base Team
-Versão: 2.0.0
+VersÃ£o: 2.0.0
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ logger = get_logger(__name__)
 
 @dataclass
 class StatisticsResult:
-    """Resultado de cálculo estatístico"""
+    """Resultado de cÃ¡lculo estatÃ­stico"""
     name: str
     value: float
     unit: str = ""
@@ -50,7 +50,7 @@ class StatisticsResult:
 
 @dataclass
 class ComparisonResult:
-    """Resultado de comparação entre séries"""
+    """Resultado de comparaÃ§Ã£o entre sÃ©ries"""
     series_a: str
     series_b: str
     correlation: float = 0.0
@@ -62,17 +62,20 @@ class ComparisonResult:
 
 
 class StatCard(QFrame):
-    """Card para exibição de estatística individual"""
+    """Card para exibiÃ§Ã£o de estatÃ­stica individual"""
 
     def __init__(
         self,
         title: str,
         value: str,
         description: str = "",
-        icon: str = "📊",
+        icon: str = "ðŸ“Š",
         parent: QWidget | None = None,
     ):
         super().__init__(parent)
+
+        self.session_state = session_state
+        self.signal_hub = signal_hub
         self.setObjectName("statCard")
         self._setup_ui(title, value, description, icon)
         self._apply_style()
@@ -83,7 +86,7 @@ class StatCard(QFrame):
         layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(4)
 
-        # Header com ícone e título
+        # Header com Ã­cone e tÃ­tulo
         header = QHBoxLayout()
 
         icon_label = QLabel(icon)
@@ -110,7 +113,7 @@ class StatCard(QFrame):
         """)
         layout.addWidget(self._value_label)
 
-        # Descrição opcional
+        # DescriÃ§Ã£o opcional
         if description:
             desc_label = QLabel(description)
             desc_label.setStyleSheet("""
@@ -142,10 +145,13 @@ class StatCard(QFrame):
 
 
 class StatisticsTable(QWidget):
-    """Tabela de estatísticas detalhadas"""
+    """Tabela de estatÃ­sticas detalhadas"""
 
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, session_state: object | None = None, signal_hub: object | None = None, parent: QWidget | None = None):
         super().__init__(parent)
+
+        self.session_state = session_state
+        self.signal_hub = signal_hub
         self._setup_ui()
 
     def _setup_ui(self):
@@ -157,7 +163,7 @@ class StatisticsTable(QWidget):
         self._table = QTableWidget()
         self._table.setColumnCount(4)
         self._table.setHorizontalHeaderLabels([
-            "Estatística", "Valor", "Unidade", "Categoria",
+            "EstatÃ­stica", "Valor", "Unidade", "Categoria",
         ])
         header = self._table.horizontalHeader()
         if header is not None:
@@ -190,7 +196,7 @@ class StatisticsTable(QWidget):
         layout.addWidget(self._table)
 
     def set_statistics(self, stats: list[StatisticsResult]):
-        """Popula a tabela com estatísticas"""
+        """Popula a tabela com estatÃ­sticas"""
         self._table.setRowCount(len(stats))
 
         for i, stat in enumerate(stats):
@@ -202,7 +208,7 @@ class StatisticsTable(QWidget):
         self._table.resizeColumnsToContents()
 
     def get_statistics_text(self) -> str:
-        """Retorna estatísticas em formato texto"""
+        """Retorna estatÃ­sticas em formato texto"""
         lines = []
         for row in range(self._table.rowCount()):
             name_item = self._table.item(row, 0)
@@ -217,11 +223,11 @@ class StatisticsTable(QWidget):
 
 class ResultsPanel(QWidget, UiLoaderMixin):
     """
-    Painel principal de resultados e estatísticas
+    Painel principal de resultados e estatÃ­sticas
 
     Signals:
-        statistics_updated: Emitido quando estatísticas são atualizadas
-        export_requested: Emitido quando exportação é solicitada
+        statistics_updated: Emitido quando estatÃ­sticas sÃ£o atualizadas
+        export_requested: Emitido quando exportaÃ§Ã£o Ã© solicitada
     """
 
     UI_FILE = "resultsPanel.ui"
@@ -229,8 +235,11 @@ class ResultsPanel(QWidget, UiLoaderMixin):
     statistics_updated = pyqtSignal()
     export_requested = pyqtSignal(str)  # format: csv, json, txt
 
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, session_state: object | None = None, signal_hub: object | None = None, parent: QWidget | None = None):
         super().__init__(parent)
+
+        self.session_state = session_state
+        self.signal_hub = signal_hub
 
         self._series: Any | None = None
         self._stats: list[StatisticsResult] = []
@@ -242,7 +251,7 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         self._connect_signals()
 
     def _setup_ui_from_file(self):
-        """Configura widgets após carregar .ui"""
+        """Configura widgets apÃ³s carregar .ui"""
         # Busca widgets do arquivo .ui
         self._series_info = self.findChild(QLabel, "series_info")
         self._table = self.findChild(QTableWidget, "stats_table")
@@ -250,9 +259,9 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         self._tabs = self.findChild(QTabWidget, "tabs")
         self._cards_container = self.findChild(QWidget, "cards_container")
 
-        # Inicializa widgets se não encontrados
+        # Inicializa widgets se nÃ£o encontrados
         if self._series_info is None:
-            self._series_info = QLabel("Nenhuma série selecionada")
+            self._series_info = QLabel("Nenhuma sÃ©rie selecionada")
         if self._table is None:
             self._table = QTableWidget()
         if self._details_text is None:
@@ -261,10 +270,10 @@ class ResultsPanel(QWidget, UiLoaderMixin):
             self._tabs = QTabWidget()
 
     def update_distribution(self, values: np.ndarray):
-        """Atualiza o histograma e estatísticas de distribuição.
+        """Atualiza o histograma e estatÃ­sticas de distribuiÃ§Ã£o.
 
         Args:
-            values: Array de valores para análise de distribuição.
+            values: Array de valores para anÃ¡lise de distribuiÃ§Ã£o.
         """
         if not hasattr(self, "_hist_plot") or self._hist_plot is None:
             return
@@ -305,7 +314,7 @@ class ResultsPanel(QWidget, UiLoaderMixin):
                 pos=mean_val,
                 angle=90,
                 pen=pg.mkPen(color="r", width=2, style=2),  # Dashed red
-                label=f"Média: {mean_val:.2f}",
+                label=f"MÃ©dia: {mean_val:.2f}",
             )
             self._hist_plot.addItem(mean_line)
 
@@ -359,28 +368,28 @@ class ResultsPanel(QWidget, UiLoaderMixin):
 
     def set_series(self, series: Any):
         """
-        Define a série para análise
+        Define a sÃ©rie para anÃ¡lise
 
         Args:
-            series: Série de dados a analisar
+            series: SÃ©rie de dados a analisar
         """
         self._series = series
         self._update_series_info()
         self._calculate_statistics()
 
     def _update_series_info(self):
-        """Atualiza info da série no header"""
+        """Atualiza info da sÃ©rie no header"""
         if self._series:
             self._series_info.setText(
-                f"Série: {self._series.name} | "
+                f"SÃ©rie: {self._series.name} | "
                 f"Unidade: {self._series.unit} | "
                 f"Pontos: {len(self._series.values):,}",
             )
         else:
-            self._series_info.setText("Nenhuma série selecionada")
+            self._series_info.setText("Nenhuma sÃ©rie selecionada")
 
     def _calculate_statistics(self):
-        """Calcula estatísticas da série"""
+        """Calcula estatÃ­sticas da sÃ©rie"""
         if not self._series:
             return
 
@@ -390,17 +399,17 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         if n == 0:
             return
 
-        # Estatísticas básicas
+        # EstatÃ­sticas bÃ¡sicas
         self._stats = [
-            StatisticsResult("Contagem", n, "pontos", "Total de amostras", "Básico"),
-            StatisticsResult("Média", float(np.mean(values)), self._series.unit, "Média aritmética", "Tendência Central"),
-            StatisticsResult("Mediana", float(np.median(values)), self._series.unit, "Valor central", "Tendência Central"),
-            StatisticsResult("Desvio Padrão", float(np.std(values)), self._series.unit, "Dispersão", "Dispersão"),
-            StatisticsResult("Variância", float(np.var(values)), f"({self._series.unit})²", "Variância", "Dispersão"),
-            StatisticsResult("Mínimo", float(np.min(values)), self._series.unit, "Valor mínimo", "Extremos"),
-            StatisticsResult("Máximo", float(np.max(values)), self._series.unit, "Valor máximo", "Extremos"),
+            StatisticsResult("Contagem", n, "pontos", "Total de amostras", "BÃ¡sico"),
+            StatisticsResult("MÃ©dia", float(np.mean(values)), self._series.unit, "MÃ©dia aritmÃ©tica", "TendÃªncia Central"),
+            StatisticsResult("Mediana", float(np.median(values)), self._series.unit, "Valor central", "TendÃªncia Central"),
+            StatisticsResult("Desvio PadrÃ£o", float(np.std(values)), self._series.unit, "DispersÃ£o", "DispersÃ£o"),
+            StatisticsResult("VariÃ¢ncia", float(np.var(values)), f"({self._series.unit})Â²", "VariÃ¢ncia", "DispersÃ£o"),
+            StatisticsResult("MÃ­nimo", float(np.min(values)), self._series.unit, "Valor mÃ­nimo", "Extremos"),
+            StatisticsResult("MÃ¡ximo", float(np.max(values)), self._series.unit, "Valor mÃ¡ximo", "Extremos"),
             StatisticsResult("Range", float(np.ptp(values)), self._series.unit, "Amplitude total", "Extremos"),
-            StatisticsResult("Soma", float(np.sum(values)), self._series.unit, "Soma total", "Básico"),
+            StatisticsResult("Soma", float(np.sum(values)), self._series.unit, "Soma total", "BÃ¡sico"),
         ]
 
         # Quartis
@@ -446,15 +455,15 @@ class ResultsPanel(QWidget, UiLoaderMixin):
 
         lines = [
             f"{'='*50}",
-            "ANÁLISE ESTATÍSTICA",
+            "ANÃLISE ESTATÃSTICA",
             f"{'='*50}",
             "",
-            f"Série: {self._series.name}",
+            f"SÃ©rie: {self._series.name}",
             f"Unidade: {self._series.unit}",
-            f"Data da análise: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Data da anÃ¡lise: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             f"{'-'*50}",
-            "ESTATÍSTICAS",
+            "ESTATÃSTICAS",
             f"{'-'*50}",
             "",
         ]
@@ -470,44 +479,44 @@ class ResultsPanel(QWidget, UiLoaderMixin):
         self._text_summary.setText("\n".join(lines))
 
     def _refresh_statistics(self):
-        """Recalcula estatísticas"""
+        """Recalcula estatÃ­sticas"""
         self._calculate_statistics()
 
     def _show_export_menu(self):
-        """Mostra menu de exportação"""
+        """Mostra menu de exportaÃ§Ã£o"""
         from PyQt6.QtWidgets import QMenu
 
         menu = QMenu(self)
 
-        csv_action = menu.addAction("📄 Exportar CSV")
+        csv_action = menu.addAction("ðŸ“„ Exportar CSV")
         if csv_action is not None:
             csv_action.triggered.connect(lambda: self._export("csv"))
 
-        json_action = menu.addAction("📋 Exportar JSON")
+        json_action = menu.addAction("ðŸ“‹ Exportar JSON")
         if json_action is not None:
             json_action.triggered.connect(lambda: self._export("json"))
 
-        txt_action = menu.addAction("📝 Exportar Texto")
+        txt_action = menu.addAction("ðŸ“ Exportar Texto")
         if txt_action is not None:
             txt_action.triggered.connect(lambda: self._export("txt"))
 
         menu.exec(self.mapToGlobal(self.rect().bottomRight()))
 
     def _export(self, format: str):
-        """Exporta estatísticas no formato especificado"""
+        """Exporta estatÃ­sticas no formato especificado"""
         self.export_requested.emit(format)
         logger.info(f"export_requested: format={format}")
 
     def get_statistics(self) -> list[StatisticsResult]:
-        """Retorna lista de estatísticas calculadas"""
+        """Retorna lista de estatÃ­sticas calculadas"""
         return self._stats.copy()
 
     def get_statistics_dict(self) -> dict[str, float]:
-        """Retorna estatísticas como dicionário"""
+        """Retorna estatÃ­sticas como dicionÃ¡rio"""
         return {stat.name: stat.value for stat in self._stats}
 
 
-# Export para uso em outros módulos
+# Export para uso em outros mÃ³dulos
 __all__ = [
     "ComparisonResult",
     "ResultsPanel",
@@ -515,3 +524,4 @@ __all__ = [
     "StatisticsResult",
     "StatisticsTable",
 ]
+

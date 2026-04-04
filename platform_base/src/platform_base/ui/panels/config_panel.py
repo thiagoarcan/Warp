@@ -1,15 +1,15 @@
-"""
-ConfigPanel - Painel de configurações da aplicação
+﻿"""
+ConfigPanel - Painel de configuraÃ§Ãµes da aplicaÃ§Ã£o
 
-Características:
-- Configurações de visualização
-- Preferências de usuário
-- Opções de performance
-- Temas e aparência
-- Persistência via QSettings
+CaracterÃ­sticas:
+- ConfiguraÃ§Ãµes de visualizaÃ§Ã£o
+- PreferÃªncias de usuÃ¡rio
+- OpÃ§Ãµes de performance
+- Temas e aparÃªncia
+- PersistÃªncia via QSettings
 
 Autor: Platform Base Team
-Versão: 2.0.0
+VersÃ£o: 2.0.0
 """
 
 from __future__ import annotations
@@ -32,12 +32,15 @@ logger = get_logger(__name__)
 
 
 class ColorButton(QPushButton):
-    """Botão para seleção de cor"""
+    """BotÃ£o para seleÃ§Ã£o de cor"""
 
     color_changed = pyqtSignal(str)  # Hex color
 
     def __init__(self, color: str = "#0d6efd", parent: QWidget | None = None):
         super().__init__(parent)
+
+        self.session_state = session_state
+        self.signal_hub = signal_hub
         self._color = color
         self.setFixedSize(32, 32)
         self._update_style()
@@ -57,7 +60,7 @@ class ColorButton(QPushButton):
         """)
 
     def _pick_color(self):
-        """Abre diálogo de seleção de cor"""
+        """Abre diÃ¡logo de seleÃ§Ã£o de cor"""
         from PyQt6.QtGui import QColor
 
         color = QColorDialog.getColor(QColor(self._color), self, "Selecionar Cor")
@@ -78,10 +81,10 @@ class ColorButton(QPushButton):
 
 class ConfigPanel(QWidget, UiLoaderMixin):
     """
-    Painel de configurações da aplicação
+    Painel de configuraÃ§Ãµes da aplicaÃ§Ã£o
 
     Signals:
-        config_changed: Emitido quando qualquer configuração muda
+        config_changed: Emitido quando qualquer configuraÃ§Ã£o muda
         theme_changed: Emitido quando tema muda
         performance_changed: Emitido quando config de performance muda
 
@@ -95,8 +98,11 @@ class ConfigPanel(QWidget, UiLoaderMixin):
     theme_changed = pyqtSignal(str)  # theme name
     performance_changed = pyqtSignal()
 
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, session_state: object | None = None, signal_hub: object | None = None, parent: QWidget | None = None):
         super().__init__(parent)
+
+        self.session_state = session_state
+        self.signal_hub = signal_hub
 
         self._settings = QSettings("PlatformBase", "Desktop")
         self._config: dict[str, Any] = {}
@@ -114,7 +120,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         # Tabs principais
         self.tabs = self.findChild(QTabWidget, "configTabs")
 
-        # Botões de ação
+        # BotÃµes de aÃ§Ã£o
         reset_btn = self.findChild(QPushButton, "resetBtn")
         apply_btn = self.findChild(QPushButton, "applyBtn")
 
@@ -124,7 +130,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             apply_btn.clicked.connect(self._apply_settings)
 
     def _connect_signals(self):
-        """Conecta signals para detecção de mudanças"""
+        """Conecta signals para detecÃ§Ã£o de mudanÃ§as"""
         # Conecta todos os widgets para emitir config_changed
         self._theme_combo.currentTextChanged.connect(
             lambda v: self._on_config_change("theme", v),
@@ -137,13 +143,13 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         )
 
     def _on_config_change(self, key: str, value: Any):
-        """Handler para mudança de configuração"""
+        """Handler para mudanÃ§a de configuraÃ§Ã£o"""
         self._config[key] = value
         self.config_changed.emit(key, value)
 
     def _load_settings(self):
-        """Carrega configurações salvas"""
-        # Visualização
+        """Carrega configuraÃ§Ãµes salvas"""
+        # VisualizaÃ§Ã£o
         self._theme_combo.setCurrentText(
             self._settings.value("viz/theme", "Claro"),
         )
@@ -182,8 +188,8 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.info("settings_loaded")
 
     def _apply_settings(self):
-        """Salva configurações"""
-        # Visualização
+        """Salva configuraÃ§Ãµes"""
+        # VisualizaÃ§Ã£o
         self._settings.setValue("viz/theme", self._theme_combo.currentText())
         self._settings.setValue("viz/line_width", self._line_width.value())
         self._settings.setValue("viz/marker_size", self._marker_size.value())
@@ -218,8 +224,8 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.info("settings_saved")
 
     def _reset_defaults(self):
-        """Restaura configurações padrão"""
-        # Visualização
+        """Restaura configuraÃ§Ãµes padrÃ£o"""
+        # VisualizaÃ§Ã£o
         self._theme_combo.setCurrentText("Claro")
         self._line_width.setValue(2.0)
         self._marker_size.setValue(3)
@@ -227,7 +233,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         self._show_legend.setChecked(True)
         self._antialiasing.setChecked(True)
         self._font_size.setValue(12)
-        self._toolbar_icons.setCurrentText("Médio")
+        self._toolbar_icons.setCurrentText("MÃ©dio")
 
         # Performance
         self._direct_limit.setValue(10000)
@@ -250,11 +256,11 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.info("settings_reset_to_defaults")
 
     def get_config(self, key: str, default: Any = None) -> Any:
-        """Obtém valor de configuração"""
+        """ObtÃ©m valor de configuraÃ§Ã£o"""
         return self._settings.value(key, default)
 
     def set_config(self, key: str, value: Any):
-        """Define valor de configuração"""
+        """Define valor de configuraÃ§Ã£o"""
         self._settings.setValue(key, value)
         self._settings.sync()
 
@@ -264,3 +270,4 @@ __all__ = [
     "ColorButton",
     "ConfigPanel",
 ]
+

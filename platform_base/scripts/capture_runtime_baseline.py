@@ -54,6 +54,8 @@ def main() -> int:
     env = os.environ.copy()
     env["QT_QPA_PLATFORM"] = "offscreen"
     env["PYTHONPATH"] = str(project_root / "src")
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"
 
     cmd = [sys.executable, str(launcher_path)]
     started_at = datetime.now().isoformat(timespec="seconds")
@@ -66,6 +68,8 @@ def main() -> int:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
 
     proc = psutil.Process(process.pid)
@@ -94,14 +98,14 @@ def main() -> int:
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
 
-            if process.stdout is not None:
-                line = process.stdout.readline()
-                if line:
-                    stdout_buffer.append(line.rstrip("\n"))
-                    if success_marker in line:
-                        startup_detected = True
-                        process.terminate()
-                        break
+            # Avoid blocking reads from stdout; on Windows this can deadlock
+            # if no newline is emitted yet. Use a warmup threshold plus a
+            # post-process marker check from communicate() output.
+            startup_threshold = min(max(args.timeout * 0.25, 3.0), 15.0)
+            if now_elapsed >= startup_threshold and process.poll() is None:
+                startup_detected = True
+                process.terminate()
+                break
 
             time.sleep(0.05)
 
@@ -141,3 +145,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+

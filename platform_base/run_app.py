@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Launcher simples para Platform Base v2.0
 """
@@ -19,11 +19,12 @@ def main():
     """Launch the application"""
     try:
         print("Starting Platform Base v2.0...")
+        print("run_app.py is a compatibility wrapper. Canonical launcher: launch_app.py")
 
-        # Import and run desktop application
-        from platform_base.desktop.app import main as app_main
+        # Delegate to canonical launcher path
+        from launch_app import main as launch_main
 
-        return app_main()
+        return launch_main()
 
     except KeyboardInterrupt:
         print("\nApplication interrupted by user")

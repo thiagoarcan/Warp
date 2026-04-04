@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Status do Projeto Platform Base v2.0
-Análise do progresso da migração Dash → PyQt6
+AnÃ¡lise do progresso da migraÃ§Ã£o Dash â†’ PyQt6
 """
 
 from datetime import datetime
@@ -42,7 +42,7 @@ def analyze_project():
         print(f"  {name:<20} {status}")
 
     # Data Processing
-    print("\n🔄 PROCESSAMENTO DE DADOS")
+    print("\nðŸ”„ PROCESSAMENTO DE DADOS")
     print("-" * 50)
 
     processing_files = {
@@ -60,7 +60,7 @@ def analyze_project():
         print(f"  {name:<20} {status}")
 
     # UI Components
-    print("\n🖥️  INTERFACE PYQT6")
+    print("\nðŸ–¥ï¸  INTERFACE PYQT6")
     print("-" * 50)
 
     ui_files = {
@@ -78,7 +78,7 @@ def analyze_project():
         print(f"  {name:<20} {status}")
 
     # Visualization
-    print("\n📊 VISUALIZAÇÃO")
+    print("\nðŸ“Š VISUALIZAÃ‡ÃƒO")
     print("-" * 50)
 
     viz_files = {
@@ -95,7 +95,7 @@ def analyze_project():
         print(f"  {name:<20} {status}")
 
     # Utilities
-    print("\n🔧 UTILITÁRIOS")
+    print("\nðŸ”§ UTILITÃRIOS")
     print("-" * 50)
 
     util_files = {
@@ -110,7 +110,7 @@ def analyze_project():
         print(f"  {name:<20} {status}")
 
     # Caching & Performance
-    print("\n⚡ CACHE & PERFORMANCE")
+    print("\nâš¡ CACHE & PERFORMANCE")
     print("-" * 50)
 
     perf_files = {
@@ -125,61 +125,62 @@ def analyze_project():
         print(f"  {name:<20} {status}")
 
     # Configuration
-    print("\n⚙️  CONFIGURAÇÃO")
+    print("\nâš™ï¸  CONFIGURAÃ‡ÃƒO")
     print("-" * 50)
 
     print(f"  pyproject.toml       {check_file_exists(base_path / 'pyproject.toml')}")
     print(f"  platform.yaml        {check_file_exists(base_path / 'configs' / 'platform.yaml')}")
 
     # Test & Run Scripts
-    print("\n🚀 SCRIPTS DE TESTE/EXECUÇÃO")
+    print("\nðŸš€ SCRIPTS DE TESTE/EXECUÃ‡ÃƒO")
     print("-" * 50)
 
     print(f"  test_app.py          {check_file_exists(base_path / 'test_app.py')}")
     print(f"  run_app.py           {check_file_exists(base_path / 'run_app.py')}")
+    print("  Canonical launcher: launch_app.py")
 
     # Summary
-    print("\n📋 RESUMO DO PROGRESSO")
+    print("\nðŸ“‹ RESUMO DO PROGRESSO")
     print("-" * 50)
 
     completed = [
-        "✓ Migração PyQt6 (dependencies)",
-        "✓ Core data models (Pydantic v2)",
-        "✓ Thread-safe SessionState",
-        "✓ Multi-format I/O loader",
-        "✓ Advanced interpolation system",
-        "✓ Synchronization engine",
-        "✓ Mathematical calculus operations",
-        "✓ PyQt6 main window architecture",
-        "✓ Background worker threads",
-        "✓ Structured logging system",
+        "âœ“ MigraÃ§Ã£o PyQt6 (dependencies)",
+        "âœ“ Core data models (Pydantic v2)",
+        "âœ“ Thread-safe SessionState",
+        "âœ“ Multi-format I/O loader",
+        "âœ“ Advanced interpolation system",
+        "âœ“ Synchronization engine",
+        "âœ“ Mathematical calculus operations",
+        "âœ“ PyQt6 main window architecture",
+        "âœ“ Background worker threads",
+        "âœ“ Structured logging system",
     ]
 
     pending = [
-        "⧖ Visualization (pyqtgraph + PyVista)",
-        "⧖ Streaming temporal functionality",
-        "⧖ Multi-view selection system",
-        "⧖ Plugin architecture",
-        "⧖ Advanced caching (joblib.Memory)",
-        "⧖ Export functionality",
-        "⧖ Configuration system",
-        "⧖ Test suite updates",
-        "⧖ Documentation",
+        "â§– Visualization (pyqtgraph + PyVista)",
+        "â§– Streaming temporal functionality",
+        "â§– Multi-view selection system",
+        "â§– Plugin architecture",
+        "â§– Advanced caching (joblib.Memory)",
+        "â§– Export functionality",
+        "â§– Configuration system",
+        "â§– Test suite updates",
+        "â§– Documentation",
     ]
 
-    print(f"\n📈 Progresso: {len(completed)}/{len(completed) + len(pending)} ({len(completed)/(len(completed) + len(pending))*100:.0f}%)")
+    print(f"\nðŸ“ˆ Progresso: {len(completed)}/{len(completed) + len(pending)} ({len(completed)/(len(completed) + len(pending))*100:.0f}%)")
 
-    print("\n✅ IMPLEMENTADO:")
+    print("\nâœ… IMPLEMENTADO:")
     for item in completed:
         print(f"   {item}")
 
-    print("\n🔄 PENDENTE:")
+    print("\nðŸ”„ PENDENTE:")
     for item in pending:
         print(f"   {item}")
 
     print("\n" + "=" * 80)
-    print("🎯 STATUS: Core funcional, pronto para desenvolvimento incremental")
-    print("📦 PRÓXIMOS PASSOS: Visualização, streaming, plugins")
+    print("ðŸŽ¯ STATUS: Core funcional, pronto para desenvolvimento incremental")
+    print("ðŸ“¦ PRÃ“XIMOS PASSOS: VisualizaÃ§Ã£o, streaming, plugins")
     print("=" * 80)
 
 if __name__ == "__main__":

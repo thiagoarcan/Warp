@@ -159,7 +159,8 @@ class MemoryIndicator(QLabel):
 
         msg.setDetailedText("\n".join(details))
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-        msg.exec()
+        msg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        msg.open()  # Non-blocking
 
     def _show_high_warning(self, status: MemoryStatus) -> None:
         """Show high memory warning (less intrusive)."""
