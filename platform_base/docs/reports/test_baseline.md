@@ -1,33 +1,33 @@
 # Test Baseline
 
-Generated at: 2026-04-03T12:01:06
-Command: C:\ProgramData\anaconda3\python.exe -m pytest tests/automated --html=C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Projetos em Python\Warp\platform_base\docs\reports\test_report.html --self-contained-html --junitxml=C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Projetos em Python\Warp\platform_base\docs\reports\junit.xml -v
+Generated at: 2026-04-04T00:54:31
+Command: C:\ProgramData\anaconda3\python.exe -m pytest tests/automated --html=C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Projetos em Python\Warp\platform_base\docs\reports\test_report.html --self-contained-html --junitxml=C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Projetos em Python\Warp\platform_base\docs\reports\junit.xml -q
 Working directory: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Projetos em Python\Warp\platform_base
 QT_QPA_PLATFORM=offscreen
 PYTHONPATH=src
 Exit code: 0
-Pytest summary: =========== 202 passed, 29 skipped, 3 warnings in 245.83s (0:04:05) ===========
+Pytest summary: =========== 202 passed, 29 skipped, 3 warnings in 340.07s (0:05:40) ===========
 
 ## Stdout (last 80 lines)
 ```text
-tests/automated/test_10_coverage.py::TestUIFileCoverage::test_ui_type_coverage[dialog] <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 92%]
-tests/automated/test_10_coverage.py::TestUIFileCoverage::test_ui_type_coverage[panel] <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 93%]
-tests/automated/test_10_coverage.py::TestUIFileCoverage::test_ui_type_coverage[window] <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 93%]
-tests/automated/test_10_coverage.py::TestSignalCoverage::test_signalhub_signals_documented <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 93%]
-tests/automated/test_10_coverage.py::TestSignalCoverage::test_sessionstate_signals_documented <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 94%]
-tests/automated/test_10_coverage.py::TestClassCoverage::test_core_classes_exist <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 94%]
-tests/automated/test_10_coverage.py::TestDialogPanelCoverage::test_dialog_classes_exist <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 95%]
-tests/automated/test_10_coverage.py::TestDialogPanelCoverage::test_panel_classes_exist <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py SKIPPED [ 95%]
-tests/automated/test_10_coverage.py::TestTestCoverage::test_all_test_files_exist <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 96%]
-tests/automated/test_10_coverage.py::TestTestCoverage::test_conftest_exists <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 96%]
-tests/automated/test_10_coverage.py::TestTestCoverage::test_minimum_test_count <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 96%]
-tests/automated/test_10_coverage.py::TestCoverageThreshold::test_coverage_report_location <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 97%]
-tests/automated/test_10_coverage.py::TestCoverageThreshold::test_htmlcov_excluded_from_git <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 97%]
-tests/automated/test_10_coverage.py::TestCodeQuality::test_no_print_statements_in_src <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 98%]
-tests/automated/test_10_coverage.py::TestCodeQuality::test_docstrings_in_public_modules <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 98%]
-tests/automated/test_10_coverage.py::TestProjectStructure::test_required_directories_exist <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 99%]
-tests/automated/test_10_coverage.py::TestProjectStructure::test_pyproject_toml_exists <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [ 99%]
-tests/automated/test_10_coverage.py::TestProjectStructure::test_readme_exists <- ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py PASSED [100%]
+PyQt6 6.7.1 -- Qt runtime 6.7.3 -- Qt compiled 6.7.1
+rootdir: C:\Users\tdyb\OneDrive - TRANSPETRO\Área de Trabalho\Projetos em Python\Warp\platform_base
+configfile: pyproject.toml
+plugins: anyio-4.2.0, dash-3.3.0, hypothesis-6.151.4, asyncio-1.2.0, benchmark-5.2.3, cov-7.0.0, html-4.2.0, metadata-3.1.1, mock-3.15.1, mpl-0.18.0, qt-4.5.0, timeout-2.4.0, xdist-3.8.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 231 items
+
+tests\automated\test_01_ui_loading.py ..............                     [  6%]
+tests\automated\test_02_mandatory_widgets.py .......................     [ 16%]
+tests\automated\test_03_navigation.py ....s..s........ss..s..sssss..     [ 29%]
+tests\automated\test_04_signals_slots.py ...............                 [ 35%]
+tests\automated\test_05_initialization.py ...............ss...s........s [ 48%]
+sssss                                                                    [ 50%]
+tests\automated\test_06_resources.py .........s...ssssss......           [ 61%]
+tests\automated\test_07_state_visibility.py ...........................  [ 73%]
+tests\automated\test_08_memory_leaks.py ................                 [ 80%]
+tests\automated\test_09_exceptions_errors.py ..........s.s............   [ 90%]
+tests\automated\test_10_coverage.py ..........s..........                [100%]
 
 ============================== warnings summary ===============================
 tests/automated/test_09_exceptions_errors.py::TestMalformedDataHandling::test_inf_in_dataframe
@@ -89,7 +89,7 @@ SKIPPED [1] ..\..\..\Warp\platform_base\tests\automated\test_06_resources.py:217
 SKIPPED [1] ..\..\..\Warp\platform_base\tests\automated\test_09_exceptions_errors.py:205: Handler de exceção não disponível
 SKIPPED [1] ..\..\..\Warp\platform_base\tests\automated\test_09_exceptions_errors.py:250: BaseWorker não disponível
 SKIPPED [1] ..\..\..\Warp\platform_base\tests\automated\test_10_coverage.py:243: Módulo panels não disponível
-=========== 202 passed, 29 skipped, 3 warnings in 245.83s (0:04:05) ===========
+=========== 202 passed, 29 skipped, 3 warnings in 340.07s (0:05:40) ===========
 ```
 
 ## Stderr (last 40 lines)

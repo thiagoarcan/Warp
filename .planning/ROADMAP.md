@@ -84,7 +84,7 @@ Plans:
 
 ## Phase 4: Limpeza de Divida Tecnica de Entrada
 
-**Status:** planned (2026-04-04) — plans criados, pronto para execucao
+**Status:** executed (2026-04-04) — 3/3 planos completos, 3/3 critérios verificados
 
 Goal: Eliminar launchers/workarounds redundantes apos prova de equivalencia.
 
@@ -97,13 +97,13 @@ Success criteria:
 3. Documentacao de execucao aponta apenas para caminho suportado.
 
 Plans:
-- [ ] 04-01-PLAN.md — Arquivar/remover debug_launch.py e fixed_launch.py historicos [Wave 1]
-- [ ] 04-02-PLAN.md — Deprecate test_launch.py; migrar para pytest fixtures padrao [Wave 1]
-- [ ] 04-03-PLAN.md — Marcar run_app.py como deprecated; atualizar documentacao [Wave 2]
+- [x] 04-01-PLAN.md — Arquivar/remover debug_launch.py e fixed_launch.py historicos [Wave 1]
+- [x] 04-02-PLAN.md — Deprecate test_launch.py; migrar para pytest fixtures padrao [Wave 1]
+- [x] 04-03-PLAN.md — Marcar run_app.py como deprecated; atualizar documentacao [Wave 2]
 
 ## Phase 5: Hardening Final de Confiabilidade e Performance
 
-**Status:** pending — pronto para planejamento apos Fase 4
+**Status:** executed (2026-04-04) — 2/2 planos completos, 4/4 critérios verificados
 
 Goal: Fechar lacunas de cobertura essencial e comprovar nao regressao de startup/memoria.
 
@@ -116,7 +116,10 @@ Success criteria:
 1. Suites essenciais cobrem startup, carga de dados, processamento e visualizacao com rastreabilidade.
 2. Indicadores de startup permanecem dentro do limite aceito frente ao baseline.
 3. Indicadores de memoria permanecem dentro do limite aceito frente ao baseline.
-4. Relatorio final de estabilidade confirma aptidao para continuidade da evolucao.
+
+Plans:
+- [x] 05-01-PLAN.md — Executar hardening de confiabilidade com gates críticos e suite completa [Wave 1]
+- [x] 05-02-PLAN.md — Capturar baseline final de startup/memória e consolidar relatório final [Wave 1]
 
 ## Coverage Validation
 
@@ -136,3 +139,4 @@ Success criteria:
 | PERF-03 | Phase 1 |
 
 All v1 requirements mapped exactly once: yes.
+

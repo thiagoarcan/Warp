@@ -1,14 +1,14 @@
----
+﻿---
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 03
-last_updated: "2026-04-03T14:42:58.574Z"
+status: Milestone Complete
+last_updated: ""2026-04-04T01:05:00Z""
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 5
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # STATE
@@ -18,39 +18,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 Core value: Manter um fluxo estavel de ingestao -> processamento -> visualizacao para usuarios tecnicos sem regressao operacional.
-Current focus: Phase 3 (proxima) — Phase 2 concluida
+Current focus: Milestone closure and cleanup completed.
 
 ## Status
 
 - Project initialized: yes
 - Requirements defined: yes
 - Roadmap created: yes
-- Phase 1 plans complete: 2/2 (2026-03-31)
-- Phase 1 verification: passed (2026-04-03, re-verificado apos correcoes de gap)
-- Phase 2 plans complete: 3/3 (2026-04-03)
-- Phase 2 verification: passed (98 passed, 21 skipped, gate exit 0)
-- Next command: /gsd plan-phase 3
+- Phase 1 verification: passed
+- Phase 2 verification: passed
+- Phase 3 verification: passed
+- Phase 4 verification: passed
+- Phase 5 verification: passed
+- Milestone completion: complete
 
 ## Current Position
 
-Phase: 03 (consolidacao-de-modulos-canonicos) — EXECUTING
-Plan: 1 of 3
-
-- Phase: 02-consolidacao-do-runtime-de-ui (DONE)
-- Plans: 3/3 executed and verified
-- Summaries created: 02-01, 02-02, 02-03
+Phase: 05 (hardening-final-de-confiabilidade-e-performance) — DONE
+Plans: 13/13 executed and verified
 
 ## Key Decisions
 
-- RELY-01 corrigido: _restore_layout() pula restore em offscreen e nao chama _organize_dock_layout() apos restoreState() -- elimina access violation no Qt C++
-- PERF-03 corrigido: flush=True no marcador de sucesso + timeout 60s -- startup_detected=true, startup_seconds=11.56s
-- Suite completa: 208 passed, 23 skipped, exit 0 (2026-04-03)
-- UICO-01: launcher canonico = launch_app.py; run_app.py e docs alinhados
-- UICO-02: ui.panels.DataPanel/VizPanel com wrappers de compatibilidade; testes migrados
-- ConfigPanel deferred: permanece em desktop.widgets; AttributeError em _theme_combo sem findChild
+- launch_app.py consolidado como entrypoint canônico.
+- run_app.py mantido como wrapper de compatibilidade (deprecated).
+- launchers legados de workaround arquivados em _deprecated.
+- baseline final de runtime: startup_detected=true, timed_out=false, startup_seconds=15.1444, peak_rss_mb=185.062.
+- suíte automatizada final: 202 passed, 29 skipped.
 
 ## Notes
 
-- Iniciativa focada em estabilidade/refatoracao e consolidacao da UI.
-- Risco prioritario: regressao de performance e memoria.
-- Estrategia de entrega: ondas pequenas com compatibilidade media.
+- Warnings atuais são não-bloqueantes para fechamento (pandas chained assignment e skips conhecidos de UI opcional).
+- Milestone v1.0 apto para continuidade evolutiva com base estável.
