@@ -1,142 +1,75 @@
 ﻿# Roadmap: Warp
 
-**Created:** 2026-03-31
+**Last updated:** 2026-04-04 after v1.0 milestone completion
 **Granularity:** Standard
 **Execution:** Parallel where independent
 
 ## Summary
 
-- Phases: 5
-- v1 requirements: 12
-- Coverage: 12/12 (100%)
+- **Current Milestone:** v1.1 (planning)
+- **Shipped Milestones:** v1.0 ✅
+- **Coverage:** All v1.0 requirements satisfied (12/12)
 
-## Phase Table
+---
 
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|-------|------|--------------|------------------|
-| 1 | Baseline de Qualidade e Seguranca de Mudanca | Criar base confiavel de validacao funcional e performance para reduzir risco de refatoracao | RELY-01, RELY-02, PERF-03 | 4 |
-| 2 | Consolidacao do Runtime de UI | Tornar \ui/\ o caminho operacional canonico com launcher unico | UICO-01, UICO-02 | 4 |
-| 3 | Consolidacao de Modulos Canonicos | Remover duplicacoes estruturais em janela principal e ownership de estado/sinal | DEDU-01, DEDU-02, UICO-03 | 4 |
-| 4 | Limpeza de Divida Tecnica de Entrada | Eliminar launchers/workarounds redundantes apos prova de equivalencia | DEDU-03 | 3 |
-| 5 | Hardening Final de Confiabilidade e Performance | Fechar lacunas de cobertura essencial e comprovar nao regressao de startup/memoria | RELY-03, PERF-01, PERF-02 | 4 |
+## Shipped Milestones
 
-## Phase Details
+### v1.0: Stabilization & Technical Consolidation ✅ SHIPPED
 
-## Phase 1: Baseline de Qualidade e Seguranca de Mudanca
+**Status:** ✅ COMPLETE (2026-04-04)
+**Phases:** 5 phases, 13 plans
+**Requirements:** 12/12 (100% satisfied)
 
-**Status:** passed (2026-04-03) — 2/2 planos completos, 4/4 critérios verificados
+Started: 2026-01-19 | Completed: 2026-04-04
 
-Goal: Criar base confiavel de validacao funcional e performance para reduzir risco de refatoracao.
+Key achievements:
+- Established baseline validation pipeline (202+ automated tests)
+- Consolidated UI runtime to single canonical launcher
+- Centralized SessionState and SignalHub ownership in core layer
+- Unified main window implementation across ui/ and desktop/ layers
+- Cleaned up redundant entrypoints and documented canonical paths
+- Validated no regression in startup/memory; confirmed production readiness
 
-Requirements:
-- RELY-01 ✓
-- RELY-02 ✓
-- PERF-03 ✓
+**Full archive:** [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
-Success criteria:
-1. ✓ Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
-2. ✓ Existe gate minimo de regressao para impedir remocoes sem cobertura dos fluxos criticos.
-3. ✓ Baseline inicial de startup e memoria foi capturado para comparacao de ondas. (startup_detected=true, 11.56s)
-4. ✓ O time consegue repetir a validacao local com resultados consistentes.
+---
 
-## Phase 2: Consolidacao do Runtime de UI
+## Current State
 
-**Status:** executed (2026-04-03) — 3/3 planos completos, 4/4 critérios verificados
+The application is at **Production Release** status (v1.0 shipped).
 
-Goal: Tornar \ui/\ o caminho operacional canonico com launcher unico.
+**Technical Foundation Established:**
+- ✅ Reliable test automation (202+ tests, 98 critical-path gate)
+- ✅ Single canonical launcher (launch_app.py)
+- ✅ Centralized core module ownership (SessionState, SignalHub, MainWindow)
+- ✅ Performance baselines established (startup: 15.14s, memory: 185MB)
+- ✅ Documentation current (README, USER_GUIDE, TROUBLESHOOTING)
 
-Requirements:
-- UICO-01 ✓
-- UICO-02 ✓
+**Ready For:**
+- Production deployment
+- v1.1 enhancement planning (features, performance optimization)
+- v2.0 planning (new product features, platform changes)
 
-Success criteria:
-1. ✓ Fluxo de inicializacao principal passa por caminho unico definido e documentado.
-2. ✓ Fluxos criticos operacionais executam sem runtime obrigatorio da camada \desktop/\.
-3. ✓ Smoke tests de startup e fluxo basico validam o caminho canonico.
-4. ✓ Plano de deprecacao do caminho antigo esta declarado sem interromper operacao.
+---
 
-Plans:
-- [x] 02-01-PLAN.md
-- [x] 02-02-PLAN.md
-- [x] 02-03-PLAN.md
+## Next Milestone: v1.1 (Planning)
 
-## Phase 3: Consolidacao de Modulos Canonicos
+**Status:** PLANNING → Start with '/gsd-new-milestone'
 
-**Status:** executed (2026-04-03) — 3/3 planos completos, 4/4 critérios verificados
+For the next milestone cycle, consider:
 
-Goal: Remover duplicacoes estruturais em janela principal e ownership de estado/sinal.
+1. **v1.1 Enhancements (Stability + Polish)**
+   - Retroactive Nyquist validation for phases 2-5
+   - User feedback integration
+   - Minor performance optimizations
+   - Additional error handling
 
-Requirements:
-- DEDU-01 ✓
-- DEDU-02 ✓
-- UICO-03 ✓
+2. **v2.0 Features (Product)**
+   - New data processing capabilities
+   - Extended visualization options
+   - Mobile-responsive design
+   - API enhancements
 
-Success criteria:
-1. ✓ Existe apenas uma implementacao canonica de main window em uso de producao.
-2. ✓ Ownership de signal/session esta centralizado no local definido como fonte da verdade.
-3. ✓ Fluxos funcionais acordados mantem comportamento esperado apos consolidacao.
-4. ✓ Mudancas foram validadas por testes/smokes definidos no baseline.
+---
 
-Plans:
-- [x] 03-01-PLAN.md
-- [x] 03-02-PLAN.md
-- [x] 03-03-PLAN.md
-
-## Phase 4: Limpeza de Divida Tecnica de Entrada
-
-**Status:** executed (2026-04-04) — 3/3 planos completos, 3/3 critérios verificados
-
-Goal: Eliminar launchers/workarounds redundantes apos prova de equivalencia.
-
-Requirements:
-- DEDU-03
-
-Success criteria:
-1. Scripts/entrypoints redundantes foram removidos ou marcados como obsoletos de forma segura.
-2. Qualquer workaround legado removido possui substituicao validada na fonte canonica.
-3. Documentacao de execucao aponta apenas para caminho suportado.
-
-Plans:
-- [x] 04-01-PLAN.md — Arquivar/remover debug_launch.py e fixed_launch.py historicos [Wave 1]
-- [x] 04-02-PLAN.md — Deprecate test_launch.py; migrar para pytest fixtures padrao [Wave 1]
-- [x] 04-03-PLAN.md — Marcar run_app.py como deprecated; atualizar documentacao [Wave 2]
-
-## Phase 5: Hardening Final de Confiabilidade e Performance
-
-**Status:** executed (2026-04-04) — 2/2 planos completos, 4/4 critérios verificados
-
-Goal: Fechar lacunas de cobertura essencial e comprovar nao regressao de startup/memoria.
-
-Requirements:
-- RELY-03
-- PERF-01
-- PERF-02
-
-Success criteria:
-1. Suites essenciais cobrem startup, carga de dados, processamento e visualizacao com rastreabilidade.
-2. Indicadores de startup permanecem dentro do limite aceito frente ao baseline.
-3. Indicadores de memoria permanecem dentro do limite aceito frente ao baseline.
-
-Plans:
-- [x] 05-01-PLAN.md — Executar hardening de confiabilidade com gates críticos e suite completa [Wave 1]
-- [x] 05-02-PLAN.md — Capturar baseline final de startup/memória e consolidar relatório final [Wave 1]
-
-## Coverage Validation
-
-| Requirement | Phase |
-|-------------|-------|
-| UICO-01 | Phase 2 |
-| UICO-02 | Phase 2 |
-| UICO-03 | Phase 3 |
-| DEDU-01 | Phase 3 |
-| DEDU-02 | Phase 3 |
-| DEDU-03 | Phase 4 |
-| RELY-01 | Phase 1 |
-| RELY-02 | Phase 1 |
-| RELY-03 | Phase 5 |
-| PERF-01 | Phase 5 |
-| PERF-02 | Phase 5 |
-| PERF-03 | Phase 1 |
-
-All v1 requirements mapped exactly once: yes.
-
+_For detailed v1.0 archive, see .planning/milestones/v1.0-ROADMAP.md_
