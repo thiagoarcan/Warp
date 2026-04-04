@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'interpolationDialog.ui'
@@ -7,31 +8,33 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QMetaObject, Qt
-from PySide6.QtWidgets import (
-    QDialogButtonBox,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
+    QSizePolicy, QVBoxLayout, QWidget)
 
-
-class Ui_InterpolationDialog:
+class Ui_InterpolationDialog(object):
     def setupUi(self, InterpolationDialog):
         if not InterpolationDialog.objectName():
-            InterpolationDialog.setObjectName("InterpolationDialog")
+            InterpolationDialog.setObjectName(u"InterpolationDialog")
         InterpolationDialog.resize(600, 400)
         self.mainLayout = QVBoxLayout(InterpolationDialog)
-        self.mainLayout.setObjectName("mainLayout")
+        self.mainLayout.setObjectName(u"mainLayout")
         self.contentWidget = QWidget(InterpolationDialog)
-        self.contentWidget.setObjectName("contentWidget")
+        self.contentWidget.setObjectName(u"contentWidget")
         self.contentLayout = QVBoxLayout(self.contentWidget)
-        self.contentLayout.setObjectName("contentLayout")
+        self.contentLayout.setObjectName(u"contentLayout")
         self.contentLayout.setContentsMargins(0, 0, 0, 0)
 
         self.mainLayout.addWidget(self.contentWidget)
 
         self.buttonBox = QDialogButtonBox(InterpolationDialog)
-        self.buttonBox.setObjectName("buttonBox")
+        self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
 
@@ -46,6 +49,6 @@ class Ui_InterpolationDialog:
     # setupUi
 
     def retranslateUi(self, InterpolationDialog):
-        InterpolationDialog.setWindowTitle(QCoreApplication.translate("InterpolationDialog", "InterpolationDialog", None))
+        InterpolationDialog.setWindowTitle(QCoreApplication.translate("InterpolationDialog", u"InterpolationDialog", None))
     # retranslateUi
 

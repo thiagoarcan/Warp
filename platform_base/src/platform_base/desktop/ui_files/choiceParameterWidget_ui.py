@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'choiceParameterWidget.ui'
@@ -7,21 +8,26 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QMetaObject
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QSizePolicy, QVBoxLayout, QWidget)
 
-
-class Ui_ChoiceParameterWidget:
+class Ui_ChoiceParameterWidget(object):
     def setupUi(self, ChoiceParameterWidget):
         if not ChoiceParameterWidget.objectName():
-            ChoiceParameterWidget.setObjectName("ChoiceParameterWidget")
+            ChoiceParameterWidget.setObjectName(u"ChoiceParameterWidget")
         ChoiceParameterWidget.resize(600, 400)
         self.mainLayout = QVBoxLayout(ChoiceParameterWidget)
-        self.mainLayout.setObjectName("mainLayout")
+        self.mainLayout.setObjectName(u"mainLayout")
         self.contentWidget = QWidget(ChoiceParameterWidget)
-        self.contentWidget.setObjectName("contentWidget")
+        self.contentWidget.setObjectName(u"contentWidget")
         self.contentLayout = QVBoxLayout(self.contentWidget)
-        self.contentLayout.setObjectName("contentLayout")
+        self.contentLayout.setObjectName(u"contentLayout")
         self.contentLayout.setContentsMargins(0, 0, 0, 0)
 
         self.mainLayout.addWidget(self.contentWidget)
@@ -33,6 +39,6 @@ class Ui_ChoiceParameterWidget:
     # setupUi
 
     def retranslateUi(self, ChoiceParameterWidget):
-        ChoiceParameterWidget.setWindowTitle(QCoreApplication.translate("ChoiceParameterWidget", "ChoiceParameterWidget", None))
+        ChoiceParameterWidget.setWindowTitle(QCoreApplication.translate("ChoiceParameterWidget", u"ChoiceParameterWidget", None))
     # retranslateUi
 

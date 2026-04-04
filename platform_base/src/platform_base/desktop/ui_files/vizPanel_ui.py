@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'vizPanel.ui'
@@ -7,46 +8,39 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QMetaObject, QSize, Qt
-from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QSizePolicy,
-    QSpacerItem,
-    QSpinBox,
-    QSplitter,
-    QTabWidget,
-    QToolBar,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QGroupBox,
+    QHBoxLayout, QLabel, QPushButton, QSizePolicy,
+    QSpacerItem, QSpinBox, QSplitter, QTabWidget,
+    QToolBar, QVBoxLayout, QWidget)
 
-
-class Ui_VizPanel:
+class Ui_VizPanel(object):
     def setupUi(self, VizPanel):
         if not VizPanel.objectName():
-            VizPanel.setObjectName("VizPanel")
+            VizPanel.setObjectName(u"VizPanel")
         VizPanel.resize(900, 600)
         VizPanel.setMinimumSize(QSize(400, 300))
         self.mainLayout = QVBoxLayout(VizPanel)
         self.mainLayout.setSpacing(4)
-        self.mainLayout.setObjectName("mainLayout")
+        self.mainLayout.setObjectName(u"mainLayout")
         self.mainLayout.setContentsMargins(4, 4, 4, 4)
         self.toolbar = QToolBar(VizPanel)
-        self.toolbar.setObjectName("toolbar")
+        self.toolbar.setObjectName(u"toolbar")
         self.toolbar.setMovable(False)
         self.toolbar.setFloatable(False)
 
         self.mainLayout.addWidget(self.toolbar)
 
         self.plotControlsLayout = QHBoxLayout()
-        self.plotControlsLayout.setObjectName("plotControlsLayout")
+        self.plotControlsLayout.setObjectName(u"plotControlsLayout")
         self.plotTypeLabel = QLabel(VizPanel)
-        self.plotTypeLabel.setObjectName("plotTypeLabel")
+        self.plotTypeLabel.setObjectName(u"plotTypeLabel")
 
         self.plotControlsLayout.addWidget(self.plotTypeLabel)
 
@@ -55,12 +49,12 @@ class Ui_VizPanel:
         self.plotTypeCombo.addItem("")
         self.plotTypeCombo.addItem("")
         self.plotTypeCombo.addItem("")
-        self.plotTypeCombo.setObjectName("plotTypeCombo")
+        self.plotTypeCombo.setObjectName(u"plotTypeCombo")
 
         self.plotControlsLayout.addWidget(self.plotTypeCombo)
 
         self.newPlotButton = QPushButton(VizPanel)
-        self.newPlotButton.setObjectName("newPlotButton")
+        self.newPlotButton.setObjectName(u"newPlotButton")
 
         self.plotControlsLayout.addWidget(self.newPlotButton)
 
@@ -72,33 +66,33 @@ class Ui_VizPanel:
         self.mainLayout.addLayout(self.plotControlsLayout)
 
         self.mainSplitter = QSplitter(VizPanel)
-        self.mainSplitter.setObjectName("mainSplitter")
+        self.mainSplitter.setObjectName(u"mainSplitter")
         self.mainSplitter.setOrientation(Qt.Horizontal)
         self.plotTabs = QTabWidget(self.mainSplitter)
-        self.plotTabs.setObjectName("plotTabs")
+        self.plotTabs.setObjectName(u"plotTabs")
         self.plotTabs.setTabsClosable(True)
         self.plotTabs.setMovable(True)
         self.mainSplitter.addWidget(self.plotTabs)
         self.controlsWidget = QWidget(self.mainSplitter)
-        self.controlsWidget.setObjectName("controlsWidget")
+        self.controlsWidget.setObjectName(u"controlsWidget")
         self.controlsWidget.setMinimumSize(QSize(180, 0))
         self.controlsWidget.setMaximumSize(QSize(300, 16777215))
         self.controlsLayout = QVBoxLayout(self.controlsWidget)
-        self.controlsLayout.setObjectName("controlsLayout")
+        self.controlsLayout.setObjectName(u"controlsLayout")
         self.controlsLayout.setContentsMargins(0, 0, 0, 0)
         self.settingsGroup = QGroupBox(self.controlsWidget)
-        self.settingsGroup.setObjectName("settingsGroup")
+        self.settingsGroup.setObjectName(u"settingsGroup")
         self.settingsLayout = QVBoxLayout(self.settingsGroup)
-        self.settingsLayout.setObjectName("settingsLayout")
+        self.settingsLayout.setObjectName(u"settingsLayout")
         self.widthLayout = QHBoxLayout()
-        self.widthLayout.setObjectName("widthLayout")
+        self.widthLayout.setObjectName(u"widthLayout")
         self.widthLabel = QLabel(self.settingsGroup)
-        self.widthLabel.setObjectName("widthLabel")
+        self.widthLabel.setObjectName(u"widthLabel")
 
         self.widthLayout.addWidget(self.widthLabel)
 
         self.lineWidthSpin = QSpinBox(self.settingsGroup)
-        self.lineWidthSpin.setObjectName("lineWidthSpin")
+        self.lineWidthSpin.setObjectName(u"lineWidthSpin")
         self.lineWidthSpin.setMinimum(1)
         self.lineWidthSpin.setMaximum(10)
         self.lineWidthSpin.setValue(2)
@@ -109,13 +103,13 @@ class Ui_VizPanel:
         self.settingsLayout.addLayout(self.widthLayout)
 
         self.gridCheck = QCheckBox(self.settingsGroup)
-        self.gridCheck.setObjectName("gridCheck")
+        self.gridCheck.setObjectName(u"gridCheck")
         self.gridCheck.setChecked(True)
 
         self.settingsLayout.addWidget(self.gridCheck)
 
         self.legendCheck = QCheckBox(self.settingsGroup)
-        self.legendCheck.setObjectName("legendCheck")
+        self.legendCheck.setObjectName(u"legendCheck")
         self.legendCheck.setChecked(True)
 
         self.settingsLayout.addWidget(self.legendCheck)
@@ -124,13 +118,13 @@ class Ui_VizPanel:
         self.controlsLayout.addWidget(self.settingsGroup)
 
         self.seriesGroup = QGroupBox(self.controlsWidget)
-        self.seriesGroup.setObjectName("seriesGroup")
+        self.seriesGroup.setObjectName(u"seriesGroup")
         self.seriesGroupLayout = QVBoxLayout(self.seriesGroup)
-        self.seriesGroupLayout.setObjectName("seriesGroupLayout")
+        self.seriesGroupLayout.setObjectName(u"seriesGroupLayout")
         self.seriesList = QWidget(self.seriesGroup)
-        self.seriesList.setObjectName("seriesList")
+        self.seriesList.setObjectName(u"seriesList")
         self.seriesListLayout = QVBoxLayout(self.seriesList)
-        self.seriesListLayout.setObjectName("seriesListLayout")
+        self.seriesListLayout.setObjectName(u"seriesListLayout")
         self.seriesListLayout.setContentsMargins(0, 0, 0, 0)
 
         self.seriesGroupLayout.addWidget(self.seriesList)
@@ -153,18 +147,18 @@ class Ui_VizPanel:
     # setupUi
 
     def retranslateUi(self, VizPanel):
-        VizPanel.setWindowTitle(QCoreApplication.translate("VizPanel", "Visualization Panel", None))
-        self.plotTypeLabel.setText(QCoreApplication.translate("VizPanel", "Plot Type:", None))
-        self.plotTypeCombo.setItemText(0, QCoreApplication.translate("VizPanel", "2D Line", None))
-        self.plotTypeCombo.setItemText(1, QCoreApplication.translate("VizPanel", "2D Scatter", None))
-        self.plotTypeCombo.setItemText(2, QCoreApplication.translate("VizPanel", "3D Surface", None))
-        self.plotTypeCombo.setItemText(3, QCoreApplication.translate("VizPanel", "Heatmap", None))
+        VizPanel.setWindowTitle(QCoreApplication.translate("VizPanel", u"Visualization Panel", None))
+        self.plotTypeLabel.setText(QCoreApplication.translate("VizPanel", u"Plot Type:", None))
+        self.plotTypeCombo.setItemText(0, QCoreApplication.translate("VizPanel", u"2D Line", None))
+        self.plotTypeCombo.setItemText(1, QCoreApplication.translate("VizPanel", u"2D Scatter", None))
+        self.plotTypeCombo.setItemText(2, QCoreApplication.translate("VizPanel", u"3D Surface", None))
+        self.plotTypeCombo.setItemText(3, QCoreApplication.translate("VizPanel", u"Heatmap", None))
 
-        self.newPlotButton.setText(QCoreApplication.translate("VizPanel", "New Plot", None))
-        self.settingsGroup.setTitle(QCoreApplication.translate("VizPanel", "Plot Settings", None))
-        self.widthLabel.setText(QCoreApplication.translate("VizPanel", "Line Width:", None))
-        self.gridCheck.setText(QCoreApplication.translate("VizPanel", "Show Grid", None))
-        self.legendCheck.setText(QCoreApplication.translate("VizPanel", "Show Legend", None))
-        self.seriesGroup.setTitle(QCoreApplication.translate("VizPanel", "Active Series", None))
+        self.newPlotButton.setText(QCoreApplication.translate("VizPanel", u"New Plot", None))
+        self.settingsGroup.setTitle(QCoreApplication.translate("VizPanel", u"Plot Settings", None))
+        self.widthLabel.setText(QCoreApplication.translate("VizPanel", u"Line Width:", None))
+        self.gridCheck.setText(QCoreApplication.translate("VizPanel", u"Show Grid", None))
+        self.legendCheck.setText(QCoreApplication.translate("VizPanel", u"Show Legend", None))
+        self.seriesGroup.setTitle(QCoreApplication.translate("VizPanel", u"Active Series", None))
     # retranslateUi
 

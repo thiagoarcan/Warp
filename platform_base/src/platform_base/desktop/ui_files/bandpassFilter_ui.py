@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'bandpassFilter.ui'
@@ -7,21 +8,26 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QMetaObject
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QSizePolicy, QVBoxLayout, QWidget)
 
-
-class Ui_BandpassFilter:
+class Ui_BandpassFilter(object):
     def setupUi(self, BandpassFilter):
         if not BandpassFilter.objectName():
-            BandpassFilter.setObjectName("BandpassFilter")
+            BandpassFilter.setObjectName(u"BandpassFilter")
         BandpassFilter.resize(600, 400)
         self.mainLayout = QVBoxLayout(BandpassFilter)
-        self.mainLayout.setObjectName("mainLayout")
+        self.mainLayout.setObjectName(u"mainLayout")
         self.contentWidget = QWidget(BandpassFilter)
-        self.contentWidget.setObjectName("contentWidget")
+        self.contentWidget.setObjectName(u"contentWidget")
         self.contentLayout = QVBoxLayout(self.contentWidget)
-        self.contentLayout.setObjectName("contentLayout")
+        self.contentLayout.setObjectName(u"contentLayout")
         self.contentLayout.setContentsMargins(0, 0, 0, 0)
 
         self.mainLayout.addWidget(self.contentWidget)
@@ -33,6 +39,6 @@ class Ui_BandpassFilter:
     # setupUi
 
     def retranslateUi(self, BandpassFilter):
-        BandpassFilter.setWindowTitle(QCoreApplication.translate("BandpassFilter", "BandpassFilter", None))
+        BandpassFilter.setWindowTitle(QCoreApplication.translate("BandpassFilter", u"BandpassFilter", None))
     # retranslateUi
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'conditionalSelectionDialog.ui'
@@ -7,38 +8,34 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QMetaObject
-from PySide6.QtWidgets import (
-    QComboBox,
-    QDoubleSpinBox,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QSizePolicy,
-    QSpacerItem,
-    QSpinBox,
-    QTextEdit,
-    QVBoxLayout,
-)
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QComboBox, QDialog, QDoubleSpinBox,
+    QGroupBox, QHBoxLayout, QLabel, QPushButton,
+    QSizePolicy, QSpacerItem, QSpinBox, QTextEdit,
+    QVBoxLayout, QWidget)
 
-
-class Ui_ConditionalSelectionDialog:
+class Ui_ConditionalSelectionDialog(object):
     def setupUi(self, ConditionalSelectionDialog):
         if not ConditionalSelectionDialog.objectName():
-            ConditionalSelectionDialog.setObjectName("ConditionalSelectionDialog")
+            ConditionalSelectionDialog.setObjectName(u"ConditionalSelectionDialog")
         ConditionalSelectionDialog.resize(400, 350)
         ConditionalSelectionDialog.setModal(True)
         self.mainLayout = QVBoxLayout(ConditionalSelectionDialog)
         self.mainLayout.setSpacing(8)
-        self.mainLayout.setObjectName("mainLayout")
+        self.mainLayout.setObjectName(u"mainLayout")
         self.mainLayout.setContentsMargins(12, 12, 12, 12)
         self.thresholdGroup = QGroupBox(ConditionalSelectionDialog)
-        self.thresholdGroup.setObjectName("thresholdGroup")
+        self.thresholdGroup.setObjectName(u"thresholdGroup")
         self.thresholdLayout = QHBoxLayout(self.thresholdGroup)
-        self.thresholdLayout.setObjectName("thresholdLayout")
+        self.thresholdLayout.setObjectName(u"thresholdLayout")
         self.thresholdLabel = QLabel(self.thresholdGroup)
-        self.thresholdLabel.setObjectName("thresholdLabel")
+        self.thresholdLabel.setObjectName(u"thresholdLabel")
 
         self.thresholdLayout.addWidget(self.thresholdLabel)
 
@@ -49,12 +46,12 @@ class Ui_ConditionalSelectionDialog:
         self.thresholdOperator.addItem("")
         self.thresholdOperator.addItem("")
         self.thresholdOperator.addItem("")
-        self.thresholdOperator.setObjectName("thresholdOperator")
+        self.thresholdOperator.setObjectName(u"thresholdOperator")
 
         self.thresholdLayout.addWidget(self.thresholdOperator)
 
         self.thresholdSpin = QDoubleSpinBox(self.thresholdGroup)
-        self.thresholdSpin.setObjectName("thresholdSpin")
+        self.thresholdSpin.setObjectName(u"thresholdSpin")
         self.thresholdSpin.setMinimum(-1000000.000000000000000)
         self.thresholdSpin.setMaximum(1000000.000000000000000)
         self.thresholdSpin.setSingleStep(0.100000000000000)
@@ -63,7 +60,7 @@ class Ui_ConditionalSelectionDialog:
         self.thresholdLayout.addWidget(self.thresholdSpin)
 
         self.applyThresholdBtn = QPushButton(self.thresholdGroup)
-        self.applyThresholdBtn.setObjectName("applyThresholdBtn")
+        self.applyThresholdBtn.setObjectName(u"applyThresholdBtn")
 
         self.thresholdLayout.addWidget(self.applyThresholdBtn)
 
@@ -71,18 +68,18 @@ class Ui_ConditionalSelectionDialog:
         self.mainLayout.addWidget(self.thresholdGroup)
 
         self.percentileGroup = QGroupBox(ConditionalSelectionDialog)
-        self.percentileGroup.setObjectName("percentileGroup")
+        self.percentileGroup.setObjectName(u"percentileGroup")
         self.percentileLayout = QHBoxLayout(self.percentileGroup)
-        self.percentileLayout.setObjectName("percentileLayout")
+        self.percentileLayout.setObjectName(u"percentileLayout")
         self.percentileType = QComboBox(self.percentileGroup)
         self.percentileType.addItem("")
         self.percentileType.addItem("")
-        self.percentileType.setObjectName("percentileType")
+        self.percentileType.setObjectName(u"percentileType")
 
         self.percentileLayout.addWidget(self.percentileType)
 
         self.percentileSpin = QSpinBox(self.percentileGroup)
-        self.percentileSpin.setObjectName("percentileSpin")
+        self.percentileSpin.setObjectName(u"percentileSpin")
         self.percentileSpin.setMinimum(1)
         self.percentileSpin.setMaximum(100)
         self.percentileSpin.setValue(10)
@@ -90,7 +87,7 @@ class Ui_ConditionalSelectionDialog:
         self.percentileLayout.addWidget(self.percentileSpin)
 
         self.applyPercentileBtn = QPushButton(self.percentileGroup)
-        self.applyPercentileBtn.setObjectName("applyPercentileBtn")
+        self.applyPercentileBtn.setObjectName(u"applyPercentileBtn")
 
         self.percentileLayout.addWidget(self.applyPercentileBtn)
 
@@ -98,11 +95,11 @@ class Ui_ConditionalSelectionDialog:
         self.mainLayout.addWidget(self.percentileGroup)
 
         self.expressionGroup = QGroupBox(ConditionalSelectionDialog)
-        self.expressionGroup.setObjectName("expressionGroup")
+        self.expressionGroup.setObjectName(u"expressionGroup")
         self.expressionLayout = QVBoxLayout(self.expressionGroup)
-        self.expressionLayout.setObjectName("expressionLayout")
+        self.expressionLayout.setObjectName(u"expressionLayout")
         self.conditionEdit = QTextEdit(self.expressionGroup)
-        self.conditionEdit.setObjectName("conditionEdit")
+        self.conditionEdit.setObjectName(u"conditionEdit")
         self.conditionEdit.setMaximumHeight(80)
 
         self.expressionLayout.addWidget(self.conditionEdit)
@@ -111,11 +108,11 @@ class Ui_ConditionalSelectionDialog:
         self.mainLayout.addWidget(self.expressionGroup)
 
         self.modeGroup = QGroupBox(ConditionalSelectionDialog)
-        self.modeGroup.setObjectName("modeGroup")
+        self.modeGroup.setObjectName(u"modeGroup")
         self.modeLayout = QHBoxLayout(self.modeGroup)
-        self.modeLayout.setObjectName("modeLayout")
+        self.modeLayout.setObjectName(u"modeLayout")
         self.modeLabel = QLabel(self.modeGroup)
-        self.modeLabel.setObjectName("modeLabel")
+        self.modeLabel.setObjectName(u"modeLabel")
 
         self.modeLayout.addWidget(self.modeLabel)
 
@@ -124,7 +121,7 @@ class Ui_ConditionalSelectionDialog:
         self.modeCombo.addItem("")
         self.modeCombo.addItem("")
         self.modeCombo.addItem("")
-        self.modeCombo.setObjectName("modeCombo")
+        self.modeCombo.setObjectName(u"modeCombo")
 
         self.modeLayout.addWidget(self.modeCombo)
 
@@ -140,18 +137,18 @@ class Ui_ConditionalSelectionDialog:
         self.mainLayout.addItem(self.verticalSpacer)
 
         self.buttonLayout = QHBoxLayout()
-        self.buttonLayout.setObjectName("buttonLayout")
+        self.buttonLayout.setObjectName(u"buttonLayout")
         self.buttonSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.buttonLayout.addItem(self.buttonSpacer)
 
         self.applyBtn = QPushButton(ConditionalSelectionDialog)
-        self.applyBtn.setObjectName("applyBtn")
+        self.applyBtn.setObjectName(u"applyBtn")
 
         self.buttonLayout.addWidget(self.applyBtn)
 
         self.closeBtn = QPushButton(ConditionalSelectionDialog)
-        self.closeBtn.setObjectName("closeBtn")
+        self.closeBtn.setObjectName(u"closeBtn")
 
         self.buttonLayout.addWidget(self.closeBtn)
 
@@ -168,43 +165,43 @@ class Ui_ConditionalSelectionDialog:
     # setupUi
 
     def retranslateUi(self, ConditionalSelectionDialog):
-        ConditionalSelectionDialog.setWindowTitle(QCoreApplication.translate("ConditionalSelectionDialog", "Conditional Selection", None))
-        self.thresholdGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", "\ud83d\udd22 Threshold Condition", None))
-        self.thresholdLabel.setText(QCoreApplication.translate("ConditionalSelectionDialog", "value", None))
-        self.thresholdOperator.setItemText(0, QCoreApplication.translate("ConditionalSelectionDialog", ">", None))
-        self.thresholdOperator.setItemText(1, QCoreApplication.translate("ConditionalSelectionDialog", ">=", None))
-        self.thresholdOperator.setItemText(2, QCoreApplication.translate("ConditionalSelectionDialog", "<", None))
-        self.thresholdOperator.setItemText(3, QCoreApplication.translate("ConditionalSelectionDialog", "<=", None))
-        self.thresholdOperator.setItemText(4, QCoreApplication.translate("ConditionalSelectionDialog", "==", None))
-        self.thresholdOperator.setItemText(5, QCoreApplication.translate("ConditionalSelectionDialog", "!=", None))
+        ConditionalSelectionDialog.setWindowTitle(QCoreApplication.translate("ConditionalSelectionDialog", u"Conditional Selection", None))
+        self.thresholdGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", u"\ud83d\udd22 Threshold Condition", None))
+        self.thresholdLabel.setText(QCoreApplication.translate("ConditionalSelectionDialog", u"value", None))
+        self.thresholdOperator.setItemText(0, QCoreApplication.translate("ConditionalSelectionDialog", u">", None))
+        self.thresholdOperator.setItemText(1, QCoreApplication.translate("ConditionalSelectionDialog", u">=", None))
+        self.thresholdOperator.setItemText(2, QCoreApplication.translate("ConditionalSelectionDialog", u"<", None))
+        self.thresholdOperator.setItemText(3, QCoreApplication.translate("ConditionalSelectionDialog", u"<=", None))
+        self.thresholdOperator.setItemText(4, QCoreApplication.translate("ConditionalSelectionDialog", u"==", None))
+        self.thresholdOperator.setItemText(5, QCoreApplication.translate("ConditionalSelectionDialog", u"!=", None))
 
-        self.applyThresholdBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", "Apply", None))
+        self.applyThresholdBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", u"Apply", None))
 #if QT_CONFIG(tooltip)
-        self.applyThresholdBtn.setToolTip(QCoreApplication.translate("ConditionalSelectionDialog", "Apply threshold condition to expression", None))
+        self.applyThresholdBtn.setToolTip(QCoreApplication.translate("ConditionalSelectionDialog", u"Apply threshold condition to expression", None))
 #endif // QT_CONFIG(tooltip)
-        self.percentileGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", "\ud83d\udcca Percentile Condition", None))
-        self.percentileType.setItemText(0, QCoreApplication.translate("ConditionalSelectionDialog", "Top", None))
-        self.percentileType.setItemText(1, QCoreApplication.translate("ConditionalSelectionDialog", "Bottom", None))
+        self.percentileGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", u"\ud83d\udcca Percentile Condition", None))
+        self.percentileType.setItemText(0, QCoreApplication.translate("ConditionalSelectionDialog", u"Top", None))
+        self.percentileType.setItemText(1, QCoreApplication.translate("ConditionalSelectionDialog", u"Bottom", None))
 
-        self.percentileSpin.setSuffix(QCoreApplication.translate("ConditionalSelectionDialog", "%", None))
-        self.applyPercentileBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", "Apply", None))
+        self.percentileSpin.setSuffix(QCoreApplication.translate("ConditionalSelectionDialog", u"%", None))
+        self.applyPercentileBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", u"Apply", None))
 #if QT_CONFIG(tooltip)
-        self.applyPercentileBtn.setToolTip(QCoreApplication.translate("ConditionalSelectionDialog", "Apply percentile condition to expression", None))
+        self.applyPercentileBtn.setToolTip(QCoreApplication.translate("ConditionalSelectionDialog", u"Apply percentile condition to expression", None))
 #endif // QT_CONFIG(tooltip)
-        self.expressionGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", "\ud83d\udcdd Custom Expression", None))
-        self.conditionEdit.setPlaceholderText(QCoreApplication.translate("ConditionalSelectionDialog", "Enter a Python expression using 'value' or 'values' array\n"
+        self.expressionGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", u"\ud83d\udcdd Custom Expression", None))
+        self.conditionEdit.setPlaceholderText(QCoreApplication.translate("ConditionalSelectionDialog", u"Enter a Python expression using 'value' or 'values' array\n"
 "Examples:\n"
 "  value > 0\n"
 "  value >= np.percentile(values, 90)\n"
 "  (value > 10) & (value < 100)", None))
-        self.modeGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", "\u2699\ufe0f Selection Mode", None))
-        self.modeLabel.setText(QCoreApplication.translate("ConditionalSelectionDialog", "Mode:", None))
-        self.modeCombo.setItemText(0, QCoreApplication.translate("ConditionalSelectionDialog", "Replace", None))
-        self.modeCombo.setItemText(1, QCoreApplication.translate("ConditionalSelectionDialog", "Add", None))
-        self.modeCombo.setItemText(2, QCoreApplication.translate("ConditionalSelectionDialog", "Subtract", None))
-        self.modeCombo.setItemText(3, QCoreApplication.translate("ConditionalSelectionDialog", "Intersect", None))
+        self.modeGroup.setTitle(QCoreApplication.translate("ConditionalSelectionDialog", u"\u2699\ufe0f Selection Mode", None))
+        self.modeLabel.setText(QCoreApplication.translate("ConditionalSelectionDialog", u"Mode:", None))
+        self.modeCombo.setItemText(0, QCoreApplication.translate("ConditionalSelectionDialog", u"Replace", None))
+        self.modeCombo.setItemText(1, QCoreApplication.translate("ConditionalSelectionDialog", u"Add", None))
+        self.modeCombo.setItemText(2, QCoreApplication.translate("ConditionalSelectionDialog", u"Subtract", None))
+        self.modeCombo.setItemText(3, QCoreApplication.translate("ConditionalSelectionDialog", u"Intersect", None))
 
-        self.applyBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", "Apply Selection", None))
-        self.closeBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", "Close", None))
+        self.applyBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", u"Apply Selection", None))
+        self.closeBtn.setText(QCoreApplication.translate("ConditionalSelectionDialog", u"Close", None))
     # retranslateUi
 

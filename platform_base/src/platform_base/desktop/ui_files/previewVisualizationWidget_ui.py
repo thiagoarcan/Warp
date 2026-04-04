@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ################################################################################
 ## Form generated from reading UI file 'previewVisualizationWidget.ui'
@@ -7,21 +8,26 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QMetaObject
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QSizePolicy, QVBoxLayout, QWidget)
 
-
-class Ui_PreviewVisualizationWidget:
+class Ui_PreviewVisualizationWidget(object):
     def setupUi(self, PreviewVisualizationWidget):
         if not PreviewVisualizationWidget.objectName():
-            PreviewVisualizationWidget.setObjectName("PreviewVisualizationWidget")
+            PreviewVisualizationWidget.setObjectName(u"PreviewVisualizationWidget")
         PreviewVisualizationWidget.resize(600, 400)
         self.mainLayout = QVBoxLayout(PreviewVisualizationWidget)
-        self.mainLayout.setObjectName("mainLayout")
+        self.mainLayout.setObjectName(u"mainLayout")
         self.contentWidget = QWidget(PreviewVisualizationWidget)
-        self.contentWidget.setObjectName("contentWidget")
+        self.contentWidget.setObjectName(u"contentWidget")
         self.contentLayout = QVBoxLayout(self.contentWidget)
-        self.contentLayout.setObjectName("contentLayout")
+        self.contentLayout.setObjectName(u"contentLayout")
         self.contentLayout.setContentsMargins(0, 0, 0, 0)
 
         self.mainLayout.addWidget(self.contentWidget)
@@ -33,6 +39,6 @@ class Ui_PreviewVisualizationWidget:
     # setupUi
 
     def retranslateUi(self, PreviewVisualizationWidget):
-        PreviewVisualizationWidget.setWindowTitle(QCoreApplication.translate("PreviewVisualizationWidget", "PreviewVisualizationWidget", None))
+        PreviewVisualizationWidget.setWindowTitle(QCoreApplication.translate("PreviewVisualizationWidget", u"PreviewVisualizationWidget", None))
     # retranslateUi
 

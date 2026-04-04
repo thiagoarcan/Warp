@@ -59,7 +59,7 @@
        </item>
        <item>
         <property name="text">
-         <string>Savitzky Golay</string>
+         <string>Savitzky-Golay</string>
         </property>
        </item>
        <item>

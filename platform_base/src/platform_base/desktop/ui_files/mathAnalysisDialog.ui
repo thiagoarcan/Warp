@@ -59,7 +59,7 @@
          <number>1</number>
         </property>
         <property name="maximum">
-         <number>5</number>
+         <number>3</number>
         </property>
         <property name="value">
          <number>1</number>
@@ -77,22 +77,22 @@
        <widget class="QComboBox" name="derivativeMethod">
         <item>
          <property name="text">
+          <string>finite_diff</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>central_diff</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>forward_diff</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>backward_diff</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
           <string>savitzky_golay</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>spline_derivative</string>
          </property>
         </item>
        </widget>
@@ -249,6 +249,105 @@
         </property>
         <property name="value">
          <number>3</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Interpolation Options Group -->
+   <item>
+    <widget class="QGroupBox" name="interpolationGroup">
+     <property name="title">
+      <string>📈 Interpolation Options</string>
+     </property>
+     <layout class="QFormLayout" name="interpolationLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="interpMethodLabel">
+        <property name="text">
+         <string>Method:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="interp_method">
+        <item>
+         <property name="text">
+          <string>linear</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>cubic</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>spline</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>akima</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+   <!-- Resample Options Group -->
+   <item>
+    <widget class="QGroupBox" name="resampleGroup">
+     <property name="title">
+      <string>📊 Resample Options</string>
+     </property>
+     <layout class="QFormLayout" name="resampleLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="resampleMethodLabel">
+        <property name="text">
+         <string>Method:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="resample_method">
+        <item>
+         <property name="text">
+          <string>lttb</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>linear</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>mean</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="targetPointsLabel">
+        <property name="text">
+         <string>Target Points:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="target_points">
+        <property name="minimum">
+         <number>10</number>
+        </property>
+        <property name="maximum">
+         <number>100000</number>
+        </property>
+        <property name="value">
+         <number>1000</number>
         </property>
        </widget>
       </item>
