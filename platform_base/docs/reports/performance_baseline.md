@@ -1,9 +1,9 @@
 # Performance Baseline
 
-Generated at: 2026-03-31T12:53:17
+Generated at: 2026-04-03T11:56:38
 Launcher: launch_app.py
-startup_seconds: 20.1131
-peak_rss_mb: 334.207
+startup_seconds: 15.0341
+peak_rss_mb: 200.539
 exit_code: 1
-startup_detected: False
-timed_out: True
+startup_detected: True
+timed_out: False
