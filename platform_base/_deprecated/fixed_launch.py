@@ -1,3 +1,8 @@
+﻿# DEPRECATED: Historical workaround launcher.
+# Kept only for reference after Phase 2-3 runtime consolidation.
+# Canonical entry point is launch_app.py.
+#
+
 #!/usr/bin/env python3
 """
 Fixed launcher that bypasses problematic imports

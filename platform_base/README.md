@@ -215,3 +215,10 @@ Ver [CONTRIBUTING.md](CONTRIBUTING.md)
 ## License
 
 MIT
+
+## Entry Points
+
+- Canonical launcher: python launch_app.py
+- Compatibility wrapper (deprecated): python run_app.py
+
+Legacy workaround launchers were archived to _deprecated/.
