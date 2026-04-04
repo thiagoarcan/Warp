@@ -15,7 +15,7 @@
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 1 | Baseline de Qualidade e Seguranca de Mudanca | Criar base confiavel de validacao funcional e performance para reduzir risco de refatoracao | RELY-01, RELY-02, PERF-03 | 4 |
-| 2 | Consolidacao do Runtime de UI | Tornar `ui/` o caminho operacional canonico com launcher unico | UICO-01, UICO-02 | 4 |
+| 2 | Consolidacao do Runtime de UI | Tornar \ui/\ o caminho operacional canonico com launcher unico | UICO-01, UICO-02 | 4 |
 | 3 | Consolidacao de Modulos Canonicos | Remover duplicacoes estruturais em janela principal e ownership de estado/sinal | DEDU-01, DEDU-02, UICO-03 | 4 |
 | 4 | Limpeza de Divida Tecnica de Entrada | Eliminar launchers/workarounds redundantes apos prova de equivalencia | DEDU-03 | 3 |
 | 5 | Hardening Final de Confiabilidade e Performance | Fechar lacunas de cobertura essencial e comprovar nao regressao de startup/memoria | RELY-03, PERF-01, PERF-02 | 4 |
@@ -24,70 +24,67 @@
 
 ## Phase 1: Baseline de Qualidade e Seguranca de Mudanca
 
-**Status:** gaps_found (2026-04-03) â€” 2/2 planos completos, 3/4 critÃ©rios verificados
-**Status:** passed (2026-04-03) â€” 2/2 planos completos, 4/4 critÃ©rios verificados
+**Status:** passed (2026-04-03) — 2/2 planos completos, 4/4 critérios verificados
 
 Goal: Criar base confiavel de validacao funcional e performance para reduzir risco de refatoracao.
 
 Requirements:
-- RELY-01 (partial)
-- RELY-01 âœ“
-- RELY-02 âœ“
-- PERF-03 âœ“
+- RELY-01 ✓
+- RELY-02 ✓
+- PERF-03 ✓
 
 Success criteria:
-1. âœ“ Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
-1. âœ“ Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
-2. âœ“ Existe gate minimo de regressao para impedir remocoes sem cobertura dos fluxos criticos.
-3. âœ“ Baseline inicial de startup e memoria foi capturado para comparacao de ondas. (startup_detected=true, 11.56s)
-4. âœ“ O time consegue repetir a validacao local com resultados consistentes.
+1. ✓ Existe pipeline/rotina reproduzivel para execucao completa de testes automatizados com evidencia de resultado.
+2. ✓ Existe gate minimo de regressao para impedir remocoes sem cobertura dos fluxos criticos.
+3. ✓ Baseline inicial de startup e memoria foi capturado para comparacao de ondas. (startup_detected=true, 11.56s)
+4. ✓ O time consegue repetir a validacao local com resultados consistentes.
 
 ## Phase 2: Consolidacao do Runtime de UI
 
-**Status:** planned (2026-04-03)
-**Plans:** 3 plans in 2 waves
+**Status:** executed (2026-04-03) — 3/3 planos completos, 4/4 critérios verificados
 
-Goal: Tornar `ui/` o caminho operacional canonico com launcher unico.
+Goal: Tornar \ui/\ o caminho operacional canonico com launcher unico.
 
 Requirements:
-- UICO-01
-- UICO-02
+- UICO-01 ✓
+- UICO-02 ✓
 
 Success criteria:
-1. Fluxo de inicializacao principal passa por caminho unico definido e documentado.
-2. Fluxos criticos operacionais executam sem runtime obrigatorio da camada `desktop/`.
-3. Smoke tests de startup e fluxo basico validam o caminho canonico.
-4. Plano de deprecacao do caminho antigo esta declarado sem interromper operacao.
+1. ✓ Fluxo de inicializacao principal passa por caminho unico definido e documentado.
+2. ✓ Fluxos criticos operacionais executam sem runtime obrigatorio da camada \desktop/\.
+3. ✓ Smoke tests de startup e fluxo basico validam o caminho canonico.
+4. ✓ Plano de deprecacao do caminho antigo esta declarado sem interromper operacao.
 
 Plans:
-- [ ] 02-01-PLAN.md — Consolidar launcher canonico (`launch_app.py`) e wrapper de compatibilidade (`run_app.py`) [Wave 1]
-- [ ] 02-02-PLAN.md — Migrar imports criticos de paineis para `ui.panels` com aliases de compatibilidade [Wave 1]
-- [ ] 02-03-PLAN.md — Alinhar testes/docs/debug com runtime UI canonico e validar gates [Wave 2]
+- [x] 02-01-PLAN.md
+- [x] 02-02-PLAN.md
+- [x] 02-03-PLAN.md
 
 ## Phase 3: Consolidacao de Modulos Canonicos
 
-**Status:** planned (2026-04-03)
-**Plans:** 3 plans in 2 waves
+**Status:** executed (2026-04-03) — 3/3 planos completos, 4/4 critérios verificados
 
 Goal: Remover duplicacoes estruturais em janela principal e ownership de estado/sinal.
 
 Requirements:
-- DEDU-01
-- DEDU-02
-- UICO-03
+- DEDU-01 ✓
+- DEDU-02 ✓
+- UICO-03 ✓
 
 Success criteria:
-1. Existe apenas uma implementacao canonica de main window em uso de producao.
-2. Ownership de signal/session esta centralizado no local definido como fonte da verdade.
-3. Fluxos funcionais acordados mantem comportamento esperado apos consolidacao.
-4. Mudancas foram validadas por testes/smokes definidos no baseline.
+1. ✓ Existe apenas uma implementacao canonica de main window em uso de producao.
+2. ✓ Ownership de signal/session esta centralizado no local definido como fonte da verdade.
+3. ✓ Fluxos funcionais acordados mantem comportamento esperado apos consolidacao.
+4. ✓ Mudancas foram validadas por testes/smokes definidos no baseline.
 
 Plans:
-- [ ] 03-01-PLAN.md — Canonicalizar ownership de SessionState/SignalHub em core com wrappers desktop [Wave 1]
-- [ ] 03-02-PLAN.md — Consolidar main window unificada e transformar modulos legados em wrappers [Wave 1]
-- [ ] 03-03-PLAN.md — Migrar imports criticos para modulos canonicos e validar gates completos [Wave 2]
+- [x] 03-01-PLAN.md
+- [x] 03-02-PLAN.md
+- [x] 03-03-PLAN.md
 
 ## Phase 4: Limpeza de Divida Tecnica de Entrada
+
+**Status:** planned (2026-04-04) — plans criados, pronto para execucao
 
 Goal: Eliminar launchers/workarounds redundantes apos prova de equivalencia.
 
@@ -99,7 +96,14 @@ Success criteria:
 2. Qualquer workaround legado removido possui substituicao validada na fonte canonica.
 3. Documentacao de execucao aponta apenas para caminho suportado.
 
+Plans:
+- [ ] 04-01-PLAN.md — Arquivar/remover debug_launch.py e fixed_launch.py historicos [Wave 1]
+- [ ] 04-02-PLAN.md — Deprecate test_launch.py; migrar para pytest fixtures padrao [Wave 1]
+- [ ] 04-03-PLAN.md — Marcar run_app.py como deprecated; atualizar documentacao [Wave 2]
+
 ## Phase 5: Hardening Final de Confiabilidade e Performance
+
+**Status:** pending — pronto para planejamento apos Fase 4
 
 Goal: Fechar lacunas de cobertura essencial e comprovar nao regressao de startup/memoria.
 
@@ -132,4 +136,3 @@ Success criteria:
 | PERF-03 | Phase 1 |
 
 All v1 requirements mapped exactly once: yes.
-
