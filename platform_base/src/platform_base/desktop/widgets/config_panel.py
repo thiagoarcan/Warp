@@ -416,7 +416,6 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             logger.exception(f"Preview failed: {e}")
             self.status_label.setText(f"Preview failed: {e!s}")
 
-    @pyqtSlot(object)
     def _on_selection_changed(self, selection_state):
         """Handle selection changes"""
         has_selection = bool(selection_state.dataset_id and
@@ -431,7 +430,6 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         else:
             self.status_label.setText("Select data to enable operations")
 
-    @pyqtSlot(object)
     def _on_processing_changed(self, processing_state):
         """Handle processing state changes"""
         n_active = len(processing_state.active_operations)

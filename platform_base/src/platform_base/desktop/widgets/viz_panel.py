@@ -650,7 +650,6 @@ class VizPanel(QWidget, UiLoaderMixin):
                 self._add_series_to_plot(plot_id, dataset_id, series_id)
                 break
 
-    @pyqtSlot(object)
     def _on_selection_changed(self, selection_state):
         """Handle selection state changes"""
         # Update all plots to reflect selection

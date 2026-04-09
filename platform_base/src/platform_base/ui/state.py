@@ -82,6 +82,7 @@ class SessionSelection:
     """Estado de seleção para uso externo."""
     dataset_id: str | None = None
     series_ids: set = field(default_factory=set)
+    time_window: TimeWindow | None = None
 
 
 @dataclass
@@ -113,10 +114,11 @@ class SessionState(QObject):
 
     # Signals para notificar mudanças de estado
     dataset_changed = pyqtSignal(str)  # dataset_id
-    selection_changed = pyqtSignal()  # Selection changed (use selection property)
+    selection_changed = pyqtSignal(object)  # SessionSelection
     operation_started = pyqtSignal(str)  # operation_name
     operation_finished = pyqtSignal(str, bool)  # operation_name, success
     operation_progress = pyqtSignal(float, str)  # percent, message
+    processing_state_changed = pyqtSignal(object)  # ProcessingState
     view_changed = pyqtSignal()
     ui_state_changed = pyqtSignal(object)  # UI state object
 
@@ -189,6 +191,7 @@ class SessionState(QObject):
             return SessionSelection(
                 dataset_id=self._current_dataset,
                 series_ids=set(self._selection.selected_series),
+                time_window=self._selection.time_range,
             )
 
     @property
@@ -298,7 +301,7 @@ class SessionState(QObject):
                     setattr(self._selection, key, value)
 
         logger.debug("selection_updated", **kwargs)
-        self.selection_changed.emit()
+        self.selection_changed.emit(self.selection)
 
     def get_selection_state(self) -> SelectionState:
         """Obtém cópia do estado de seleção"""
@@ -321,6 +324,7 @@ class SessionState(QObject):
 
         logger.info("operation_started", operation=operation_name)
         self.operation_started.emit(operation_name)
+        self.processing_state_changed.emit(self.processing)
 
     def update_operation_progress(self, percent: float, message: str = "") -> None:
         """Atualiza progresso da operação"""
@@ -344,6 +348,7 @@ class SessionState(QObject):
 
         logger.info("operation_finished", operation=operation_name, success=success)
         self.operation_finished.emit(operation_name, success)
+        self.processing_state_changed.emit(self.processing)
 
     def get_operation_state(self) -> OperationState:
         """Obtém cópia do estado de operação"""

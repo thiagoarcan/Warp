@@ -692,7 +692,6 @@ class SelectionManagerWidget(QWidget, UiLoaderMixin):
             QMessageBox.warning(self, "Selection Error", f"Failed to create conditional selection: {e}")
             logger.exception("conditional_selection_failed", error=str(e))
 
-    @pyqtSlot(object)
     def _on_selection_restored(self, selection: Selection):
         """Callback quando seleção é restaurada do histórico"""
         self._handle_new_selection(selection)

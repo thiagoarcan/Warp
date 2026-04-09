@@ -511,7 +511,6 @@ class OperationPreviewManager(QObject):
             self.processor.submit_preview(self.pending_request)
             self.pending_request = None
 
-    @pyqtSlot(object)
     def _on_preview_completed(self, result: PreviewResult):
         """Callback quando preview completa"""
         self.preview_updated.emit(result)

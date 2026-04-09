@@ -264,9 +264,8 @@ def create_application(argv: list[str] | None = None,
 
     app = PlatformApplication(argv)
 
-    # Set high DPI support
-    app.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
-    app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+    # PyQt6: AA_EnableHighDpiScaling e AA_UseHighDpiPixmaps foram removidos
+    # (High DPI sempre habilitado no PyQt6)
 
     return app
 

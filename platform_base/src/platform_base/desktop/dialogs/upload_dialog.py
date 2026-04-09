@@ -498,7 +498,6 @@ class UploadDialog(QDialog, UiLoaderMixin):
         self.preview_btn.setEnabled(False)
         self.refresh_preview_btn.setEnabled(False)
 
-    @pyqtSlot(object)
     def _on_preview_ready(self, preview_data: dict[str, Any]):
         """Handle preview data ready"""
         try:

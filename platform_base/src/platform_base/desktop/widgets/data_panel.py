@@ -222,7 +222,6 @@ class DataPanel(QWidget, UiLoaderMixin):
         self.tree_model.remove_dataset(dataset_id)
         logger.debug("dataset_removed_from_panel", dataset_id=dataset_id)
 
-    @pyqtSlot(object)
     def _on_selection_changed(self, selection_state):
         """Handle selection state changes"""
         # Update tree selection to match session state
