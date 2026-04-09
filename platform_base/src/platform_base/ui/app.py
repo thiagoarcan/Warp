@@ -16,8 +16,8 @@ from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
 
 from platform_base.core.dataset_store import DatasetStore
 from platform_base.core.signal_hub import SignalHub
+from platform_base.desktop.session_state import SessionState
 from platform_base.ui.main_window_unified import MainWindow
-from platform_base.ui.state import SessionState
 from platform_base.utils.errors import PlatformError
 from platform_base.utils.logging import get_logger, setup_logging
 
