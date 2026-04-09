@@ -54,3 +54,12 @@ profiling_reports/
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated test reports
+docs/reports/junit.xml
+docs/reports/test_report.html
+docs/reports/RELATORIO_DETALHADO_TESTES.md
+
+# Local scratch scripts
+simple_test.py
+visual_test.py

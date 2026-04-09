@@ -196,6 +196,25 @@ class TestPanelsInit:
         panel.deleteLater()
         qapp.processEvents()
 
+    def test_viz_panel_uses_loaded_ui_without_layout_conflict(self, qapp, mock_session_state, mock_signal_hub):
+        """Verifica que VizPanel usa o .ui carregado sem cair em fallback com layout duplicado."""
+        try:
+            from platform_base.ui.panels.viz_panel import VizPanel
+        except ImportError:
+            pytest.skip("VizPanel não disponível")
+
+        panel = VizPanel(mock_session_state, mock_signal_hub)
+
+        assert getattr(panel, "_ui_loaded", False) is True
+        assert panel.layout() is not None
+        assert getattr(panel, "_viz_tabs", None) is not None
+        assert panel._viz_tabs.objectName() in {"vizTabs", "plotTabs"}
+        assert panel._viz_tabs.count() >= 1
+
+        panel.close()
+        panel.deleteLater()
+        qapp.processEvents()
+
 
 class TestDialogsInit:
     """Testa inicializaÃ§Ã£o dos dialogs."""

@@ -66,3 +66,7 @@ profiling_reports/
 
 # Logs
 *.log
+
+# Local planning and diagnostics
+.planning/
+DIAGNOSTICO_APLICACOES.md

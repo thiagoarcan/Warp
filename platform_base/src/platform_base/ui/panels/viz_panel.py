@@ -1,18 +1,18 @@
-﻿"""
-VizPanel - Painel moderno de visualizaÃ§Ã£o com drag-and-drop
+"""
+VizPanel - Painel moderno de visualização com drag-and-drop
 
-CaracterÃ­sticas:
-- Sistema drag-and-drop para criar grÃ¡ficos
-- Ãrea de plotagem com zonas definidas
+Características:
+- Sistema drag-and-drop para criar gráficos
+- Área de plotagem com zonas definidas
 - Interface intuitiva e moderna
-- Suporte para mÃºltiplas visualizaÃ§Ãµes
+- Suporte para múltiplas visualizações
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-# Matplotlib imports para visualizaÃ§Ã£o real
+# Matplotlib imports para visualização real
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -54,7 +54,7 @@ logger = get_logger(__name__)
 
 # Nota: emojis removidos dos labels do matplotlib para evitar warnings de fonte
 
-# ConfiguraÃ§Ã£o de performance para grandes volumes
+# Configuração de performance para grandes volumes
 _perf_config = PerformanceConfig(
     direct_render_limit=10_000,
     decimation_limit=100_000,
@@ -65,26 +65,26 @@ _perf_config = PerformanceConfig(
 
 
 class MatplotlibWidget(QWidget):
-    """Widget real de matplotlib para visualizaÃ§Ã£o de dados com suporte a mÃºltiplas sÃ©ries"""
+    """Widget real de matplotlib para visualização de dados com suporte a múltiplas séries"""
 
     # Signal para coordenadas do crosshair
     coordinates_changed = pyqtSignal(float, float)  # x, y
-    # Signal para regiÃ£o selecionada
+    # Signal para região selecionada
     region_selected = pyqtSignal(float, float, float, float)  # x1, x2, y1, y2
-    # Signal para dados extraÃ­dos
+    # Signal para dados extraídos
     data_extracted = pyqtSignal(object)  # numpy array
-    # Signal para solicitar adiÃ§Ã£o de sÃ©rie
+    # Signal para solicitar adição de série
     series_drop_requested = pyqtSignal(str, str)  # dataset_id, series_id
-    # Signal para cÃ¡lculos
+    # Signal para cálculos
     calculation_requested = pyqtSignal(str, str, str, dict)  # dataset_id, series_id, calc_type, params
 
     def __init__(self, series, plot_type: str = "2d", parent=None, dataset_name: str = "",
                  t_datetime=None, t_seconds=None):
         super().__init__(parent)
 
-        # Suporte a mÃºltiplas sÃ©ries
+        # Suporte a múltiplas séries
         self.series_list = []  # Lista de (series, dataset_name, line_obj)
-        self.series = series  # SÃ©rie principal (compatibilidade)
+        self.series = series  # Série principal (compatibilidade)
         self.plot_type = plot_type
         self._dataset_name = dataset_name or "Dataset"
 
@@ -142,7 +142,7 @@ class MatplotlibWidget(QWidget):
         self.canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.canvas.customContextMenuRequested.connect(self._show_context_menu)
 
-        # Enable drop de sÃ©ries no canvas
+        # Enable drop de séries no canvas
         self.setAcceptDrops(True)
         self.canvas.setAcceptDrops(True)
 
@@ -150,9 +150,9 @@ class MatplotlibWidget(QWidget):
         self._coord_cid = self.canvas.mpl_connect("motion_notify_event", self._on_mouse_move)
 
         # Tooltip para coordenadas (QLabel na toolbar)
-        self._coord_label = None  # SerÃ¡ criada na toolbar
+        self._coord_label = None  # Será criada na toolbar
 
-        # Criar o grÃ¡fico
+        # Criar o gráfico
         self._create_plot()
 
     def _on_mouse_move(self, event):
@@ -165,9 +165,9 @@ class MatplotlibWidget(QWidget):
         try:
             x, y = event.xdata, event.ydata
 
-            # Formatar X como datetime se disponÃ­vel
+            # Formatar X como datetime se disponível
             if self._t_datetime is not None and len(self._t_datetime) > 0:
-                # Converter Ã­ndice x para datetime
+                # Converter índice x para datetime
                 idx = int(x) if x >= 0 else 0
                 idx = min(idx, len(self._t_datetime) - 1)
                 dt_val = self._t_datetime[idx]
@@ -216,19 +216,19 @@ class MatplotlibWidget(QWidget):
         layout.setSpacing(2)
 
         # Zoom In
-        zoom_in_btn = QPushButton("ðŸ”+")
+        zoom_in_btn = QPushButton("🔍+")
         zoom_in_btn.setToolTip("Zoom In")
         zoom_in_btn.clicked.connect(self._zoom_in)
         layout.addWidget(zoom_in_btn)
 
         # Zoom Out
-        zoom_out_btn = QPushButton("ðŸ”âˆ’")
+        zoom_out_btn = QPushButton("🔍−")
         zoom_out_btn.setToolTip("Zoom Out")
         zoom_out_btn.clicked.connect(self._zoom_out)
         layout.addWidget(zoom_out_btn)
 
         # Fit/Reset
-        reset_btn = QPushButton("ðŸ”„")
+        reset_btn = QPushButton("🔄")
         reset_btn.setToolTip("Reset View (Fit)")
         reset_btn.clicked.connect(self._reset_view)
         layout.addWidget(reset_btn)
@@ -240,22 +240,22 @@ class MatplotlibWidget(QWidget):
         layout.addWidget(sep1)
 
         # Pan
-        self._pan_btn = QPushButton("âœ‹")
+        self._pan_btn = QPushButton("✋")
         self._pan_btn.setToolTip("Pan (arrastar)")
         self._pan_btn.setCheckable(True)
         self._pan_btn.clicked.connect(self._toggle_pan)
         layout.addWidget(self._pan_btn)
 
         # Crosshair
-        self._crosshair_btn = QPushButton("âœ›")
+        self._crosshair_btn = QPushButton("✛")
         self._crosshair_btn.setToolTip("Crosshair (coordenadas)")
         self._crosshair_btn.setCheckable(True)
         self._crosshair_btn.clicked.connect(self.toggle_crosshair)
         layout.addWidget(self._crosshair_btn)
 
         # Selection
-        self._selection_btn = QPushButton("â¬š")
-        self._selection_btn.setToolTip("SeleÃ§Ã£o de regiÃ£o")
+        self._selection_btn = QPushButton("⬚")
+        self._selection_btn.setToolTip("Seleção de região")
         self._selection_btn.setCheckable(True)
         self._selection_btn.clicked.connect(self.toggle_selection)
         layout.addWidget(self._selection_btn)
@@ -267,19 +267,19 @@ class MatplotlibWidget(QWidget):
         layout.addWidget(sep2)
 
         # Configure
-        config_btn = QPushButton("âš™")
+        config_btn = QPushButton("⚙")
         config_btn.setToolTip("Configurar eixos")
         config_btn.clicked.connect(self.configure_axes)
         layout.addWidget(config_btn)
 
         # Copy
-        copy_btn = QPushButton("ðŸ“‹")
+        copy_btn = QPushButton("📋")
         copy_btn.setToolTip("Copiar para clipboard")
         copy_btn.clicked.connect(self.copy_to_clipboard)
         layout.addWidget(copy_btn)
 
         # Save
-        save_btn = QPushButton("ðŸ’¾")
+        save_btn = QPushButton("💾")
         save_btn.setToolTip("Salvar imagem")
         save_btn.clicked.connect(self._save_image)
         layout.addWidget(save_btn)
@@ -300,9 +300,9 @@ class MatplotlibWidget(QWidget):
         return toolbar
 
     def _create_plot(self):
-        """Cria o grÃ¡fico com base no tipo"""
+        """Cria o gráfico com base no tipo"""
         self.figure.clear()
-        self.series_list = []  # Reset lista de sÃ©ries
+        self.series_list = []  # Reset lista de séries
 
         try:
             if self.plot_type == "2d":
@@ -323,11 +323,11 @@ class MatplotlibWidget(QWidget):
             self._create_error_plot(str(e))
 
     def _create_2d_plot(self):
-        """Cria grÃ¡fico 2D de linha com design moderno, suporte a mÃºltiplas sÃ©ries, legenda interativa"""
+        """Cria gráfico 2D de linha com design moderno, suporte a múltiplas séries, legenda interativa"""
         ax = self.figure.add_subplot(111)
-        self._ax = ax  # Guardar referÃªncia para adicionar sÃ©ries depois
+        self._ax = ax  # Guardar referência para adicionar séries depois
 
-        # Plotar sÃ©rie principal
+        # Plotar série principal
         line_obj = self._plot_single_series(ax, self.series, self._dataset_name, self.current_color_idx)
         self.series_list.append({
             "series": self.series,
@@ -338,30 +338,30 @@ class MatplotlibWidget(QWidget):
         })
         self.current_color_idx += 1
 
-        # ConfiguraÃ§Ã£o do eixo
+        # Configuração do eixo
         self._setup_ax_style(ax)
 
-        # Legenda interativa (clicÃ¡vel e arrastÃ¡vel)
+        # Legenda interativa (clicável e arrastável)
         self._setup_interactive_legend(ax)
 
-        # EstatÃ­sticas da sÃ©rie principal
+        # Estatísticas da série principal
         self._add_stats_box(ax, self.series)
 
     def _plot_single_series(self, ax, series, dataset_name: str, color_idx: int):
-        """Plota uma Ãºnica sÃ©rie no eixo e retorna o objeto de linha"""
+        """Plota uma única série no eixo e retorna o objeto de linha"""
         import matplotlib.dates as mdates
 
         values = series.values
         n_points = len(values)
 
-        # Usar datetime se disponÃ­vel, senÃ£o usar Ã­ndice
+        # Usar datetime se disponível, senão usar índice
         if self._t_datetime is not None and len(self._t_datetime) == n_points:
             # Converter datetime64 para matplotlib dates
             x_data = mdates.date2num(self._t_datetime.astype("datetime64[ms]").astype("datetime64[us]"))
         else:
             x_data = np.arange(n_points)
 
-        # OtimizaÃ§Ã£o de performance
+        # Otimização de performance
         if n_points > _perf_config.direct_render_limit:
             x_render, y_render = decimate_for_plot(
                 x_data, values,
@@ -376,14 +376,14 @@ class MatplotlibWidget(QWidget):
         # Cor
         color = self.colors[color_idx % len(self.colors)]
 
-        # Label com nome do dataset (nÃ£o "valor")
+        # Label com nome do dataset (não "valor")
         series_name = series.name if series.name != "valor" else dataset_name
         label = f"{dataset_name} - {series_name}" if series.name != "valor" else dataset_name
 
         # Plot
         if n_render > 1000:
             (line,) = ax.plot(x_render, y_render, linewidth=1.5, color=color, alpha=0.9,
-                              label=label, picker=5)  # picker para clicÃ¡vel
+                              label=label, picker=5)  # picker para clicável
         else:
             (line,) = ax.plot(x_render, y_render, linewidth=2.0, color=color, alpha=0.9,
                               label=label, picker=5,
@@ -396,12 +396,12 @@ class MatplotlibWidget(QWidget):
         """Configura estilo moderno do eixo"""
         import matplotlib.dates as mdates
 
-        # TÃ­tulo dinÃ¢mico
+        # Título dinâmico
         n_series = len(self.series_list) if self.series_list else 1
-        title = "AnÃ¡lise Temporal" if n_series == 1 else f"Comparativo ({n_series} sÃ©ries)"
+        title = "Análise Temporal" if n_series == 1 else f"Comparativo ({n_series} séries)"
         ax.set_title(title, fontsize=16, fontweight="bold", color="#212529", pad=20)
 
-        # Configurar eixo X para datetime se disponÃ­vel
+        # Configurar eixo X para datetime se disponível
         if self._t_datetime is not None and len(self._t_datetime) > 0:
             ax.set_xlabel("Data/Hora", fontsize=13, color="#495057", fontweight="500")
             # Formatar ticks de data automaticamente
@@ -411,7 +411,7 @@ class MatplotlibWidget(QWidget):
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha="right")
             self.figure.tight_layout()
         else:
-            ax.set_xlabel("Ãndice da Amostra", fontsize=13, color="#495057", fontweight="500")
+            ax.set_xlabel("Índice da Amostra", fontsize=13, color="#495057", fontweight="500")
 
         ax.set_ylabel("Valor", fontsize=13, color="#495057", fontweight="500")
 
@@ -429,7 +429,7 @@ class MatplotlibWidget(QWidget):
         ax.spines["bottom"].set_linewidth(1.2)
 
     def _setup_interactive_legend(self, ax):
-        """Configura legenda interativa (clicÃ¡vel para ocultar/mostrar, arrastÃ¡vel)"""
+        """Configura legenda interativa (clicável para ocultar/mostrar, arrastável)"""
         if not ax.get_legend_handles_labels()[1]:
             return
 
@@ -439,7 +439,7 @@ class MatplotlibWidget(QWidget):
         legend.get_frame().set_linewidth(1.5)
         legend.get_frame().set_boxstyle("round,pad=0.3")
 
-        # Tornar legenda arrastÃ¡vel (mÃ©todo compatÃ­vel com vÃ¡rias versÃµes)
+        # Tornar legenda arrastável (método compatível com várias versões)
         try:
             legend.set_draggable(True)
         except AttributeError:
@@ -455,7 +455,7 @@ class MatplotlibWidget(QWidget):
         legend_lines = legend.get_lines()
         for i, legend_line in enumerate(legend_lines):
             if i < len(self.series_list):
-                legend_line.set_picker(5)  # Tornar clicÃ¡vel
+                legend_line.set_picker(5)  # Tornar clicável
                 self._legend_line_map[legend_line] = self.series_list[i]
 
         # Conectar evento de clique na legenda (apenas uma vez)
@@ -463,10 +463,10 @@ class MatplotlibWidget(QWidget):
             self._pick_cid = self.canvas.mpl_connect("pick_event", self._on_legend_pick)
 
     def _on_legend_pick(self, event):
-        """Handler para clique na legenda - oculta/mostra sÃ©rie"""
+        """Handler para clique na legenda - oculta/mostra série"""
         legend_line = event.artist
 
-        # Verificar se Ã© uma linha da legenda
+        # Verificar se é uma linha da legenda
         if legend_line not in self._legend_line_map:
             return
 
@@ -486,16 +486,16 @@ class MatplotlibWidget(QWidget):
         logger.debug(f"series_visibility_toggled: visible={new_visible}")
 
     def _add_stats_box(self, ax, series):
-        """Adiciona caixa de estatÃ­sticas"""
+        """Adiciona caixa de estatísticas"""
         values = series.values
         n_points = len(values)
         std_val = np.std(values)
 
-        stats_text = f"ESTATÃSTICAS\n" \
+        stats_text = f"ESTATÍSTICAS\n" \
                     f"Pontos: {n_points:,}\n" \
                     f"Min: {np.min(values):.3f}\n" \
                     f"Max: {np.max(values):.3f}\n" \
-                    f"MÃ©dia: {np.mean(values):.3f}\n" \
+                    f"Média: {np.mean(values):.3f}\n" \
                     f"Desvio: {std_val:.3f}"
 
         self._stats_text = ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
@@ -504,7 +504,7 @@ class MatplotlibWidget(QWidget):
                         "edgecolor": "#e9ecef", "alpha": 0.95, "linewidth": 1.2})
 
     def add_series(self, series, dataset_name: str = ""):
-        """Adiciona uma nova sÃ©rie ao grÃ¡fico existente (para mÃºltiplas sÃ©ries no mesmo plot)"""
+        """Adiciona uma nova série ao gráfico existente (para múltiplas séries no mesmo plot)"""
         if self.plot_type != "2d" or not hasattr(self, "_ax"):
             logger.warning("add_series: only supported for 2d plots")
             return False
@@ -512,7 +512,7 @@ class MatplotlibWidget(QWidget):
         try:
             ax = self._ax
 
-            # Plotar nova sÃ©rie
+            # Plotar nova série
             line_obj = self._plot_single_series(ax, series, dataset_name, self.current_color_idx)
             self.series_list.append({
                 "series": series,
@@ -523,9 +523,9 @@ class MatplotlibWidget(QWidget):
             })
             self.current_color_idx += 1
 
-            # Atualizar tÃ­tulo
+            # Atualizar título
             n_series = len(self.series_list)
-            ax.set_title(f"Comparativo ({n_series} sÃ©ries)", fontsize=16, fontweight="bold", color="#212529", pad=20)
+            ax.set_title(f"Comparativo ({n_series} séries)", fontsize=16, fontweight="bold", color="#212529", pad=20)
 
             # Recriar legenda interativa
             self._setup_interactive_legend(ax)
@@ -542,9 +542,9 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"add_series_error: {e}")
             return False
 
-    # === DRAG & DROP para adicionar sÃ©ries ===
+    # === DRAG & DROP para adicionar séries ===
     def dragEnterEvent(self, event):
-        """Aceita drag de sÃ©ries"""
+        """Aceita drag de séries"""
         if event.mimeData().hasText():
             event.acceptProposedAction()
             # Visual feedback
@@ -555,7 +555,7 @@ class MatplotlibWidget(QWidget):
         self.canvas.setStyleSheet("")
 
     def dropEvent(self, event):
-        """Adiciona sÃ©rie dropada ao grÃ¡fico"""
+        """Adiciona série dropada ao gráfico"""
         if event.mimeData().hasText():
             data = event.mimeData().text().split("|")
             if len(data) == 2:
@@ -567,14 +567,14 @@ class MatplotlibWidget(QWidget):
 
 
     def _create_3d_plot(self):
-        """Cria visualizaÃ§Ã£o 3D (superfÃ­cie)"""
+        """Cria visualização 3D (superfície)"""
         ax = self.figure.add_subplot(111, projection="3d")
 
         values = self.series.values
         n_points = len(values)
 
-        # Criar dados 3D simulados baseados na sÃ©rie
-        # Grid para superfÃ­cie
+        # Criar dados 3D simulados baseados na série
+        # Grid para superfície
         grid_size = min(50, int(np.sqrt(n_points)))
         grid_size = max(grid_size, 5)
 
@@ -591,8 +591,8 @@ class MatplotlibWidget(QWidget):
                               linewidth=0, antialiased=True,
                               label=f"{self.series.name}")
 
-        # PersonalizaÃ§Ã£o
-        ax.set_title(f"{self.series.name} - VisualizaÃ§Ã£o 3D",
+        # Personalização
+        ax.set_title(f"{self.series.name} - Visualização 3D",
                     fontsize=14, fontweight="bold")
         ax.set_xlabel("X normalizado")
         ax.set_ylabel("Y normalizado")
@@ -613,7 +613,7 @@ class MatplotlibWidget(QWidget):
         grid_size = int(np.sqrt(n_points))
         grid_size = max(grid_size, 10)
 
-        # Preencher com zeros se necessÃ¡rio
+        # Preencher com zeros se necessário
         matrix_size = grid_size * grid_size
         if matrix_size > n_points:
             padded_values = np.pad(values, (0, matrix_size - n_points), "constant")
@@ -625,7 +625,7 @@ class MatplotlibWidget(QWidget):
         # Heatmap
         im = ax.imshow(heat_data, cmap="plasma", aspect="auto", interpolation="bilinear")
 
-        # PersonalizaÃ§Ã£o
+        # Personalização
         ax.set_title(f"{self.series.name} - Heatmap", fontsize=14, fontweight="bold")
         ax.set_xlabel("Coluna")
         ax.set_ylabel("Linha")
@@ -635,7 +635,7 @@ class MatplotlibWidget(QWidget):
         cbar.set_label(f"{self.series.name} ({self.series.unit})", rotation=270, labelpad=15)
 
     def _create_scatter_plot(self):
-        """Cria grÃ¡fico de dispersÃ£o"""
+        """Cria gráfico de dispersão"""
         ax = self.figure.add_subplot(111)
 
         values = self.series.values
@@ -647,10 +647,10 @@ class MatplotlibWidget(QWidget):
                            alpha=0.7, s=20, edgecolors="black", linewidth=0.5,
                            label=f"{self.series.name}")
 
-        # PersonalizaÃ§Ã£o
+        # Personalização
         ax.set_title(f"{self.series.name} - Scatter Plot",
                     fontsize=14, fontweight="bold")
-        ax.set_xlabel("Ãndice da Amostra")
+        ax.set_xlabel("Índice da Amostra")
         ax.set_ylabel(f"Valor ({self.series.unit})")
 
         # Grid, legenda e colorbar
@@ -669,11 +669,11 @@ class MatplotlibWidget(QWidget):
     def _create_error_plot(self, error_msg: str):
         """Cria plot de erro quando algo falha"""
         ax = self.figure.add_subplot(111)
-        ax.text(0.5, 0.5, f"Erro na visualizaÃ§Ã£o:\n{error_msg}",
+        ax.text(0.5, 0.5, f"Erro na visualização:\n{error_msg}",
                transform=ax.transAxes, ha="center", va="center",
                fontsize=12, color="red",
                bbox={"boxstyle": "round", "facecolor": "#ffe6e6", "alpha": 0.8})
-        ax.set_title("Erro na VisualizaÃ§Ã£o", fontsize=14, color="red")
+        ax.set_title("Erro na Visualização", fontsize=14, color="red")
         ax.axis("off")
 
     # === TOOLBAR ACTIONS ===
@@ -830,7 +830,7 @@ class MatplotlibWidget(QWidget):
             QMessageBox.warning(self, "Erro", f"Erro ao salvar imagem:\n{e!s}")
 
     def _show_context_menu(self, position):
-        """Mostra menu de contexto moderno para o grÃ¡fico"""
+        """Mostra menu de contexto moderno para o gráfico"""
         try:
             from PyQt6.QtGui import QAction
             from PyQt6.QtWidgets import QMenu
@@ -860,90 +860,90 @@ class MatplotlibWidget(QWidget):
                 }
             """)
 
-            # TÃ­tulo (usando widget label para estilizaÃ§Ã£o em vez de QAction.setStyleSheet)
-            title_action = QAction(f"ðŸ“Š GrÃ¡fico {self.plot_type.upper()}", self)
+            # Título (usando widget label para estilização em vez de QAction.setStyleSheet)
+            title_action = QAction(f"📊 Gráfico {self.plot_type.upper()}", self)
             title_action.setEnabled(False)
-            # Nota: QAction nÃ£o suporta setStyleSheet em PyQt6 - o estilo Ã© definido no QMenu
+            # Nota: QAction não suporta setStyleSheet em PyQt6 - o estilo é definido no QMenu
             menu.addAction(title_action)
             menu.addSeparator()
 
             # Exportar
-            export_png_action = QAction("ðŸ’¾ Exportar como PNG", self)
+            export_png_action = QAction("💾 Exportar como PNG", self)
             export_png_action.triggered.connect(self._export_png)
             menu.addAction(export_png_action)
 
-            export_pdf_action = QAction("ðŸ“„ Exportar como PDF", self)
+            export_pdf_action = QAction("📄 Exportar como PDF", self)
             export_pdf_action.triggered.connect(self._export_pdf)
             menu.addAction(export_pdf_action)
 
             menu.addSeparator()
 
-            # VisualizaÃ§Ã£o
-            zoom_action = QAction("ðŸ” Zoom para Ajustar", self)
+            # Visualização
+            zoom_action = QAction("🔍 Zoom para Ajustar", self)
             zoom_action.triggered.connect(self._zoom_to_fit)
             menu.addAction(zoom_action)
 
-            grid_action = QAction("âš Alternar Grid", self)
+            grid_action = QAction("⚏ Alternar Grid", self)
             grid_action.triggered.connect(self._toggle_grid)
             menu.addAction(grid_action)
 
-            legend_action = QAction("ðŸ“‹ Alternar Legenda", self)
+            legend_action = QAction("📋 Alternar Legenda", self)
             legend_action.triggered.connect(self._toggle_legend)
             menu.addAction(legend_action)
 
             # Crosshair toggle
-            crosshair_text = "âŒ Desativar Crosshair" if self._crosshair_enabled else "âž• Ativar Crosshair"
+            crosshair_text = "❌ Desativar Crosshair" if self._crosshair_enabled else "➕ Ativar Crosshair"
             crosshair_action = QAction(crosshair_text, self)
             crosshair_action.triggered.connect(self.toggle_crosshair)
             menu.addAction(crosshair_action)
 
             # Selection (brush) toggle
-            selection_text = "âŒ Desativar SeleÃ§Ã£o" if self._selection_enabled else "ðŸŽ¯ Ativar SeleÃ§Ã£o"
+            selection_text = "❌ Desativar Seleção" if self._selection_enabled else "🎯 Ativar Seleção"
             selection_action = QAction(selection_text, self)
             selection_action.triggered.connect(self.toggle_selection)
             menu.addAction(selection_action)
 
             # Clear selection
             if self._selection_rect:
-                clear_sel_action = QAction("ðŸ—‘ï¸ Limpar SeleÃ§Ã£o", self)
+                clear_sel_action = QAction("🗑️ Limpar Seleção", self)
                 clear_sel_action.triggered.connect(self.clear_selection)
                 menu.addAction(clear_sel_action)
 
             menu.addSeparator()
 
-            # === CÃLCULOS MATEMÃTICOS ===
-            calc_menu = menu.addMenu("ðŸ§® CÃ¡lculos")
+            # === CÁLCULOS MATEMÁTICOS ===
+            calc_menu = menu.addMenu("🧮 Cálculos")
 
             # Derivadas
-            deriv_menu = calc_menu.addMenu("ðŸ“ˆ Derivadas")
-            deriv1_action = QAction("1Âª Derivada", self)
+            deriv_menu = calc_menu.addMenu("📈 Derivadas")
+            deriv1_action = QAction("1ª Derivada", self)
             deriv1_action.triggered.connect(lambda: self._request_calculation("derivative", {"order": 1}))
             deriv_menu.addAction(deriv1_action)
-            deriv2_action = QAction("2Âª Derivada", self)
+            deriv2_action = QAction("2ª Derivada", self)
             deriv2_action.triggered.connect(lambda: self._request_calculation("derivative", {"order": 2}))
             deriv_menu.addAction(deriv2_action)
-            deriv3_action = QAction("3Âª Derivada", self)
+            deriv3_action = QAction("3ª Derivada", self)
             deriv3_action.triggered.connect(lambda: self._request_calculation("derivative", {"order": 3}))
             deriv_menu.addAction(deriv3_action)
 
             # Integral
-            integral_action = QAction("âˆ« Integral", self)
+            integral_action = QAction("∫ Integral", self)
             integral_action.triggered.connect(lambda: self._request_calculation("integral", {}))
             calc_menu.addAction(integral_action)
 
-            # Ãrea sob curva
-            area_action = QAction("ðŸ“ Ãrea sob Curva", self)
+            # Área sob curva
+            area_action = QAction("📏 Área sob Curva", self)
             area_action.triggered.connect(lambda: self._request_calculation("area", {}))
             calc_menu.addAction(area_action)
 
             calc_menu.addSeparator()
 
-            # InterpolaÃ§Ã£o
-            interp_menu = calc_menu.addMenu("ðŸ“ InterpolaÃ§Ã£o")
+            # Interpolação
+            interp_menu = calc_menu.addMenu("📐 Interpolação")
             interp_linear_action = QAction("Linear", self)
             interp_linear_action.triggered.connect(lambda: self._request_calculation("interpolation", {"method": "linear"}))
             interp_menu.addAction(interp_linear_action)
-            interp_cubic_action = QAction("CÃºbica", self)
+            interp_cubic_action = QAction("Cúbica", self)
             interp_cubic_action.triggered.connect(lambda: self._request_calculation("interpolation", {"method": "cubic_spline"}))
             interp_menu.addAction(interp_cubic_action)
             interp_akima_action = QAction("Akima", self)
@@ -951,8 +951,8 @@ class MatplotlibWidget(QWidget):
             interp_menu.addAction(interp_akima_action)
 
             # Filtros
-            filter_menu = calc_menu.addMenu("ðŸŽšï¸ Filtros")
-            smooth_action = QAction("SuavizaÃ§Ã£o (Moving Average)", self)
+            filter_menu = calc_menu.addMenu("🎚️ Filtros")
+            smooth_action = QAction("Suavização (Moving Average)", self)
             smooth_action.triggered.connect(lambda: self._request_calculation("filter", {"type": "moving_average"}))
             filter_menu.addAction(smooth_action)
             savgol_action = QAction("Savitzky-Golay", self)
@@ -961,27 +961,27 @@ class MatplotlibWidget(QWidget):
 
             menu.addSeparator()
 
-            # === EIXO Y SECUNDÃRIO ===
-            axis_menu = menu.addMenu("ðŸ“Š Eixos")
-            add_y_axis_action = QAction("âž• Adicionar Eixo Y SecundÃ¡rio", self)
+            # === EIXO Y SECUNDÁRIO ===
+            axis_menu = menu.addMenu("📊 Eixos")
+            add_y_axis_action = QAction("➕ Adicionar Eixo Y Secundário", self)
             add_y_axis_action.triggered.connect(self._add_secondary_y_axis)
             axis_menu.addAction(add_y_axis_action)
 
             menu.addSeparator()
 
-            # === OPÃ‡Ã•ES DE VISUALIZAÃ‡ÃƒO AVANÃ‡ADAS ===
-            # Sombrear Ã¡rea sob curva
-            shade_action = QAction("ðŸŽ¨ Sombrear Ãrea sob Curva", self)
+            # === OPÇÕES DE VISUALIZAÇÃO AVANÇADAS ===
+            # Sombrear área sob curva
+            shade_action = QAction("🎨 Sombrear Área sob Curva", self)
             shade_action.triggered.connect(self._toggle_area_shade)
             menu.addAction(shade_action)
 
-            # Eixo Y secundÃ¡rio (se tiver mais de uma sÃ©rie)
+            # Eixo Y secundário (se tiver mais de uma série)
             if len(self.series_list) > 1:
-                secondary_menu = menu.addMenu("ðŸ“Š Eixo Y SecundÃ¡rio")
+                secondary_menu = menu.addMenu("📊 Eixo Y Secundário")
                 for i, series_info in enumerate(self.series_list[1:], 1):
                     series_name = series_info["dataset_name"]
                     is_secondary = series_info.get("secondary_axis", False)
-                    prefix = "âœ“ " if is_secondary else ""
+                    prefix = "✓ " if is_secondary else ""
                     action = QAction(f"{prefix}{series_name}", self)
                     action.triggered.connect(lambda checked, idx=i: self._toggle_secondary_axis(idx))
                     secondary_menu.addAction(action)
@@ -989,19 +989,19 @@ class MatplotlibWidget(QWidget):
             menu.addSeparator()
 
             # Copiar para clipboard
-            copy_action = QAction("ðŸ“‹ Copiar para Clipboard", self)
+            copy_action = QAction("📋 Copiar para Clipboard", self)
             copy_action.triggered.connect(self.copy_to_clipboard)
             menu.addAction(copy_action)
 
             menu.addSeparator()
 
             # Configure axes
-            axes_action = QAction("ðŸ“ Configurar Eixos", self)
+            axes_action = QAction("📐 Configurar Eixos", self)
             axes_action.triggered.connect(self.configure_axes)
             menu.addAction(axes_action)
 
             # Propriedades
-            props_action = QAction("âš™ï¸ Propriedades do GrÃ¡fico", self)
+            props_action = QAction("⚙️ Propriedades do Gráfico", self)
             props_action.triggered.connect(self._show_properties)
             menu.addAction(props_action)
 
@@ -1012,12 +1012,12 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"context_menu_error: {e}")
 
     def _export_png(self):
-        """Exporta grÃ¡fico como PNG"""
+        """Exporta gráfico como PNG"""
         try:
             from PyQt6.QtWidgets import QFileDialog
 
             filename, _ = QFileDialog.getSaveFileName(
-                self, "Salvar GrÃ¡fico", f"{self.series.name}_{self.plot_type}.png",
+                self, "Salvar Gráfico", f"{self.series.name}_{self.plot_type}.png",
                 "PNG files (*.png);;All files (*.*)",
             )
 
@@ -1029,12 +1029,12 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"export_png_error: {e}")
 
     def _export_pdf(self):
-        """Exporta grÃ¡fico como PDF"""
+        """Exporta gráfico como PDF"""
         try:
             from PyQt6.QtWidgets import QFileDialog
 
             filename, _ = QFileDialog.getSaveFileName(
-                self, "Salvar GrÃ¡fico", f"{self.series.name}_{self.plot_type}.pdf",
+                self, "Salvar Gráfico", f"{self.series.name}_{self.plot_type}.pdf",
                 "PDF files (*.pdf);;All files (*.*)",
             )
 
@@ -1057,7 +1057,7 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"zoom_fit_error: {e}")
 
     def _toggle_grid(self):
-        """Alterna exibiÃ§Ã£o do grid"""
+        """Alterna exibição do grid"""
         try:
             for ax in self.figure.get_axes():
                 ax.grid(not ax.get_gridlines()[0].get_visible() if ax.get_gridlines() else True)
@@ -1067,7 +1067,7 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"toggle_grid_error: {e}")
 
     def _toggle_legend(self):
-        """Alterna exibiÃ§Ã£o da legenda"""
+        """Alterna exibição da legenda"""
         try:
             for ax in self.figure.get_axes():
                 legend = ax.get_legend()
@@ -1081,67 +1081,67 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"toggle_legend_error: {e}")
 
     def _request_calculation(self, calc_type: str, params: dict):
-        """Solicita cÃ¡lculo para a sÃ©rie atual"""
+        """Solicita cálculo para a série atual"""
         try:
             if not self.series_list:
-                QMessageBox.warning(self, "Aviso", "Nenhuma sÃ©rie disponÃ­vel para cÃ¡lculo.")
+                QMessageBox.warning(self, "Aviso", "Nenhuma série disponível para cálculo.")
                 return
 
-            # Usar primeira sÃ©rie visÃ­vel
+            # Usar primeira série visível
             series_info = self.series_list[0]
             dataset_name = series_info["dataset_name"]
             series_id = series_info["series"].series_id if hasattr(series_info["series"], "series_id") else "unknown"
 
-            # Emitir sinal de cÃ¡lculo solicitado
+            # Emitir sinal de cálculo solicitado
             self.calculation_requested.emit(dataset_name, series_id, calc_type, params)
 
             # Feedback visual
-            self._info_label.setText(f"CÃ¡lculo: {calc_type}")
+            self._info_label.setText(f"Cálculo: {calc_type}")
             logger.info(f"calculation_requested: type={calc_type}, params={params}")
 
-            # Mostrar mensagem temporÃ¡ria
-            QMessageBox.information(self, "CÃ¡lculo Solicitado",
+            # Mostrar mensagem temporária
+            QMessageBox.information(self, "Cálculo Solicitado",
                 f"Tipo: {calc_type}\n"
-                f"SÃ©rie: {dataset_name}\n"
-                f"ParÃ¢metros: {params}\n\n"
-                "Use o painel de OperaÃ§Ãµes para configurar e executar o cÃ¡lculo.")
+                f"Série: {dataset_name}\n"
+                f"Parâmetros: {params}\n\n"
+                "Use o painel de Operações para configurar e executar o cálculo.")
 
         except Exception as e:
             logger.exception(f"request_calculation_error: {e}")
-            QMessageBox.warning(self, "Erro", f"Erro ao solicitar cÃ¡lculo: {e}")
+            QMessageBox.warning(self, "Erro", f"Erro ao solicitar cálculo: {e}")
 
     def _add_secondary_y_axis(self):
-        """Adiciona eixo Y secundÃ¡rio ao grÃ¡fico"""
+        """Adiciona eixo Y secundário ao gráfico"""
         try:
             if not hasattr(self, "_ax") or self._ax is None:
-                QMessageBox.warning(self, "Aviso", "Nenhum grÃ¡fico disponÃ­vel.")
+                QMessageBox.warning(self, "Aviso", "Nenhum gráfico disponível.")
                 return
 
-            # Verificar se jÃ¡ existe eixo secundÃ¡rio
+            # Verificar se já existe eixo secundário
             if hasattr(self, "_ax2") and self._ax2 is not None:
-                QMessageBox.information(self, "Info", "Eixo Y secundÃ¡rio jÃ¡ existe.")
+                QMessageBox.information(self, "Info", "Eixo Y secundário já existe.")
                 return
 
-            # Criar eixo Y secundÃ¡rio
+            # Criar eixo Y secundário
             self._ax2 = self._ax.twinx()
-            self._ax2.set_ylabel("Eixo Y SecundÃ¡rio", fontsize=13, color="#dc3545", fontweight="500")
+            self._ax2.set_ylabel("Eixo Y Secundário", fontsize=13, color="#dc3545", fontweight="500")
             self._ax2.spines["right"].set_color("#dc3545")
             self._ax2.tick_params(axis="y", labelcolor="#dc3545")
 
             self.canvas.draw()
-            self._info_label.setText("Eixo Y secundÃ¡rio adicionado")
+            self._info_label.setText("Eixo Y secundário adicionado")
             logger.info("secondary_y_axis_added")
 
             QMessageBox.information(self, "Sucesso",
-                "Eixo Y secundÃ¡rio criado.\n\n"
-                "Arraste uma nova sÃ©rie para o grÃ¡fico para plotÃ¡-la no eixo secundÃ¡rio.")
+                "Eixo Y secundário criado.\n\n"
+                "Arraste uma nova série para o gráfico para plotá-la no eixo secundário.")
 
         except Exception as e:
             logger.exception(f"add_secondary_y_axis_error: {e}")
-            QMessageBox.warning(self, "Erro", f"Erro ao criar eixo secundÃ¡rio: {e}")
+            QMessageBox.warning(self, "Erro", f"Erro ao criar eixo secundário: {e}")
 
     def _toggle_area_shade(self):
-        """Alterna sombreamento da Ã¡rea sob a curva"""
+        """Alterna sombreamento da área sob a curva"""
         try:
             if not hasattr(self, "_area_fills"):
                 self._area_fills = []
@@ -1150,7 +1150,7 @@ class MatplotlibWidget(QWidget):
             if not ax:
                 return
 
-            # Se jÃ¡ tem preenchimento, remove
+            # Se já tem preenchimento, remove
             if self._area_fills:
                 for fill in self._area_fills:
                     try:
@@ -1159,11 +1159,11 @@ class MatplotlibWidget(QWidget):
                         logger.debug(f"Failed to remove area fill: {e}")
                 self._area_fills = []
                 self.canvas.draw()
-                self._info_label.setText("Ãrea removida")
+                self._info_label.setText("Área removida")
                 logger.info("area_shade_removed")
                 return
 
-            # Adicionar preenchimento para cada sÃ©rie
+            # Adicionar preenchimento para cada série
             for series_info in self.series_list:
                 line = series_info["line"]
                 if not line.get_visible():
@@ -1177,14 +1177,14 @@ class MatplotlibWidget(QWidget):
                 self._area_fills.append(fill)
 
             self.canvas.draw()
-            self._info_label.setText("Ãrea sombreada")
+            self._info_label.setText("Área sombreada")
             logger.info("area_shade_added")
 
         except Exception as e:
             logger.exception(f"toggle_area_shade_error: {e}")
 
     def _toggle_secondary_axis(self, series_idx: int):
-        """Move uma sÃ©rie para o eixo Y secundÃ¡rio"""
+        """Move uma série para o eixo Y secundário"""
         try:
             if series_idx >= len(self.series_list):
                 return
@@ -1197,7 +1197,7 @@ class MatplotlibWidget(QWidget):
 
             if is_secondary:
                 # Mover de volta para eixo principal
-                # Remover linha do eixo secundÃ¡rio
+                # Remover linha do eixo secundário
                 if hasattr(self, "_secondary_ax") and self._secondary_ax:
                     line.remove()
                     # Replotar no eixo principal
@@ -1206,22 +1206,22 @@ class MatplotlibWidget(QWidget):
                     series_info["line"] = new_line
                     series_info["secondary_axis"] = False
 
-                    # Remover eixo secundÃ¡rio se nÃ£o houver mais sÃ©ries nele
+                    # Remover eixo secundário se não houver mais séries nele
                     has_secondary = any(s.get("secondary_axis", False) for s in self.series_list)
                     if not has_secondary and hasattr(self, "_secondary_ax"):
                         self._secondary_ax.remove()
                         self._secondary_ax = None
             else:
-                # Mover para eixo secundÃ¡rio
-                # Criar eixo secundÃ¡rio se necessÃ¡rio
+                # Mover para eixo secundário
+                # Criar eixo secundário se necessário
                 if not hasattr(self, "_secondary_ax") or not self._secondary_ax:
                     self._secondary_ax = ax.twinx()
-                    self._secondary_ax.set_ylabel("Eixo SecundÃ¡rio", fontsize=13, color="#495057")
+                    self._secondary_ax.set_ylabel("Eixo Secundário", fontsize=13, color="#495057")
 
                 # Remover linha do eixo principal
                 line.remove()
 
-                # Replotar no eixo secundÃ¡rio
+                # Replotar no eixo secundário
                 series = series_info["series"]
                 color = self.colors[series_info["color_idx"] % len(self.colors)]
                 values = series.values
@@ -1244,19 +1244,19 @@ class MatplotlibWidget(QWidget):
             logger.exception(f"toggle_secondary_axis_error: {e}")
 
     def _show_properties(self):
-        """Mostra dialog de propriedades do grÃ¡fico"""
+        """Mostra dialog de propriedades do gráfico"""
         try:
             from PyQt6.QtWidgets import QMessageBox
 
             props_text = f"""
-GrÃ¡fico: {self.plot_type.upper()}
-SÃ©rie: {self.series.name}
+Gráfico: {self.plot_type.upper()}
+Série: {self.series.name}
 Unidade: {self.series.unit}
 Pontos: {len(self.series.values):,}
 Min: {np.min(self.series.values):.6f}
 Max: {np.max(self.series.values):.6f}
-MÃ©dia: {np.mean(self.series.values):.6f}
-Desvio PadrÃ£o: {np.std(self.series.values):.6f}
+Média: {np.mean(self.series.values):.6f}
+Desvio Padrão: {np.std(self.series.values):.6f}
             """
 
             QMessageBox.information(self, f"Propriedades - {self.series.name}", props_text)
@@ -1267,7 +1267,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
     # ========== CROSSHAIR METHODS ==========
 
     def toggle_crosshair(self):
-        """Alterna exibiÃ§Ã£o do crosshair"""
+        """Alterna exibição do crosshair"""
         self._crosshair_enabled = not self._crosshair_enabled
 
         if self._crosshair_enabled:
@@ -1281,7 +1281,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             if self.figure.get_axes():
                 ax = self.figure.get_axes()[0]
 
-                # Criar linhas do crosshair (inicialmente invisÃ­veis)
+                # Criar linhas do crosshair (inicialmente invisíveis)
                 self._crosshair_hline = ax.axhline(
                     y=0, color="#dc3545", linestyle="--",
                     linewidth=1, alpha=0.7, visible=False,
@@ -1344,7 +1344,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             if not self._crosshair_enabled:
                 return
 
-            # Verificar se estÃ¡ dentro de um eixo
+            # Verificar se está dentro de um eixo
             if event.inaxes is None:
                 # Fora do eixo - esconder crosshair
                 if self._crosshair_hline:
@@ -1362,7 +1362,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             if x is None or y is None:
                 return
 
-            # Atualizar posiÃ§Ã£o das linhas
+            # Atualizar posição das linhas
             if self._crosshair_hline:
                 self._crosshair_hline.set_ydata([y, y])
                 self._crosshair_hline.set_visible(True)
@@ -1380,13 +1380,13 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
 
                 self._crosshair_text.set_text(coord_text)
 
-                # PosiÃ§Ã£o do texto - um pouco deslocado do cursor
+                # Posição do texto - um pouco deslocado do cursor
                 xlim = ax.get_xlim()
                 ylim = ax.get_ylim()
                 x_offset = (xlim[1] - xlim[0]) * 0.02
                 y_offset = (ylim[1] - ylim[0]) * 0.02
 
-                # Ajustar lado do texto para nÃ£o sair do grÃ¡fico
+                # Ajustar lado do texto para não sair do gráfico
                 if x > (xlim[0] + xlim[1]) / 2:
                     ha = "right"
                     text_x = x - x_offset
@@ -1416,13 +1416,13 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             logger.exception(f"crosshair_mouse_move_error: {e}")
 
     def is_crosshair_enabled(self) -> bool:
-        """Retorna se o crosshair estÃ¡ habilitado"""
+        """Retorna se o crosshair está habilitado"""
         return self._crosshair_enabled
 
     # ========== COPY TO CLIPBOARD ==========
 
     def copy_to_clipboard(self):
-        """Copia o grÃ¡fico para a Ã¡rea de transferÃªncia"""
+        """Copia o gráfico para a área de transferência"""
         try:
             import io
 
@@ -1448,7 +1448,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             # Mostrar feedback visual
             from PyQt6.QtWidgets import QToolTip
             QToolTip.showText(self.canvas.mapToGlobal(self.canvas.rect().center()),
-                             "âœ“ Copiado para Ã¡rea de transferÃªncia!",
+                             "✓ Copiado para área de transferência!",
                              self, self.canvas.rect(), 1500)
 
         except Exception as e:
@@ -1457,7 +1457,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
     # ========== REGION SELECTION (BRUSH) ==========
 
     def toggle_selection(self):
-        """Alterna modo de seleÃ§Ã£o de regiÃ£o"""
+        """Alterna modo de seleção de região"""
         self._selection_enabled = not self._selection_enabled
 
         if self._selection_enabled:
@@ -1466,7 +1466,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             self._disable_selection()
 
     def _enable_selection(self):
-        """Habilita seleÃ§Ã£o de regiÃ£o por brush"""
+        """Habilita seleção de região por brush"""
         try:
             # Desabilitar crosshair se estiver ativo
             if self._crosshair_enabled:
@@ -1482,14 +1482,14 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             # Feedback visual
             from PyQt6.QtWidgets import QToolTip
             QToolTip.showText(self.canvas.mapToGlobal(self.canvas.rect().center()),
-                             "ðŸŽ¯ Modo seleÃ§Ã£o ativo - arraste para selecionar regiÃ£o",
+                             "🎯 Modo seleção ativo - arraste para selecionar região",
                              self, self.canvas.rect(), 2000)
 
         except Exception as e:
             logger.exception(f"enable_selection_error: {e}")
 
     def _disable_selection(self):
-        """Desabilita seleÃ§Ã£o de regiÃ£o"""
+        """Desabilita seleção de região"""
         try:
             # Desconectar eventos
             if self._press_cid:
@@ -1502,7 +1502,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
                 self.canvas.mpl_disconnect(self._drag_cid)
                 self._drag_cid = None
 
-            # Remover retÃ¢ngulo de seleÃ§Ã£o se existir
+            # Remover retângulo de seleção se existir
             if self._selection_rect:
                 self._selection_rect.remove()
                 self._selection_rect = None
@@ -1514,19 +1514,19 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             logger.exception(f"disable_selection_error: {e}")
 
     def _on_selection_press(self, event):
-        """Handler para inÃ­cio da seleÃ§Ã£o"""
-        if event.inaxes is None or event.button != 1:  # SÃ³ botÃ£o esquerdo
+        """Handler para início da seleção"""
+        if event.inaxes is None or event.button != 1:  # Só botão esquerdo
             return
 
         self._selection_start = (event.xdata, event.ydata)
 
-        # Remover retÃ¢ngulo anterior se existir
+        # Remover retângulo anterior se existir
         if self._selection_rect:
             self._selection_rect.remove()
             self._selection_rect = None
 
     def _on_selection_drag(self, event):
-        """Handler para arrastar seleÃ§Ã£o"""
+        """Handler para arrastar seleção"""
         if self._selection_start is None or event.inaxes is None:
             return
 
@@ -1537,15 +1537,15 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
         x0, y0 = self._selection_start
         x1, y1 = event.xdata, event.ydata
 
-        # Calcular dimensÃµes
+        # Calcular dimensões
         width = x1 - x0
         height = y1 - y0
 
-        # Remover retÃ¢ngulo anterior
+        # Remover retângulo anterior
         if self._selection_rect:
             self._selection_rect.remove()
 
-        # Criar novo retÃ¢ngulo
+        # Criar novo retângulo
         from matplotlib.patches import Rectangle
         self._selection_rect = ax.add_patch(
             Rectangle((x0, y0), width, height,
@@ -1556,7 +1556,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
         self.canvas.draw_idle()
 
     def _on_selection_release(self, event):
-        """Handler para fim da seleÃ§Ã£o"""
+        """Handler para fim da seleção"""
         if self._selection_start is None or event.inaxes is None:
             return
 
@@ -1571,42 +1571,42 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
         x_min, x_max = min(x0, x1), max(x0, x1)
         y_min, y_max = min(y0, y1), max(y0, y1)
 
-        # Emitir sinal de regiÃ£o selecionada
+        # Emitir sinal de região selecionada
         self.region_selected.emit(x_min, x_max, y_min, y_max)
 
-        # Extrair dados na regiÃ£o
+        # Extrair dados na região
         self._extract_region_data(x_min, x_max)
 
         self._selection_start = None
         logger.info(f"Region selected: X=[{x_min:.2f}, {x_max:.2f}], Y=[{y_min:.2f}, {y_max:.2f}]")
 
     def _extract_region_data(self, x_min: float, x_max: float):
-        """Extrai dados da regiÃ£o selecionada"""
+        """Extrai dados da região selecionada"""
         try:
             values = self.series.values
             n_points = len(values)
 
-            # Converter coordenadas X para Ã­ndices
+            # Converter coordenadas X para índices
             idx_min = max(0, int(x_min))
             idx_max = min(n_points, int(x_max) + 1)
 
             if idx_min < idx_max:
                 extracted = values[idx_min:idx_max]
 
-                # Emitir dados extraÃ­dos
+                # Emitir dados extraídos
                 self.data_extracted.emit(extracted)
 
                 # Mostrar info
                 from PyQt6.QtWidgets import QMessageBox
                 msg = QMessageBox(self)
-                msg.setWindowTitle("ðŸ“Š Dados ExtraÃ­dos")
-                msg.setText("RegiÃ£o selecionada com sucesso!")
+                msg.setWindowTitle("📊 Dados Extraídos")
+                msg.setText("Região selecionada com sucesso!")
                 msg.setInformativeText(
                     f"Pontos: {len(extracted):,}\n"
-                    f"Ãndices: [{idx_min}, {idx_max})\n"
+                    f"Índices: [{idx_min}, {idx_max})\n"
                     f"Min: {extracted.min():.4f}\n"
                     f"Max: {extracted.max():.4f}\n"
-                    f"MÃ©dia: {extracted.mean():.4f}",
+                    f"Média: {extracted.mean():.4f}",
                 )
                 msg.setIcon(QMessageBox.Icon.Information)
                 msg.exec()
@@ -1615,11 +1615,11 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             logger.exception(f"extract_region_data_error: {e}")
 
     def is_selection_enabled(self) -> bool:
-        """Retorna se o modo de seleÃ§Ã£o estÃ¡ habilitado"""
+        """Retorna se o modo de seleção está habilitado"""
         return self._selection_enabled
 
     def clear_selection(self):
-        """Limpa seleÃ§Ã£o atual"""
+        """Limpa seleção atual"""
         if self._selection_rect:
             self._selection_rect.remove()
             self._selection_rect = None
@@ -1628,7 +1628,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
     # ========== CONFIGURE AXES ==========
 
     def configure_axes(self):
-        """Abre diÃ¡logo de configuraÃ§Ã£o dos eixos"""
+        """Abre diálogo de configuração dos eixos"""
         try:
             if not self.figure.get_axes():
                 return
@@ -1645,9 +1645,9 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             logger.exception(f"configure_axes_error: {e}")
 
     def _apply_axes_config(self, ax, config: dict):
-        """Aplica configuraÃ§Ã£o aos eixos"""
+        """Aplica configuração aos eixos"""
         try:
-            # TÃ­tulo
+            # Título
             if config.get("title"):
                 ax.set_title(config["title"], fontsize=config.get("title_size", 14),
                             fontweight="bold")
@@ -1687,7 +1687,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
 
     def set_crosshair_position(self, x: float, y: float):
         """
-        Define posiÃ§Ã£o do crosshair (para sincronizaÃ§Ã£o)
+        Define posição do crosshair (para sincronização)
 
         Args:
             x: Coordenada X
@@ -1719,11 +1719,11 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
 
     def set_selection_region(self, x1: float, x2: float, y1: float, y2: float):
         """
-        Define regiÃ£o de seleÃ§Ã£o (para sincronizaÃ§Ã£o)
+        Define região de seleção (para sincronização)
 
         Args:
-            x1, x2: Coordenadas X da regiÃ£o
-            y1, y2: Coordenadas Y da regiÃ£o
+            x1, x2: Coordenadas X da região
+            y1, y2: Coordenadas Y da região
         """
         try:
             from matplotlib import patches
@@ -1731,11 +1731,11 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             if self.figure.get_axes():
                 ax = self.figure.get_axes()[0]
 
-                # Remover seleÃ§Ã£o anterior
+                # Remover seleção anterior
                 if self._selection_rect:
                     self._selection_rect.remove()
 
-                # Criar nova seleÃ§Ã£o
+                # Criar nova seleção
                 width = abs(x2 - x1)
                 height = abs(y2 - y1)
                 x_min = min(x1, x2)
@@ -1753,7 +1753,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             logger.exception(f"set_selection_region_error: {e}")
 
     def set_xlim(self, xmin: float, xmax: float):
-        """Define limites do eixo X (para sincronizaÃ§Ã£o)"""
+        """Define limites do eixo X (para sincronização)"""
         try:
             if self.figure.get_axes():
                 ax = self.figure.get_axes()[0]
@@ -1763,7 +1763,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
             logger.exception(f"set_xlim_error: {e}")
 
     def set_ylim(self, ymin: float, ymax: float):
-        """Define limites do eixo Y (para sincronizaÃ§Ã£o)"""
+        """Define limites do eixo Y (para sincronização)"""
         try:
             if self.figure.get_axes():
                 ax = self.figure.get_axes()[0]
@@ -1792,7 +1792,7 @@ Desvio PadrÃ£o: {np.std(self.series.values):.6f}
 
 
 class AxesConfigDialog(QDialog, UiLoaderMixin):
-    """DiÃ¡logo de configuraÃ§Ã£o dos eixos"""
+    """Diálogo de configuração dos eixos"""
 
     UI_FILE = "desktop/ui_files/axesConfigDialog.ui"
 
@@ -1800,7 +1800,7 @@ class AxesConfigDialog(QDialog, UiLoaderMixin):
         super().__init__(parent)
         self.ax = ax
 
-        self.setWindowTitle("âš™ï¸ Configurar Eixos")
+        self.setWindowTitle("⚙️ Configurar Eixos")
         self.setMinimumSize(400, 450)
         self.setModal(True)
 
@@ -1810,7 +1810,7 @@ class AxesConfigDialog(QDialog, UiLoaderMixin):
         self._load_current_values()
 
     def _setup_ui_from_file(self):
-        """Configura widgets apÃ³s carregar .ui"""
+        """Configura widgets após carregar .ui"""
         # Busca widgets do arquivo .ui
         self._title_edit = self.findChild(QLineEdit, "title_edit")
         self._title_size_spin = self.findChild(QSpinBox, "title_size_spin")
@@ -1834,7 +1834,7 @@ class AxesConfigDialog(QDialog, UiLoaderMixin):
         if self._ylim_auto_check:
             self._ylim_auto_check.stateChanged.connect(self._on_ylim_auto_changed)
 
-        # BotÃµes OK/Cancel
+        # Botões OK/Cancel
         ok_btn = self.findChild(QPushButton, "ok_btn")
         cancel_btn = self.findChild(QPushButton, "cancel_btn")
         if ok_btn:
@@ -1858,25 +1858,25 @@ class AxesConfigDialog(QDialog, UiLoaderMixin):
             self._ymax_spin.setValue(ylim[1])
 
             # Grid - tentar detectar estado atual
-            self._grid_check.setChecked(True)  # Assume grid ativo por padrÃ£o
+            self._grid_check.setChecked(True)  # Assume grid ativo por padrão
 
         except Exception as e:
             logger.exception(f"load_axes_values_error: {e}")
 
     def _on_xlim_auto_changed(self, state):
-        """Handler para mudanÃ§a de auto X"""
+        """Handler para mudança de auto X"""
         enabled = state != Qt.CheckState.Checked.value
         self._xmin_spin.setEnabled(enabled)
         self._xmax_spin.setEnabled(enabled)
 
     def _on_ylim_auto_changed(self, state):
-        """Handler para mudanÃ§a de auto Y"""
+        """Handler para mudança de auto Y"""
         enabled = state != Qt.CheckState.Checked.value
         self._ymin_spin.setEnabled(enabled)
         self._ymax_spin.setEnabled(enabled)
 
     def get_config(self) -> dict:
-        """Retorna configuraÃ§Ã£o definida"""
+        """Retorna configuração definida"""
         return {
             "title": self._title_edit.text(),
             "title_size": self._title_size_spin.value(),
@@ -1897,7 +1897,7 @@ class AxesConfigDialog(QDialog, UiLoaderMixin):
 
 
 class DropZone(QFrame):
-    """Zona de drop para criar grÃ¡ficos"""
+    """Zona de drop para criar gráficos"""
 
     series_dropped = pyqtSignal(str, str)  # dataset_id, series_id
 
@@ -1920,14 +1920,14 @@ class DropZone(QFrame):
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(8)
 
-        # TÃ­tulo
+        # Título
         title_label = QLabel(self.title)
         title_label.setFont(QFont("", 11, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: #0d6efd; font-size: 13px;")
         layout.addWidget(title_label)
 
-        # DescriÃ§Ã£o
+        # Descrição
         desc_label = QLabel(self.description)
         desc_label.setFont(QFont("", 9))
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -1954,7 +1954,7 @@ class DropZone(QFrame):
     def dragEnterEvent(self, event):
         """Handler para entrada de drag"""
         if event.mimeData().hasText():
-            # Verificar se Ã© uma sÃ©rie
+            # Verificar se é uma série
             data = event.mimeData().text().split("|")
             if len(data) == 2:
                 event.acceptProposedAction()
@@ -1967,7 +1967,7 @@ class DropZone(QFrame):
                 """)
 
     def dragLeaveEvent(self, event):
-        """Handler para saÃ­da de drag"""
+        """Handler para saída de drag"""
         self.setStyleSheet("""
             DropZone {
                 border: 2px dashed #ced4da;
@@ -2000,12 +2000,12 @@ class DropZone(QFrame):
 
 class ModernVizPanel(QWidget, UiLoaderMixin):
     """
-    Painel de visualizaÃ§Ã£o moderno com drag-and-drop
+    Painel de visualização moderno com drag-and-drop
 
     Funcionalidades:
-    - Zonas de drop para grÃ¡ficos 2D/3D
+    - Zonas de drop para gráficos 2D/3D
     - Sistema intuitivo de drag-and-drop
-    - MÃºltiplas visualizaÃ§Ãµes em abas
+    - Múltiplas visualizações em abas
     - Interface moderna e responsiva
 
     Interface carregada do arquivo .ui via UiLoaderMixin.
@@ -2022,9 +2022,9 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
         super().__init__()
 
         self.session_state = session_state
-        self._plots = []  # Lista de grÃ¡ficos ativos
+        self._plots = []  # Lista de gráficos ativos
 
-        # Tenta carregar do arquivo .ui, senÃ£o usa fallback
+        # Tenta carregar do arquivo .ui, senão usa fallback
         if not self._load_ui():
             self._setup_modern_ui_fallback()
         else:
@@ -2036,21 +2036,45 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
         self._viz_tabs = self.findChild(QTabWidget, "vizTabs")
+        if self._viz_tabs is None:
+            self._viz_tabs = self.findChild(QTabWidget, "plotTabs")
+
+        # Alguns .ui legados nao expoem vizTabs: faz fallback sem quebrar runtime
+        if self._viz_tabs is None:
+            self._setup_modern_ui_fallback()
+            return
 
         new_2d_btn = self.findChild(QPushButton, "new2dBtn")
         new_3d_btn = self.findChild(QPushButton, "new3dBtn")
+        new_plot_btn = self.findChild(QPushButton, "newPlotButton")
+        plot_type_combo = self.findChild(QComboBox, "plotTypeCombo")
 
         if new_2d_btn:
             new_2d_btn.clicked.connect(self.create_2d_plot)
         if new_3d_btn:
             new_3d_btn.clicked.connect(self.create_3d_plot)
-        if self._viz_tabs:
-            self._viz_tabs.setTabsClosable(True)
-            self._viz_tabs.tabCloseRequested.connect(self._close_tab)
+        if new_plot_btn:
+            new_plot_btn.clicked.connect(
+                lambda: self._create_plot_from_ui_selection(plot_type_combo),
+            )
+
+        self._viz_tabs.setTabsClosable(True)
+        self._viz_tabs.tabCloseRequested.connect(self._close_tab)
+
+        if self._viz_tabs.count() == 0:
+            self._create_drop_zones_tab()
 
     def _setup_modern_ui_fallback(self):
         """Interface moderna com zonas de drop"""
-        layout = QVBoxLayout(self)
+        layout = self.layout()
+        if layout is None:
+            layout = QVBoxLayout(self)
+        else:
+            while layout.count():
+                child = layout.takeAt(0)
+                widget = child.widget()
+                if widget is not None:
+                    widget.setParent(None)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(6)
 
@@ -2061,35 +2085,35 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
         self._create_main_area(layout)
 
     def _create_header(self, layout: QVBoxLayout):
-        """CabeÃ§alho do painel"""
+        """Cabeçalho do painel"""
         header_frame = QFrame()
         header_layout = QHBoxLayout(header_frame)
         header_layout.setContentsMargins(4, 4, 4, 4)
 
-        # TÃ­tulo
-        title_label = QLabel("ðŸ“Š VisualizaÃ§Ãµes")
+        # Título
+        title_label = QLabel("📊 Visualizações")
         title_label.setFont(QFont("", 12, QFont.Weight.Bold))
         title_label.setStyleSheet("color: #0d6efd; font-size: 14px;")
         header_layout.addWidget(title_label)
 
         header_layout.addStretch()
 
-        # BotÃµes de aÃ§Ã£o rÃ¡pida
-        new_2d_btn = QPushButton("ðŸ“Š Novo 2D")
-        new_2d_btn.setToolTip("Criar novo grÃ¡fico 2D")
+        # Botões de ação rápida
+        new_2d_btn = QPushButton("📊 Novo 2D")
+        new_2d_btn.setToolTip("Criar novo gráfico 2D")
         new_2d_btn.clicked.connect(self.create_2d_plot)
         header_layout.addWidget(new_2d_btn)
 
-        new_3d_btn = QPushButton("ðŸ“ˆ Novo 3D")
-        new_3d_btn.setToolTip("Criar novo grÃ¡fico 3D")
+        new_3d_btn = QPushButton("📈 Novo 3D")
+        new_3d_btn.setToolTip("Criar novo gráfico 3D")
         new_3d_btn.clicked.connect(self.create_3d_plot)
         header_layout.addWidget(new_3d_btn)
 
         layout.addWidget(header_frame)
 
     def _create_main_area(self, layout: QVBoxLayout):
-        """Ãrea principal com zonas de drop"""
-        # Tab widget para mÃºltiplas visualizaÃ§Ãµes
+        """Área principal com zonas de drop"""
+        # Tab widget para múltiplas visualizações
         self._viz_tabs = QTabWidget()
         self._viz_tabs.setTabsClosable(True)
         self._viz_tabs.tabCloseRequested.connect(self._close_tab)
@@ -2126,18 +2150,18 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
         layout.addWidget(self._viz_tabs)
 
     def _create_drop_zones_tab(self):
-        """Cria tab com zonas de drop para criar grÃ¡ficos"""
+        """Cria tab com zonas de drop para criar gráficos"""
         drop_widget = QWidget()
         drop_layout = QVBoxLayout(drop_widget)
         drop_layout.setContentsMargins(16, 16, 16, 16)
         drop_layout.setSpacing(12)
 
-        # InstruÃ§Ãµes modernas
+        # Instruções modernas
         instructions = QLabel(
-            "ðŸŽ¯ <b>Como Criar VisualizaÃ§Ãµes</b><br>"
-            "âœ¨ <b>MÃ©todo 1:</b> Clique com botÃ£o direito em uma sÃ©rie<br>"
-            "ðŸŽ¨ <b>MÃ©todo 2:</b> Arraste a sÃ©rie para as zonas abaixo<br>"
-            "ðŸ“Š Suporte para grÃ¡ficos 2D, 3D, Heatmap e Scatter",
+            "🎯 <b>Como Criar Visualizações</b><br>"
+            "✨ <b>Método 1:</b> Clique com botão direito em uma série<br>"
+            "🎨 <b>Método 2:</b> Arraste a série para as zonas abaixo<br>"
+            "📊 Suporte para gráficos 2D, 3D, Heatmap e Scatter",
         )
         instructions.setStyleSheet("""
             QLabel {
@@ -2162,8 +2186,8 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
         # Zona 2D
         zone_2d = DropZone(
-            "ðŸ“Š GrÃ¡fico 2D",
-            "Arraste sÃ©rie aqui para\ncriar grÃ¡fico de linha 2D",
+            "📊 Gráfico 2D",
+            "Arraste série aqui para\ncriar gráfico de linha 2D",
             "2d",
         )
         zone_2d.series_dropped.connect(self._on_series_dropped_2d)
@@ -2171,8 +2195,8 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
         # Zona 3D
         zone_3d = DropZone(
-            "ðŸ“ˆ GrÃ¡fico 3D",
-            "Arraste sÃ©rie aqui para\ncriar visualizaÃ§Ã£o 3D",
+            "📈 Gráfico 3D",
+            "Arraste série aqui para\ncriar visualização 3D",
             "3d",
         )
         zone_3d.series_dropped.connect(self._on_series_dropped_3d)
@@ -2180,8 +2204,8 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
         # Zona Heatmap
         zone_heatmap = DropZone(
-            "ðŸ”¥ Heatmap",
-            "Arraste sÃ©rie aqui para\ncriar mapa de calor",
+            "🔥 Heatmap",
+            "Arraste série aqui para\ncriar mapa de calor",
             "heatmap",
         )
         zone_heatmap.series_dropped.connect(self._on_series_dropped_heatmap)
@@ -2189,8 +2213,8 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
         # Zona Scatter
         zone_scatter = DropZone(
-            "ðŸ”µ Scatter Plot",
-            "Arraste sÃ©rie aqui para\ncriar grÃ¡fico de dispersÃ£o",
+            "🔵 Scatter Plot",
+            "Arraste série aqui para\ncriar gráfico de dispersão",
             "scatter",
         )
         zone_scatter.series_dropped.connect(self._on_series_dropped_scatter)
@@ -2199,42 +2223,42 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
         drop_layout.addWidget(zones_frame)
         drop_layout.addStretch()
 
-        self._viz_tabs.addTab(drop_widget, "âž• Nova VisualizaÃ§Ã£o")
+        self._viz_tabs.addTab(drop_widget, "➕ Nova Visualização")
 
     def _setup_connections(self):
-        """ConfiguraÃ§Ã£o de conexÃµes"""
+        """Configuração de conexões"""
         # Session state connections
         self.session_state.dataset_changed.connect(self._on_dataset_changed)
 
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
-        """Handler para mudanÃ§a de dataset"""
+        """Handler para mudança de dataset"""
         # Update UI quando dataset mudar
-        # Implementar refresh se necessÃ¡rio
+        # Implementar refresh se necessário
 
-    # Handlers para drop de sÃ©ries
+    # Handlers para drop de séries
     @pyqtSlot(str, str)
     def _on_series_dropped_2d(self, dataset_id: str, series_id: str):
-        """SÃ©rie dropada para grÃ¡fico 2D"""
+        """Série dropada para gráfico 2D"""
         self._create_plot(dataset_id, series_id, "2d")
 
     @pyqtSlot(str, str)
     def _on_series_dropped_3d(self, dataset_id: str, series_id: str):
-        """SÃ©rie dropada para grÃ¡fico 3D"""
+        """Série dropada para gráfico 3D"""
         self._create_plot(dataset_id, series_id, "3d")
 
     @pyqtSlot(str, str)
     def _on_series_dropped_heatmap(self, dataset_id: str, series_id: str):
-        """SÃ©rie dropada para heatmap"""
+        """Série dropada para heatmap"""
         self._create_plot(dataset_id, series_id, "heatmap")
 
     @pyqtSlot(str, str)
     def _on_series_dropped_scatter(self, dataset_id: str, series_id: str):
-        """SÃ©rie dropada para scatter plot"""
+        """Série dropada para scatter plot"""
         self._create_plot(dataset_id, series_id, "scatter")
 
     def _create_plot(self, dataset_id: str, series_id: str, plot_type: str):
-        """Cria novo grÃ¡fico ou adiciona sÃ©rie a grÃ¡fico existente (se tab 2D estiver ativa)"""
+        """Cria novo gráfico ou adiciona série a gráfico existente (se tab 2D estiver ativa)"""
         try:
             # Get series data
             dataset = self.session_state.get_dataset(dataset_id)
@@ -2248,24 +2272,24 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
             t_datetime = getattr(dataset, "t_datetime", None)
             t_seconds = getattr(dataset, "t_seconds", None)
 
-            # Verificar se tab atual Ã© um grÃ¡fico 2D que pode receber mais sÃ©ries
+            # Verificar se tab atual é um gráfico 2D que pode receber mais séries
             current_idx = self._viz_tabs.currentIndex()
             if current_idx > 0 and plot_type == "2d":
                 current_widget = self._viz_tabs.widget(current_idx)
                 if isinstance(current_widget, MatplotlibWidget) and current_widget.plot_type == "2d":
-                    # Adicionar sÃ©rie ao grÃ¡fico existente
+                    # Adicionar série ao gráfico existente
                     if current_widget.add_series(series, dataset_name):
-                        # Atualizar tÃ­tulo da tab
+                        # Atualizar título da tab
                         n_series = len(current_widget.series_list)
-                        tab_title = f"Comparativo ({n_series} sÃ©ries)"
+                        tab_title = f"Comparativo ({n_series} séries)"
                         self._viz_tabs.setTabText(current_idx, tab_title)
                         logger.info(f"series_added_to_existing_plot: {dataset_id}/{series_id}")
                         return
 
-            # Criar novo grÃ¡fico em nova tab (passando dados de tempo)
+            # Criar novo gráfico em nova tab (passando dados de tempo)
             plot_widget = self._create_plot_widget(series, plot_type, dataset_name, t_datetime, t_seconds)
 
-            # Conectar signal de drop para adicionar mais sÃ©ries
+            # Conectar signal de drop para adicionar mais séries
             if isinstance(plot_widget, MatplotlibWidget):
                 plot_widget.series_drop_requested.connect(
                     lambda ds_id, sr_id, pw=plot_widget: self._on_series_drop_on_plot(pw, ds_id, sr_id),
@@ -2291,7 +2315,7 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
             logger.exception(f"plot_creation_failed: series={series_id}, type={plot_type}, error={e}")
 
     def _on_series_drop_on_plot(self, plot_widget: MatplotlibWidget, dataset_id: str, series_id: str):
-        """Handler para sÃ©rie dropada em um grÃ¡fico existente"""
+        """Handler para série dropada em um gráfico existente"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -2301,28 +2325,28 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
             dataset_name = dataset.source.filename if dataset.source else dataset_id
 
             if plot_widget.add_series(series, dataset_name):
-                # Atualizar tÃ­tulo da tab
+                # Atualizar título da tab
                 tab_idx = self._viz_tabs.indexOf(plot_widget)
                 if tab_idx >= 0:
                     n_series = len(plot_widget.series_list)
-                    self._viz_tabs.setTabText(tab_idx, f"Comparativo ({n_series} sÃ©ries)")
+                    self._viz_tabs.setTabText(tab_idx, f"Comparativo ({n_series} séries)")
 
         except Exception as e:
             logger.exception(f"series_drop_on_plot_error: {e}")
 
     def create_plot_for_series(self, dataset_id: str, series_id: str, plot_type: str):
-        """Cria grÃ¡fico para sÃ©rie especÃ­fica (API pÃºblica)"""
+        """Cria gráfico para série específica (API pública)"""
         self._create_plot(dataset_id, series_id, plot_type)
 
     def _create_plot_widget(self, series, plot_type: str, dataset_name: str = "",
                            t_datetime=None, t_seconds=None) -> QWidget:
-        """Cria widget de grÃ¡fico REAL usando matplotlib"""
+        """Cria widget de gráfico REAL usando matplotlib"""
         try:
             # Criar widget matplotlib real com nome do dataset e dados de tempo
             widget = MatplotlibWidget(series, plot_type, dataset_name=dataset_name,
                                    t_datetime=t_datetime, t_seconds=t_seconds)
 
-            # Conectar signal de cÃ¡lculo do widget ao panel
+            # Conectar signal de cálculo do widget ao panel
             widget.calculation_requested.connect(self.calculation_requested.emit)
 
             return widget
@@ -2335,11 +2359,11 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
             layout = QVBoxLayout(widget)
 
             content = QLabel(
-                f"âŒ Erro na VisualizaÃ§Ã£o\n\n"
-                f"SÃ©rie: {series.name}\n"
+                f"❌ Erro na Visualização\n\n"
+                f"Série: {series.name}\n"
                 f"Tipo: {plot_type.upper()}\n"
                 f"Erro: {e!s}\n\n"
-                "Verifique se matplotlib estÃ¡ instalado corretamente.",
+                "Verifique se matplotlib está instalado corretamente.",
             )
             content.setAlignment(Qt.AlignmentFlag.AlignCenter)
             content.setStyleSheet("""
@@ -2357,8 +2381,8 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
     @pyqtSlot(int)
     def _close_tab(self, index: int):
-        """Fecha tab de visualizaÃ§Ã£o"""
-        if index == 0:  # NÃ£o fechar a tab principal
+        """Fecha tab de visualização"""
+        if index == 0:  # Não fechar a tab principal
             return
 
         # Remove from plots list
@@ -2383,16 +2407,26 @@ class ModernVizPanel(QWidget, UiLoaderMixin):
 
     # Public methods para toolbar
     def create_2d_plot(self):
-        """Cria novo grÃ¡fico 2D vazio"""
+        """Cria novo gráfico 2D vazio"""
         # Por enquanto, apenas foca na tab de drop
         self._viz_tabs.setCurrentIndex(0)
         logger.debug("2d_plot_creation_requested")
 
     def create_3d_plot(self):
-        """Cria novo grÃ¡fico 3D vazio"""
+        """Cria novo gráfico 3D vazio"""
         # Por enquanto, apenas foca na tab de drop
         self._viz_tabs.setCurrentIndex(0)
         logger.debug("3d_plot_creation_requested")
+
+    def _create_plot_from_ui_selection(self, plot_type_combo: QComboBox | None):
+        """Despacha o botão único do UI legado para o criador correto."""
+        plot_type = plot_type_combo.currentText().lower() if plot_type_combo else "2d line"
+
+        if "3d" in plot_type:
+            self.create_3d_plot()
+            return
+
+        self.create_2d_plot()
 
 
 # Compatibility wrapper for unified main window imports.
