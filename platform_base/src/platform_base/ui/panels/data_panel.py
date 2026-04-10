@@ -1,11 +1,11 @@
-﻿"""
+"""
 DataPanel - Painel moderno e compacto para gerenciamento de dados
 
-CaracterÃ­sticas:
+Características:
 - Layout compacto e organizado
 - Interface em PT-BR completo
-- VisualizaÃ§Ã£o clara com Ã­cones
-- Melhor utilizaÃ§Ã£o do espaÃ§o
+- Visualização clara com ícones
+- Melhor utilização do espaço
 """
 
 from __future__ import annotations
@@ -67,8 +67,8 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
     Funcionalidades:
     - Gerenciamento de datasets com nome do arquivo
-    - VisualizaÃ§Ã£o de sÃ©ries ativas
-    - Tabela de dados com colunas de cÃ¡lculos
+    - Visualização de séries ativas
+    - Tabela de dados com colunas de cálculos
     - Interface compacta em PT-BR
 
     Interface carregada do arquivo .ui via UiLoaderMixin.
@@ -95,7 +95,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._total_files = 0
         self._active_workers: list = []
 
-        # Tenta carregar do arquivo .ui, senÃ£o usa fallback
+        # Tenta carregar do arquivo .ui, senão usa fallback
         if not self._load_ui():
             self._setup_modern_ui_fallback()
         else:
@@ -106,7 +106,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
     def _setup_ui_from_file(self):
         """Configura widgets carregados do arquivo .ui"""
-        # ConfiguraÃ§Ãµes bÃ¡sicas
+        # Configuracoes basicas
         self.setMinimumWidth(150)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
@@ -116,23 +116,45 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self.arquivo_label = self.findChild(QLabel, "arquivoLabel")
         self.info_label = self.findChild(QLabel, "infoLabel")
 
+        # Compatibilidade com nomes usados no fluxo fallback
+        self._dataset_name_label = self.arquivo_label if self.arquivo_label else QLabel(self)
+        self._dataset_stats_label = self.info_label if self.info_label else QLabel(self)
+
         self.series_group = self.findChild(QGroupBox, "seriesGroup")
         self.series_tree = self.findChild(QTreeWidget, "seriesTree")
 
         self.data_group = self.findChild(QGroupBox, "dataGroup")
         self.data_table = self.findChild(QTableWidget, "dataTable")
 
+        # Compatibilidade: o restante da classe usa atributos privados (_*)
+        self._load_button = self.carregar_btn
+        self._series_tree = self.series_tree
+        self._data_table = self.data_table
+
+        self._datasets_tree = self.findChild(QTreeWidget, "datasetsTree")
+        if self._datasets_tree is None:
+            # Evita crash quando o .ui nao expoe explicitamente essa arvore
+            self._datasets_tree = QTreeWidget(self)
+
+        self._preview_rows_combo = self.findChild(StableComboBox, "previewRowsCombo")
+        if self._preview_rows_combo is None:
+            self._preview_rows_combo = StableComboBox(self)
+            self._preview_rows_combo.addItems(["10", "25", "50", "100"])
+            self._preview_rows_combo.setCurrentText("25")
+
         # Conecta sinais
         if self.carregar_btn:
             self.carregar_btn.clicked.connect(self._open_file_dialog)
         if self.series_tree:
             self.series_tree.itemSelectionChanged.connect(self._on_series_selection)
+        if self._preview_rows_combo:
+            self._preview_rows_combo.currentTextChanged.connect(self._update_data_table)
 
     def _setup_modern_ui_fallback(self):
         """Interface ultra compacta e otimizada"""
-        # Apenas mÃ­nimo para permitir redimensionamento total
+        # Apenas mínimo para permitir redimensionamento total
         self.setMinimumWidth(150)
-        # PolÃ­tica de tamanho expansÃ­vel
+        # Política de tamanho expansível
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # Main layout ultra compacto
@@ -213,27 +235,27 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             }
         """)
 
-        # Header com botÃ£o de carregar
+        # Header com botão de carregar
         self._create_header(layout)
 
-        # Ãrea principal com abas compactas
+        # Área principal com abas compactas
         self._create_main_content(layout)
 
     def _create_header(self, layout: QVBoxLayout):
-        """CabeÃ§alho compacto com botÃ£o de carregar"""
+        """Cabeçalho compacto com botão de carregar"""
         header_frame = QFrame()
         header_layout = QHBoxLayout(header_frame)
         header_layout.setContentsMargins(0, 0, 0, 0)
         header_layout.setSpacing(6)
 
-        # TÃ­tulo
-        title_label = QLabel("ðŸ“Š Dados")
+        # Título
+        title_label = QLabel("📊 Dados")
         title_label.setFont(QFont("", 11, QFont.Weight.Bold))
         title_label.setStyleSheet("color: #0d6efd; font-size: 13px;")
         header_layout.addWidget(title_label)
 
-        # BotÃ£o carregar
-        self._load_button = QPushButton("ðŸ“ Carregar")
+        # Botão carregar
+        self._load_button = QPushButton("📁 Carregar")
         self._load_button.setToolTip("Carregar dataset (CSV, Excel, Parquet, HDF5)")
         self._load_button.clicked.connect(self._open_file_dialog)
         header_layout.addWidget(self._load_button)
@@ -241,35 +263,35 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         layout.addWidget(header_frame)
 
     def _create_main_content(self, layout: QVBoxLayout):
-        """ConteÃºdo principal compacto"""
+        """Conteúdo principal compacto"""
         # Splitter vertical para organizar melhor
         splitter = QSplitter(Qt.Orientation.Vertical)
         layout.addWidget(splitter)
 
-        # Parte 1: InformaÃ§Ãµes do Dataset + SÃ©ries Ativas (compacto)
+        # Parte 1: Informações do Dataset + Séries Ativas (compacto)
         self._create_dataset_info_section(splitter)
 
-        # Parte 2: Tabela de Dados com CÃ¡lculos
+        # Parte 2: Tabela de Dados com Cálculos
         self._create_data_table_section(splitter)
 
-        # Definir proporÃ§Ãµes: Info(40%) - Tabela(60%)
+        # Definir proporções: Info(40%) - Tabela(60%)
         splitter.setStretchFactor(0, 40)
         splitter.setStretchFactor(1, 60)
 
     def _create_dataset_info_section(self, splitter: QSplitter):
-        """SeÃ§Ã£o compacta de informaÃ§Ãµes do dataset e sÃ©ries"""
+        """Seção compacta de informações do dataset e séries"""
         info_frame = QFrame()
         info_layout = QVBoxLayout(info_frame)
         info_layout.setContentsMargins(4, 4, 4, 4)
         info_layout.setSpacing(4)
 
         # Lista de Datasets (NOVA FUNCIONALIDADE)
-        datasets_group = QGroupBox("ðŸ“‹ Datasets Carregados")
+        datasets_group = QGroupBox("📋 Datasets Carregados")
         datasets_layout = QVBoxLayout(datasets_group)
         datasets_layout.setContentsMargins(4, 4, 4, 4)
 
         self._datasets_tree = QTreeWidget()
-        self._datasets_tree.setHeaderLabels(["Dataset", "SÃ©ries", "Pontos", "PerÃ­odo"])
+        self._datasets_tree.setHeaderLabels(["Dataset", "Séries", "Pontos", "Período"])
         self._datasets_tree.setRootIsDecorated(False)
         self._datasets_tree.setMaximumHeight(150)  # Aumentar altura para mais info
         self._datasets_tree.setAlternatingRowColors(True)
@@ -277,7 +299,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._datasets_tree.setToolTip(
             "Lista de datasets carregados.\n"
             "Clique para selecionar o dataset ativo.\n"
-            "Duplo-clique para editar informaÃ§Ãµes.",
+            "Duplo-clique para editar informações.",
         )
 
         # Configurar headers
@@ -285,13 +307,13 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         datasets_header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         datasets_header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         datasets_header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        datasets_header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # PerÃ­odo
+        datasets_header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # Período
 
         datasets_layout.addWidget(self._datasets_tree)
         info_layout.addWidget(datasets_group)
 
         # Dataset Atual Info (compacto)
-        current_dataset_group = QGroupBox("ðŸŽ¯ Dataset Atual")
+        current_dataset_group = QGroupBox("🎯 Dataset Atual")
         current_dataset_layout = QFormLayout(current_dataset_group)
         current_dataset_layout.setVerticalSpacing(2)
         current_dataset_layout.setHorizontalSpacing(6)
@@ -299,32 +321,32 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._dataset_name_label = QLabel("Nenhum dataset")
         self._dataset_name_label.setStyleSheet("font-weight: normal; color: #6c757d;")
 
-        self._dataset_stats_label = QLabel("0 sÃ©ries â€¢ 0 pontos")
+        self._dataset_stats_label = QLabel("0 séries • 0 pontos")
         self._dataset_stats_label.setStyleSheet("font-weight: normal; color: #6c757d; font-size: 11px;")
 
-        current_dataset_layout.addRow("ðŸ“„ Arquivo:", self._dataset_name_label)
-        current_dataset_layout.addRow("ðŸ“Š Resumo:", self._dataset_stats_label)
+        current_dataset_layout.addRow("📄 Arquivo:", self._dataset_name_label)
+        current_dataset_layout.addRow("📊 Resumo:", self._dataset_stats_label)
 
         info_layout.addWidget(current_dataset_group)
 
-        # SÃ©ries Ativas (Ã¡rvore compacta)
-        series_group = QGroupBox("ðŸŽ¯ SÃ©ries Ativas")
+        # Séries Ativas (árvore compacta)
+        series_group = QGroupBox("🎯 Séries Ativas")
         series_layout = QVBoxLayout(series_group)
         series_layout.setContentsMargins(4, 4, 4, 4)
 
         self._series_tree = QTreeWidget()
-        self._series_tree.setHeaderLabels(["SÃ©rie", "Pontos", "Unidade"])
+        self._series_tree.setHeaderLabels(["Série", "Pontos", "Unidade"])
         self._series_tree.setRootIsDecorated(False)
         self._series_tree.setItemsExpandable(False)
-        self._series_tree.setMaximumHeight(100)  # Altura reduzida para otimizaÃ§Ã£o
+        self._series_tree.setMaximumHeight(100)  # Altura reduzida para otimização
         self._series_tree.setAlternatingRowColors(True)
         self._series_tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)  # Allow multi-selection
         self._series_tree.itemClicked.connect(self._on_series_selected)
         self._series_tree.setToolTip(
-            "SÃ©ries do dataset atual.\n"
-            "â€¢ Clique para selecionar uma sÃ©rie\n"
-            "â€¢ Arraste para o grÃ¡fico para visualizar\n"
-            "â€¢ BotÃ£o direito para opÃ§Ãµes (exportar, remover, etc.)",
+            "Séries do dataset atual.\n"
+            "• Clique para selecionar uma série\n"
+            "• Arraste para o gráfico para visualizar\n"
+            "• Botão direito para opções (exportar, remover, etc.)",
         )
 
         # Enable custom context menu for series
@@ -348,7 +370,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         splitter.addWidget(info_frame)
 
     def _create_data_table_section(self, splitter: QSplitter):
-        """SeÃ§Ã£o da tabela de dados com colunas de cÃ¡lculos"""
+        """Seção da tabela de dados com colunas de cálculos"""
         table_frame = QFrame()
         table_layout = QVBoxLayout(table_frame)
         table_layout.setContentsMargins(4, 4, 4, 4)
@@ -357,7 +379,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Header da tabela
         table_header_layout = QHBoxLayout()
 
-        table_title = QLabel("ðŸ“‹ Dados + CÃ¡lculos")
+        table_title = QLabel("📋 Dados + Cálculos")
         table_title.setFont(QFont("", 10, QFont.Weight.Bold))
         table_title.setStyleSheet("color: #0d6efd;")
         table_header_layout.addWidget(table_title)
@@ -369,7 +391,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._preview_rows_combo.setMaximumWidth(60)
         self._preview_rows_combo.currentTextChanged.connect(self._update_data_table)
         self._preview_rows_combo.setToolTip(
-            "NÃºmero de linhas a exibir na prÃ©via.\n"
+            "Número de linhas a exibir na prévia.\n"
             "Valores maiores mostram mais dados mas podem ser mais lentos.",
         )
 
@@ -386,10 +408,10 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._data_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self._data_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self._data_table.setToolTip(
-            "PrÃ©via dos dados do dataset.\n"
-            "â€¢ Tempo, valores e cÃ¡lculos derivados\n"
-            "â€¢ Selecione linhas para anÃ¡lise\n"
-            "â€¢ Use o controle 'Linhas' para ajustar quantidade",
+            "Prévia dos dados do dataset.\n"
+            "• Tempo, valores e cálculos derivados\n"
+            "• Selecione linhas para análise\n"
+            "• Use o controle 'Linhas' para ajustar quantidade",
         )
 
         # Configurar tabela
@@ -400,14 +422,14 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         # Header vertical mais compacto
         v_header = self._data_table.verticalHeader()
         v_header.setDefaultSectionSize(24)
-        v_header.setVisible(False)  # Ocultar nÃºmeros das linhas
+        v_header.setVisible(False)  # Ocultar números das linhas
 
         table_layout.addWidget(self._data_table)
 
         splitter.addWidget(table_frame)
 
     def _setup_connections(self):
-        """ConfiguraÃ§Ãµes de conexÃµes"""
+        """Configurações de conexões"""
         # Session state connections
         self.session_state.dataset_changed.connect(self._on_dataset_changed)
         self.session_state.operation_started.connect(self._on_operation_started)
@@ -419,8 +441,8 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         logger.debug("data_panel_connections_setup_completed")
 
     def _on_series_selection(self):
-        """Handler para seleÃ§Ã£o de sÃ©rie via itemSelectionChanged (sem parÃ¢metros)"""
-        # ObtÃ©m o primeiro item selecionado
+        """Handler para seleção de série via itemSelectionChanged (sem parâmetros)"""
+        # Obtém o primeiro item selecionado
         tree = self.series_tree if hasattr(self, "series_tree") and self.series_tree else getattr(self, "_series_tree", None)
         if not tree:
             return
@@ -434,12 +456,14 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
         if data and len(data) == 2:
             dataset_id, series_id = data
+            if dataset_id and dataset_id != self.session_state.current_dataset:
+                self.session_state.set_current_dataset(dataset_id)
             self.series_selected.emit(dataset_id, series_id)
             logger.debug("series_selected", dataset_id=dataset_id, series_id=series_id)
 
     @pyqtSlot(str)
     def _on_dataset_changed(self, dataset_id: str):
-        """Handler para mudanÃ§a de dataset - COM PROTEÃ‡ÃƒO CONTRA RECURSÃƒO"""
+        """Handler para mudança de dataset - COM PROTEÇÃO CONTRA RECURSÃO"""
         # Evitar chamadas duplicadas que causam travamento
         if self._updating_ui:
             return
@@ -462,25 +486,25 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
     @pyqtSlot(str)
     def _on_operation_started(self, operation_name: str):
-        """Handler para inÃ­cio de operaÃ§Ã£o"""
+        """Handler para início de operação"""
         self._load_button.setEnabled(False)
 
     @pyqtSlot(str, bool)
     def _on_operation_finished(self, operation_name: str, success: bool):
-        """Handler para fim de operaÃ§Ã£o"""
+        """Handler para fim de operação"""
         self._load_button.setEnabled(True)
 
     def _open_file_dialog(self):
-        """DiÃ¡logo de seleÃ§Ã£o de mÃºltiplos arquivos com validaÃ§Ã£o aprimorada"""
+        """Diálogo de seleção de múltiplos arquivos com validação aprimorada"""
         file_dialog = QFileDialog(self)
-        file_dialog.setWindowTitle("ðŸ“ Carregar Dataset(s)")
-        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)  # MÃºltiplos arquivos
+        file_dialog.setWindowTitle("📁 Carregar Dataset(s)")
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)  # Múltiplos arquivos
         file_dialog.setNameFilters([
             "Todos os formatos suportados (*.csv *.xlsx *.xls *.parquet *.pq *.h5 *.hdf5)",
-            "CSV - Valores separados por vÃ­rgula (*.csv)",
+            "CSV - Valores separados por vírgula (*.csv)",
             "Excel - Planilha Microsoft (*.xlsx *.xls)",
             "Parquet - Formato colunar Apache (*.parquet *.pq)",
-            "HDF5 - Formato hierÃ¡rquico (*.h5 *.hdf5)",
+            "HDF5 - Formato hierárquico (*.h5 *.hdf5)",
             "Todos os arquivos (*.*)",
         ])
 
@@ -501,22 +525,22 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
                     else:
                         invalid_files.append((file_path, validation["error"]))
 
-                # Alertar sobre arquivos invÃ¡lidos
+                # Alertar sobre arquivos inválidos
                 if invalid_files:
-                    error_details = "\n".join([f"â€¢ {Path(f).name}: {e}" for f, e in invalid_files])
+                    error_details = "\n".join([f"• {Path(f).name}: {e}" for f, e in invalid_files])
                     QMessageBox.warning(
                         self,
-                        "âš ï¸ Arquivos InvÃ¡lidos",
-                        f"Os seguintes arquivos nÃ£o podem ser carregados:\n\n{error_details}",
+                        "⚠️ Arquivos Inválidos",
+                        f"Os seguintes arquivos não podem ser carregados:\n\n{error_details}",
                     )
 
                 # Alertar sobre arquivos grandes
                 if large_files:
-                    file_list = "\n".join([f"â€¢ {Path(f).name} ({s:.1f} MB)" for f, s in large_files])
+                    file_list = "\n".join([f"• {Path(f).name} ({s:.1f} MB)" for f, s in large_files])
                     reply = QMessageBox.question(
                         self,
-                        "âš ï¸ Arquivos Grandes Detectados",
-                        f"Os seguintes arquivos sÃ£o grandes e podem demorar para carregar:\n\n{file_list}\n\n"
+                        "⚠️ Arquivos Grandes Detectados",
+                        f"Os seguintes arquivos são grandes e podem demorar para carregar:\n\n{file_list}\n\n"
                         f"Deseja continuar com o carregamento?",
                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                         QMessageBox.StandardButton.Yes,
@@ -525,21 +549,21 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
                         # Remover arquivos grandes da lista
                         valid_files = [f for f in valid_files if f not in [lf[0] for lf in large_files]]
 
-                # Carregar arquivos vÃ¡lidos EM PARALELO
+                # Carregar arquivos válidos EM PARALELO
                 if valid_files:
                     self.load_datasets_parallel(valid_files)
 
     def _validate_file(self, file_path: str) -> dict:
         """
-        Valida arquivo antes do carregamento - VERSÃƒO ULTRA SIMPLIFICADA
+        Valida arquivo antes do carregamento - VERSÃO ULTRA SIMPLIFICADA
 
-        Apenas verifica existÃªncia, extensÃ£o e tamanho.
-        ValidaÃ§Ã£o de conteÃºdo Ã© feita no worker thread.
+        Apenas verifica existência, extensão e tamanho.
+        Validação de conteúdo é feita no worker thread.
 
         Returns:
             dict com:
                 - valid: bool
-                - error: str (se invÃ¡lido)
+                - error: str (se inválido)
                 - size_mb: float
                 - large_file: bool (>50MB)
         """
@@ -555,21 +579,21 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
             # 1. Verificar se arquivo existe
             if not path.exists():
-                result["error"] = "Arquivo nÃ£o encontrado"
+                result["error"] = "Arquivo não encontrado"
                 return result
 
-            # 2. Verificar se Ã© arquivo (nÃ£o diretÃ³rio)
+            # 2. Verificar se é arquivo (não diretório)
             if not path.is_file():
-                result["error"] = "NÃ£o Ã© um arquivo vÃ¡lido"
+                result["error"] = "Não é um arquivo válido"
                 return result
 
-            # 3. Verificar extensÃ£o
+            # 3. Verificar extensão
             valid_extensions = {".csv", ".xlsx", ".xls", ".parquet", ".pq", ".h5", ".hdf5"}
             if path.suffix.lower() not in valid_extensions:
-                result["error"] = f"Formato nÃ£o suportado: {path.suffix}"
+                result["error"] = f"Formato não suportado: {path.suffix}"
                 return result
 
-            # 4. Verificar tamanho (Ãºnica operaÃ§Ã£o de I/O)
+            # 4. Verificar tamanho (única operação de I/O)
             size_bytes = path.stat().st_size
             result["size_mb"] = size_bytes / (1024 * 1024)
 
@@ -584,8 +608,8 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             if result["size_mb"] > 50:
                 result["large_file"] = True
 
-            # VALIDAÃ‡ÃƒO SIMPLIFICADA: NÃ£o abre arquivos!
-            # Toda validaÃ§Ã£o de conteÃºdo Ã© feita no worker thread
+            # VALIDAÇÃO SIMPLIFICADA: Não abre arquivos!
+            # Toda validação de conteúdo é feita no worker thread
             result["valid"] = True
             return result
 
@@ -620,7 +644,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             current_count = self._loading_count
             self._total_files = current_count  # Track total for progress
 
-        # Connect signals - usando lambda para garantir execuÃ§Ã£o correta
+        # Connect signals - usando lambda para garantir execução correta
         worker_thread.started.connect(worker.load_file)
         worker.progress.connect(self._on_load_progress, Qt.ConnectionType.QueuedConnection)
         worker.finished.connect(self._on_load_finished, Qt.ConnectionType.QueuedConnection)
@@ -635,7 +659,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         logger.info("worker_thread_started", filename=filename)
 
     def load_datasets_parallel(self, file_paths: list[str]):
-        """Carrega mÃºltiplos datasets em paralelo - NOVO MÃ‰TODO"""
+        """Carrega múltiplos datasets em paralelo - NOVO MÉTODO"""
         if not file_paths:
             return
 
@@ -652,9 +676,8 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         """Handler para progresso"""
         self.session_state.update_operation_progress(percent, message)
 
-    @pyqtSlot(object)  # Dataset object
     def _on_load_finished(self, dataset: Dataset):
-        """Handler para carregamento concluÃ­do - THREAD-SAFE com mutex"""
+        """Handler para carregamento concluído - THREAD-SAFE com mutex"""
         try:
             logger.debug("_on_load_finished_START")
 
@@ -667,8 +690,8 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
                 filename = Path(worker.file_path).stem
                 dataset.dataset_id = filename
 
-            # Add dataset to session - Este jÃ¡ emite dataset_changed
-            # e jÃ¡ define como current se for o primeiro
+            # Add dataset to session - Este já emite dataset_changed
+            # e já define como current se for o primeiro
             dataset_id = self.session_state.add_dataset(dataset)
             logger.debug("dataset_added", dataset_id=dataset_id)
 
@@ -701,7 +724,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
             # Only finish operation when all files are loaded
             if remaining <= 0:
-                self.session_state.finish_operation(True, f"âœ… {loaded} dataset(s) carregado(s)")
+                self.session_state.finish_operation(True, f"✅ {loaded} dataset(s) carregado(s)")
                 with QMutexLocker(self._load_mutex):
                     self._loaded_count = 0
                     self._total_files = 0
@@ -751,7 +774,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
             QMessageBox.critical(
                 self,
-                "âŒ Erro no Carregamento",
+                "❌ Erro no Carregamento",
                 f"Falha ao carregar arquivo:\n\n{error_message}",
             )
 
@@ -783,21 +806,21 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             total_points = sum(len(series.values) for series in dataset.series.values()) if dataset.series else 0
             item.setText(2, f"{total_points:,}")
 
-            # PerÃ­odo de datetime (primeiro e Ãºltimo ponto)
+            # Período de datetime (primeiro e último ponto)
             try:
                 if hasattr(dataset, "t_datetime") and dataset.t_datetime is not None and len(dataset.t_datetime) > 0:
                     import numpy as np
                     first_dt = dataset.t_datetime[0]
                     last_dt = dataset.t_datetime[-1]
-                    # Formatar como string legÃ­vel
+                    # Formatar como string legível
                     first_str = str(np.datetime_as_string(first_dt, unit="m"))[:16].replace("T", " ")
                     last_str = str(np.datetime_as_string(last_dt, unit="m"))[:16].replace("T", " ")
-                    period_str = f"{first_str} â†’ {last_str}"
+                    period_str = f"{first_str} → {last_str}"
                     item.setText(3, period_str)
-                    item.setToolTip(3, f"InÃ­cio: {first_str}\nFim: {last_str}")
+                    item.setToolTip(3, f"Início: {first_str}\nFim: {last_str}")
                 else:
                     item.setText(3, "N/D")
-                    item.setToolTip(3, "Datetime nÃ£o disponÃ­vel")
+                    item.setToolTip(3, "Datetime não disponível")
             except Exception:
                 item.setText(3, "Erro")
 
@@ -816,7 +839,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
     @pyqtSlot(QTreeWidgetItem, int)
     def _on_dataset_selected(self, item: QTreeWidgetItem, column: int):
-        """Handler para seleÃ§Ã£o de dataset na lista"""
+        """Handler para seleção de dataset na lista"""
         try:
             dataset_id = item.data(0, Qt.ItemDataRole.UserRole)
             if dataset_id and dataset_id != self.session_state.current_dataset:
@@ -825,13 +848,13 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("_on_dataset_selected_failed", error=str(e))
 
     def _update_dataset_info(self):
-        """Atualiza informaÃ§Ãµes do dataset"""
+        """Atualiza informações do dataset"""
         if not self._current_dataset:
             self._dataset_name_label.setText("Nenhum dataset")
-            self._dataset_stats_label.setText("0 sÃ©ries â€¢ 0 pontos")
+            self._dataset_stats_label.setText("0 séries • 0 pontos")
             return
 
-        # Nome do arquivo se disponÃ­vel
+        # Nome do arquivo se disponível
         if hasattr(self._current_dataset, "source") and self._current_dataset.source:
             filename = Path(self._current_dataset.source.filename).name
         else:
@@ -839,51 +862,54 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
         self._dataset_name_label.setText(filename)
 
-        # EstatÃ­sticas
+        # Estatísticas
         n_series = len(self._current_dataset.series)
         n_points = len(self._current_dataset.t_seconds)
 
-        # FormataÃ§Ã£o compacta
+        # Formatação compacta
         points_str = f"{n_points / 1000:.1f}k" if n_points > 1000 else str(n_points)
 
-        self._dataset_stats_label.setText(f"{n_series} sÃ©ries â€¢ {points_str} pontos")
+        self._dataset_stats_label.setText(f"{n_series} séries • {points_str} pontos")
 
     def _update_series_tree(self):
-        """Atualiza Ã¡rvore de sÃ©ries de forma compacta"""
+        """Atualiza árvore de séries com todos os datasets carregados."""
         self._series_tree.clear()
 
-        if not self._current_dataset:
+        all_datasets = self.session_state.get_all_datasets()
+        if not all_datasets:
             return
 
-        # Obter nome do dataset para prefixo
-        dataset_name = self._current_dataset.dataset_id
-        if hasattr(self._current_dataset, "source") and self._current_dataset.source:
-            dataset_name = Path(self._current_dataset.source.filename).stem
+        # Exibe cada dataset como grupo, com suas séries como filhos
+        for dataset_id, dataset in all_datasets.items():
+            dataset_name = dataset_id
+            if hasattr(dataset, "source") and dataset.source:
+                dataset_name = Path(dataset.source.filename).stem
 
-        # Add series items (sem hierarquia, mais direto)
-        for series in self._current_dataset.series.values():
-            item = QTreeWidgetItem(self._series_tree)
+            dataset_item = QTreeWidgetItem(self._series_tree)
+            dataset_item.setText(0, f"📂 {dataset_name}")
+            dataset_item.setText(1, str(len(dataset.series)))
+            dataset_item.setText(2, "")
 
-            # Usar nome do dataset + nome da sÃ©rie para melhor identificaÃ§Ã£o
-            # Ex: "BAR_DT-OP10 / valor" em vez de apenas "valor"
-            display_name = f"ðŸ“ˆ {dataset_name}"
-            if series.name and series.name != "valor":
-                display_name = f"ðŸ“ˆ {series.name}"
-            item.setText(0, display_name)
+            if dataset_id == self.session_state.current_dataset:
+                dataset_item.setExpanded(True)
 
-            # Formato compacto de pontos
-            n_points = len(series.values)
-            points_text = f"{n_points / 1000:.1f}k" if n_points > 1000 else str(n_points)
+            for series in dataset.series.values():
+                item = QTreeWidgetItem(dataset_item)
 
-            item.setText(1, points_text)
-            item.setText(2, str(series.unit))
+                display_name = f"📈 {series.name}" if series.name else "📈 Série"
+                item.setText(0, display_name)
 
-            # Store data for selection and drag
-            item.setData(0, Qt.ItemDataRole.UserRole,
-                        (self._current_dataset.dataset_id, series.series_id))
+                n_points = len(series.values)
+                points_text = f"{n_points / 1000:.1f}k" if n_points > 1000 else str(n_points)
 
-            # Make item draggable
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsDragEnabled)
+                item.setText(1, points_text)
+                item.setText(2, str(series.unit))
+
+                # Store data for selection and drag
+                item.setData(0, Qt.ItemDataRole.UserRole, (dataset_id, series.series_id))
+
+                # Make item draggable
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsDragEnabled)
 
         # Resize columns
         self._series_tree.resizeColumnToContents(0)
@@ -891,7 +917,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
         self._series_tree.resizeColumnToContents(2)
 
     def _update_data_table(self):
-        """Atualiza tabela de dados - VERSÃƒO OTIMIZADA"""
+        """Atualiza tabela de dados - VERSÃO OTIMIZADA"""
         logger.debug("_update_data_table_START")
 
         if not self._current_dataset:
@@ -911,8 +937,8 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             return
 
         # Colunas simplificadas para melhor performance
-        base_columns = ["â±ï¸ Tempo (s)", "ðŸ“… Data/Hora"]
-        series_columns = [f"ðŸ“Š {s.name}" for s in self._current_dataset.series.values()]
+        base_columns = ["⏱️ Tempo (s)", "📅 Data/Hora"]
+        series_columns = [f"📊 {s.name}" for s in self._current_dataset.series.values()]
 
         all_columns = base_columns + series_columns
 
@@ -943,7 +969,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             self._data_table.setItem(row, col, QTableWidgetItem(dt_str))
             col += 1
 
-            # Valores das sÃ©ries (sem cÃ¡lculos para evitar travamento)
+            # Valores das séries (sem cálculos para evitar travamento)
             for series in series_list:
                 value = series.values[row]
                 if pd.isna(value):
@@ -965,11 +991,13 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
 
     @pyqtSlot(QTreeWidgetItem, int)
     def _on_series_selected(self, item: QTreeWidgetItem, column: int):
-        """Handler para seleÃ§Ã£o de sÃ©rie"""
+        """Handler para seleção de série"""
         data = item.data(0, Qt.ItemDataRole.UserRole)
 
         if data and len(data) == 2:
             dataset_id, series_id = data
+            if dataset_id and dataset_id != self.session_state.current_dataset:
+                self.session_state.set_current_dataset(dataset_id)
             self.series_selected.emit(dataset_id, series_id)
             logger.debug("series_selected", dataset_id=dataset_id, series_id=series_id)
 
@@ -994,19 +1022,19 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
     def _clear_ui(self):
         """Limpa interface"""
         self._dataset_name_label.setText("Nenhum dataset")
-        self._dataset_stats_label.setText("0 sÃ©ries â€¢ 0 pontos")
+        self._dataset_stats_label.setText("0 séries • 0 pontos")
         self._series_tree.clear()
         self._data_table.setRowCount(0)
         self._data_table.setColumnCount(0)
 
     @pyqtSlot(QPoint)
     def _show_series_context_menu(self, position: QPoint):
-        """Mostra menu de contexto para sÃ©ries com cÃ¡lculos em PT-BR"""
+        """Mostra menu de contexto para séries com cálculos em PT-BR"""
         item = self._series_tree.itemAt(position)
         if not item:
             return
 
-        # Verificar se Ã© uma sÃ©rie
+        # Verificar se é uma série
         data = item.data(0, Qt.ItemDataRole.UserRole)
         if not data or len(data) != 2:
             return
@@ -1039,71 +1067,71 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             }
         """)
 
-        # TÃ­tulo do menu
-        series_name = item.text(0).replace("ðŸ“ˆ ", "")
-        title_action = QAction(f"ðŸ“ˆ {series_name}", self)
+        # Título do menu
+        series_name = item.text(0).replace("📈 ", "")
+        title_action = QAction(f"📈 {series_name}", self)
         title_action.setEnabled(False)
         title_action.setStyleSheet("font-weight: bold; color: #0d6efd;")
         context_menu.addAction(title_action)
         context_menu.addSeparator()
 
-        # VisualizaÃ§Ãµes
-        viz_action = QAction("ðŸ“Š Plotar em GrÃ¡fico 2D", self)
+        # Visualizações
+        viz_action = QAction("📊 Plotar em Gráfico 2D", self)
         viz_action.triggered.connect(lambda: self._plot_series_2d(dataset_id, series_id))
         context_menu.addAction(viz_action)
 
-        viz_3d_action = QAction("ðŸ“ˆ Plotar em GrÃ¡fico 3D", self)
+        viz_3d_action = QAction("📈 Plotar em Gráfico 3D", self)
         viz_3d_action.triggered.connect(lambda: self._plot_series_3d(dataset_id, series_id))
         context_menu.addAction(viz_3d_action)
 
         context_menu.addSeparator()
 
-        # CÃ¡lculos matemÃ¡ticos
-        interpolate_action = QAction("âš¡ Interpolar SÃ©rie", self)
+        # Cálculos matemáticos
+        interpolate_action = QAction("⚡ Interpolar Série", self)
         interpolate_action.triggered.connect(lambda: self._interpolate_series(dataset_id, series_id))
         context_menu.addAction(interpolate_action)
 
-        derivative_action = QAction("ðŸ“ Calcular Derivada", self)
+        derivative_action = QAction("📐 Calcular Derivada", self)
         derivative_action.triggered.connect(lambda: self._calculate_derivative(dataset_id, series_id))
         context_menu.addAction(derivative_action)
 
-        integral_action = QAction("âˆ« Calcular Integral", self)
+        integral_action = QAction("∫ Calcular Integral", self)
         integral_action.triggered.connect(lambda: self._calculate_integral(dataset_id, series_id))
         context_menu.addAction(integral_action)
 
-        area_action = QAction("ðŸ“ Calcular Ãrea sob Curva", self)
+        area_action = QAction("📏 Calcular Área sob Curva", self)
         area_action.triggered.connect(lambda: self._calculate_area(dataset_id, series_id))
         context_menu.addAction(area_action)
 
         context_menu.addSeparator()
 
-        # OperaÃ§Ãµes de dados
-        smooth_action = QAction("ðŸŒŠ Suavizar SÃ©rie", self)
+        # Operações de dados
+        smooth_action = QAction("🌊 Suavizar Série", self)
         smooth_action.triggered.connect(lambda: self._smooth_series(dataset_id, series_id))
         context_menu.addAction(smooth_action)
 
-        filter_action = QAction("ðŸ” Filtrar Dados", self)
+        filter_action = QAction("🔍 Filtrar Dados", self)
         filter_action.triggered.connect(lambda: self._filter_series(dataset_id, series_id))
         context_menu.addAction(filter_action)
 
-        # Mostrar menu na posiÃ§Ã£o do clique
+        # Mostrar menu na posição do clique
         global_pos = self._series_tree.mapToGlobal(position)
         context_menu.exec(global_pos)
 
         logger.debug("series_context_menu_shown", series_id=series_id)
 
     def _plot_series_2d(self, dataset_id: str, series_id: str):
-        """Solicita criaÃ§Ã£o de grÃ¡fico 2D dentro do painel de visualizaÃ§Ã£o"""
+        """Solicita criação de gráfico 2D dentro do painel de visualização"""
         self.plot_requested.emit(dataset_id, series_id, "2d")
         logger.info("plot_2d_requested", dataset_id=dataset_id, series_id=series_id)
 
     def _plot_series_3d(self, dataset_id: str, series_id: str):
-        """Solicita criaÃ§Ã£o de grÃ¡fico 3D dentro do painel de visualizaÃ§Ã£o"""
+        """Solicita criação de gráfico 3D dentro do painel de visualização"""
         self.plot_requested.emit(dataset_id, series_id, "3d")
         logger.info("plot_3d_requested", dataset_id=dataset_id, series_id=series_id)
 
     def _interpolate_series(self, dataset_id: str, series_id: str):
-        """Interpola sÃ©rie selecionada - IMPLEMENTAÃ‡ÃƒO COMPLETA"""
+        """Interpola série selecionada - IMPLEMENTAÇÃO COMPLETA"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -1137,7 +1165,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("interpolation_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
 
     def _calculate_derivative(self, dataset_id: str, series_id: str):
-        """Calcula derivada da sÃ©rie - IMPLEMENTAÃ‡ÃƒO COMPLETA"""
+        """Calcula derivada da série - IMPLEMENTAÇÃO COMPLETA"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -1176,7 +1204,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("derivative_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
 
     def _calculate_integral(self, dataset_id: str, series_id: str):
-        """Calcula integral da sÃ©rie - IMPLEMENTAÃ‡ÃƒO COMPLETA"""
+        """Calcula integral da série - IMPLEMENTAÇÃO COMPLETA"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -1212,7 +1240,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("integral_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
 
     def _calculate_area(self, dataset_id: str, series_id: str):
-        """Calcula Ã¡rea sob a curva - IMPLEMENTAÃ‡ÃƒO COMPLETA"""
+        """Calcula área sob a curva - IMPLEMENTAÇÃO COMPLETA"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -1248,7 +1276,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("area_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
 
     def _smooth_series(self, dataset_id: str, series_id: str):
-        """Suaviza sÃ©rie - IMPLEMENTAÃ‡ÃƒO COMPLETA"""
+        """Suaviza série - IMPLEMENTAÇÃO COMPLETA"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -1292,7 +1320,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("smoothing_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
 
     def _filter_series(self, dataset_id: str, series_id: str):
-        """Filtra dados da sÃ©rie - IMPLEMENTAÃ‡ÃƒO COMPLETA"""
+        """Filtra dados da série - IMPLEMENTAÇÃO COMPLETA"""
         try:
             dataset = self.session_state.get_dataset(dataset_id)
             if not dataset or series_id not in dataset.series:
@@ -1332,7 +1360,7 @@ class CompactDataPanel(QWidget, UiLoaderMixin):
             logger.exception("filtering_failed", dataset_id=dataset_id, series_id=series_id, error=str(e))
 
     def _start_series_drag(self, supportedActions):
-        """Inicia drag de sÃ©rie com dados no formato correto"""
+        """Inicia drag de série com dados no formato correto"""
         current_item = self._series_tree.currentItem()
         if not current_item:
             return
