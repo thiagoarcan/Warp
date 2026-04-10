@@ -679,8 +679,9 @@ class UploadDialog(QDialog, UiLoaderMixin):
     @pyqtSlot(str, object)
     def _on_multi_file_loaded(self, filepath: str, dataset):
         """Handle single file loaded in multi-file operation"""
-        # Add dataset to store
-        dataset_id = self.session_state.dataset_store.add_dataset(dataset)
+        # Add dataset through SessionState so dataset_changed/current selection
+        # stay in sync across all panels.
+        dataset_id = self.session_state.add_dataset(dataset)
         self.loaded_datasets.append(dataset_id)
 
         # Emit signal
@@ -790,8 +791,9 @@ class UploadDialog(QDialog, UiLoaderMixin):
     @pyqtSlot(str, object)
     def _on_file_loaded(self, filepath: str, dataset):
         """Handle file loaded successfully"""
-        # Add dataset to store
-        dataset_id = self.session_state.dataset_store.add_dataset(dataset)
+        # Add dataset through SessionState so dataset_changed/current selection
+        # stay in sync across all panels.
+        dataset_id = self.session_state.add_dataset(dataset)
 
         # Emit signal
         self.signal_hub.emit_dataset_loaded(dataset_id)
