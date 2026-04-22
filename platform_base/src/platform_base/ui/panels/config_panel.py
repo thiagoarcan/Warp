@@ -1,15 +1,15 @@
-﻿"""
-ConfigPanel - Painel de configuraÃ§Ãµes da aplicaÃ§Ã£o
+"""
+ConfigPanel - Painel de configurações da aplicação
 
-CaracterÃ­sticas:
-- ConfiguraÃ§Ãµes de visualizaÃ§Ã£o
-- PreferÃªncias de usuÃ¡rio
-- OpÃ§Ãµes de performance
-- Temas e aparÃªncia
-- PersistÃªncia via QSettings
+Características:
+- Configurações de visualização
+- Preferências de usuário
+- Opções de performance
+- Temas e aparência
+- Persistência via QSettings
 
 Autor: Platform Base Team
-VersÃ£o: 2.0.0
+Versão: 2.0.0
 """
 
 from __future__ import annotations
@@ -18,8 +18,12 @@ from typing import Any
 
 from PyQt6.QtCore import QSettings, pyqtSignal
 from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
     QColorDialog,
+    QDoubleSpinBox,
     QPushButton,
+    QSpinBox,
     QTabWidget,
     QWidget,
 )
@@ -32,15 +36,13 @@ logger = get_logger(__name__)
 
 
 class ColorButton(QPushButton):
-    """BotÃ£o para seleÃ§Ã£o de cor"""
+    """Botão para seleção de cor"""
 
     color_changed = pyqtSignal(str)  # Hex color
 
     def __init__(self, color: str = "#0d6efd", parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.session_state = session_state
-        self.signal_hub = signal_hub
         self._color = color
         self.setFixedSize(32, 32)
         self._update_style()
@@ -60,7 +62,7 @@ class ColorButton(QPushButton):
         """)
 
     def _pick_color(self):
-        """Abre diÃ¡logo de seleÃ§Ã£o de cor"""
+        """Abre diálogo de seleção de cor"""
         from PyQt6.QtGui import QColor
 
         color = QColorDialog.getColor(QColor(self._color), self, "Selecionar Cor")
@@ -81,10 +83,10 @@ class ColorButton(QPushButton):
 
 class ConfigPanel(QWidget, UiLoaderMixin):
     """
-    Painel de configuraÃ§Ãµes da aplicaÃ§Ã£o
+    Painel de configurações da aplicação
 
     Signals:
-        config_changed: Emitido quando qualquer configuraÃ§Ã£o muda
+        config_changed: Emitido quando qualquer configuração muda
         theme_changed: Emitido quando tema muda
         performance_changed: Emitido quando config de performance muda
 
@@ -109,20 +111,69 @@ class ConfigPanel(QWidget, UiLoaderMixin):
 
         # Carregar interface do arquivo .ui
         if not self._load_ui():
-            raise RuntimeError(f"Falha ao carregar arquivo UI: {self.UI_FILE}. Verifique se existe em desktop/ui_files/")
+            logger.warning("config_panel_ui_load_failed_using_programmatic_fallback")
         self._setup_ui_from_file()
 
         self._load_settings()
         self._connect_signals()
 
     def _setup_ui_from_file(self):
-        """Configura widgets carregados do arquivo .ui"""
-        # Tabs principais
-        self.tabs = self.findChild(QTabWidget, "configTabs")
+        """Configura widgets carregados do arquivo .ui."""
+        self.tabs = self.findChild(QTabWidget, "configTabs") or QTabWidget(self)
 
-        # BotÃµes de aÃ§Ã£o
-        reset_btn = self.findChild(QPushButton, "resetBtn")
-        apply_btn = self.findChild(QPushButton, "applyBtn")
+        def combo(name: str, items: list[str]) -> QComboBox:
+            widget = self.findChild(QComboBox, name) or QComboBox(self)
+            if widget.count() == 0:
+                widget.addItems(items)
+            return widget
+
+        def spin(name: str, minimum: int, maximum: int, value: int = 0) -> QSpinBox:
+            widget = self.findChild(QSpinBox, name) or QSpinBox(self)
+            widget.setRange(minimum, maximum)
+            if widget.value() == 0 and value:
+                widget.setValue(value)
+            return widget
+
+        def dspin(name: str, minimum: float, maximum: float, value: float = 0.0) -> QDoubleSpinBox:
+            widget = self.findChild(QDoubleSpinBox, name) or QDoubleSpinBox(self)
+            widget.setRange(minimum, maximum)
+            if widget.value() == 0 and value:
+                widget.setValue(value)
+            return widget
+
+        def check(name: str, checked: bool = False) -> QCheckBox:
+            widget = self.findChild(QCheckBox, name) or QCheckBox(self)
+            widget.setChecked(checked)
+            return widget
+
+        self._theme_combo = combo("themeCombo", ["Claro", "Escuro", "Auto"])
+        self._line_width = dspin("lineWidthSpin", 0.1, 10.0, 2.0)
+        self._line_width.setSingleStep(0.1)
+        self._marker_size = spin("markerSizeSpin", 1, 20, 3)
+        self._show_grid = check("showGridCheck", True)
+        self._show_legend = check("showLegendCheck", True)
+        self._antialiasing = check("antialiasingCheck", True)
+        self._font_size = spin("fontSizeSpin", 8, 32, 12)
+        self._toolbar_icons = combo("toolbarIconsCombo", ["Pequeno", "Médio", "Grande"])
+
+        self._direct_limit = spin("directLimitSpin", 100, 10_000_000, 10000)
+        self._target_points = spin("targetPointsSpin", 100, 1_000_000, 5000)
+        self._decimation_method = combo("decimationMethodCombo", ["minmax", "mean", "sample"])
+        self._cache_enabled = check("cacheEnabledCheck", True)
+        self._cache_size = spin("cacheSizeSpin", 1, 100000, 100)
+        self._chunk_size = spin("chunkSizeSpin", 1, 10000000, 100000)
+        self._preload_chunks = spin("preloadChunksSpin", 0, 1000, 2)
+
+        self._default_encoding = combo("encodingCombo", ["auto", "utf-8", "latin-1"])
+        self._auto_backup = check("autoBackupCheck", True)
+        self._recent_files_limit = spin("recentFilesSpin", 0, 1000, 10)
+        self._undo_limit = spin("undoLimitSpin", 0, 10000, 100)
+        self._save_session = check("saveSessionCheck", True)
+        self._show_notifications = check("showNotificationsCheck", True)
+        self._play_sounds = check("playSoundsCheck", False)
+
+        reset_btn = self.findChild(QPushButton, "resetBtn") or self.findChild(QPushButton, "previewBtn")
+        apply_btn = self.findChild(QPushButton, "applyBtn") or self.findChild(QPushButton, "executeBtn")
 
         if reset_btn:
             reset_btn.clicked.connect(self._reset_defaults)
@@ -130,7 +181,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
             apply_btn.clicked.connect(self._apply_settings)
 
     def _connect_signals(self):
-        """Conecta signals para detecÃ§Ã£o de mudanÃ§as"""
+        """Conecta signals para detecção de mudanças"""
         # Conecta todos os widgets para emitir config_changed
         self._theme_combo.currentTextChanged.connect(
             lambda v: self._on_config_change("theme", v),
@@ -143,13 +194,13 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         )
 
     def _on_config_change(self, key: str, value: Any):
-        """Handler para mudanÃ§a de configuraÃ§Ã£o"""
+        """Handler para mudança de configuração"""
         self._config[key] = value
         self.config_changed.emit(key, value)
 
     def _load_settings(self):
-        """Carrega configuraÃ§Ãµes salvas"""
-        # VisualizaÃ§Ã£o
+        """Carrega configurações salvas"""
+        # Visualização
         self._theme_combo.setCurrentText(
             self._settings.value("viz/theme", "Claro"),
         )
@@ -188,8 +239,8 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.info("settings_loaded")
 
     def _apply_settings(self):
-        """Salva configuraÃ§Ãµes"""
-        # VisualizaÃ§Ã£o
+        """Salva configurações"""
+        # Visualização
         self._settings.setValue("viz/theme", self._theme_combo.currentText())
         self._settings.setValue("viz/line_width", self._line_width.value())
         self._settings.setValue("viz/marker_size", self._marker_size.value())
@@ -224,8 +275,8 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.info("settings_saved")
 
     def _reset_defaults(self):
-        """Restaura configuraÃ§Ãµes padrÃ£o"""
-        # VisualizaÃ§Ã£o
+        """Restaura configurações padrão"""
+        # Visualização
         self._theme_combo.setCurrentText("Claro")
         self._line_width.setValue(2.0)
         self._marker_size.setValue(3)
@@ -233,7 +284,7 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         self._show_legend.setChecked(True)
         self._antialiasing.setChecked(True)
         self._font_size.setValue(12)
-        self._toolbar_icons.setCurrentText("MÃ©dio")
+        self._toolbar_icons.setCurrentText("Médio")
 
         # Performance
         self._direct_limit.setValue(10000)
@@ -256,11 +307,11 @@ class ConfigPanel(QWidget, UiLoaderMixin):
         logger.info("settings_reset_to_defaults")
 
     def get_config(self, key: str, default: Any = None) -> Any:
-        """ObtÃ©m valor de configuraÃ§Ã£o"""
+        """Obtém valor de configuração"""
         return self._settings.value(key, default)
 
     def set_config(self, key: str, value: Any):
-        """Define valor de configuraÃ§Ã£o"""
+        """Define valor de configuração"""
         self._settings.setValue(key, value)
         self._settings.sync()
 

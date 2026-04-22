@@ -415,8 +415,14 @@ class SettingsDialog(QDialog, UiLoaderMixin):
     # Arquivo .ui que define a interface
     UI_FILE = "settingsDialog.ui"
 
-    def __init__(self, session_state: SessionState, parent: QWidget | None = None):
+    def __init__(self, session_state: SessionState | None = None, parent: QWidget | None = None):
         super().__init__(parent)
+
+        if session_state is None:
+            class _SessionStateStub:
+                def set_theme(self, *_args, **_kwargs):
+                    return None
+            session_state = _SessionStateStub()
 
         self.session_state = session_state
         self.settings_tabs = []

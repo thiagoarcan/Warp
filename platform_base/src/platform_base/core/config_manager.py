@@ -579,3 +579,7 @@ def update_validated_config(config_path: str, updates: dict[str, Any],
     """Conveniência para atualizar configuração com validação"""
     return get_advanced_config_manager().update_config_with_validation(
         config_path, updates, schema_name)
+
+
+# Alias de compatibilidade usado pelos testes e integrações legadas
+ConfigManager = AdvancedConfigManager

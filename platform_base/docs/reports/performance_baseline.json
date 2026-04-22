@@ -1,11 +1,11 @@
 {
   "launcher": "launch_app.py",
-  "started_at": "2026-04-04T00:48:07",
-  "startup_seconds": 15.1444,
-  "peak_rss_mb": 185.062,
+  "started_at": "2026-04-07T09:37:33",
+  "startup_seconds": 15.0729,
+  "peak_rss_mb": 225.805,
   "exit_code": 1,
   "startup_detected": true,
   "timed_out": false,
-  "stdout_tail": "",
-  "stderr_tail": "C:\\ProgramData\\anaconda3\\Lib\\site-packages\\cupy\\_environment.py:215: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.\n  warnings.warn("
+  "stdout_tail": "2m\u001b[1minfo     \u001b[0m] \u001b[1msession_state_initialized     \u001b[0m \u001b[36msession_id\u001b[0m=\u001b[35msession_2026-04-07T09:37:39.340278\u001b[0m\u001b[0m\n\u001b[2m2026-04-07T12:37:39.341278Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1m\u001b[2m2026-04-07T12:37:39.340278Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1msignal_hub_initialized        \u001b[0m\u001b[0m\n\u001b[2m2026-04-07T12:37:39.346280Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1m\u001b[2m2026-04-07T12:37:39.346280Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mtheme_changed                 \u001b[0m \u001b[36mis_dark\u001b[0m=\u001b[35mFalse\u001b[0m \u001b[36mmode\u001b[0m=\u001b[35mSUNSET\u001b[0m\u001b[0m\n\u001b[2m2026-04-07T12:37:39.685606Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1m\u001b[2m2026-04-07T12:37:39.685606Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmodern_main_window_initialized\u001b[0m\u001b[0m\n\u001b[2m2026-04-07T12:37:39.699874Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1m\u001b[2m2026-04-07T12:37:39.699874Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mapplication_started           \u001b[0m \u001b[36mversion\u001b[0m=\u001b[35m2.0.0\u001b[0m\u001b[0m\nPlatform Base v2.0 iniciado com sucesso!\nInterface moderna carregada\nTodas as correcoes implementadas",
+  "stderr_tail": "C:\\ProgramData\\anaconda3\\Lib\\site-packages\\cupy\\_environment.py:215: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.\n  warnings.warn(\nQFontDatabase: Cannot find font directory C:/ProgramData/anaconda3/Lib/site-packages/PyQt6/Qt6/lib/fonts.\nNote that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.\nQLayout: Attempting to add QLayout \"\" to VizPanel \"VizPanel\", which already has a layout\nThis plugin does not support propagateSizeHints()\nThis plugin does not support propagateSizeHints()"
 }

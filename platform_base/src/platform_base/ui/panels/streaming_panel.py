@@ -1,4 +1,4 @@
-"""
+﻿"""
 StreamingPanel - Painel de controle de playback para streaming de dados
 
 Características:
@@ -285,6 +285,14 @@ class StreamingPanel(QWidget, UiLoaderMixin):
         self._update_rate_spin = self.findChild(QSpinBox, "updateRateSpin")
         self._auto_scroll_check = self.findChild(QCheckBox, "autoScrollCheck")
         self._record_check = self.findChild(QCheckBox, "recordCheck")
+
+        # Legacy step control is used by timer/playback code and may be absent in .ui
+        self._step_spin = self.findChild(QSpinBox, "stepSpin")
+        if self._step_spin is None:
+            self._step_spin = QSpinBox(self)
+            self._step_spin.setMinimum(1)
+            self._step_spin.setMaximum(1000)
+            self._step_spin.setValue(1)
 
         # === STATUS (para compatibilidade) ===
         # Criamos um label de status se não existir no .ui

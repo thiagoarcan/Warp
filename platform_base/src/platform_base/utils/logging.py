@@ -1,3 +1,4 @@
+﻿import io
 import logging
 import sys
 from pathlib import Path
@@ -44,8 +45,9 @@ def _setup_structlog(level: str, json_logs: bool, log_file: str | None) -> None:
         foreign_pre_chain=processors[:-1],
     )
 
-    # Console handler
-    console_handler = logging.StreamHandler(sys.stdout)
+    # Console handler - UTF-8 to support emoji on Windows
+    _utf8_stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True) if hasattr(sys.stdout, 'buffer') else sys.stdout
+    console_handler = logging.StreamHandler(_utf8_stdout)
     console_handler.setFormatter(formatter)
 
     handlers = [console_handler]
@@ -77,8 +79,9 @@ def _setup_stdlib_logging(level: str, log_file: str | None) -> None:
 
     handlers = []
 
-    # Console handler
-    console_handler = logging.StreamHandler(sys.stdout)
+    # Console handler - UTF-8 to support emoji on Windows
+    _utf8_stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True) if hasattr(sys.stdout, 'buffer') else sys.stdout
+    console_handler = logging.StreamHandler(_utf8_stdout)
     console_handler.setFormatter(logging.Formatter(format_str))
     handlers.append(console_handler)
 

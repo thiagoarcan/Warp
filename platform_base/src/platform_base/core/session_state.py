@@ -1,4 +1,4 @@
-"""
+﻿"""
 SessionState - Centralized state management for Platform Base v2.0
 
 Replaces Dash's client-side storage with centralized Python state management.
@@ -99,6 +99,7 @@ class SessionState(QObject):
 
     # Dataset signals (used by OperationsPanel)
     dataset_changed = pyqtSignal(str)  # dataset_id
+    operation_started = pyqtSignal(str)  # operation_name
     operation_finished = pyqtSignal(str, bool)  # operation_name, success
 
     # Session signals
@@ -208,6 +209,7 @@ class SessionState(QObject):
         }
         self._update_modified()
         self.processing_state_changed.emit(self.processing)
+        self.operation_started.emit(operation_type)
         logger.info("operation_started", operation_id=operation_id, type=operation_type)
 
     def update_operation_progress(self, operation_id: str, progress: int):
@@ -228,6 +230,7 @@ class SessionState(QObject):
 
             self._update_modified()
             self.processing_state_changed.emit(self.processing)
+            self.operation_finished.emit(operation_id, True)
             logger.info("operation_completed", operation_id=operation_id)
 
     def fail_operation(self, operation_id: str, error: str):
@@ -242,6 +245,7 @@ class SessionState(QObject):
 
             self._update_modified()
             self.processing_state_changed.emit(self.processing)
+            self.operation_finished.emit(operation_id, False)
             logger.error("operation_failed", operation_id=operation_id, error=error)
 
     # Streaming state management
@@ -411,3 +415,68 @@ class SessionState(QObject):
             "ui_mode": self.ui.current_mode,
             "theme": self.ui.theme,
         }
+
+    # -------------------------------------------------------------------------
+    # UI Compatibility API
+    # Adapter methods used by DataPanel, OperationsPanel and other UI panels.
+    # -------------------------------------------------------------------------
+
+    @property
+    def current_dataset(self) -> str | None:
+        """Current dataset ID (shortcut to selection.dataset_id)."""
+        return self.selection.dataset_id
+
+    def add_dataset(self, dataset) -> str:
+        """Add dataset to store; auto-select if first. Returns dataset_id."""
+        from platform_base.core.models import Dataset as _Dataset
+        dataset_id = self.dataset_store.add_dataset(dataset)
+        if self.selection.dataset_id is None:
+            self.selection.dataset_id = dataset_id
+        self._update_modified()
+        self.dataset_changed.emit(str(dataset_id))
+        logger.debug("dataset_added_via_session", dataset_id=dataset_id)
+        return dataset_id
+
+    def get_dataset(self, dataset_id: str):
+        """Get dataset from store by ID."""
+        return self.dataset_store.get_dataset(dataset_id)
+
+    def get_all_datasets(self) -> dict:
+        """Return all datasets as {dataset_id: Dataset} dict."""
+        with self.dataset_store._lock:
+            return dict(self.dataset_store._datasets)
+
+    # ---- Simplified operation progress API used by DataPanel ----
+    _ui_op_id: str | None = None
+
+    def start_operation(self, message: str) -> None:
+        """Start a named UI operation (simplified single-op API)."""
+        import uuid as _uuid
+        op_id = f"ui_op_{_uuid.uuid4().hex[:8]}"
+        self._ui_op_id = op_id
+        self.processing.active_operations[op_id] = {
+            "type": "ui",
+            "params": {"message": message},
+            "progress": 0,
+        }
+        self._update_modified()
+        self.operation_started.emit(message)
+        logger.debug("start_operation_simple", op_id=op_id, message=message)
+
+    def update_operation_progress(self, percent: int, message: str) -> None:
+        """Update progress of current UI operation."""
+        op_id = self._ui_op_id
+        if op_id and op_id in self.processing.active_operations:
+            self.processing.active_operations[op_id]["progress"] = percent
+        logger.debug("update_operation_progress_simple", percent=percent)
+
+    def finish_operation(self, success: bool, message: str) -> None:
+        """Finish current UI operation."""
+        op_id = self._ui_op_id
+        if op_id and op_id in self.processing.active_operations:
+            self.processing.active_operations.pop(op_id)
+        self._ui_op_id = None
+        self._update_modified()
+        op_name = message or ("success" if success else "error")
+        self.operation_finished.emit(op_name, success)
+        logger.debug("finish_operation_simple", success=success, message=message)

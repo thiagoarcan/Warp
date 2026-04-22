@@ -904,6 +904,11 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
             if hasattr(self.operations_panel, "streaming_data_updated"):
                 self.operations_panel.streaming_data_updated.connect(self._on_streaming_data_updated)
 
+        # Data panel signals
+        if self.data_panel:
+            self.data_panel.series_selected.connect(self._on_data_panel_series_selected)
+            self.data_panel.plot_requested.connect(self._on_data_panel_plot_requested)
+
         # Undo/redo manager signals
         self.undo_manager.can_undo_changed.connect(self.undo_action.setEnabled)
         self.undo_manager.can_redo_changed.connect(self.redo_action.setEnabled)
@@ -915,6 +920,41 @@ class ModernMainWindow(QMainWindow, UiLoaderMixin):
         )
 
         logger.debug("signals_connected")
+
+    @pyqtSlot(str, str)
+    def _on_data_panel_series_selected(self, dataset_id: str, series_id: str):
+        """Sincroniza seleção de série do painel de dados com o estado global."""
+        try:
+            self.session_state.set_current_dataset(dataset_id)
+            self.session_state.add_series_selection(series_id)
+            self.signal_hub.series_selected.emit(dataset_id, series_id)
+        except Exception as e:
+            logger.exception("data_panel_series_selection_sync_failed", error=str(e))
+
+    @pyqtSlot(str, str, str)
+    def _on_data_panel_plot_requested(self, dataset_id: str, series_id: str, plot_type: str):
+        """Cria gráfico solicitado pelo menu/contexto do painel de dados."""
+        try:
+            if not self.viz_panel:
+                logger.warning("plot_requested_without_viz_panel")
+                return
+
+            self.viz_panel.create_plot_for_series(dataset_id, series_id, plot_type)
+
+            if self.status_label is not None:
+                self.status_label.setText(
+                    f"📈 Gráfico {plot_type.upper()} criado para série {series_id}",
+                )
+
+            logger.info(
+                "plot_created_from_data_panel",
+                dataset_id=dataset_id,
+                series_id=series_id,
+                plot_type=plot_type,
+            )
+        except Exception as e:
+            logger.exception("plot_request_from_data_panel_failed", error=str(e))
+            QMessageBox.warning(self, tr("Erro"), f"Falha ao criar gráfico:\n{e}")
 
     # =========================================================================
     # SLOT IMPLEMENTATIONS - FILE OPERATIONS

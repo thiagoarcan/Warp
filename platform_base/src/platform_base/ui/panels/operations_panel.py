@@ -81,10 +81,11 @@ class OperationsPanel(QWidget, UiLoaderMixin):
     export_requested = pyqtSignal(str, dict)     # format, options
     streaming_data_updated = pyqtSignal(str, object, object)  # series_id, x_data, y_data
 
-    def __init__(self, session_state: SessionState):
-        super().__init__()
+    def __init__(self, session_state: SessionState | None = None, signal_hub: object | None = None, parent: QWidget | None = None):
+        super().__init__(parent)
 
         self.session_state = session_state
+        self.signal_hub = signal_hub
         self._history: list[OperationHistoryItem] = []
         self._max_history = 50
 

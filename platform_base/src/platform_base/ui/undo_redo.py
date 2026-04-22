@@ -368,3 +368,7 @@ def get_undo_manager() -> UndoRedoManager:
     if UndoRedoManager._instance is None:
         UndoRedoManager._instance = UndoRedoManager()
     return UndoRedoManager._instance
+
+
+# Alias de compatibilidade usado pelos testes e código legado
+UndoManager = UndoRedoManager
